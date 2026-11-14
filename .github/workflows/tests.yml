@@ -46,7 +46,8 @@ jobs:
         if: matrix.python == '3.12'
         run: python -m pyflakes fogscout tests tools
       - name: pytest
-        run: python -m pytest -q --timeout=900 tests
+        # 1.50.4: in parallel on every core (pytest-xdist); Windows stays serial (native windows, hotkeys)
+        run: python -m pytest -q --timeout=900 -n auto tests
 
   windows:
     name: ${{ matrix.python == '3.12' && 'windows' || format('windows ({0})', matrix.python) }}

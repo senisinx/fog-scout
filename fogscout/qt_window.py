@@ -1104,12 +1104,6 @@ class MainWindow(QMainWindow):
         self.maps.show_maps(items, current, thumbs, recent, marks, style, found)
         self.maps.show_preview(preview)
 
-    def warm_pages(self):
-        """1.3.4 (user: the window should feel smoother): lay out every page once while the window is idle – the
-        first visit of a page polished and laid out all its widgets (settings ~110 ms), later visits ~10 ms."""
-        for i in range(self.stack.count()):
-            self._warm_widget(self.stack.widget(i))
-
     def warm_page(self, key: str):
         """1.16.1: one page of the warm-up (the App spreads them over its steps)."""
         form = dict.get(self.forms, key)

@@ -130,6 +130,16 @@ def test_ci_and_start_bat_install_only_pinned_tools():
     assert [spec for _, spec, _ in _requirements("requirements-pip.txt")] == [f"pip=={PIP_VERSION}"]   # start.bat
 
 
+def test_every_rule_file_is_named_in_claude_md():
+    """1.50.4 (CLAUDE.md stood at 79 998 of 80 000 bytes): the long rule paragraphs of the integrations moved word for
+    word to docs/regeln/ – each file must stay linked from CLAUDE.md's hard rules, or the rule would be lost."""
+    with open(os.path.join(ROOT, "CLAUDE.md"), encoding="utf-8") as fh:
+        text = fh.read()
+    rules = text[:text.index("## Architektur")]
+    files = sorted(f for f in os.listdir(os.path.join(ROOT, "docs", "regeln")) if f.endswith(".md"))
+    assert files and [f for f in files if f"docs/regeln/{f}" not in rules] == []
+
+
 def test_claude_md_stays_a_short_map_of_every_module():
     """1.34.2 (review W4): CLAUDE.md had grown to 133 KB with rows of up to 9 600 characters of version history
     (which belongs in HISTORY.md), and two modules were missing. Now: the rules, and per module what it does and

@@ -24,7 +24,7 @@ from .lobby import LobbyReader, QueueTracker, SteadyCorner, corner_box, crosspla
 from .ticktime import CpuShare, LookTimes
 from .matchstart import LOADING_LOOKS, MatchStart
 from .matchend import MatchEndTracker, Signals
-from .ocr import ModelPool, Recognizer
+from .ocr import LazyRecognizer, ModelPool
 from .textnorm import MAIN, MODEL_FILES
 
 log = logging.getLogger("fogscout")
@@ -144,6 +144,7 @@ class DetectionWorker(threading.Thread):
         self.banner_history = collections.deque(maxlen=20)  # every banner-like sighting and its outcome (diagnosis)
         self.role_misses = collections.deque(maxlen=5)      # 1.11.1: result screens without a role read (diagnosis)
         self._scanner = None
+        self.recognizer = None            # 1.50.4: ocr.LazyRecognizer of the run (built once DBD is found)
         self._reported = set()
         self._fail_text, self._fail_logged = "", 0.0     # 1.8.38: last tick error logged, when
         self._broken = None                              # 1.38.9: why the current run gave up (None: it did not)
@@ -232,7 +233,10 @@ class DetectionWorker(threading.Thread):
 
     def _run(self):
         models = os.path.join(self.root_dir, "models")
-        rec = Recognizer(os.path.join(models, MODEL_FILES[MAIN]), threads=self.settings.get("ocr_threads", 2))
+        # 1.50.4: the session is built once DBD is found (or a manual scan / simulation needs it) – a tray start
+        # without the game holds no model
+        rec = LazyRecognizer(os.path.join(models, MODEL_FILES[MAIN]), threads=self.settings.get("ocr_threads", 2))
+        self.recognizer = rec
         # 1.49: the models of the other scripts (Cyrillic, Chinese/Japanese, Korean) – loaded only for a
         # game language that is ticked, or for a look at a banner nothing ticked can read (gamelang)
         pool = ModelPool(models, threads=self.settings.get("ocr_threads", 2),
@@ -318,6 +322,8 @@ class DetectionWorker(threading.Thread):
                     with self.times.measure("window"):
                         window = find_game_window(window)   # 1.34.1 (P4): the known window checked first
                     window_checked = tick
+                if (source is not None or window is not None) and not rec.built:
+                    rec.load()                       # 1.50.4: built here, before the first look needs it
                 if source is not None:
                     frame = source.current()
                     if frame is None:

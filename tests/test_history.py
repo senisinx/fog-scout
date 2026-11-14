@@ -246,9 +246,9 @@ def test_lost_rounds_keep_what_was_known(tmp_path):
     assert [r.role for r in h.load(p)] == ["survivor"]
 
 
-def test_last_days_periods_map_filter_and_csv_export(tmp_path):
-    """1.2.16: "Letzte 7/30 Tage" start at midnight 6 / 29 days back; select() takes a map label; export_csv
-    writes one row per round with the official result columns."""
+def test_last_days_periods_and_map_filter():
+    """1.2.16: "Letzte 7/30 Tage" start at midnight 6 / 29 days back; select() takes a map label. (The CSV export
+    is roundexport's since 1.8.91 – history.export_csv went in 1.50.4.)"""
     import datetime
     now = datetime.datetime(2026, 10, 16, 15, 30).timestamp()
     assert h.period_start("7d", now) == datetime.datetime(2026, 10, 10).timestamp()
@@ -257,12 +257,6 @@ def test_last_days_periods_map_filter_and_csv_export(tmp_path):
               for i in range(4)]
     assert [r.map for r in h.select(rounds, map_label="Coal Tower")] == ["Coal Tower", "Coal Tower"]
     assert len(h.select(rounds, map_label=None)) == 4
-    path = tmp_path / "runden.csv"
-    n = h.export_csv(str(path), [{"start": "2026-10-16 15:30:00", "map": "Coal Tower", "seconds": 600, "kills": 3,
-                                  "escaped": None, "bloodpoints": 25000, "extra": "ignored"}])
-    text = path.read_text(encoding="utf-8-sig")
-    assert n == 1 and text.splitlines()[0] == ";".join(h.CSV_COLUMNS)
-    assert text.splitlines()[1] == "2026-10-16 15:30:00;Coal Tower;600;;;;;;;;3;;25000"
 
 
 def test_farming_rounds_count_everywhere_until_the_switch_hides_them(tmp_path):
@@ -284,7 +278,7 @@ def test_farming_rounds_count_everywhere_until_the_switch_hides_them(tmp_path):
     assert h.wait_summary(rs)["count"] == 1 and h.roles_per_map(rs) == {"A": (2, 1)}
     assert h.roles_per_map(h.select(rs, farming=False)) == {"A": (1, 0)}
     assert [h.normal(r) for r in rs] == [True, False, False, False]
-    assert "farming" in h.LOST_KEYS and "farming" in h.CSV_COLUMNS
+    assert "farming" in h.LOST_KEYS
     path = str(tmp_path / "rounds.jsonl")
     for r in rs[:2]:
         h.append(path, r)

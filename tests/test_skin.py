@@ -1,12 +1,8 @@
 """Overlay styles (skin.py, 1.3): the cards of system values / today / music as glass cards, chips & icons or
 minimal line art – pure Pillow."""
-import importlib.util
 import os
 import sys
 
-if "tkinter" not in sys.modules and importlib.util.find_spec("tkinter") is None:   # headless CI (like test_sysinfo)
-    from unittest import mock
-    sys.modules["tkinter"] = mock.MagicMock()
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 

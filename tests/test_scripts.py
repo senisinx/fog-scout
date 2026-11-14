@@ -242,3 +242,65 @@ def test_a_long_name_over_a_bright_floor_is_read_past_the_end_of_the_found_line(
         for name, realm in reader.probe():
             hit = hit or gamelang.vote(votes, name, realm, maps, {"en", "de"})
     assert hit == ("ru", "rpd-east"), votes
+
+
+def test_the_main_model_is_built_on_first_use_and_then_is_a_plain_recognizer(tmp_path):
+    """1.50.4 (optimisation review, measured +34 MB and ~130 ms): the worker holds an ocr.LazyRecognizer – nothing
+    is built until something asks for it; then the object is the Recognizer itself (same class, same reads), and a
+    missing model file is still reported at once."""
+    pytest.importorskip("onnxruntime")
+    import numpy as np
+    from fogscout.ocr import LazyRecognizer, Recognizer
+    path = os.path.join(ROOT, "models", MODEL_FILES[MAIN])
+    lazy = LazyRecognizer(path, threads=1)
+    assert not lazy.built and "session" not in lazy.__dict__
+    img = np.full((48, 200, 3), 255, np.uint8)
+    plain = Recognizer(path, threads=1)
+    assert lazy.chars == plain.chars                                   # the first question builds it
+    assert type(lazy) is Recognizer and lazy.built and lazy.load() is lazy
+    assert lazy.text(lazy.probs(img)) == plain.text(plain.probs(img))
+    with pytest.raises(FileNotFoundError):
+        LazyRecognizer(str(tmp_path / "missing.onnx"))
+
+
+def test_the_worker_builds_no_model_while_dbd_is_not_running(tmp_path, monkeypatch):
+    """1.50.4: a start without DBD (autostart in the tray) – the detection thread runs, looks for the window once a
+    second and has built no OCR session; once DBD is found it builds it before the first look."""
+    pytest.importorskip("onnxruntime")
+    import queue
+    import time
+    from types import SimpleNamespace
+    from fogscout import config, worker
+    game = {"window": None}
+
+    class Grabber:
+        def grab(self, left, top, width, height):
+            import numpy as np
+            return np.zeros((height, width, 3), np.uint8)
+
+        def primary_monitor(self):
+            return 0, 0, 1920, 1080
+
+        def close(self):
+            pass
+
+    monkeypatch.setattr(worker, "ScreenGrabber", Grabber)
+    monkeypatch.setattr(worker, "find_game_window", lambda *a, **k: game["window"])
+    monkeypatch.setattr(worker, "foreground_root", lambda: 1)
+    monkeypatch.setattr(worker, "cursor_state", lambda: None)
+    wk = worker.DetectionWorker(ROOT, config.Settings(str(tmp_path / "settings.json")), Catalog(ROOT, ["en"]),
+                                queue.Queue(), data_dir=str(tmp_path))
+    wk.start()
+    try:
+        deadline = time.time() + 30
+        while wk.recognizer is None and time.time() < deadline:
+            time.sleep(0.05)
+        time.sleep(1.2)                                                  # a window search or two without DBD
+        assert wk.recognizer is not None and not wk.recognizer.built
+        game["window"] = SimpleNamespace(hwnd=1, left=0, top=0, width=1920, height=1080, minimized=False)
+        while not wk.recognizer.built and time.time() < deadline:
+            time.sleep(0.05)
+        assert wk.recognizer.built
+    finally:
+        wk.stop()
+        wk.join(timeout=10)
