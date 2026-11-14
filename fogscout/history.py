@@ -608,21 +608,3 @@ def sys_trend(rounds, unit: str) -> list:
         out.append((b, *groups.get(b, ([], [], []))))
         b = _next_bucket(b, unit)
     return out[-MAX_BUCKETS:]
-
-
-CSV_COLUMNS = ("start", "map", "seconds", "wait_seconds", "role", "custom", "farming", "killer", "region", "ping_ms",
-               "kills", "escaped", "bloodpoints")
-
-
-def export_csv(path: str, rows) -> int:
-    """1.2.16: the filtered rounds of the statistics as a CSV file (one row per round, CSV_COLUMNS; the
-    official results where a match is tied). ``rows``: dicts with those keys; returns the number written."""
-    import csv
-    with open(path, "w", encoding="utf-8-sig", newline="") as fh:
-        w = csv.DictWriter(fh, fieldnames=CSV_COLUMNS, delimiter=";", extrasaction="ignore")
-        w.writeheader()
-        n = 0
-        for row in rows:
-            w.writerow({k: ("" if row.get(k) is None else row.get(k)) for k in CSV_COLUMNS})
-            n += 1
-    return n

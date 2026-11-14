@@ -59,13 +59,6 @@ class DoubleVar(Var):
         return float(self._value)
 
 
-class IntVar(Var):
-    default = 0
-
-    def get(self):
-        return int(self._value)
-
-
 # ------------------------------------------------------------------ widgets
 class Widget:
     """Base of all widgets: options, pack/grid placement (order kept), states, bindings."""
@@ -169,10 +162,6 @@ class Widget:
         self._manager, self._grid = "grid", {"row": int(row), "column": int(column),
                                              "columnspan": int(columnspan), "sticky": str(sticky)}
 
-    def grid_forget(self):
-        if self._manager == "grid":
-            self._manager, self._grid = "", {}
-
     def pack_info(self) -> dict:
         if self._manager != "pack":
             raise UIError(f"{self} is not packed")
@@ -213,9 +202,6 @@ class Widget:
         else:
             self._binds[sequence] = [callback]
         return sequence
-
-    def unbind(self, sequence, _funcid=None):
-        self._binds.pop(sequence, None)
 
     def event_generate(self, sequence, **_kw):
         event = SimpleNamespace(widget=self, x=0, y=0, x_root=0, y_root=0, delta=0, num=0, keysym="", char="",
@@ -692,9 +678,6 @@ class Toplevel(Widget):
         pass
 
     def resizable(self, *_a):
-        pass
-
-    def minsize(self, *_a):
         pass
 
     def withdraw(self):

@@ -14,7 +14,6 @@ Windows only; their counts are in the tests (test_one_grab_per_match_tick…, te
 from __future__ import annotations
 
 import argparse
-import importlib.util
 import json
 import os
 import platform
@@ -29,9 +28,6 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, ROOT)
 os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
 os.environ["DBDMS_DATA_DIR"] = tempfile.mkdtemp(prefix="bench-data-")
-if importlib.util.find_spec("tkinter") is None:          # overlay_win32 imports Tk only for its fallback
-    from unittest import mock
-    sys.modules["tkinter"] = mock.MagicMock()
 
 
 def p1_map_card() -> float:

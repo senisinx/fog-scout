@@ -1493,7 +1493,8 @@ def test_maps_page_switches_the_map_style(qapp, keep):
 
 def test_style_buttons_switch_at_once_and_pages_can_be_warmed(qapp, keep):
     """1.3.4 (user: "Farbe wechselt erst nach 1 s"): Original / Dunkel are one exclusive group – a click shows at
-    once, without waiting for the App; warm_pages lays out the hidden pages without errors."""
+    once, without waiting for the App; warm_page lays out the hidden pages without errors (1.50.4: warm_pages, the
+    whole window in one call, was only used here – the App warms one page per step)."""
     from fogscout import qt_window
     posted = []
     page = keep(qt_window.MapsPage(lambda a, arg=None: posted.append((a, arg))))
@@ -1503,7 +1504,8 @@ def test_style_buttons_switch_at_once_and_pages_can_be_warmed(qapp, keep):
     page.style_btns["dark"].click()                                      # a second click keeps it on
     assert page.style_btns["dark"].isChecked() and posted[-1] == ("map_style", "dark")
     win = keep(qt_window.MainWindow(lambda *a: None))
-    win.warm_pages()
+    for key in list(win.forms):
+        win.warm_page(key)
 
 
 def test_a_theme_change_styles_the_page_on_display_first(qapp, keep):

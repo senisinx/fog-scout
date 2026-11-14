@@ -3217,6 +3217,35 @@ def test_the_page_warm_up_waits_while_the_user_clicks_or_types(app_root):
         app.quit()
 
 
+def test_a_tray_start_builds_the_pages_only_once_the_window_is_opened(app_root):
+    """1.50.4 (optimisation review: the tray start built every page while the window sat unseen): after a start in
+    the tray the warm-up only looks every WARM_HIDDEN_MS whether the window was opened; once it was, it runs."""
+    import json
+    from fogscout import app_qt
+    from fogscout.app import App
+    (app_root / "settings.json").write_text(json.dumps({"welcome_seen": True}), encoding="utf-8")
+    app = App(str(app_root), simulate=str(app_root / "sim"))
+    try:
+        built, later = [], []
+        app.qt.build_next = lambda: built.append(1) or False
+        app.root.after = lambda ms, fn, *a: later.append((ms, fn))
+        app._warm_queue = []
+        app._ui_refresh_t = -1e9
+        app.qt.hide()
+        app._warm_hidden = True                                  # as _qt_build(start_in_tray=True) leaves it
+        app._qt_warm()
+        assert built == [] and later == [(app_qt.WARM_HIDDEN_MS, app._qt_warm)]
+        app.qt.show()
+        app._qt_warm()
+        assert built == [1] and app._warm_hidden is False
+        app._warm_hidden = False                                 # a normal start: no waiting for the window
+        app.qt.hide()
+        app._qt_warm()
+        assert built == [1, 1]
+    finally:
+        app.quit()
+
+
 def test_check_connection_opens_the_obs_card_on_connections_and_shows_the_test_there(app_root):
     """1.28 (user: "warum ist OBS auf einer separaten Seite und nicht in Verbindungen"): port, password and
     „Verbindung testen“ are the card „OBS-Verbindung“ on the tab "Verbindungen"; „Verbindung prüfen …“ of the

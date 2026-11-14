@@ -1,13 +1,8 @@
 """Timer/server block below the map in the native overlay picture."""
-import importlib.util
 import os
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
-if importlib.util.find_spec("tkinter") is None:   # headless CI: overlay_win32 imports Tk only for its fallback
-    from unittest import mock
-    sys.modules["tkinter"] = mock.MagicMock()
 
 from PIL import Image  # noqa: E402
 

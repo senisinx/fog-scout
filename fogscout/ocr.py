@@ -104,6 +104,11 @@ class Recognizer:
         self._lock = threading.Lock()
         self._wide: dict = {}             # alphabet -> (group of each class, classes that are no "other")
 
+    built = True
+
+    def load(self) -> "Recognizer":
+        return self
+
     def wide_groups(self, probs: np.ndarray, alphabet: str) -> np.ndarray:
         """``groups`` for an alphabet with letters of other scripts: blank + the alphabet's symbols + other, shape
         (T, len(alphabet) + 2). Only the classes that are a symbol or blank are summed (a few hundred of up to
@@ -162,6 +167,40 @@ class Recognizer:
                 res.append(self.chars[i])
             prev = i
         return "".join(res).strip()
+
+
+class LazyRecognizer:
+    """A ``Recognizer`` built on first use (1.50.4): the detection thread starts with the program – from the tray
+    too – and building the main model's session costs ~34 MB and ~130 ms while DBD may not run for hours. The
+    first attribute that is asked for builds it; the object then *becomes* that Recognizer (class and attributes),
+    so the hot path pays nothing afterwards and ``isinstance(…, Recognizer)`` holds. A missing onnxruntime or model
+    file is still reported at once, as before."""
+
+    def __init__(self, model_path: str, threads: int = 2):
+        if ort is None:
+            raise RuntimeError("onnxruntime ist nicht installiert")
+        if not os.path.isfile(model_path):
+            raise FileNotFoundError(model_path)
+        self._lazy = (model_path, threads)
+        self._lazy_lock = threading.Lock()
+
+    @property
+    def built(self) -> bool:
+        return False
+
+    def load(self) -> "Recognizer":
+        """Builds the session now (the worker calls it once DBD is found, so the first banner look is not slowed)."""
+        with self._lazy_lock:
+            if self.__class__ is LazyRecognizer:
+                real = Recognizer(*self._lazy)
+                self.__dict__.update(real.__dict__)
+                self.__class__ = Recognizer
+        return self                                  # type: ignore[return-value]
+
+    def __getattr__(self, name):                     # only for names the lazy object does not have
+        if name.startswith("__") or name in ("_lazy", "_lazy_lock"):
+            raise AttributeError(name)
+        return getattr(self.load(), name)
 
 
 class ModelPool:

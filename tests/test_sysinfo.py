@@ -1,13 +1,7 @@
 """System values HUD: HWiNFO shared memory parsing, CPU load, rows, placement (pure logic)."""
-import importlib.util
 import struct
-import sys
 
 import numpy as np
-
-if "tkinter" not in sys.modules and importlib.util.find_spec("tkinter") is None:   # headless CI: overlay_win32 imports Tk only for its fallback
-    from unittest import mock
-    sys.modules["tkinter"] = mock.MagicMock()
 
 from fogscout import layout, sysinfo  # noqa: E402
 from fogscout.overlay_win32 import render_hud  # noqa: E402

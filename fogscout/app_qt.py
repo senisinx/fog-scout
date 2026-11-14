@@ -25,6 +25,7 @@ log = logging.getLogger("fogscout")
 WARM_AFTER_MS = 300                  # 1.3.4: pages laid out once after the start (1.8.72: built here, so sooner)
 WARM_STEP_MS = 40                    # 1.8.72: pause between building two pages in the warm-up (each 20–70 ms)
 WARM_QUIET_S = 0.4                   # 1.25: no warm-up step this soon after a click or key (_ui_refresh_t)
+WARM_HIDDEN_MS = 2000                # 1.50.4: a tray start looks this often whether the window was opened yet
 GEOMETRY_DELAY = 1.0          # s after the last move/resize before the size is saved
 QT_HOTKEYS = {"scan": "scan_now", "reject": "reject_map"}
 PREVIEW_PX = 900              # map preview on the maps page: picture scaled to fit this box first
@@ -342,6 +343,9 @@ class QtShell:
             self.qt.show()
         elif not self.tray.active:
             self.qt.showMinimized()
+        # 1.50.4: started in the tray (autostart) – the pages are built once the window is first opened, not while
+        # it sits unseen for hours (every page costs memory)
+        self._warm_hidden = bool(start_in_tray)
         self.root.after(WARM_AFTER_MS, self._qt_warm)
 
     def _qt_warm(self):
@@ -350,6 +354,11 @@ class QtShell:
         pause between (WARM_STEP_MS) – the window showed only after all of them were built before."""
         if self.qt is None or self._quitting:
             return
+        if self.__dict__.get("_warm_hidden"):
+            if not self.qt.isVisible() or self.qt.isMinimized():
+                self.root.after(WARM_HIDDEN_MS, self._qt_warm)
+                return
+            self._warm_hidden = False                # opened once: warm up as after a normal start
         # 1.25 (measured: the maps search took up to 198 ms when a page was built in the same pass): while the user
         # clicks or types, the warm-up waits – it is for later visits, the click is now
         if time.monotonic() - self.__dict__.get("_ui_refresh_t", -1e9) < WARM_QUIET_S:
