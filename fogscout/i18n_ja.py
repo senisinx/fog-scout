@@ -2301,6 +2301,8 @@ T = {
         'アドオン：選んだキラーのすべて。計算されるのはHaste、Hindered、Mangled、アクション速度の効果を持つものです。能力そのものは、選んだアドオンが強化する場合にのみ計上されます。',
     'Ohne berechenbare Wirkung: {names}.':
         '計算できる効果なし：{names}。',
+    '1 = die Survivor leiden nach dem Heilen unter dem Effekt':
+        '1 = サバイバーが治療後に効果を受けている',
     'Claude hat unverständlich geantwortet.':
         'Claude の回答を読み取れませんでした。',
     'Claude ist nicht erreichbar – keine Internetverbindung?':

@@ -243,6 +243,16 @@
    "count_means": "Survivors inside the Terror Radius (1 = yes)"
   },
   {
+   "name": "Scourge Hook: Weeping Wounds",
+   "kind": "slow",
+   "per": 0.16,
+   "max": 0.16,
+   "count": 1,
+   "default": 1,
+   "patch": "9.0.0",
+   "count_means": "Survivors under its effect after being healed to full (1 = yes)"
+  },
+  {
    "name": "Pop Goes the Weasel",
    "kind": "kick_loss",
    "value": 0.15,
@@ -426,7 +436,8 @@
      "tags": [
       "heal",
       "self_heal"
-     ]
+     ],
+     "needs": "medkit"
     },
     {
      "id": "recover",
@@ -584,7 +595,8 @@
      "base": 3.0,
      "tags": [
       "sabotage"
-     ]
+     ],
+     "needs": "toolbox"
     }
    ]
   },
@@ -1445,7 +1457,7 @@
      "tags": [
       "cleanse"
      ],
-     "value": 1.25,
+     "value": 0.25,
      "to": "self",
      "per": 0.25,
      "max_n": 4,

@@ -2301,6 +2301,8 @@ T = {
         "Accessori: tutti quelli del killer scelto. Vengono calcolati quelli con Haste, Hindered, Mangled o velocità d'azione; il potere stesso conta solo dove un accessorio scelto lo rafforza.",
     'Ohne berechenbare Wirkung: {names}.':
         'Senza un effetto calcolabile: {names}.',
+    '1 = die Survivor leiden nach dem Heilen unter dem Effekt':
+        "1 = i sopravvissuti subiscono l'effetto dopo la cura",
     'Claude hat unverständlich geantwortet.':
         'Claude ha dato una risposta illeggibile.',
     'Claude ist nicht erreichbar – keine Internetverbindung?':

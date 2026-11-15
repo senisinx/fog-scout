@@ -2301,6 +2301,8 @@ T = {
         '애드온: 선택한 살인마의 모든 애드온. Haste, Hindered, Mangled 또는 행동 속도 효과가 있는 것만 계산합니다. 능력 자체는 선택한 애드온이 강화하는 경우에만 반영됩니다.',
     'Ohne berechenbare Wirkung: {names}.':
         '계산할 수 있는 효과 없음: {names}.',
+    '1 = die Survivor leiden nach dem Heilen unter dem Effekt':
+        '1 = 생존자가 치료 후 효과를 받는 중',
     'Claude hat unverständlich geantwortet.':
         'Claude의 답변을 읽을 수 없습니다.',
     'Claude ist nicht erreichbar – keine Internetverbindung?':

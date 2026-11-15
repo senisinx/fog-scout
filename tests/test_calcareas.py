@@ -114,7 +114,10 @@ def test_a_perk_acts_only_on_its_rows_and_on_the_right_survivors():
     assert line("objects", "bless", flow, scen=Sc(stacks=0.5)).mult == pytest.approx(1 + 0.15 * 2)
     assert line("objects", "bless", flow, scen=Sc(stacks=0.0)).mult == pytest.approx(1.15)
     assert line("objects", "gate", [S(("Wake Up!",))]).mult == pytest.approx(1.7)        # 10 % + 4 · 15 %
-    assert line("objects", "cleanse", [S(("Counterforce",))], scen=Sc(stacks=0.0)).mult == pytest.approx(2.5)
+    # Counterforce: the wiki says it raises the default cleansing speed *to* 125 % (not by 125 %, as 1.52 had it),
+    # and +25 % for every totem cleansed
+    assert line("objects", "cleanse", [S(("Counterforce",))], scen=Sc(stacks=0.0)).result == pytest.approx(14 / 1.5)
+    assert line("objects", "cleanse", [S(("Counterforce",))]).mult == pytest.approx(1 + 0.25 + 4 * 0.25)
 
 
 def test_the_killers_own_actions_and_what_survivors_do_to_them():
@@ -248,7 +251,7 @@ def test_a_killers_add_ons_count_fully_and_only_for_their_killer():
     # Mangled is one status effect: from a perk and an add-on it counts once (−20 % healing speed)
     nurse = K(("Sloppy Butcher", "Coulrophobia"), name="The Nurse", addons=("Fragile Wheeze",))
     ln = line("heal", "heal_other", [S()], nurse)
-    assert ln.mult == pytest.approx(0.7 * (1 - 0.2 * 0.5)) and len(ln.parts) == 2
+    assert ln.mult == pytest.approx(0.7 * 0.8) and len(ln.parts) == 2               # the add-on's: not ranked
     only = line("heal", "heal_other", [S()], K(name="The Nurse", addons=("Fragile Wheeze",)))
     assert only.result == pytest.approx(16 / 0.8) and only.parts[0].exempt and only.parts[0].seconds == 70
     # an add-on that helps both sides (The Animatronic's poster)
@@ -331,6 +334,44 @@ def test_items_and_their_add_ons_for_healing_sabotage_and_repairing():
     assert g.plain_addons(D, "Flashlight", ("Battery", "Socket Swivels")) == ["Battery"]
 
 
+def test_a_row_is_left_out_when_the_item_in_hand_cannot_do_it():
+    """1.54 (review): healing oneself needs the med-kit, sabotage the toolbox or Saboteur – with another item in
+    hand the row is not shown; with empty hands it stays (the item it needs is assumed)."""
+    def rows(area, s):
+        return [ln.row for ln in g.area_lines(D, area, [s])]
+    assert "heal_self" in rows("heal", S()) and "heal_self" in rows("heal", S(medkit="First Aid Kit"))
+    assert "heal_self" not in rows("heal", S(toolbox="Toolbox")) and "heal_self" not in rows("heal",
+                                                                                           S(item="Flashlight"))
+    assert rows("heal", S(toolbox="Toolbox")) == ["heal_other", "heal_dying", "recover"]
+    assert "sabotage" in rows("hook", S()) and "sabotage" in rows("hook", S(toolbox="Toolbox"))
+    assert rows("hook", S(medkit="First Aid Kit")) == ["unhook"] and rows("hook", S(item="Skeleton Key")) == ["unhook"]
+    assert rows("hook", S(("Saboteur",), medkit="First Aid Kit")) == ["unhook", "sabotage"]
+    two = g.area_lines(D, "heal", [S(toolbox="Toolbox"), S()])
+    assert [(ln.subject, ln.row) for ln in two if ln.row == "heal_self"] == [(1, "heal_self")]
+
+
+def test_mangled_from_a_perk_and_an_add_on_counts_the_same_in_either_order():
+    """1.54 (review): the effect is there once; the add-on's is never lowered by diminishing returns – whichever
+    of the two the build names first."""
+    nurse = K(("Coulrophobia", "Sloppy Butcher"), name="The Nurse", addons=("Fragile Wheeze",))
+    ln = line("heal", "heal_other", [S()], nurse)
+    assert ln.mult == pytest.approx(0.7 * 0.8)
+    assert [(p.source, p.exempt) for p in ln.parts] == [("Coulrophobia", False), ("Fragile Wheeze", True)]
+    perk_only = line("heal", "heal_other", [S()], K(("Coulrophobia", "Sloppy Butcher")))
+    assert perk_only.mult == pytest.approx(0.7 * (1 - 0.2 * 0.5))                  # a perk's is ranked
+
+
+def test_weeping_wounds_slows_repairing_too():
+    """1.54 (review; wiki: "Reduces their Action speeds for Healing and Repairing by 16 %"): it was in the
+    healing area only."""
+    s = S()
+    assert g.speed(D, s, [s], K(("Scourge Hook: Weeping Wounds",)), Sc()) == pytest.approx(0.84)
+    assert g.speed(D, s, [s], K(("Scourge Hook: Weeping Wounds",), {"Scourge Hook: Weeping Wounds": 0}),
+                   Sc()) == pytest.approx(1.0)
+    assert line("heal", "heal_other", [s], K(("Scourge Hook: Weeping Wounds",))).mult == pytest.approx(0.84)
+    assert "Scourge Hook: Weeping Wounds" in g.perk_names(D, "K", "repair")
+
+
 def test_the_add_on_lists_of_the_data_file_fit_the_calculator():
     with open(g.FILE, encoding="utf-8") as fh:
         raw = json.load(fh)
@@ -411,29 +452,48 @@ def test_perk_pictures_are_found_by_the_perks_name_or_the_packs_file_name(tmp_pa
     assert both.finder("addon")("Plain Name").endswith("Plain Name.png") and both.find("Plain Name", "perks")
     assert [perkicons.kind_of(n) for n in ("T_UI_iconsPerks_x", "IconAddon_x", "iconItems_x", "Prove Thyself")] == \
         ["perks", "addon", "items", ""]
+    # the user's own picture comes first, however it is named (the program's own folder is the second one)
+    mine, shipped = tmp_path / "mine", tmp_path / "shipped"
+    mine.mkdir()
+    shipped.mkdir()
+    (mine / "Twin.png").write_bytes(b"x")
+    (shipped / "iconPerks_twin.png").write_bytes(b"x")
+    (shipped / "iconPerks_other.png").write_bytes(b"x")
+    order = perkicons.Index([str(mine), str(shipped)])
+    assert order.find("Twin", "perks").endswith(os.path.join("mine", "Twin.png"))
+    assert order.find("Other", "perks").endswith("iconPerks_other.png")
     empty = perkicons.Index([str(tmp_path / "nothing")])
     assert not empty.any() and empty.find("Botany Knowledge") is None
     assert perkicons.folders("D") == [os.path.join("D", perkicons.USER_FOLDER),
                                       os.path.join(perkicons.HERE, perkicons.FOLDER)]
 
 
+# what the wiki has no picture for that can be told apart by its name (1.54) – these entries stand without one
+NO_PICTURE = {("addon", "Anti-Exhaustion Syringe"), ("addon", "Misty Day, Remains of Judgement"),
+              ("addon", "Mysterious Elixir"), ("addon", "Spattered Handkerchief"), ("addon", "Vorpal Sword"),
+              ("items", "Annotated Map"), ("items", "Banquet Flashlight"), ("items", "Banquet Med-Kit"),
+              ("items", "Banquet Toolbox"), ("items", "Scribbled Map")}
+
+
 def test_every_perk_of_the_calculator_has_its_picture_in_the_program():
     """Saru: "Wiki ist in Ordnung" – the pictures come with the program (64 px PNG from the Dead by Daylight Wiki,
-    THIRD_PARTY.md): one for every perk of perkdata.json and (1.53, "ja") for every item and add-on, each of its
-    own kind, nothing else in the folder, each a small picture."""
+    THIRD_PARTY.md): one for every perk of perkdata.json and (1.53/1.54, "ja") for every item and every add-on,
+    each of its own kind – but for the ten the wiki has none for; nothing else in the folder, each a small
+    picture."""
     from PIL import Image
     folder = os.path.join(perkicons.HERE, perkicons.FOLDER)
     index = perkicons.Index([folder])
-    perks = set(D.survivor) | set(D.killer) | set(D.perks)
-    others = set(D.toolboxes) | set(D.medkits) | set(D.item_addons) | set(D.killer_addons)
-    names = perks | others
-    assert not perks & others and [n for n in sorted(names) if index.find(n) is None] == []
-    assert all("perks_" in os.path.basename(index.find(n)).lower() for n in perks)
-    kind = [os.path.basename(index.find(n)).lower().removeprefix("t_ui_") for n in sorted(others)]
-    assert all(k.startswith(("iconaddon_", "iconitems_")) for k in kind)
-    used = {index.find(part) for n in names for part in n.split(" / ")} - {None}
+    want = [(n, "perks") for n in set(D.survivor) | set(D.killer) | set(D.perks)] + \
+        [(n, "items") for n in g.item_names(D)] + \
+        [(n, "addon") for v in list(D.killer_addon_lists.values()) + list(D.item_addon_lists.values()) for n in v]
+    assert len(want) == len(set(want)) == 1100
+    assert {(kind, n) for n, kind in want if index.find(n, kind) is None} == NO_PICTURE
+    for n, kind in want:                                      # a picture is of the kind asked for
+        path = index.find(n, kind)
+        assert path is None or perkicons.kind_of(os.path.basename(path)) == kind, n
+    used = {index.find(part, kind) for n, kind in want for part in n.split(" / ")} - {None}
     files = sorted(os.listdir(folder))
-    assert sorted(os.path.basename(p) for p in used) == files and len(files) > 190
+    assert sorted(os.path.basename(p) for p in used) == files and len(files) > 1000
     for name in files:
         path = os.path.join(folder, name)
         assert name.endswith(".png") and os.path.getsize(path) < 16 * 1024, name

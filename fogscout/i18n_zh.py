@@ -2301,6 +2301,8 @@ T = {
         '附加品：所选杀手的全部附加品。计算其中带有 Haste、Hindered、Mangled 或动作速度效果的；能力本身只在所选附加品强化它时才计入。',
     'Ohne berechenbare Wirkung: {names}.':
         '无可计算效果：{names}。',
+    '1 = die Survivor leiden nach dem Heilen unter dem Effekt':
+        '1 = 逃生者在被治愈后受到该效果影响',
     'Claude hat unverständlich geantwortet.':
         'Claude 给出的回答无法读取。',
     'Claude ist nicht erreichbar – keine Internetverbindung?':

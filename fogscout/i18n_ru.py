@@ -2301,6 +2301,8 @@ T = {
         'Улучшения: все у выбранного убийцы. Рассчитываются те, что дают Haste, Hindered, Mangled или скорость действий; сама сила учитывается только там, где её усиливает выбранное улучшение.',
     'Ohne berechenbare Wirkung: {names}.':
         'Без рассчитываемого действия: {names}.',
+    '1 = die Survivor leiden nach dem Heilen unter dem Effekt':
+        '1 = выжившие под действием эффекта после лечения',
     'Claude hat unverständlich geantwortet.':
         'Ответ Claude не удалось прочитать.',
     'Claude ist nicht erreichbar – keine Internetverbindung?':

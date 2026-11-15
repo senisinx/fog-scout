@@ -72,6 +72,7 @@ COUNT_MEANS = {
     "Dying Light / Cull the Weak": N_("Tokens (Haken an anderen als der Obsession)"),
     "Hex: Pentimento": N_("neu entzündete Totems"),
     "Distressing": N_("1 = die Survivor sind im Terrorradius"),
+    "Scourge Hook: Weeping Wounds": N_("1 = die Survivor leiden nach dem Heilen unter dem Effekt"),
     "Pop Goes the Weasel": N_("Kicks mit aktivem Perk (20 % statt 5 %)"),
     "Scourge Hook: Pain Resonance": N_("Haken, die diesen Generator treffen"),
     "Surge": N_("Downs per Basisangriff in 32 m um diesen Generator"),
@@ -485,9 +486,10 @@ class CalcTab:
         for entry in (list(st.get("survivors") or []) + [[[], ""]] * 4)[:n]:
             perks, item, addons = self._calc_entry(entry)
             perks = tuple(p for p in perks if self._calc_known(p, "S"))
-            team.append(gencalc.Survivor(perks, item if item in d.toolboxes else "",
-                                         medkit=item if item in d.medkits else "",
-                                         addons=tuple(addons)))
+            kind = gencalc.item_kind(d, item)
+            team.append(gencalc.Survivor(perks, item if kind == "toolbox" else "",
+                                         medkit=item if kind == "medkit" else "", addons=tuple(addons),
+                                         item=item if kind not in ("", "toolbox", "medkit") else ""))
         names = tuple(p for p in st.get("killer") or [] if self._calc_known(p, "K"))
         counts = {}
         for name, value in (st.get("counts") or {}).items():

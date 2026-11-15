@@ -62,8 +62,9 @@ class Index:
         self._found = {}
 
     def _scan(self) -> dict:
+        """{(kind, key): (rank of the folder, file)} – the first file of a name in the first folder that has one."""
         files, seen = {}, 0
-        for top in self._dirs:
+        for rank, top in enumerate(self._dirs):
             if not os.path.isdir(top):
                 continue
             for folder, _subs, names in os.walk(top, followlinks=False):
@@ -80,7 +81,7 @@ class Index:
                             continue
                     except OSError:
                         continue
-                    files.setdefault((kind_of(stem), key(stem)), path)     # the first folder (the user's) first
+                    files.setdefault((kind_of(stem), key(stem)), (rank, path))
         return files
 
     def any(self) -> bool:
@@ -94,8 +95,14 @@ class Index:
         add-ons). Without a kind any file of the name."""
         if (name, kind) not in self._found:
             kinds = (kind, "") if kind else KINDS + ("",)
-            self._found[(name, kind)] = next((self._files[(kd, k)] for k in candidates(name) for kd in kinds
-                                              if (kd, k) in self._files), None) if self.any() else None
+            hit = None
+            if self.any():
+                for k in candidates(name):                 # the best name first; of its files the first folder's
+                    here = [self._files[(kd, k)] for kd in kinds if (kd, k) in self._files]     # (the user's own)
+                    if here:
+                        hit = min(here, key=lambda f: f[0])[1]
+                        break
+            self._found[(name, kind)] = hit
         return self._found[(name, kind)]
 
     def finder(self, kind: str):

@@ -77,6 +77,7 @@ class Survivor:
     part: bool = False                # Brand New Part on the toolbox (used on the Generator)
     medkit: str = ""                  # a name from Data.medkits, "" = none (healing others)
     addons: tuple = ()                # names from Data.item_addons (only those of the item in hand count)
+    item: str = ""                    # another item in hand (flashlight, key, map, fog vial): no speed of its own
 
 
 @dataclass
@@ -707,7 +708,10 @@ def modifiers(data: Data, area_id: str, row: dict, subject: int, team, killer: K
     for part, group in found:                             # of one group (Exhaustion perks) only the strongest
         if group:
             best = groups.get(group)
-            if best is None or abs(part.value) > abs(best.value):
+            if best is None or abs(part.value) > abs(best.value) or \
+                    (abs(part.value) == abs(best.value) and part.exempt and not best.exempt):
+                # the strongest; of two equal ones the add-on's (Mangled from a perk and an add-on: the effect is
+                # there once, and an add-on's is never lowered)
                 groups[group] = part
         else:
             parts.append(part)
@@ -734,6 +738,20 @@ def factor(parts) -> float:
     return out
 
 
+def _can(data: Data, s: Survivor, row: dict) -> bool:
+    """The Survivor can do what the row is about with what is in hand: healing oneself needs the med-kit,
+    sabotage the toolbox (or Saboteur) – with another item in hand the row is left out. Empty hands: the row
+    stays (the item it needs is assumed)."""
+    needs = row.get("needs", "")
+    if not needs:
+        return True
+    held = "toolbox" if s.toolbox in data.toolboxes else "medkit" if s.medkit in data.medkits else \
+        "other" if s.item else ""
+    if held in ("", needs):
+        return True
+    return needs == "toolbox" and "Saboteur" in s.perks
+
+
 def area_lines(data: Data, area_id: str, team, killer: Killer | None = None, scen: Scenario | None = None) -> list:
     """Every row of the area for every subject (each Survivor of ``team``, or the Killer)."""
     area = data.areas.get(area_id)
@@ -745,6 +763,8 @@ def area_lines(data: Data, area_id: str, team, killer: Killer | None = None, sce
     rows = area_rows(data, area_id, killer)
     for subject in subjects:
         for row in rows:
+            if subject != KILLER and not _can(data, team[subject], row):
+                continue
             parts = modifiers(data, area_id, row, subject, team, killer, scen)
             mult = factor(parts)
             base = row.get("base")
@@ -808,7 +828,7 @@ def suggest(data: Data, area_id: str, team, killer: Killer | None = None, scen: 
     killer_area = data.areas[area_id]["side"] == "K"
     free, seen = [], set()
     for i, s in enumerate(team):                          # equal builds: the perk is tried on the first only
-        build = (tuple(s.perks), s.toolbox, s.part, s.medkit, tuple(s.addons))
+        build = (tuple(s.perks), s.toolbox, s.part, s.medkit, tuple(s.addons), s.item)
         if len(s.perks) < slots and build not in seen:
             seen.add(build)
             free.append(i)
