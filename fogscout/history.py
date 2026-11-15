@@ -15,6 +15,10 @@ from . import fsops, jsonlcache
 FILE = "rounds.jsonl"
 MIN_SECONDS = 60.0
 KEEP = 5000                 # newest rounds kept when the file is tidied
+# 1.50.6 (review): what the tidying takes out of the file goes to this file beside it first (same lines) – before, the
+# oldest rounds were gone for good once there were more than KEEP. The statistics do not read it (their speed is why
+# the file is kept short); "Alles sichern (ZIP)" packs it, "Alle Runden löschen" removes it.
+ARCHIVE = "rounds-archive.jsonl"
 
 
 @dataclass
@@ -58,6 +62,27 @@ def _append_line(path: str, line: str) -> None:
         fh.write((line + "\n").encode("utf-8"))
 
 
+def archive_path(path: str, name: str) -> str:
+    """The archive file ``name`` beside the data file ``path``."""
+    return os.path.join(os.path.dirname(os.path.abspath(path)), name)
+
+
+def archive_lines(path: str, lines) -> None:
+    """1.50.6: ``lines`` at the end of the archive file ``path``, on the disk before the caller drops them from its
+    own file (OSError when not)."""
+    lines = list(lines)
+    if not lines:
+        return
+    with open(path, "a+b") as fh:
+        if fh.tell() > 0:
+            fh.seek(-1, os.SEEK_END)
+            if fh.read(1) != b"\n":
+                fh.write(b"\n")
+        fh.write("".join(line + "\n" for line in lines).encode("utf-8"))
+        fh.flush()
+        os.fsync(fh.fileno())
+
+
 def append(path: str, rnd: Round) -> None:
     _append_line(path, json.dumps(asdict(rnd), ensure_ascii=False))
     _tidy(path)
@@ -72,6 +97,8 @@ def _tidy(path: str) -> None:
         if len(rounds) <= KEEP:
             return
         kept = rounds[-KEEP:]
+        # first into the archive – when that cannot be written (OSError), nothing is taken out
+        archive_lines(archive_path(path, ARCHIVE), [json.dumps(asdict(r), ensure_ascii=False) for r in rounds[:-KEEP]])
         _rewrite(path, kept, [d for d in _lost_lines(path) if d["t"] >= kept[0].t])
     except OSError:
         pass
@@ -196,10 +223,11 @@ def _sys(d):
 
 
 def clear(path: str) -> None:
-    try:
-        os.remove(path)
-    except OSError:
-        pass
+    for p in (path, archive_path(path, ARCHIVE)):         # 1.50.6: "delete all rounds" means the archived ones too
+        try:
+            os.remove(p)
+        except OSError:
+            pass
 
 
 def summary(rounds) -> dict:

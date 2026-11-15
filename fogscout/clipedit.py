@@ -139,6 +139,22 @@ LEVEL_RE = re.compile(rb"\[volumedetect@t(\d+) @ [^\]]*\] max_volume: (-?[\d.]+|
 CANCEL_POLL_S = 0.2               # 1.16.2: how often a cancellable ffmpeg run looks whether it should stop
 
 
+# 1.50.6 (review): an export was ended after a fixed hour (a cut after 30 min) whatever its length – a long recording
+# encoded on the CPU (a recording by hand runs up to four hours) failed with nothing saved. The limit only guards
+# against an ffmpeg that hangs: it grows with the length of the result.
+EXPORT_MIN_S = 3600.0
+EXPORT_PER_SECOND = 8.0           # seconds allowed per second of the result (a slow CPU, 1440p ultrawide, filters)
+
+
+def export_timeout(seconds: float) -> float:
+    """How long one ffmpeg run of an export may take for a result ``seconds`` long."""
+    try:
+        seconds = float(seconds or 0.0)
+    except (TypeError, ValueError):
+        seconds = 0.0
+    return max(EXPORT_MIN_S, seconds * EXPORT_PER_SECOND)
+
+
 def _run_cancellable(cmd, timeout: float, cancel=None, stdout: bool = False, stderr: bool = False):
     """1.16.2 (A16): like subprocess.run, but also ends when ``cancel`` (threading.Event) is set – the editor was
     closed: the ffmpeg is killed and reaped at once instead of running on for up to ``timeout``. (stdout, stderr)
@@ -536,7 +552,7 @@ def cut(path: str, start: float, end: float, out: str, mode: str = "copy", ffmpe
     if run is None:
         def run(a):
             p = subprocess.run(a, stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE,
-                               timeout=1800, creationflags=_flags())
+                               timeout=export_timeout(end - start), creationflags=_flags())
             return p.returncode, p.stderr or b""
     key = part_key(tmp)
     PARTS_WRITING.add(key)                                      # obsrec.settle_parts leaves it alone meanwhile
@@ -1440,7 +1456,7 @@ def export(path: str, edit: Edit, out: str, mode: str = "exact", ffmpeg: str | N
     if run is None:
         def run(a):
             p = subprocess.run(a, stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE,
-                               timeout=3600, creationflags=_flags())
+                               timeout=export_timeout(edit.seconds()), creationflags=_flags())
             return p.returncode, p.stderr or b""
 
     def call(a):

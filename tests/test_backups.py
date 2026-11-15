@@ -269,3 +269,17 @@ def test_numbers_json_reads_as_nan_or_infinity_skip_the_line_instead_of_stopping
     assert (got["rounds"], got["matches"]) == (1, 1)
     assert [r.t for r in history.load(os.path.join(now, history.FILE))] == [1000.0]
     assert [m.t for m in official.load(os.path.join(now, official.FILE))] == [962.0]
+
+
+def test_the_archived_rounds_are_packed_too(tmp_path):
+    """1.50.6: what left rounds.jsonl / official.jsonl beyond their limit is part of "Alles sichern (ZIP)"."""
+    import zipfile
+    d = tmp_path / "data"
+    d.mkdir()
+    for name in ("rounds.jsonl", "rounds-archive.jsonl", "official-archive.jsonl"):
+        (d / name).write_text("{}\n", encoding="utf-8")
+    dest = tmp_path / "s.zip"
+    assert backups.archive(str(d), str(dest), {}) == 4
+    with zipfile.ZipFile(dest) as z:
+        assert sorted(z.namelist()) == ["fogscout-einstellungen.json", "official-archive.jsonl",
+                                        "rounds-archive.jsonl", "rounds.jsonl"]

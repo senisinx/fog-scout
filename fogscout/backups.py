@@ -16,6 +16,9 @@ from . import fsops
 DIR = "backup"
 KEEP = 14                                   # copies kept per file (the newest)
 FILES = ("rounds.jsonl", "official.jsonl")  # history.FILE, official.FILE
+# 1.50.6: what was taken out of those files beyond their 5000 newest entries (history.ARCHIVE, official.ARCHIVE) –
+# packed by ``archive``; ``restore`` leaves them in the ZIP (they are not part of the statistics)
+OLDER_FILES = ("rounds-archive.jsonl", "official-archive.jsonl")
 _NAME = re.compile(r"^(?P<stem>[a-z]+)-(?P<day>\d{4}-\d{2}-\d{2})(?:-(?P<tag>[a-z]+)(?P<n>\d*))?\.jsonl$")
 
 
@@ -118,9 +121,9 @@ def archive(data_dir: str, dest: str, settings: dict) -> int:
     with zipfile.ZipFile(dest, "w", zipfile.ZIP_DEFLATED) as z:
         z.writestr("fogscout-einstellungen.json", json.dumps(clean, indent=2, ensure_ascii=False))
         n += 1
-        for name in FILES:
+        for name in FILES + OLDER_FILES:
             p = os.path.join(data_dir, name)
-            if os.path.isfile(p):
+            if os.path.isfile(p) and not os.path.islink(p):
                 z.write(p, name)
                 n += 1
         for sub in ARCHIVE_DIRS:

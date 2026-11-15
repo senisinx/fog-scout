@@ -19,6 +19,8 @@ debug/
 user_maps/
 rounds.jsonl
 official.jsonl
+rounds-archive.jsonl
+official-archive.jsonl
 backup/
 /corpus/
 

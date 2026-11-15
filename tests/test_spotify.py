@@ -553,6 +553,15 @@ class _FakeWin:
         self.shown = False
 
 
+def _hold_the_list(app):
+    """1.50.6 (CI failure on Python 3.12): the App's real Spotify thread runs in these tests – not linked, its tick
+    empties ``upnext`` every 0.5 s, so a list the test set could vanish between two steps and the card fell back to
+    the sample list. The thread is stopped before the test sets a list of its own."""
+    app.spotify.quit()
+    app.spotify.join(5)
+    assert not app.spotify.is_alive()
+
+
 def test_the_app_cross_fades_a_song_change_and_the_list_slides(app_root):
     import json as _json
     from fogscout.app import App
@@ -560,6 +569,7 @@ def test_the_app_cross_fades_a_song_change_and_the_list_slides(app_root):
     (app_root / "settings.json").write_text(_json.dumps({"welcome_seen": True, "spotify_on": True,
                                                          "spotify_client_id": "a" * 32}), encoding="utf-8")
     app = App(str(app_root), simulate=str(app_root / "sim"))
+    _hold_the_list(app)
     try:
         win = app.media_win = _FakeWin()
         app._media_ctx = (0, 0, 3440, 1440, True)
@@ -627,6 +637,7 @@ def test_the_app_shows_the_list_only_when_spotify_plays_the_same_song(app_root):
     from fogscout import app_spotify, media
     (app_root / "settings.json").write_text(_json.dumps({"welcome_seen": True}), encoding="utf-8")
     app = App(str(app_root), simulate=str(app_root / "sim"))
+    _hold_the_list(app)
     try:
         now = media.NowPlaying("Blinding Lights", "The Weeknd", True, time.time())
         assert app._upnext(now) is None and app._upnext(now, sample=True) is None       # off by default
