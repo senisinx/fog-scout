@@ -2303,6 +2303,8 @@ T = {
         '계산할 수 있는 효과 없음: {names}.',
     '1 = die Survivor leiden nach dem Heilen unter dem Effekt':
         '1 = 생존자가 치료 후 효과를 받는 중',
+    'nur {name} zählt':
+        '{name}만 적용',
     'Claude hat unverständlich geantwortet.':
         'Claude의 답변을 읽을 수 없습니다.',
     'Claude ist nicht erreichbar – keine Internetverbindung?':

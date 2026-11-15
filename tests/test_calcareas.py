@@ -85,8 +85,12 @@ def test_haste_of_one_exhaustion_perk_only_and_the_cap_of_under_your_thumb():
     runner = [S(("Sprint Burst", "Lithe", "Hope"))]
     ln = line("move", "run", runner)
     assert ln.result == pytest.approx(4.0 * (1 + 0.5 + 0.05 * 0.5))            # Sprint Burst or Lithe, never both
-    assert sorted(p.source for p in ln.parts) == ["Hope", "Sprint Burst"]
-    assert ln.parts[0].seconds == 2 and ln.parts[0].when == "trigger" and ln.parts[1].when == "gates"
+    # 1.54.1: the one that does not count stays in the breakdown and says beside which – before, a chosen perk
+    # was simply gone
+    assert [(p.source, p.beaten, p.counted) for p in ln.parts] == [
+        ("Sprint Burst", "", 0.5), ("Lithe", "Sprint Burst", 0.0), ("Hope", "", 0.025)]
+    assert g.factor(ln.parts) == pytest.approx(ln.mult)
+    assert ln.parts[0].seconds == 2 and ln.parts[0].when == "trigger" and ln.parts[2].when == "gates"
     capped = line("move", "run", runner, K(("Hex: Under Your Thumb",)))
     assert capped.result == pytest.approx(4.0 * 1.15)
     assert line("move", "walk", runner, K(("Hex: Under Your Thumb",))).mult == pytest.approx(1.525)
@@ -251,7 +255,8 @@ def test_a_killers_add_ons_count_fully_and_only_for_their_killer():
     # Mangled is one status effect: from a perk and an add-on it counts once (−20 % healing speed)
     nurse = K(("Sloppy Butcher", "Coulrophobia"), name="The Nurse", addons=("Fragile Wheeze",))
     ln = line("heal", "heal_other", [S()], nurse)
-    assert ln.mult == pytest.approx(0.7 * 0.8) and len(ln.parts) == 2               # the add-on's: not ranked
+    assert ln.mult == pytest.approx(0.7 * 0.8)                                      # the add-on's: not ranked
+    assert [p.source for p in ln.parts if not p.beaten] == ["Coulrophobia", "Fragile Wheeze"]
     only = line("heal", "heal_other", [S()], K(name="The Nurse", addons=("Fragile Wheeze",)))
     assert only.result == pytest.approx(16 / 0.8) and only.parts[0].exempt and only.parts[0].seconds == 70
     # an add-on that helps both sides (The Animatronic's poster)
@@ -356,7 +361,8 @@ def test_mangled_from_a_perk_and_an_add_on_counts_the_same_in_either_order():
     nurse = K(("Coulrophobia", "Sloppy Butcher"), name="The Nurse", addons=("Fragile Wheeze",))
     ln = line("heal", "heal_other", [S()], nurse)
     assert ln.mult == pytest.approx(0.7 * 0.8)
-    assert [(p.source, p.exempt) for p in ln.parts] == [("Coulrophobia", False), ("Fragile Wheeze", True)]
+    assert [(p.source, p.exempt, p.beaten) for p in ln.parts] == [
+        ("Coulrophobia", False, ""), ("Fragile Wheeze", True, ""), ("Sloppy Butcher", False, "Fragile Wheeze")]
     perk_only = line("heal", "heal_other", [S()], K(("Coulrophobia", "Sloppy Butcher")))
     assert perk_only.mult == pytest.approx(0.7 * (1 - 0.2 * 0.5))                  # a perk's is ranked
 
@@ -558,6 +564,9 @@ def test_the_page_shows_one_area_and_only_the_builds_of_the_team(app_root):
         assert "Botany Knowledge" in values and "Déjà Vu" not in values and side == "S"
         box2, var2, _side = app.calc_perk_boxes[1]
         assert var2.get() == "Prove Thyself" and "Prove Thyself" in box2.cget("values")   # chosen before: stays
+        # 1.54.1: the box is narrower than many names – hovering shows the whole name, an empty place nothing
+        assert app_qt.ui_state(box)["tip"] == "Botany Knowledge"
+        assert app_qt.ui_state(app.calc_perk_boxes[2][0])["tip"] == ""
         assert "Prove Thyself" not in values
         kbox = app.calc_perk_boxes[16][0]
         assert "Coulrophobia" in kbox.cget("values") and "Pop Goes the Weasel" not in kbox.cget("values")
@@ -635,6 +644,26 @@ def test_the_page_shows_one_area_and_only_the_builds_of_the_team(app_root):
         assert t.item("k1", "values")[3].startswith("−")                          # Resilience: faster than Build A
         app._calc_reset()
         assert app.settings.get("calc")["compare"] is None and app.settings.get("calc")["area"] == "repair"
+    finally:
+        app.quit()
+
+
+def test_the_breakdown_names_a_chosen_perk_that_does_not_count(app_root):
+    """1.54.1 (review): of two Exhaustion perks – or Mangled from a perk and an add-on – only one counts. The
+    other was missing from the breakdown, as if the choice had been lost; now its row says beside which it
+    does not count, and the result is the same as before."""
+    from fogscout.app import App
+    calc = {"area": "move", "n": 1, "survivors": [[["Lithe", "Sprint Burst"], "", []]], "killer": [], "counts": {}}
+    (app_root / "settings.json").write_text(json.dumps({"welcome_seen": True, "calc": calc}), encoding="utf-8")
+    app = App(str(app_root), simulate=str(app_root / "sim"))
+    try:
+        assert app.calc_tree.item("0:run", "values") == ("4.00 m/s", "6.00 m/s", "150 %")
+        b = app.calc_parts_tree
+        top = next(i for i in b.get_children() if "Rennen" in b.item(i, "text"))
+        rows = [(b.item(i, "text"),) + tuple(b.item(i, "values")) for i in b.get_children(top)]
+        # both +50 %: the one named first counts (they never run at once – Exhausted)
+        assert rows == [("Lithe", "+50 %", "100 %", "+50 %", "nach Auslösung · 3 s lang"),
+                        ("Sprint Burst", "+50 %", "0 %", "—", "nur Lithe zählt")]
     finally:
         app.quit()
 

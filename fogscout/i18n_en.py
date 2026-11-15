@@ -1820,6 +1820,8 @@ EN = {
         'Without an effect the calculator works out: {names}.',
     '1 = die Survivor leiden nach dem Heilen unter dem Effekt':
         '1 = the survivors suffer from the effect after being healed',
+    'nur {name} zählt':
+        'only {name} counts',
     'Claude hat unverständlich geantwortet.': 'Claude gave an answer that could not be read.',
     'Claude ist nicht erreichbar – keine Internetverbindung?': 'Claude cannot be reached – no internet connection?',
     'Claude: Zu viele Anfragen – gleich noch einmal versuchen.': 'Claude: too many requests – try again in a moment.',

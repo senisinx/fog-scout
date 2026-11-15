@@ -527,10 +527,11 @@ class Part:
     side: str = "S"                   # whose perk it is
     cap: float | None = None          # the sum of all bonuses is limited to this (Hex: Under Your Thumb)
     exempt: bool = False              # from an add-on: counts fully, is not ranked (patch notes 9.6.0)
+    beaten: str = ""                  # does not count: this one of its group does (Exhaustion, Mangled)
 
     @property
     def counted(self) -> float:
-        return self.value * self.weight
+        return 0.0 if self.beaten else self.value * self.weight
 
 
 @dataclass
@@ -704,7 +705,7 @@ def modifiers(data: Data, area_id: str, row: dict, subject: int, team, killer: K
             if data.toolboxes[me.toolbox].get("sabotage"):
                 found.append((Part(me.toolbox, data.toolboxes[me.toolbox]["sabotage"]), ""))
             found += [(Part(a["name"], a["sabotage"], exempt=True), "") for a in mine if a.get("sabotage")]
-    parts, groups = [], {}
+    parts, groups, lost = [], {}, []
     for part, group in found:                             # of one group (Exhaustion perks) only the strongest
         if group:
             best = groups.get(group)
@@ -713,11 +714,18 @@ def modifiers(data: Data, area_id: str, row: dict, subject: int, team, killer: K
                 # the strongest; of two equal ones the add-on's (Mangled from a perk and an add-on: the effect is
                 # there once, and an add-on's is never lowered)
                 groups[group] = part
+                part = best
+            if part is not None:
+                lost.append((part, group))
         else:
             parts.append(part)
     parts += list(groups.values())
+    for part, group in lost:                              # 1.54.1: stays in the breakdown, named as not counting
+        if part.source != groups[group].source:           # (before, a chosen perk was simply gone); the power's own
+            part.beaten, part.weight = groups[group].source, 0.0     # value named by two add-ons is one thing
+            parts.append(part)
     for sign, side in ((1, None), (-1, "S"), (-1, "K")):  # negative modifiers: ranked within their role
-        same = [p for p in parts if p.cap is None and not p.exempt and
+        same = [p for p in parts if p.cap is None and not p.exempt and not p.beaten and
                 (p.value > 0 if sign > 0 else p.value < 0 and p.side == side)]
         for p, w in zip(same, weights([p.value for p in same], scen.diminishing)):
             p.weight = w
@@ -728,7 +736,7 @@ def modifiers(data: Data, area_id: str, row: dict, subject: int, team, killer: K
 def factor(parts) -> float:
     """The speed factor of a list of Parts: (1 + Σ bonus, capped) · Π(1 − malus)."""
     pos = sum(p.counted for p in parts if p.value > 0)
-    caps = [p.cap for p in parts if p.cap is not None]
+    caps = [p.cap for p in parts if p.cap is not None and not p.beaten]
     if caps:
         pos = min(pos, min(caps))
     out = 1.0 + pos

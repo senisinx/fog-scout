@@ -36,11 +36,13 @@ class _Layout(QLayout):
     def __init__(self, parent=None, spacing=8):
         super().__init__(parent)
         self._items = []
+        self._heights = {}                   # width -> height (heightForWidth), until invalidate()
         self._gap = spacing
         self.setContentsMargins(0, 0, 0, 0)
 
     def addItem(self, item):
         self._items.append(item)
+        self._heights.clear()
 
     def count(self):
         return len(self._items)
@@ -49,6 +51,7 @@ class _Layout(QLayout):
         return self._items[i] if 0 <= i < len(self._items) else None
 
     def takeAt(self, i):
+        self._heights.clear()
         return self._items.pop(i) if 0 <= i < len(self._items) else None
 
     def _shown(self):
@@ -61,7 +64,19 @@ class _Layout(QLayout):
         return True
 
     def heightForWidth(self, width):
-        return self._place(QRect(0, 0, width, 0), apply=False)
+        # 1.54.1 (measured: the calculator's page asked 18 000 times while its 556 controls were first shown –
+        # 1.7 s of its 2.4 s): the height for a width is worked out once and kept until Qt says that something
+        # in the row changed (invalidate: an item shown, hidden, another text or size)
+        h = self._heights.get(width)
+        if h is None:
+            if len(self._heights) > 8:                       # a window being dragged asks for many widths
+                self._heights.clear()
+            h = self._heights[width] = self._place(QRect(0, 0, width, 0), apply=False)
+        return h
+
+    def invalidate(self):
+        self._heights.clear()
+        super().invalidate()
 
     def setGeometry(self, rect):
         super().setGeometry(rect)

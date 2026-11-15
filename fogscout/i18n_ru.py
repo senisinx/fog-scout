@@ -2303,6 +2303,8 @@ T = {
         'Без рассчитываемого действия: {names}.',
     '1 = die Survivor leiden nach dem Heilen unter dem Effekt':
         '1 = выжившие под действием эффекта после лечения',
+    'nur {name} zählt':
+        'учитывается только {name}',
     'Claude hat unverständlich geantwortet.':
         'Ответ Claude не удалось прочитать.',
     'Claude ist nicht erreichbar – keine Internetverbindung?':

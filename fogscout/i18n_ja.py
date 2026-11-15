@@ -2303,6 +2303,8 @@ T = {
         '計算できる効果なし：{names}。',
     '1 = die Survivor leiden nach dem Heilen unter dem Effekt':
         '1 = サバイバーが治療後に効果を受けている',
+    'nur {name} zählt':
+        '{name} のみ有効',
     'Claude hat unverständlich geantwortet.':
         'Claude の回答を読み取れませんでした。',
     'Claude ist nicht erreichbar – keine Internetverbindung?':

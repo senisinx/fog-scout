@@ -2303,6 +2303,8 @@ T = {
         '无可计算效果：{names}。',
     '1 = die Survivor leiden nach dem Heilen unter dem Effekt':
         '1 = 逃生者在被治愈后受到该效果影响',
+    'nur {name} zählt':
+        '仅 {name} 计入',
     'Claude hat unverständlich geantwortet.':
         'Claude 给出的回答无法读取。',
     'Claude ist nicht erreichbar – keine Internetverbindung?':
