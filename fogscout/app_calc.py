@@ -1,26 +1,68 @@
 """Mixin of the page "Rechner" (1.51, Saru: "einen Art Rechner bei dem ich verschiedene Perks kombinieren kann … für
-beide Seiten … Diminishing returns … für mehrere Leute die Builds angeben"): up to four Survivor builds and one Killer
-build, the time for a Generator and for all five – the arithmetic is gencalc.py, the numbers perkdata.json.
-Everything stays on this PC; the builds are kept in the setting ``calc``."""
+beide Seiten … Diminishing returns … für mehrere Leute die Builds angeben"; 1.52: "für alle Elemente von Diminishing
+Returns … Haste, Repair, Vault", only as many builds as Survivors, every modifier listed, the best next perk, two
+builds side by side): up to four Survivor builds and one Killer build for one area at a time – the arithmetic is
+gencalc.py, the numbers perkdata.json. Everything stays on this PC; the builds are kept in the setting ``calc``."""
 from __future__ import annotations
 
-from . import gencalc
+from . import gencalc, perkicons
 from . import uimodel as ui
 from .i18n import N_, _
 
 NONE = "—"
 SLOTS = 4                                     # perks per build
 PERK_PX = 174                                 # width of a perk choice (four fit beside the name at 1100 px)
+NAME_PX = 84                                  # width of "Survivor 1" / "Item" before the choices
 GREAT_CHOICES = (0, 25, 50, 75, 100)          # % of Skill Checks hit Great
 MISS_CHOICES = (0, 5, 10, 20)                 # % missed
 KICK_CHOICES = (0, 1, 2, 3, 4)
 KICK_AT_CHOICES = (25, 50, 75, 90)            # % progress when the Killer comes
 AWAY_CHOICES = (0, 10, 20, 30, 45, 60)        # s the Survivors stay away after a kick
 WALK_CHOICES = (0, 5, 10, 20)                 # s between two Generators
-COUNT_CHOICES = tuple(range(0, 12))
-CALC_DEFAULTS = {"n": 4, "survivors": [[[], ""] for _i in range(gencalc.MAX_SURVIVORS)], "killer": [],
-                 "counts": {}, "great": 50, "miss": 0, "kicks": 1, "kick_at": 50, "away": 20, "walk": 0,
-                 "diminishing": True}
+STACK_CHOICES = (100, 50, 0)                  # % of a Survivor perk's Tokens that count (0 = one Token)
+COUNT_CHOICES = tuple(range(0, 14))
+REPAIR_OPTS = ("great", "miss", "kicks", "kick_at", "away", "walk")       # asked only for Generators
+CALC_DEFAULTS = {"area": gencalc.REPAIR, "n": 4, "survivors": [[[], ""] for _i in range(gencalc.MAX_SURVIVORS)],
+                 "killer": [], "counts": {}, "great": 50, "miss": 0, "kicks": 1, "kick_at": 50, "away": 20, "walk": 0,
+                 "stacks": 100, "diminishing": True, "compare": None}
+
+AREAS = {
+    "repair": N_("Reparieren (Generatoren)"),
+    "heal": N_("Heilen und Erholen"),
+    "move": N_("Bewegung (Haste, Hindered)"),
+    "vault": N_("Vaults (Fenster, Paletten)"),
+    "objects": N_("Totems, Truhen, Tore"),
+    "hook": N_("Haken (Befreien, Sabotieren)"),
+    "k_move": N_("Killer: Bewegung"),
+    "k_action": N_("Killer: Aktionen"),
+    "k_attack": N_("Killer: Erholung nach Angriffen"),
+}
+ROWS = {
+    "heal_other": N_("Andere heilen"), "heal_dying": N_("Sterbende aufheben"),
+    "heal_self": N_("Sich selbst heilen (Med-Kit)"), "recover": N_("Erholen am Boden (bis 95 %)"),
+    "run": N_("Rennen"), "walk": N_("Gehen"), "crouch": N_("Ducken"), "crawl": N_("Kriechen"),
+    "window_fast": N_("Fenster, schnell"), "window_medium": N_("Fenster, mittel"),
+    "window_slow": N_("Fenster, langsam"), "pallet_fast": N_("Palette, schnell"),
+    "pallet_slow": N_("Palette, langsam"),
+    "cleanse": N_("Totem reinigen"), "bless": N_("Totem segnen"), "bless_hex": N_("Hex-Totem segnen"),
+    "chest": N_("Truhe öffnen"), "gate": N_("Ausgangstor öffnen"),
+    "unhook": N_("Befreien"), "sabotage": N_("Haken sabotieren"),
+    "k460": N_("Killer mit 4,6 m/s"), "k440": N_("Killer mit 4,4 m/s"), "k385": N_("Killer mit 3,85 m/s"),
+    "carry": N_("Tragen"),
+    "kvault": N_("Fenster-Vault"), "break": N_("Palette oder Wand zerstören"),
+    "damage": N_("Generator beschädigen"), "locker": N_("Spind durchsuchen"),
+    "pickup": N_("Aufheben und Ablegen"), "hooking": N_("Aufhängen"),
+    "hit": N_("Nach einem Treffer"), "miss": N_("Nach einem Fehlschlag"),
+}
+# when a modifier holds (perkdata.json "when") – the calculator counts every condition as met
+WHEN = {
+    "injured": N_("verletzt"), "healthy": N_("gesund"), "gates": N_("Tore mit Strom"),
+    "boon": N_("im Boon-Bereich"), "hex": N_("solange das Hex-Totem steht"), "trigger": N_("nach Auslösung"),
+    "near": N_("in Reichweite"), "unhook": N_("nach einer Befreiung"), "obsession": N_("mit der Obsession"),
+    "terror": N_("im Terrorradius"), "tokens": N_("{n} Tokens"),
+    "hurt": N_("{n} verletzt, sterbend oder am Haken"), "hooks": N_("{n} Hakenstufen"),
+    "alive": N_("{n} Survivor am Leben"),
+}
 
 
 # what "Anzahl" means for a Killer perk (perkdata.json has the same in English, as documentation)
@@ -40,6 +82,7 @@ COUNT_MEANS = {
     "Grim Embrace": N_("erste Haken (1–3)"),
     "Corrupt Intervention": N_("1 = dieser Generator ist am Start blockiert"),
 }
+TOKENS = N_("Tokens des Perks")               # every other Killer perk that counts Tokens (perkdata.json "max_n")
 
 
 # what a perk does, in the program's words (the numbers come from perkdata.json) – by the entry's "kind"
@@ -91,6 +134,49 @@ def _secs(v) -> str:
     return _("{n} s", n=v)
 
 
+def _stack_label(v) -> str:
+    return _("alle") if v >= 100 else _("die Hälfte") if v > 0 else _("eine")
+
+
+def when_text(part) -> str:
+    """The condition of a modifier in words: "verletzt · 12 s lang"."""
+    bits = []
+    if part.when in WHEN and (part.when != "tokens" or part.stacks):
+        bits.append(_(WHEN[part.when], n=part.stacks))
+    if part.seconds:
+        bits.append(_("{s} s lang", s=f"{part.seconds:g}"))
+    return " · ".join(bits)
+
+
+def signed_pct(v: float) -> str:
+    """+50 % / −20 % (a typographic minus, no trailing zeros)."""
+    return ("+" if v >= 0 else "−") + f"{abs(v) * 100:.3g} %"
+
+
+def value_text(kind: str, v) -> str:
+    if v is None:
+        return "–"
+    return f"{v:.2f} m/s" if kind == "speed" else f"{v:.2f} s"
+
+
+def delta_text(kind: str, now, old) -> str:
+    """Now against Build A: "−1.20 s" (for times less is faster), "=" when the same."""
+    if now is None or old is None:
+        return "–"
+    d = now - old
+    if abs(d) < 0.005:
+        return "="
+    unit = " m/s" if kind == "speed" else " s"
+    return ("+" if d > 0 else "−") + f"{abs(d):.2f}" + unit
+
+
+def _time_delta(now, old) -> str:
+    if now is None or old is None:
+        return "–"
+    d = int(round(now)) - int(round(old))
+    return "=" if d == 0 else ("+" if d > 0 else "−") + gencalc.fmt(abs(d))
+
+
 class CalcTab:
     """The page "Rechner" (AutoPage from this tab's structure)."""
 
@@ -102,52 +188,84 @@ class CalcTab:
 
     def _calc_state(self) -> dict:
         saved = self.settings.get("calc") if isinstance(self.settings.get("calc"), dict) else {}
-        return {**CALC_DEFAULTS, **saved}
+        st = {**CALC_DEFAULTS, **saved}
+        if st["area"] not in self._calc_data().areas:
+            st["area"] = gencalc.REPAIR
+        return st
+
+    def _calc_icons(self):
+        icons = self.__dict__.get("_calc_icon_index")
+        if icons is None:
+            icons = self._calc_icon_index = perkicons.Index(perkicons.folders(self.data_dir))
+        return icons
+
+    def _calc_choice(self, parent, var, values, width=17, px=PERK_PX, icons=False):
+        c = ui.Combobox(parent, textvariable=var, values=values, state="readonly", width=width)
+        if px:
+            c._dbdms_px = px
+        if icons and self._calc_icons().any():
+            c._dbdms_icons = self._calc_icons().find            # value -> picture file or None (app_qt.ui_state)
+        c.bind("<<ComboboxSelected>>", lambda e: self._calc_changed())
+        return c
 
     def _tab_calc(self):
         outer, f = self._scroll_tab()
         d = self._calc_data()
         st = self._calc_state()
-        surv_names = [NONE] + sorted(d.survivor, key=str.lower)
-        tool_names = [NONE] + list(d.toolboxes)
-        kill_names = [NONE] + sorted(d.killer, key=str.lower)
+        item_names = [NONE] + list(d.toolboxes) + list(d.medkits)
+
+        top = ui.LabelFrame(f, text=_("Bereich"), padding=8)
+        top.pack(fill="x")
+        row = ui.Frame(top)
+        row.pack(fill="x")
+        self.calc_area_ids = [a for a in d.areas if a in AREAS]
+        labels = [_(AREAS[a]) for a in self.calc_area_ids]
+        self.calc_area_var = ui.StringVar(value=_(AREAS[st["area"]]))
+        cb = self._calc_choice(row, self.calc_area_var, labels, width=30, px=PERK_PX + 90)
+        cb.pack(side="left")
+        ui.Label(row, text=_("Survivor im Team")).pack(side="left", padx=(16, 0))
+        self.calc_n_var = ui.StringVar(value=str(st["n"]))
+        cb = self._calc_choice(row, self.calc_n_var, [str(i) for i in range(1, 5)], width=4, px=0)
+        cb.pack(side="left", padx=(8, 0))
+        self.calc_area_var_hint = ui.StringVar(value="")
+        ui.Label(top, textvariable=self.calc_area_var_hint, style="Dim.TLabel", wraplength=640).pack(
+            anchor="w", pady=(6, 0))
 
         team = ui.LabelFrame(f, text=_("Survivor-Builds"), padding=8)
-        team.pack(fill="x")
-        row = ui.Frame(team)
-        row.pack(fill="x")
-        ui.Label(row, text=_("Survivor am Generator")).pack(side="left")
-        self.calc_n_var = ui.StringVar(value=str(st["n"]))
-        cb = ui.Combobox(row, textvariable=self.calc_n_var, values=[str(i) for i in range(1, 5)], state="readonly",
-                         width=4)
-        cb.pack(side="left", padx=(8, 0))
-        cb.bind("<<ComboboxSelected>>", lambda e: self._calc_changed())
-        self.calc_surv = []
+        team.pack(fill="x", pady=(8, 0))
+        self.calc_surv, self.calc_surv_rows, self.calc_perk_boxes = [], [], []
         for i in range(gencalc.MAX_SURVIVORS):
             perks, tool = (st["survivors"] + [[[], ""]] * 4)[i]
-            r = ui.Frame(team)
-            r.pack(fill="x", pady=(8, 0))
-            ui.Label(r, text=_("Survivor {n}", n=i + 1), width=14).pack(side="left")
+            block = ui.Frame(team)                           # one build: shown only for the Survivors of the team
+            block.pack(fill="x", pady=(0 if i == 0 else 8, 0))
+            r = ui.Frame(block)
+            r.pack(fill="x")
+            lab = ui.Label(r, text=_("Survivor {n}", n=i + 1), width=14)
+            lab._dbdms_px = NAME_PX
+            lab.pack(side="left")
             vars_ = []
             for slot in range(SLOTS):
-                v = ui.StringVar(value=perks[slot] if slot < len(perks) and perks[slot] in d.survivor else NONE)
-                c = ui.Combobox(r, textvariable=v, values=surv_names, state="readonly", width=17)
-                c._dbdms_px = PERK_PX
+                v = ui.StringVar(value=perks[slot] if slot < len(perks) and self._calc_known(perks[slot], "S")
+                                 else NONE)
+                c = self._calc_choice(r, v, [NONE], icons=True)
                 c.pack(side="left", padx=(6, 0))
-                c.bind("<<ComboboxSelected>>", lambda e: self._calc_changed())
+                self.calc_perk_boxes.append((c, v, "S"))
                 vars_.append(v)
-            r = ui.Frame(team)                              # the item in its own line: four perks fill the first
+            r = ui.Frame(block)                              # the item in its own line: four perks fill the first
             r.pack(fill="x", pady=(4, 0))
-            ui.Label(r, text=_("Werkzeugkasten"), width=14).pack(side="left")
-            tv = ui.StringVar(value=tool if tool in d.toolboxes else NONE)
-            c = ui.Combobox(r, textvariable=tv, values=tool_names, state="readonly", width=17)
-            c._dbdms_px = PERK_PX
-            c.pack(side="left", padx=(6, 0))
-            c.bind("<<ComboboxSelected>>", lambda e: self._calc_changed())
+            lab = ui.Label(r, text=_("Item"), width=14)
+            lab._dbdms_px = NAME_PX
+            lab.pack(side="left")
+            tv = ui.StringVar(value=tool if tool in item_names else NONE)
+            self._calc_choice(r, tv, item_names).pack(side="left", padx=(6, 0))
             self.calc_surv.append((vars_, tv))
-        ui.Label(team, text=_("Bedingte Perks zählen als aktiv (z. B. Resilience = verletzt, Déjà Vu = auf einem der "
-                               "drei nahen Generatoren)."),
-                 style="Dim.TLabel", wraplength=620).pack(anchor="w", pady=(6, 0))
+            self.calc_surv_rows.append(block)
+        self.calc_team_hint = ui.Label(
+            team, text=_("Bedingte Perks zählen als aktiv (z. B. Resilience = verletzt, Hope = Tore mit Strom); die "
+                         "Bedingung steht in der Aufschlüsselung. Ein Werkzeugkasten wirkt beim Reparieren, ein "
+                         "Med-Kit beim Heilen anderer."),
+            style="Dim.TLabel", wraplength=620)
+        self.calc_team_hint.pack(anchor="w", pady=(6, 0))
 
         kf = ui.LabelFrame(f, text=_("Killer-Build"), padding=8)
         kf.pack(fill="x", pady=(8, 0))
@@ -157,18 +275,19 @@ class CalcTab:
         for slot in range(SLOTS):
             r = ui.Frame(kf)
             r.pack(fill="x", pady=(0 if slot == 0 else 4, 0))
-            name = killer[slot] if slot < len(killer) and killer[slot] in d.killer else NONE
+            name = killer[slot] if slot < len(killer) and self._calc_known(killer[slot], "K") else NONE
             v = ui.StringVar(value=name)
-            c = ui.Combobox(r, textvariable=v, values=kill_names, state="readonly", width=26)
+            c = ui.Combobox(r, textvariable=v, values=[NONE], state="readonly", width=26)
             c._dbdms_px = PERK_PX + 40
+            if self._calc_icons().any():
+                c._dbdms_icons = self._calc_icons().find
             c.pack(side="left")
             c.bind("<<ComboboxSelected>>", lambda e, s=slot: self._calc_killer_picked(s))
+            self.calc_perk_boxes.append((c, v, "K"))
             ui.Label(r, text=_("Anzahl")).pack(side="left", padx=(10, 0))
-            n = counts.get(name, d.killer[name].get("default", 1)) if name in d.killer else 1
-            nv = ui.StringVar(value=str(n))
-            c = ui.Combobox(r, textvariable=nv, values=[str(x) for x in COUNT_CHOICES], state="readonly", width=4)
+            nv = ui.StringVar(value=str(counts.get(name, self._calc_count_default(name))))
+            c = self._calc_choice(r, nv, [str(x) for x in COUNT_CHOICES], width=4, px=0)
             c.pack(side="left", padx=(6, 0))
-            c.bind("<<ComboboxSelected>>", lambda e: self._calc_changed())
             self.calc_count_boxes.append(c)
             mv = ui.StringVar(value="")
             ui.Label(r, textvariable=mv, style="Dim.TLabel", wraplength=360).pack(side="left", padx=(10, 0))
@@ -176,105 +295,196 @@ class CalcTab:
 
         af = ui.LabelFrame(f, text=_("Annahmen"), padding=8)
         af.pack(fill="x", pady=(8, 0))
-        self.calc_opts = {}
+        self.calc_opts, self.calc_opt_rows = {}, {}
         for key, label, choices, show in (
                 ("great", N_("Great Skill Checks"), GREAT_CHOICES, lambda v: f"{v} %"),
                 ("miss", N_("Verfehlte Skill Checks"), MISS_CHOICES, lambda v: f"{v} %"),
                 ("kicks", N_("Kicks am Generator"), KICK_CHOICES, str),
                 ("kick_at", N_("Killer kommt bei"), KICK_AT_CHOICES, lambda v: f"{v} %"),
                 ("away", N_("Weg nach dem Kick"), AWAY_CHOICES, _secs),
-                ("walk", N_("Laufweg zwischen Generatoren"), WALK_CHOICES, _secs)):
+                ("walk", N_("Laufweg zwischen Generatoren"), WALK_CHOICES, _secs),
+                ("stacks", N_("Tokens der Survivor-Perks"), STACK_CHOICES, _stack_label)):
             r = ui.Frame(af)
             r.pack(fill="x", pady=(0, 4))
             ui.Label(r, text=_(label), width=26).pack(side="left")
             labels = [show(c) for c in choices]
             cur = st.get(key, CALC_DEFAULTS[key])
             v = ui.StringVar(value=labels[choices.index(cur)] if cur in choices else labels[0])
-            c = ui.Combobox(r, textvariable=v, values=labels, state="readonly", width=8)
-            c.pack(side="left")
-            c.bind("<<ComboboxSelected>>", lambda e: self._calc_changed())
+            self._calc_choice(r, v, labels, width=10, px=0).pack(side="left")
             self.calc_opts[key] = (v, choices, labels)
-        ui.Label(af, text=_("Kicks und die Anzahl je Killer-Perk gelten für jeden Generator einzeln."),
-                 style="Dim.TLabel", wraplength=620).pack(anchor="w")
+            self.calc_opt_rows[key] = r
+        self.calc_kick_hint = ui.Label(
+            af, text=_("Kicks und die Anzahl je Killer-Perk gelten für jeden Generator einzeln."),
+            style="Dim.TLabel", wraplength=620)
+        self.calc_kick_hint.pack(anchor="w")
         self.calc_dr_var = ui.BooleanVar(value=bool(st.get("diminishing", True)))
-        ui.Checkbutton(af, text=_("Diminishing Returns anwenden"), variable=self.calc_dr_var,
-                       command=self._calc_changed).pack(anchor="w", pady=(2, 0))
+        self.calc_dr_box = ui.Checkbutton(af, text=_("Diminishing Returns anwenden"), variable=self.calc_dr_var,
+                                          command=self._calc_changed)
+        self.calc_dr_box.pack(anchor="w", pady=(2, 0))
         ui.Button(af, text=_("Rechner zurücksetzen"), command=self._calc_reset).pack(anchor="w", pady=(6, 0))
 
-        ef = ui.LabelFrame(f, text=_("Was die gewählten Perks tun"), padding=8)
+        rf = ui.LabelFrame(f, text=_("Ergebnis"), padding=8)
+        rf.pack(fill="x", pady=(8, 0))
+        t = ui.Treeview(rf, columns=("a", "b"), show="tree headings", height=6, selectmode="none")
+        t.heading("#0", text=_("Situation"), anchor="w")
+        t.column("#0", width=300, stretch=False)
+        t.pack(fill="x")
+        self.calc_tree = t
+        self.calc_rates_var = ui.StringVar(value="")
+        ui.Label(rf, textvariable=self.calc_rates_var, style="Big.TLabel", wraplength=640).pack(
+            anchor="w", pady=(6, 0))
+        self.calc_note_var = ui.StringVar(value="")
+        ui.Label(rf, textvariable=self.calc_note_var, style="Dim.TLabel", wraplength=640).pack(
+            anchor="w", pady=(2, 0))
+        row = ui.Frame(rf)
+        row.pack(fill="x", pady=(6, 0))
+        ui.Button(row, text=_("Als Build A merken"), command=self._calc_keep).pack(side="left")
+        self.calc_drop_btn = ui.Button(row, text=_("Vergleich beenden"), command=self._calc_drop)
+        self.calc_drop_btn.pack(side="left", padx=(8, 0))
+        self.calc_compare_var = ui.StringVar(value="")
+        ui.Label(rf, textvariable=self.calc_compare_var, style="Dim.TLabel", wraplength=640).pack(
+            anchor="w", pady=(4, 0))
+
+        nf = ui.LabelFrame(f, text=_("Bester nächster Perk"), padding=8)
+        nf.pack(fill="x", pady=(8, 0))
+        self.calc_tips_var = ui.StringVar(value="")
+        ui.Label(nf, textvariable=self.calc_tips_var, wraplength=640, justify="left").pack(anchor="w")
+
+        bf = ui.LabelFrame(f, text=_("Aufschlüsselung"), padding=8)
+        bf.pack(fill="x", pady=(8, 0))
+        b = ui.Treeview(bf, columns=("value", "weight", "counted", "when"), show="tree headings", height=8,
+                        selectmode="none")
+        b.heading("#0", text=_("Quelle"), anchor="w")
+        b.heading("value", text=_("Nennwert"), anchor="e")
+        b.heading("weight", text=_("zählt zu"), anchor="e")
+        b.heading("counted", text=_("wirkt mit"), anchor="e")
+        b.heading("when", text=_("Bedingung"), anchor="w")
+        b.column("#0", width=250, stretch=False)
+        b.column("value", width=80, anchor="e", stretch=False)
+        b.column("weight", width=70, anchor="e", stretch=False)
+        b.column("counted", width=80, anchor="e", stretch=False)
+        b.column("when", width=160, anchor="w", stretch=True)
+        b._dbdms_empty = _("Noch kein Perk gewählt, der in diesem Bereich wirkt.")
+        b.pack(fill="x")
+        self.calc_parts_tree = b
+        ui.Label(bf, text=_("Von mehreren Boni (oder Mali) auf dasselbe zählt der größte voll, der zweite zur "
+                            "Hälfte, der dritte zu 25 %, der vierte zu 12,5 %, jeder weitere zu 5 % (seit Patch "
+                            "9.6.0). Boni werden addiert, Mali multipliziert."),
+                 style="Dim.TLabel", wraplength=640).pack(anchor="w", pady=(6, 0))
+
+        self.calc_effects_frame = ef = ui.LabelFrame(f, text=_("Was die gewählten Perks tun"), padding=8)
         ef.pack(fill="x", pady=(8, 0))
         self.calc_effects_var = ui.StringVar(value="")
         ui.Label(ef, textvariable=self.calc_effects_var, wraplength=640, justify="left").pack(anchor="w")
 
-        rf = ui.LabelFrame(f, text=_("Ergebnis"), padding=8)
-        rf.pack(fill="x", pady=(8, 0))
-        t = ui.Treeview(rf, columns=("calm", "killer"), show="tree headings", height=6, selectmode="none")
-        t.heading("#0", text=_("Situation"), anchor="w")
-        t.heading("calm", text=_("ohne Killer"), anchor="e")
-        t.heading("killer", text=_("mit Killer"), anchor="e")
-        t.column("#0", width=300, stretch=False)
-        t.column("calm", width=110, anchor="e", stretch=False)
-        t.column("killer", width=110, anchor="e", stretch=True)
-        t.pack(side="left", fill="x")
-        self.calc_tree = t
-        self.calc_rates_var = ui.StringVar(value="")
-        ui.Label(f, textvariable=self.calc_rates_var, style="Big.TLabel", wraplength=640).pack(anchor="w", pady=(6, 0))
-        self.calc_note_var = ui.StringVar(value="")
-        ui.Label(f, textvariable=self.calc_note_var, style="Dim.TLabel", wraplength=640).pack(anchor="w", pady=(2, 0))
-        ui.Label(f, text=_("Werte aus dem Dead by Daylight Wiki (deadbydaylight.wiki.gg, Stand {date}), nach jedem "
-                            "Patch zu prüfen. Nicht berechnet: {names}.",
-                            date=d.retrieved, names=", ".join(d.not_modelled)),
-                 style="Dim.TLabel", wraplength=640).pack(anchor="w", pady=(6, 0))
+        self.calc_source_var = ui.StringVar(value="")
+        ui.Label(f, textvariable=self.calc_source_var, style="Dim.TLabel", wraplength=640).pack(
+            anchor="w", pady=(6, 0))
+        ui.Label(f, text=_("Perk-Bilder: eigene Bilder (PNG oder WebP, benannt wie der Perk) im Ordner „{folder}“ des "
+                            "Datenordners erscheinen nach dem nächsten Start in den Auswahllisten.",
+                            folder=perkicons.USER_FOLDER),
+                 style="Dim.TLabel", wraplength=640).pack(anchor="w", pady=(2, 0))
         self._calc_render()
         return outer
 
     # ---------------------------------------------------------------- reading the page
-    def _calc_inputs(self):
+    def _calc_known(self, name: str, side: str) -> bool:
         d = self._calc_data()
+        own = d.survivor if side == "S" else d.killer
+        return name in own or d.perks.get(name, {}).get("side") == side
+
+    def _calc_count_default(self, name: str) -> int:
+        d = self._calc_data()
+        if name in d.killer:
+            return int(d.killer[name].get("default", 1))
+        return gencalc.max_stacks(d, name) or 1
+
+    def _calc_area(self) -> str:
+        labels = [_(AREAS[a]) for a in self.calc_area_ids]
+        cur = self.calc_area_var.get()
+        return self.calc_area_ids[labels.index(cur)] if cur in labels else gencalc.REPAIR
+
+    def _calc_read(self) -> dict:
+        """What the page says now, in the shape of the setting ``calc`` (without the kept Build A)."""
         try:
             n = max(1, min(4, int(self.calc_n_var.get())))
         except ValueError:
             n = 4
-        team = []
-        for vars_, tv in self.calc_surv[:n]:
-            perks = tuple(v.get() for v in vars_ if v.get() in d.survivor)
-            team.append(gencalc.Survivor(perks, tv.get() if tv.get() in d.toolboxes else ""))
-        names, counts = [], {}
-        for v, nv, _mv in self.calc_kill:
-            if v.get() in d.killer:
-                names.append(v.get())
-                try:
-                    counts[v.get()] = int(nv.get())
-                except ValueError:
-                    pass
         opts = {}
         for key, (v, choices, labels) in self.calc_opts.items():
             opts[key] = choices[labels.index(v.get())] if v.get() in labels else CALC_DEFAULTS[key]
-        scen = gencalc.Scenario(great=opts["great"] / 100, miss=opts["miss"] / 100,
-                                diminishing=bool(self.calc_dr_var.get()), kicks=opts["kicks"],
-                                kick_at=opts["kick_at"] / 100, away=float(opts["away"]), walk=float(opts["walk"]))
-        return n, team, gencalc.Killer(tuple(names), counts), scen, opts
+        return {"area": self._calc_area(), "n": n,
+                "survivors": [[[v.get() for v in vars_ if v.get() != NONE], tv.get() if tv.get() != NONE else ""]
+                              for vars_, tv in self.calc_surv],
+                "killer": [v.get() for v, _nv, _mv in self.calc_kill if v.get() != NONE],
+                "counts": {v.get(): nv.get() for v, nv, _mv in self.calc_kill if v.get() != NONE},
+                **opts, "diminishing": bool(self.calc_dr_var.get())}
+
+    def _calc_build(self, st: dict):
+        """(team, Killer, Scenario) of a state as ``_calc_read`` gives it (also the kept Build A)."""
+        d = self._calc_data()
+        try:
+            n = max(1, min(4, int(st.get("n", 4))))
+        except (TypeError, ValueError):
+            n = 4
+        team = []
+        for entry in (list(st.get("survivors") or []) + [[[], ""]] * 4)[:n]:
+            try:
+                perks, item = entry
+            except (TypeError, ValueError):
+                perks, item = [], ""
+            perks = tuple(p for p in perks if self._calc_known(p, "S"))
+            team.append(gencalc.Survivor(perks, item if item in d.toolboxes else "",
+                                         medkit=item if item in d.medkits else ""))
+        names = tuple(p for p in st.get("killer") or [] if self._calc_known(p, "K"))
+        counts = {}
+        for name, value in (st.get("counts") or {}).items():
+            try:
+                counts[name] = int(value)
+            except (TypeError, ValueError):
+                pass
+
+        def num(key):
+            try:
+                return float(st.get(key, CALC_DEFAULTS[key]))
+            except (TypeError, ValueError):
+                return float(CALC_DEFAULTS[key])
+        scen = gencalc.Scenario(great=num("great") / 100, miss=num("miss") / 100,
+                                diminishing=bool(st.get("diminishing", True)), kicks=int(num("kicks")),
+                                kick_at=num("kick_at") / 100, away=num("away"), walk=num("walk"),
+                                stacks=num("stacks") / 100)
+        return team, gencalc.Killer(names, counts), scen
 
     def _calc_killer_picked(self, slot: int):
-        d = self._calc_data()
         v, nv, _mv = self.calc_kill[slot]
-        if v.get() in d.killer:
-            nv.set(str(d.killer[v.get()].get("default", 1)))
+        if v.get() != NONE:
+            nv.set(str(self._calc_count_default(v.get())))
         self._calc_changed()
 
     def _calc_changed(self):
-        n, _team, _killer, _scen, opts = self._calc_inputs()
-        self.settings.set("calc", {
-            "n": n, "survivors": [[[v.get() for v in vars_ if v.get() != NONE], tv.get() if tv.get() != NONE else ""]
-                                  for vars_, tv in self.calc_surv],
-            "killer": [v.get() for v, _nv, _mv in self.calc_kill if v.get() != NONE],
-            "counts": {v.get(): nv.get() for v, nv, _mv in self.calc_kill if v.get() != NONE},
-            **opts, "diminishing": bool(self.calc_dr_var.get())})
+        st = self._calc_read()
+        st["compare"] = self._calc_state().get("compare")
+        self.settings.set("calc", st)
+        self._save_soon()
+        self._calc_render()
+
+    def _calc_keep(self):
+        """Keep what is chosen now as Build A; the result then shows it beside every change."""
+        st = self._calc_read()
+        st["compare"] = {k: v for k, v in st.items() if k != "area"}
+        self.settings.set("calc", st)
+        self._save_soon()
+        self._calc_render()
+
+    def _calc_drop(self):
+        st = self._calc_read()
+        st["compare"] = None
+        self.settings.set("calc", st)
         self._save_soon()
         self._calc_render()
 
     def _calc_reset(self):
-        """All builds and assumptions back to the start values."""
+        """All builds and assumptions back to the start values (the area stays)."""
         self.calc_n_var.set(str(CALC_DEFAULTS["n"]))
         for vars_, tv in self.calc_surv:
             for v in vars_:
@@ -286,10 +496,12 @@ class CalcTab:
         for key, (v, choices, labels) in self.calc_opts.items():
             v.set(labels[choices.index(CALC_DEFAULTS[key])])
         self.calc_dr_var.set(True)
-        self._calc_changed()
+        self.settings.set("calc", {**self._calc_read(), "compare": None})
+        self._save_soon()
+        self._calc_render()
 
     def _calc_effects(self, d, team, killer) -> str:
-        """One line per chosen perk and toolbox (each once): what it does here."""
+        """One line per chosen perk and toolbox (each once): what it does to a Generator."""
         lines, seen = [], set()
         for s in team:
             for name in s.perks:
@@ -307,29 +519,146 @@ class CalcTab:
                 lines.append(f"{name} – {effect_text(d.killer[name], d.mech)}")
         return "\n".join(lines) if lines else _("Noch kein Perk gewählt.")
 
+    # ---------------------------------------------------------------- what the page shows for the area
+    def _calc_arrange(self, area: str, n: int):
+        """Only what the area and the team size need: the builds of the first ``n`` Survivors, the perks that act
+        in this area (a perk already chosen stays in its list), the assumptions asked here."""
+        d = self._calc_data()
+        for i, block in enumerate(self.calc_surv_rows):
+            if i < n and not block.winfo_manager():
+                block.pack(fill="x", pady=(0 if i == 0 else 8, 0), before=self.calc_team_hint)
+            elif i >= n and block.winfo_manager():
+                block.pack_forget()
+        names = {side: gencalc.perk_names(d, side, area) for side in ("S", "K")}
+        for box, var, side in self.calc_perk_boxes:
+            values = [NONE] + names[side]
+            if var.get() != NONE and var.get() not in values:
+                values.append(var.get())
+            if list(box.cget("values") or ()) != values:
+                box.configure(values=values)
+        repair = area == gencalc.REPAIR
+        for key, r in self.calc_opt_rows.items():
+            want = repair if key in REPAIR_OPTS else not repair
+            if want and not r.winfo_manager():
+                r.pack(fill="x", pady=(0, 4), before=self.calc_kick_hint)
+            elif not want and r.winfo_manager():
+                r.pack_forget()
+        for w, kw in ((self.calc_kick_hint, {"anchor": "w", "before": self.calc_dr_box}),
+                      (self.calc_effects_frame, {"fill": "x", "pady": (8, 0)})):
+            if repair and not w.winfo_manager():
+                w.pack(**kw)
+            elif not repair and w.winfo_manager():
+                w.pack_forget()
+
+    def _calc_columns(self, columns):
+        """The result table's columns for this area: [(id, heading)], numbers right-aligned."""
+        t = self.calc_tree
+        if tuple(t.cget("columns")) != tuple(c for c, _h in columns):
+            t.configure(columns=tuple(c for c, _h in columns))
+        wide = len(columns) > 3                              # with Build A: five columns must fit beside the name
+        t.column("#0", width=230 if wide else 300, stretch=False)
+        for i, (c, head) in enumerate(columns):
+            t.heading(c, text=head, anchor="e")
+            t.column(c, width=100 if wide else 110, anchor="e", stretch=i == len(columns) - 1)
+
+    def _calc_who(self, subject: int, many: bool) -> str:
+        if subject == gencalc.KILLER:
+            return _("Killer")
+        return _("Survivor {n}", n=subject + 1) if many else ""
+
+    def _calc_tip_lines(self, d, area, tips, team, killer) -> str:
+        kind = d.areas[area].get("kind")
+        lines = []
+        for side, title in (("S", _("Survivor")), ("K", _("Killer"))):
+            full = all(len(s.perks) >= SLOTS for s in team) if side == "S" else len(killer.perks) >= SLOTS
+            if full:
+                lines.append(_("{side}: kein freier Platz im Build.", side=title))
+                continue
+            if not tips[side]:
+                lines.append(_("{side}: kein weiterer Perk ändert hier etwas.", side=title))
+                continue
+            for tip in tips[side]:
+                who = _(" für Survivor {n}", n=tip.who + 1) if side == "S" and len(team) > 1 else ""
+                if area == gencalc.REPAIR:
+                    what = _("ein Generator, alle zusammen: {a} → {b}", a=gencalc.fmt(tip.before),
+                             b=gencalc.fmt(tip.after))
+                else:
+                    what = _(ROWS.get(tip.row, tip.row))
+                    if len(team) > 1 and tip.subject != gencalc.KILLER and (side == "K" or tip.subject != tip.who):
+                        what = _("Survivor {n}", n=tip.subject + 1) + " · " + what      # someone else's row
+                    if tip.before is not None and tip.after is not None:
+                        what += f": {value_text(kind, tip.before)} → {value_text(kind, tip.after)}"
+                lines.append(f"{title}: {tip.name}{who} – {what}")
+        return "\n".join(lines)
+
+    def _calc_part_rows(self, tree, groups):
+        """``groups``: [(heading, factor, [Part])] → the breakdown table (a heading row, its modifiers below)."""
+        tree.delete(*tree.get_children())
+        for gi, (head, mult, parts) in enumerate(groups):
+            if not parts:
+                continue
+            top = tree.insert("", "end", iid=f"g{gi}", text=head, open=True,
+                              values=("", "", _("Tempo {p} %", p=f"{mult * 100:.4g}"), ""))
+            for pi, p in enumerate(parts):
+                if p.cap is not None:
+                    values = ("", "", _("höchstens {p}", p=signed_pct(p.cap)), when_text(p))
+                else:
+                    values = (signed_pct(p.value), f"{p.weight * 100:g} %", signed_pct(p.counted), when_text(p))
+                tree.insert(top, "end", iid=f"g{gi}p{pi}", text=p.source, values=values)
+
     # ---------------------------------------------------------------- the result
     def _calc_render(self):
         d = self._calc_data()
-        n, team, killer, scen, _opts = self._calc_inputs()
+        st = self._calc_read()
+        area, n = st["area"], st["n"]
+        self._calc_arrange(area, n)
+        team, killer, scen = self._calc_build(st)
+        kept = self._calc_state().get("compare")
+        old = self._calc_build(kept) if isinstance(kept, dict) else None
         for (v, nv, mv), box in zip(self.calc_kill, self.calc_count_boxes):
-            what = COUNT_MEANS.get(v.get()) if v.get() in d.killer else None
-            mv.set(_("Anzahl = {what}", what=_(what)) if what else "")
-            box.state(["!disabled" if what else "disabled"])     # a perk without a count: nothing to choose
+            name = v.get()
+            what = COUNT_MEANS.get(name) or (TOKENS if gencalc.max_stacks(d, name) else None)
+            mv.set(_("Anzahl = {what}", what=_(what)) if what and name != NONE else "")
+            box.state(["!disabled" if what and name != NONE else "disabled"])     # no count: nothing to choose
+        self.calc_drop_btn.state(["!disabled" if old else "disabled"])
+        self.calc_compare_var.set(
+            _("Build A ist gemerkt: die Spalten „Build A“ und „Unterschied“ zeigen ihn neben dem, was jetzt gewählt "
+              "ist (− = jetzt schneller bzw. kürzer).") if old else
+            _("„Als Build A merken“ hält die jetzige Auswahl fest; danach zeigt die Tabelle jede Änderung daneben."))
+        tips = gencalc.suggest(d, area, team, killer, scen, slots=SLOTS)
+        self.calc_tips_var.set(self._calc_tip_lines(d, area, tips, team, killer))
+        if area == gencalc.REPAIR:
+            self._calc_render_repair(d, team, killer, scen, old)
+        else:
+            self._calc_render_area(d, area, team, killer, scen, old)
+
+    def _calc_render_repair(self, d, team, killer, scen, old):
+        self.calc_area_var_hint.set(_("Ein Generator braucht 90 Ladungen, ein Survivor schafft 1 pro Sekunde; jeder "
+                                      "weitere am selben Generator kostet alle 15 % Tempo."))
         self.calc_effects_var.set(self._calc_effects(d, team, killer))
+        columns = [("calm", _("ohne Killer")), ("killer", _("mit Killer"))]
+        if old:
+            columns += [("a", _("Build A")), ("delta", _("Unterschied"))]
+        self._calc_columns(columns)
         t = self.calc_tree
         t.delete(*t.get_children())
-        sizes = gencalc.by_size(d, team, killer, scen)
-        for k, calm, hard in sizes:
-            t.insert("", "end", iid=f"k{k}", text=_("Ein Generator, {n} Survivor", n=k) if k > 1
-                     else _("Ein Generator, Survivor 1 allein"),
-                     values=(gencalc.fmt(calm.seconds), gencalc.fmt(hard.seconds)))
         calm_scen = gencalc.Scenario(**{**scen.__dict__, "kicks": 0})
-        t.insert("", "end", iid="all", text=_("Fünf Generatoren, alle zusammen"),
-                 values=(gencalc.fmt(gencalc.five_together(d, team, None, calm_scen)),
-                         gencalc.fmt(gencalc.five_together(d, team, killer, scen))))
-        t.insert("", "end", iid="split", text=_("Fünf Generatoren, jeder allein"),
-                 values=(gencalc.fmt(gencalc.five_split(d, team, None, calm_scen)),
-                         gencalc.fmt(gencalc.five_split(d, team, killer, scen))))
+        sizes = gencalc.by_size(d, team, killer, scen)
+        old_sizes = gencalc.by_size(d, old[0], old[1], old[2]) if old else []
+
+        def cells(calm, hard, was):
+            extra = (gencalc.fmt(was), _time_delta(hard, was)) if old else ()
+            return (gencalc.fmt(calm), gencalc.fmt(hard)) + extra
+
+        for k, calm, hard in sizes:
+            was = old_sizes[k - 1][2].seconds if k <= len(old_sizes) else None
+            t.insert("", "end", iid=f"k{k}", text=_("Ein Generator, {n} Survivor", n=k) if k > 1
+                     else _("Ein Generator, Survivor 1 allein"), values=cells(calm.seconds, hard.seconds, was))
+        for iid, text, fn in (("all", _("Fünf Generatoren, alle zusammen"), gencalc.five_together),
+                              ("split", _("Fünf Generatoren, jeder allein"), gencalc.five_split)):
+            was = fn(d, old[0], old[1], old[2]) if old else None
+            t.insert("", "end", iid=iid, text=text,
+                     values=cells(fn(d, team, None, calm_scen), fn(d, team, killer, scen), was))
         last = sizes[-1][2] if sizes else None
         speeds = " · ".join(_("S{n}: {v} c/s", n=i + 1, v=f"{r:.2f}") for i, r in enumerate(last.rates)) \
             if last else ""
@@ -349,3 +678,79 @@ class CalcTab:
                            on=gencalc.fmt(sizes[-1][1].seconds if scen.diminishing else alt),
                            off=gencalc.fmt(alt if scen.diminishing else sizes[-1][1].seconds)))
         self.calc_note_var.set(" ".join(notes))
+        coop = max(0.0, 1.0 - d.mech["coop_penalty"] * (len(team) - 1))
+        groups = []
+        for i in range(len(team)):
+            parts = gencalc.repair_parts(d, team, i, killer, scen)
+            head = _("Survivor {n}", n=i + 1) + (" · " + _("zu {k}. am Generator: ×{c}", k=len(team),
+                                                           c=f"{coop:.2f}") if len(team) > 1 else "")
+            groups.append((head, gencalc.factor(parts) * coop, parts))
+        self._calc_part_rows(self.calc_parts_tree, groups)
+        self.calc_source_var.set(_("Werte aus dem Dead by Daylight Wiki (deadbydaylight.wiki.gg, Stand {date}), nach "
+                                   "jedem Patch zu prüfen. Nicht berechnet: {names}.",
+                                   date=d.retrieved, names=", ".join(d.not_modelled)))
+
+    def _calc_render_area(self, d, area, team, killer, scen, old):
+        kind = d.areas[area]["kind"]
+        self.calc_area_var_hint.set(
+            _("Geschwindigkeit in m/s. Für Haste zusammen mit Hindered nennt das Wiki keine eigene Formel – "
+              "gerechnet wird wie bei Aktionen (Annahme).") if kind == "speed" else
+            _("Zeit je Aktion; ohne Grundwert im Wiki steht nur das Tempo da."))
+        columns = [("base", _("Grundwert")), ("now", _("Ergebnis")), ("speed", _("Tempo (relativ)"))]
+        if old:
+            columns += [("a", _("Build A")), ("delta", _("Unterschied"))]
+        self._calc_columns(columns)
+        lines = gencalc.area_lines(d, area, team, killer, scen)
+        was = {}
+        if old:
+            was = {(ln.subject, ln.row): ln for ln in gencalc.area_lines(d, area, old[0], old[1], old[2])}
+        many = len(team) > 1
+        t = self.calc_tree
+        t.delete(*t.get_children())
+        for ln in lines:
+            who = self._calc_who(ln.subject, many) if ln.subject != gencalc.KILLER else ""
+            text = (who + " · " if who else "") + _(ROWS.get(ln.row, ln.row))
+            values = (value_text(kind, ln.base), value_text(kind, ln.result), f"{ln.mult * 100:.4g} %")
+            if old:
+                prev = was.get((ln.subject, ln.row))
+                if prev is None:
+                    values += ("–", "–")
+                elif ln.base is None:
+                    values += (f"{prev.mult * 100:.4g} %", "=" if abs(prev.mult - ln.mult) < 1e-9 else
+                               signed_pct(ln.mult - prev.mult))
+                else:
+                    values += (value_text(kind, prev.result), delta_text(kind, ln.result, prev.result))
+            t.insert("", "end", iid=f"{ln.subject}:{ln.row}", text=text, values=values)
+        self.calc_rates_var.set("")
+        other = gencalc.Scenario(**{**scen.__dict__, "diminishing": not scen.diminishing})
+        alt = {(ln.subject, ln.row): ln for ln in gencalc.area_lines(d, area, team, killer, other)}
+        most = max(lines, key=lambda ln: abs(alt[(ln.subject, ln.row)].mult - ln.mult), default=None)
+        note = ""
+        if most is not None and abs(alt[(most.subject, most.row)].mult - most.mult) > 1e-9:
+            on, off = (most, alt[(most.subject, most.row)]) if scen.diminishing else \
+                (alt[(most.subject, most.row)], most)
+            who = self._calc_who(most.subject, many) if most.subject != gencalc.KILLER else ""
+            note = _("Mit Diminishing Returns: {on} · ohne: {off} ({what}).",
+                     on=value_text(kind, on.result) if on.base is not None else f"{on.mult * 100:.4g} %",
+                     off=value_text(kind, off.result) if off.base is not None else f"{off.mult * 100:.4g} %",
+                     what=(who + " · " if who else "") + _(ROWS.get(most.row, most.row)))
+        self.calc_note_var.set(note)
+        # the breakdown: rows of one subject with the same modifiers share a heading
+        groups, index = [], {}
+        for ln in lines:
+            if not ln.parts:
+                continue
+            key = (ln.subject, tuple((p.source, p.value, p.weight, p.when, p.seconds, p.cap) for p in ln.parts))
+            if key in index:
+                groups[index[key]][0].append(_(ROWS.get(ln.row, ln.row)))
+                continue
+            index[key] = len(groups)
+            groups.append(([_(ROWS.get(ln.row, ln.row))], ln.mult, ln.parts, ln.subject))
+        shown = []
+        for rows, mult, parts, subject in groups:
+            who = self._calc_who(subject, many) if subject != gencalc.KILLER else ""
+            shown.append(((who + " · " if who else "") + ", ".join(rows), mult, parts))
+        self._calc_part_rows(self.calc_parts_tree, shown)
+        self.calc_source_var.set(_("Werte aus dem Dead by Daylight Wiki (deadbydaylight.wiki.gg, Stand {date}), nach "
+                                   "jedem Patch zu prüfen. Nicht berechnet: {names}.",
+                                   date=d.retrieved, names=", ".join(d.not_modelled_areas)))

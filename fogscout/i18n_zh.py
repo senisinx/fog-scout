@@ -1963,8 +1963,6 @@ T = {
         '数量',
     'Anzahl = {what}':
         '数量 = {what}',
-    'Bedingte Perks zählen als aktiv (z. B. Resilience = verletzt, Déjà Vu = auf einem der drei nahen Generatoren).':
-        '有条件的技能按已生效计算（例如 Resilience = 受伤，Déjà Vu = 在三台相近的发电机之一上）。',
     'Der Killer nimmt dem Generator {lost} Ladungen (Regressions-Ereignisse: {events}).':
         '杀手使发电机损失 {lost} 点充能（回退事件：{events}）。',
     'Diminishing Returns anwenden':
@@ -1989,14 +1987,10 @@ T = {
         '发电机之间的路程',
     'Mit Diminishing Returns: {on} · ohne: {off} (ein Generator, alle, ohne Killer).':
         '应用收益递减：{on} · 不应用：{off}（一台发电机，全员，无杀手）。',
-    'Perks kombinieren und ausrechnen, wie lange ein Generator dauert':
-        '组合技能，计算修好一台发电机需要多久',
     'Rechner':
         '计算器',
     'Situation':
         '情况',
-    'Survivor am Generator':
-        '修理发电机的逃生者',
     'Survivor {n}':
         '逃生者 {n}',
     'Survivor-Builds':
@@ -2043,8 +2037,6 @@ T = {
         '1 = 这台发电机在开局被封锁',
     'An (wie im Spiel seit Patch 9.6.0): von mehreren Tempo-Boni zählt der grösste voll, der zweite halb, der dritte zu einem Viertel, der vierte zu einem Achtel. Aus: alle Boni zählen voll – zum Vergleich.':
         '开启（与 9.6.0 补丁后的游戏一致）：多个速度加成中最大者全额生效，第二个减半，第三个四分之一，第四个八分之一。关闭：所有加成全额生效，用于比较。',
-    'Werkzeugkasten':
-        '工具箱',
     'Eingerechnet: {what}.':
         '已计入：{what}。',
     'Kicks und die Anzahl je Killer-Perk gelten für jeden Generator einzeln.':
@@ -2097,6 +2089,200 @@ T = {
         '清空所有配置，并将假设恢复为初始值。',
     'Runden vom Map-Banner bis zum Rundenende (ab 1 min), nur lokal gespeichert.':
         '从地图横幅到回合结束的回合（1 分钟起），仅保存在本机。',
+    ' für Survivor {n}':
+        '（逃生者 {n}）',
+    'Als Build A merken':
+        '记为配置 A',
+    'Andere heilen':
+        '治疗他人',
+    'Aufheben und Ablegen':
+        '扛起与放下',
+    'Aufhängen':
+        '挂上钩子',
+    'Aufschlüsselung':
+        '明细',
+    'Ausgangstor öffnen':
+        '开启大门',
+    'Bedingte Perks zählen als aktiv (z. B. Resilience = verletzt, Hope = Tore mit Strom); die Bedingung steht in der Aufschlüsselung. Ein Werkzeugkasten wirkt beim Reparieren, ein Med-Kit beim Heilen anderer.':
+        '条件型技能按已生效计算（例如 Resilience = 受伤，Hope = 大门通电）；条件见明细。工具箱在修理时生效，医疗包在治疗他人时生效。',
+    'Bedingung':
+        '条件',
+    'Befreien':
+        '救下钩子',
+    'Bereich':
+        '范围',
+    'Bester nächster Perk':
+        '最佳的下一个技能',
+    'Bewegung (Haste, Hindered)':
+        '移动（Haste、Hindered）',
+    'Build A':
+        '配置 A',
+    'Build A ist gemerkt: die Spalten „Build A“ und „Unterschied“ zeigen ihn neben dem, was jetzt gewählt ist (− = jetzt schneller bzw. kürzer).':
+        '已记住配置 A：“配置 A”和“差值”两列将它显示在当前选择旁边（− = 现在更快或更短）。',
+    'Ducken':
+        '蹲行',
+    'Ein Generator braucht 90 Ladungen, ein Survivor schafft 1 pro Sekunde; jeder weitere am selben Generator kostet alle 15 % Tempo.':
+        '一台发电机需要 90 点充能，一名逃生者每秒提供 1 点；同一台发电机每多一人，所有人的速度降低 15 %。',
+    'Erholen am Boden (bis 95 %)':
+        '倒地自我恢复（至 95 %）',
+    'Fenster, langsam':
+        '窗户，慢速',
+    'Fenster, mittel':
+        '窗户，中速',
+    'Fenster, schnell':
+        '窗户，快速',
+    'Fenster-Vault':
+        '翻窗',
+    'Gehen':
+        '行走',
+    'Generator beschädigen':
+        '破坏发电机',
+    'Geschwindigkeit in m/s. Für Haste zusammen mit Hindered nennt das Wiki keine eigene Formel – gerechnet wird wie bei Aktionen (Annahme).':
+        '速度单位为 m/s。Haste 与 Hindered 同时存在时，维基没有给出单独的公式——按动作的规则计算（假设）。',
+    'Grundwert':
+        '基础值',
+    'Haken (Befreien, Sabotieren)':
+        '钩子（救人、破坏）',
+    'Haken sabotieren':
+        '破坏钩子',
+    'Heilen und Erholen':
+        '治疗与恢复',
+    'Hex-Totem segnen':
+        '祝福 Hex 图腾',
+    'Hält die jetzige Auswahl (Builds und Annahmen) als Build A fest. Die Ergebnistabelle zeigt ihn danach neben allem, was Sie ändern – so lassen sich zwei Builds vergleichen.':
+        '将当前选择（配置与假设）记为配置 A。之后结果表会把它显示在您的每次更改旁边——可用来比较两套配置。',
+    'Item':
+        '道具',
+    'Killer mit 3,85 m/s':
+        '3.85 m/s 的杀手',
+    'Killer mit 4,4 m/s':
+        '4.4 m/s 的杀手',
+    'Killer mit 4,6 m/s':
+        '4.6 m/s 的杀手',
+    'Killer: Aktionen':
+        '杀手：动作',
+    'Killer: Bewegung':
+        '杀手：移动',
+    'Killer: Erholung nach Angriffen':
+        '杀手：攻击后的恢复',
+    'Kriechen':
+        '爬行',
+    'Tokens der Survivor-Perks':
+        '逃生者技能的标记数',
+    'Tokens des Perks':
+        '该技能的标记数',
+    'Mit Diminishing Returns: {on} · ohne: {off} ({what}).':
+        '应用收益递减：{on} · 不应用：{off}（{what}）。',
+    'Nach einem Fehlschlag':
+        '攻击落空后',
+    'Nach einem Treffer':
+        '命中后',
+    'Nennwert':
+        '标称值',
+    'Noch kein Perk gewählt, der in diesem Bereich wirkt.':
+        '尚未选择在此范围内生效的技能。',
+    'Palette oder Wand zerstören':
+        '破坏木板或墙壁',
+    'Palette, langsam':
+        '木板，慢速',
+    'Palette, schnell':
+        '木板，快速',
+    'Perk-Bilder: eigene Bilder (PNG oder WebP, benannt wie der Perk) im Ordner „{folder}“ des Datenordners erscheinen nach dem nächsten Start in den Auswahllisten.':
+        '技能图片：放在数据文件夹的“{folder}”文件夹中的自有图片（PNG 或 WebP，以技能名命名）会在下次启动后显示在选择列表中。',
+    'Perks kombinieren und ausrechnen, was sie nach Diminishing Returns bringen':
+        '组合技能，计算收益递减后的实际效果',
+    'Quelle':
+        '来源',
+    'Rennen':
+        '奔跑',
+    'Reparieren (Generatoren)':
+        '修理（发电机）',
+    'Sich selbst heilen (Med-Kit)':
+        '自我治疗（医疗包）',
+    'Spind durchsuchen':
+        '搜查柜子',
+    'Sterbende aufheben':
+        '救起倒地者',
+    'Survivor im Team':
+        '队伍中的逃生者',
+    'Tempo {p} %':
+        '速度 {p} %',
+    'Tore mit Strom':
+        '大门通电',
+    'Totem reinigen':
+        '净化图腾',
+    'Totem segnen':
+        '祝福图腾',
+    'Totems, Truhen, Tore':
+        '图腾、箱子、大门',
+    'Tragen':
+        '扛人',
+    'Truhe öffnen':
+        '开启箱子',
+    'Unterschied':
+        '差值',
+    'Vaults (Fenster, Paletten)':
+        '翻越（窗户、木板）',
+    'Vergisst Build A; die Tabelle zeigt wieder nur die jetzige Auswahl.':
+        '忘记配置 A；表格重新只显示当前选择。',
+    'Vergleich beenden':
+        '结束比较',
+    'Von mehreren Boni (oder Mali) auf dasselbe zählt der größte voll, der zweite zur Hälfte, der dritte zu 25 %, der vierte zu 12,5 %, jeder weitere zu 5 % (seit Patch 9.6.0). Boni werden addiert, Mali multipliziert.':
+        '作用于同一项的多个加成（或减益）中，最大的全额计算，第二个计一半，第三个计 25 %，第四个计 12.5 %，其余各计 5 %（自 9.6.0 补丁起）。加成相加，减益相乘。',
+    'Zeit je Aktion; ohne Grundwert im Wiki steht nur das Tempo da.':
+        '每个动作的用时；维基没有基础值的只显示速度。',
+    'alle':
+        '全部',
+    'die Hälfte':
+        '一半',
+    'ein Generator, alle zusammen: {a} → {b}':
+        '一台发电机，全员一起：{a} → {b}',
+    'eine':
+        '一个',
+    'gesund':
+        '健康',
+    'höchstens {p}':
+        '最多 {p}',
+    'im Boon-Bereich':
+        '在 Boon 范围内',
+    'im Terrorradius':
+        '在恐惧范围内',
+    'in Reichweite':
+        '在范围内',
+    'mit der Obsession':
+        '与痴迷对象',
+    'nach Auslösung':
+        '触发后',
+    'nach einer Befreiung':
+        '救人后',
+    'solange das Hex-Totem steht':
+        'Hex 图腾存在期间',
+    'verletzt':
+        '受伤',
+    'wirkt mit':
+        '实际生效',
+    'zu {k}. am Generator: ×{c}':
+        '{k} 人修同一台：×{c}',
+    'zählt zu':
+        '计入',
+    '{n} Hakenstufen':
+        '{n} 个上钩阶段',
+    '{n} Survivor am Leben':
+        '{n} 名逃生者存活',
+    '{n} verletzt, sterbend oder am Haken':
+        '{n} 人受伤、倒地或被挂',
+    '{n} Tokens':
+        '{n} 个标记',
+    '{side}: kein freier Platz im Build.':
+        '{side}：配置中没有空位。',
+    '{side}: kein weiterer Perk ändert hier etwas.':
+        '{side}：没有其他技能能在此产生变化。',
+    '{s} s lang':
+        '持续 {s} 秒',
+    '„Als Build A merken“ hält die jetzige Auswahl fest; danach zeigt die Tabelle jede Änderung daneben.':
+        '“记为配置 A”会保存当前选择；之后表格会把每次更改显示在旁边。',
+    'Tempo (relativ)':
+        '相对速度',
     'Claude hat unverständlich geantwortet.':
         'Claude 给出的回答无法读取。',
     'Claude ist nicht erreichbar – keine Internetverbindung?':

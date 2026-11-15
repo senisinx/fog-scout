@@ -1963,8 +1963,6 @@ T = {
         '횟수',
     'Anzahl = {what}':
         '횟수 = {what}',
-    'Bedingte Perks zählen als aktiv (z. B. Resilience = verletzt, Déjà Vu = auf einem der drei nahen Generatoren).':
-        '조건부 퍽은 발동 중으로 계산합니다(예: Resilience = 부상, Déjà Vu = 가까운 발전기 세 대 중 하나).',
     'Der Killer nimmt dem Generator {lost} Ladungen (Regressions-Ereignisse: {events}).':
         '살인마가 발전기에서 충전량 {lost}을(를) 빼앗습니다(퇴행 이벤트: {events}).',
     'Diminishing Returns anwenden':
@@ -1989,14 +1987,10 @@ T = {
         '발전기 사이 이동',
     'Mit Diminishing Returns: {on} · ohne: {off} (ein Generator, alle, ohne Killer).':
         '효과 감쇠 적용: {on} · 미적용: {off}(발전기 1대, 전원, 살인마 없음).',
-    'Perks kombinieren und ausrechnen, wie lange ein Generator dauert':
-        '퍽을 조합해 발전기 수리 시간을 계산',
     'Rechner':
         '계산기',
     'Situation':
         '상황',
-    'Survivor am Generator':
-        '발전기를 수리하는 생존자',
     'Survivor {n}':
         '생존자 {n}',
     'Survivor-Builds':
@@ -2043,8 +2037,6 @@ T = {
         '1 = 이 발전기는 시작할 때 봉쇄됨',
     'An (wie im Spiel seit Patch 9.6.0): von mehreren Tempo-Boni zählt der grösste voll, der zweite halb, der dritte zu einem Viertel, der vierte zu einem Achtel. Aus: alle Boni zählen voll – zum Vergleich.':
         '켜짐(9.6.0 패치 이후 게임과 동일): 여러 속도 보너스 중 가장 큰 것은 전부, 두 번째는 절반, 세 번째는 4분의 1, 네 번째는 8분의 1만 적용됩니다. 꺼짐: 모든 보너스를 전부 적용(비교용).',
-    'Werkzeugkasten':
-        '공구 상자',
     'Eingerechnet: {what}.':
         '반영됨: {what}.',
     'Kicks und die Anzahl je Killer-Perk gelten für jeden Generator einzeln.':
@@ -2097,6 +2089,200 @@ T = {
         '모든 빌드를 비우고 가정을 처음 값으로 되돌립니다.',
     'Runden vom Map-Banner bis zum Rundenende (ab 1 min), nur lokal gespeichert.':
         '맵 배너부터 라운드 종료까지의 라운드(1분 이상), 이 PC에만 저장됩니다.',
+    ' für Survivor {n}':
+        ' (생존자 {n})',
+    'Als Build A merken':
+        '빌드 A로 저장',
+    'Andere heilen':
+        '다른 생존자 치료',
+    'Aufheben und Ablegen':
+        '들쳐업기와 내려놓기',
+    'Aufhängen':
+        '갈고리에 걸기',
+    'Aufschlüsselung':
+        '세부 내역',
+    'Ausgangstor öffnen':
+        '탈출구 열기',
+    'Bedingte Perks zählen als aktiv (z. B. Resilience = verletzt, Hope = Tore mit Strom); die Bedingung steht in der Aufschlüsselung. Ein Werkzeugkasten wirkt beim Reparieren, ein Med-Kit beim Heilen anderer.':
+        '조건부 퍽은 발동 중으로 계산합니다(예: Resilience = 부상, Hope = 탈출구 전력 공급). 조건은 세부 내역에 표시됩니다. 공구 상자는 수리할 때, 구급상자는 다른 생존자를 치료할 때 적용됩니다.',
+    'Bedingung':
+        '조건',
+    'Befreien':
+        '갈고리에서 구출',
+    'Bereich':
+        '분야',
+    'Bester nächster Perk':
+        '다음으로 가장 좋은 퍽',
+    'Bewegung (Haste, Hindered)':
+        '이동(Haste, Hindered)',
+    'Build A':
+        '빌드 A',
+    'Build A ist gemerkt: die Spalten „Build A“ und „Unterschied“ zeigen ihn neben dem, was jetzt gewählt ist (− = jetzt schneller bzw. kürzer).':
+        '빌드 A를 저장했습니다. "빌드 A"와 "차이" 열이 현재 선택과 나란히 보여 줍니다(− = 지금이 더 빠르거나 짧음).',
+    'Ducken':
+        '웅크려 이동',
+    'Ein Generator braucht 90 Ladungen, ein Survivor schafft 1 pro Sekunde; jeder weitere am selben Generator kostet alle 15 % Tempo.':
+        '발전기 한 대에는 충전량 90이 필요하고 생존자 한 명이 초당 1을 채웁니다. 같은 발전기에 한 명이 늘 때마다 모두의 속도가 15 % 줄어듭니다.',
+    'Erholen am Boden (bis 95 %)':
+        '쓰러진 상태 회복(95 %까지)',
+    'Fenster, langsam':
+        '창틀, 느리게',
+    'Fenster, mittel':
+        '창틀, 중간',
+    'Fenster, schnell':
+        '창틀, 빠르게',
+    'Fenster-Vault':
+        '창틀 넘기',
+    'Gehen':
+        '걷기',
+    'Generator beschädigen':
+        '발전기 손상',
+    'Geschwindigkeit in m/s. Für Haste zusammen mit Hindered nennt das Wiki keine eigene Formel – gerechnet wird wie bei Aktionen (Annahme).':
+        '속도 단위는 m/s입니다. Haste와 Hindered가 함께 있을 때의 공식은 위키에 없어 행동과 같은 규칙으로 계산합니다(가정).',
+    'Grundwert':
+        '기본값',
+    'Haken (Befreien, Sabotieren)':
+        '갈고리(구출, 파괴)',
+    'Haken sabotieren':
+        '갈고리 파괴',
+    'Heilen und Erholen':
+        '치료와 회복',
+    'Hex-Totem segnen':
+        'Hex 토템 축복',
+    'Hält die jetzige Auswahl (Builds und Annahmen) als Build A fest. Die Ergebnistabelle zeigt ihn danach neben allem, was Sie ändern – so lassen sich zwei Builds vergleichen.':
+        '현재 선택(빌드와 가정)을 빌드 A로 저장합니다. 이후 결과 표가 변경한 내용과 나란히 보여 주어 두 빌드를 비교할 수 있습니다.',
+    'Item':
+        '아이템',
+    'Killer mit 3,85 m/s':
+        '3.85 m/s 살인마',
+    'Killer mit 4,4 m/s':
+        '4.4 m/s 살인마',
+    'Killer mit 4,6 m/s':
+        '4.6 m/s 살인마',
+    'Killer: Aktionen':
+        '살인마: 행동',
+    'Killer: Bewegung':
+        '살인마: 이동',
+    'Killer: Erholung nach Angriffen':
+        '살인마: 공격 후 회복',
+    'Kriechen':
+        '기어가기',
+    'Tokens der Survivor-Perks':
+        '생존자 퍽의 토큰',
+    'Tokens des Perks':
+        '퍽의 토큰',
+    'Mit Diminishing Returns: {on} · ohne: {off} ({what}).':
+        '효과 감쇠 적용: {on} · 미적용: {off}({what}).',
+    'Nach einem Fehlschlag':
+        '공격이 빗나간 뒤',
+    'Nach einem Treffer':
+        '공격이 맞은 뒤',
+    'Nennwert':
+        '표기값',
+    'Noch kein Perk gewählt, der in diesem Bereich wirkt.':
+        '이 분야에 적용되는 퍽을 아직 선택하지 않았습니다.',
+    'Palette oder Wand zerstören':
+        '판자 또는 벽 부수기',
+    'Palette, langsam':
+        '판자, 느리게',
+    'Palette, schnell':
+        '판자, 빠르게',
+    'Perk-Bilder: eigene Bilder (PNG oder WebP, benannt wie der Perk) im Ordner „{folder}“ des Datenordners erscheinen nach dem nächsten Start in den Auswahllisten.':
+        '퍽 그림: 데이터 폴더의 "{folder}" 폴더에 넣은 그림(PNG 또는 WebP, 퍽 이름으로 된 파일)은 다음 실행 후 선택 목록에 표시됩니다.',
+    'Perks kombinieren und ausrechnen, was sie nach Diminishing Returns bringen':
+        '퍽을 조합해 효과 감쇠 후의 효과를 계산',
+    'Quelle':
+        '출처',
+    'Rennen':
+        '달리기',
+    'Reparieren (Generatoren)':
+        '수리(발전기)',
+    'Sich selbst heilen (Med-Kit)':
+        '자가 치료(구급상자)',
+    'Spind durchsuchen':
+        '캐비닛 수색',
+    'Sterbende aufheben':
+        '쓰러진 생존자 일으키기',
+    'Survivor im Team':
+        '팀의 생존자 수',
+    'Tempo {p} %':
+        '속도 {p} %',
+    'Tore mit Strom':
+        '탈출구 전력 공급',
+    'Totem reinigen':
+        '토템 정화',
+    'Totem segnen':
+        '토템 축복',
+    'Totems, Truhen, Tore':
+        '토템, 상자, 탈출구',
+    'Tragen':
+        '들쳐업은 상태',
+    'Truhe öffnen':
+        '상자 열기',
+    'Unterschied':
+        '차이',
+    'Vaults (Fenster, Paletten)':
+        '넘기(창틀, 판자)',
+    'Vergisst Build A; die Tabelle zeigt wieder nur die jetzige Auswahl.':
+        '빌드 A를 지웁니다. 표에는 다시 현재 선택만 표시됩니다.',
+    'Vergleich beenden':
+        '비교 끝내기',
+    'Von mehreren Boni (oder Mali) auf dasselbe zählt der größte voll, der zweite zur Hälfte, der dritte zu 25 %, der vierte zu 12,5 %, jeder weitere zu 5 % (seit Patch 9.6.0). Boni werden addiert, Mali multipliziert.':
+        '같은 대상에 대한 여러 보너스(또는 페널티) 가운데 가장 큰 것은 전부, 두 번째는 절반, 세 번째는 25 %, 네 번째는 12.5 %, 그 이후는 각각 5 %만 적용됩니다(패치 9.6.0부터). 보너스는 더하고 페널티는 곱합니다.',
+    'Zeit je Aktion; ohne Grundwert im Wiki steht nur das Tempo da.':
+        '행동별 시간입니다. 위키에 기본값이 없으면 속도만 표시합니다.',
+    'alle':
+        '전부',
+    'die Hälfte':
+        '절반',
+    'ein Generator, alle zusammen: {a} → {b}':
+        '발전기 1대, 전원 함께: {a} → {b}',
+    'eine':
+        '1개',
+    'gesund':
+        '건강',
+    'höchstens {p}':
+        '최대 {p}',
+    'im Boon-Bereich':
+        'Boon 범위 안',
+    'im Terrorradius':
+        '공포 범위 안',
+    'in Reichweite':
+        '범위 안',
+    'mit der Obsession':
+        '집착 대상과',
+    'nach Auslösung':
+        '발동 후',
+    'nach einer Befreiung':
+        '구출 후',
+    'solange das Hex-Totem steht':
+        'Hex 토템이 남아 있는 동안',
+    'verletzt':
+        '부상',
+    'wirkt mit':
+        '실제 적용',
+    'zu {k}. am Generator: ×{c}':
+        '발전기에 {k}명: ×{c}',
+    'zählt zu':
+        '적용 비율',
+    '{n} Hakenstufen':
+        '갈고리 단계 {n}',
+    '{n} Survivor am Leben':
+        '생존자 {n}명 생존',
+    '{n} verletzt, sterbend oder am Haken':
+        '부상·빈사·갈고리 {n}명',
+    '{n} Tokens':
+        '토큰 {n}개',
+    '{side}: kein freier Platz im Build.':
+        '{side}: 빌드에 빈 자리가 없습니다.',
+    '{side}: kein weiterer Perk ändert hier etwas.':
+        '{side}: 여기서 변화를 주는 다른 퍽이 없습니다.',
+    '{s} s lang':
+        '{s}초 동안',
+    '„Als Build A merken“ hält die jetzige Auswahl fest; danach zeigt die Tabelle jede Änderung daneben.':
+        '"빌드 A로 저장"은 현재 선택을 보관하고, 이후 표가 변경 내용을 나란히 보여 줍니다.',
+    'Tempo (relativ)':
+        '상대 속도',
     'Claude hat unverständlich geantwortet.':
         'Claude의 답변을 읽을 수 없습니다.',
     'Claude ist nicht erreichbar – keine Internetverbindung?':

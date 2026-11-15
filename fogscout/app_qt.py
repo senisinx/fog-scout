@@ -209,6 +209,9 @@ def ui_state(w) -> dict:
         st["value"] = w.instate(["selected"])
     elif isinstance(w, ui.Combobox):
         st.update(value=w.get(), values=[str(v) for v in w.cget("values") or ()], editable=w.editable())
+        icons = getattr(w, "_dbdms_icons", None)
+        if icons is not None:                    # 1.52: a picture file per value (the calculator's perks)
+            st["icons"] = [icons(v) for v in st["values"]]
     elif isinstance(w, ui.Entry):
         st["value"] = w.get()
         st["placeholder"] = getattr(w, "_dbdms_placeholder", "")      # 1.2.19 (the log's search field)

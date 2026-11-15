@@ -1480,8 +1480,6 @@ EN = {
         'Count',
     'Anzahl = {what}':
         'Count = {what}',
-    'Bedingte Perks zählen als aktiv (z. B. Resilience = verletzt, Déjà Vu = auf einem der drei nahen Generatoren).':
-        'Conditional perks count as active (e.g. Resilience = injured, Déjà Vu = on one of the three close generators).',
     'Der Killer nimmt dem Generator {lost} Ladungen (Regressions-Ereignisse: {events}).':
         'The killer takes {lost} charges from the generator (regression events: {events}).',
     'Diminishing Returns anwenden':
@@ -1506,14 +1504,10 @@ EN = {
         'Walk between generators',
     'Mit Diminishing Returns: {on} · ohne: {off} (ein Generator, alle, ohne Killer).':
         'With diminishing returns: {on} · without: {off} (one generator, everyone, no killer).',
-    'Perks kombinieren und ausrechnen, wie lange ein Generator dauert':
-        'Combine perks and work out how long a generator takes',
     'Rechner':
         'Calculator',
     'Situation':
         'Situation',
-    'Survivor am Generator':
-        'Survivors on the generator',
     'Survivor {n}':
         'Survivor {n}',
     'Survivor-Builds':
@@ -1560,8 +1554,6 @@ EN = {
         '1 = this generator is blocked at the start',
     'An (wie im Spiel seit Patch 9.6.0): von mehreren Tempo-Boni zählt der grösste voll, der zweite halb, der dritte zu einem Viertel, der vierte zu einem Achtel. Aus: alle Boni zählen voll – zum Vergleich.':
         'On (as in the game since patch 9.6.0): of several speed bonuses the largest counts fully, the second half, the third a quarter, the fourth an eighth. Off: every bonus counts fully – for comparison.',
-    'Werkzeugkasten':
-        'Toolbox',
     'Eingerechnet: {what}.':
         'Included: {what}.',
     'Kicks und die Anzahl je Killer-Perk gelten für jeden Generator einzeln.':
@@ -1614,6 +1606,200 @@ EN = {
         'Clears all builds and sets the assumptions back to their start values.',
     'Runden vom Map-Banner bis zum Rundenende (ab 1 min), nur lokal gespeichert.':
         'Rounds from the map banner to the end of the round (from 1 min), stored only locally.',
+    ' für Survivor {n}':
+        ' for survivor {n}',
+    'Als Build A merken':
+        'Keep as build A',
+    'Andere heilen':
+        'Healing others',
+    'Aufheben und Ablegen':
+        'Picking up and dropping',
+    'Aufhängen':
+        'Hooking',
+    'Aufschlüsselung':
+        'Breakdown',
+    'Ausgangstor öffnen':
+        'Opening an exit gate',
+    'Bedingte Perks zählen als aktiv (z. B. Resilience = verletzt, Hope = Tore mit Strom); die Bedingung steht in der Aufschlüsselung. Ein Werkzeugkasten wirkt beim Reparieren, ein Med-Kit beim Heilen anderer.':
+        'Conditional perks count as active (e.g. Resilience = injured, Hope = gates powered); the condition is shown in the breakdown. A toolbox acts while repairing, a med-kit while healing others.',
+    'Bedingung':
+        'Condition',
+    'Befreien':
+        'Unhooking',
+    'Bereich':
+        'Area',
+    'Bester nächster Perk':
+        'Best next perk',
+    'Bewegung (Haste, Hindered)':
+        'Movement (Haste, Hindered)',
+    'Build A':
+        'Build A',
+    'Build A ist gemerkt: die Spalten „Build A“ und „Unterschied“ zeigen ihn neben dem, was jetzt gewählt ist (− = jetzt schneller bzw. kürzer).':
+        'Build A is kept: the columns “Build A” and “Difference” show it beside what is chosen now (− = faster or shorter now).',
+    'Ducken':
+        'Crouching',
+    'Ein Generator braucht 90 Ladungen, ein Survivor schafft 1 pro Sekunde; jeder weitere am selben Generator kostet alle 15 % Tempo.':
+        'A generator needs 90 charges, a survivor adds 1 per second; every further one on the same generator costs everyone 15 % speed.',
+    'Erholen am Boden (bis 95 %)':
+        'Recovering on the ground (to 95 %)',
+    'Fenster, langsam':
+        'Window, slow',
+    'Fenster, mittel':
+        'Window, medium',
+    'Fenster, schnell':
+        'Window, fast',
+    'Fenster-Vault':
+        'Window vault',
+    'Gehen':
+        'Walking',
+    'Generator beschädigen':
+        'Damaging a generator',
+    'Geschwindigkeit in m/s. Für Haste zusammen mit Hindered nennt das Wiki keine eigene Formel – gerechnet wird wie bei Aktionen (Annahme).':
+        'Speed in m/s. For Haste together with Hindered the wiki gives no formula of its own – it is calculated like actions (assumption).',
+    'Grundwert':
+        'Base value',
+    'Haken (Befreien, Sabotieren)':
+        'Hooks (unhooking, sabotage)',
+    'Haken sabotieren':
+        'Sabotaging a hook',
+    'Heilen und Erholen':
+        'Healing and recovering',
+    'Hex-Totem segnen':
+        'Blessing a Hex totem',
+    'Hält die jetzige Auswahl (Builds und Annahmen) als Build A fest. Die Ergebnistabelle zeigt ihn danach neben allem, was Sie ändern – so lassen sich zwei Builds vergleichen.':
+        'Keeps what is chosen now (builds and assumptions) as build A. The result table then shows it beside everything you change – a way to compare two builds.',
+    'Item':
+        'Item',
+    'Killer mit 3,85 m/s':
+        'Killer at 3.85 m/s',
+    'Killer mit 4,4 m/s':
+        'Killer at 4.4 m/s',
+    'Killer mit 4,6 m/s':
+        'Killer at 4.6 m/s',
+    'Killer: Aktionen':
+        'Killer: actions',
+    'Killer: Bewegung':
+        'Killer: movement',
+    'Killer: Erholung nach Angriffen':
+        'Killer: recovery after attacks',
+    'Kriechen':
+        'Crawling',
+    'Tokens der Survivor-Perks':
+        'Tokens of the survivor perks',
+    'Tokens des Perks':
+        'tokens of the perk',
+    'Mit Diminishing Returns: {on} · ohne: {off} ({what}).':
+        'With diminishing returns: {on} · without: {off} ({what}).',
+    'Nach einem Fehlschlag':
+        'After a missed attack',
+    'Nach einem Treffer':
+        'After a hit',
+    'Nennwert':
+        'Nominal value',
+    'Noch kein Perk gewählt, der in diesem Bereich wirkt.':
+        'No perk chosen yet that acts in this area.',
+    'Palette oder Wand zerstören':
+        'Breaking a pallet or wall',
+    'Palette, langsam':
+        'Pallet, slow',
+    'Palette, schnell':
+        'Pallet, fast',
+    'Perk-Bilder: eigene Bilder (PNG oder WebP, benannt wie der Perk) im Ordner „{folder}“ des Datenordners erscheinen nach dem nächsten Start in den Auswahllisten.':
+        'Perk pictures: your own pictures (PNG or WebP, named like the perk) in the folder “{folder}” of the data folder appear in the choices after the next start.',
+    'Perks kombinieren und ausrechnen, was sie nach Diminishing Returns bringen':
+        'Combine perks and work out what they give after diminishing returns',
+    'Quelle':
+        'Source',
+    'Rennen':
+        'Running',
+    'Reparieren (Generatoren)':
+        'Repairing (generators)',
+    'Sich selbst heilen (Med-Kit)':
+        'Healing yourself (med-kit)',
+    'Spind durchsuchen':
+        'Searching a locker',
+    'Sterbende aufheben':
+        'Healing a dying survivor',
+    'Survivor im Team':
+        'Survivors in the team',
+    'Tempo {p} %':
+        'speed {p} %',
+    'Tore mit Strom':
+        'gates powered',
+    'Totem reinigen':
+        'Cleansing a totem',
+    'Totem segnen':
+        'Blessing a totem',
+    'Totems, Truhen, Tore':
+        'Totems, chests, gates',
+    'Tragen':
+        'Carrying',
+    'Truhe öffnen':
+        'Opening a chest',
+    'Unterschied':
+        'Difference',
+    'Vaults (Fenster, Paletten)':
+        'Vaults (windows, pallets)',
+    'Vergisst Build A; die Tabelle zeigt wieder nur die jetzige Auswahl.':
+        'Forgets build A; the table shows only what is chosen now again.',
+    'Vergleich beenden':
+        'End comparison',
+    'Von mehreren Boni (oder Mali) auf dasselbe zählt der größte voll, der zweite zur Hälfte, der dritte zu 25 %, der vierte zu 12,5 %, jeder weitere zu 5 % (seit Patch 9.6.0). Boni werden addiert, Mali multipliziert.':
+        'Of several bonuses (or penalties) on the same thing the largest counts fully, the second half, the third 25 %, the fourth 12.5 %, every further one 5 % (since patch 9.6.0). Bonuses add up, penalties multiply.',
+    'Zeit je Aktion; ohne Grundwert im Wiki steht nur das Tempo da.':
+        'Time per action; without a base value in the wiki only the speed is shown.',
+    'alle':
+        'all',
+    'die Hälfte':
+        'half',
+    'ein Generator, alle zusammen: {a} → {b}':
+        'one generator, everyone together: {a} → {b}',
+    'eine':
+        'one',
+    'gesund':
+        'healthy',
+    'höchstens {p}':
+        'at most {p}',
+    'im Boon-Bereich':
+        'inside the Boon area',
+    'im Terrorradius':
+        'inside the terror radius',
+    'in Reichweite':
+        'within range',
+    'mit der Obsession':
+        'with the Obsession',
+    'nach Auslösung':
+        'after it triggers',
+    'nach einer Befreiung':
+        'after an unhook',
+    'solange das Hex-Totem steht':
+        'while the Hex totem stands',
+    'verletzt':
+        'injured',
+    'wirkt mit':
+        'acts with',
+    'zu {k}. am Generator: ×{c}':
+        '{k} on the generator: ×{c}',
+    'zählt zu':
+        'counts for',
+    '{n} Hakenstufen':
+        '{n} hook stages',
+    '{n} Survivor am Leben':
+        '{n} survivors alive',
+    '{n} verletzt, sterbend oder am Haken':
+        '{n} injured, dying or hooked',
+    '{n} Tokens':
+        '{n} tokens',
+    '{side}: kein freier Platz im Build.':
+        '{side}: no free slot in the build.',
+    '{side}: kein weiterer Perk ändert hier etwas.':
+        '{side}: no further perk changes anything here.',
+    '{s} s lang':
+        'for {s} s',
+    '„Als Build A merken“ hält die jetzige Auswahl fest; danach zeigt die Tabelle jede Änderung daneben.':
+        '“Keep as build A” holds what is chosen now; the table then shows every change beside it.',
+    'Tempo (relativ)':
+        'Relative speed',
     'Claude hat unverständlich geantwortet.': 'Claude gave an answer that could not be read.',
     'Claude ist nicht erreichbar – keine Internetverbindung?': 'Claude cannot be reached – no internet connection?',
     'Claude: Zu viele Anfragen – gleich noch einmal versuchen.': 'Claude: too many requests – try again in a moment.',

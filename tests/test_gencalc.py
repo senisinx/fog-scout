@@ -57,6 +57,21 @@ def test_skill_checks_count_as_expected_progress():
     assert worse.seconds > 90
 
 
+def test_the_generator_jumps_from_event_to_event_and_never_below_zero():
+    """1.52: the time runs to the next change (done, kick, toolbox empty, bonus over) instead of in steps – the
+    seconds are the formula's, and missed checks with a toolbox (more lost than repaired) leave it at 0, not below."""
+    two = [S(toolbox="Toolbox"), S(toolbox="Commodious Toolbox")]
+    # 2 · 1.5 · 0.85 until the first box is empty, then 1.5 + 1 until the second, then 2 · 0.85
+    t1 = 20 / (1.5 * 0.85)
+    t2 = (32 - 20) / (1.5 * 0.85)
+    done = (1.5 + 1.5) * 0.85 * t1 + (1.0 + 1.5) * 0.85 * t2
+    assert g.one_generator(D, two, None, CALM).seconds == pytest.approx(t1 + t2 + (90 - done) / 1.7, abs=0.01)
+    lost = g.one_generator(D, [S(toolbox="Toolbox")], None, Sc(great=0, miss=1.0, kicks=0))
+    plain = g.one_generator(D, [S()], None, Sc(great=0, miss=1.0, kicks=0))
+    assert lost.seconds is not None and lost.seconds > 20 / 1.5              # nothing gained while the box lasts
+    assert plain.seconds == pytest.approx(lost.seconds - 20 / 1.5, abs=0.01)
+
+
 def test_a_kick_costs_progress_and_the_event_limit_holds():
     calm = g.one_generator(D, [S()], None, CALM).seconds
     kicked = g.one_generator(D, [S()], K(), Sc(great=0, kicks=1, kick_at=0.5, away=20))

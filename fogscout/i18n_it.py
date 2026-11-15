@@ -1963,8 +1963,6 @@ T = {
         'Numero',
     'Anzahl = {what}':
         'Numero = {what}',
-    'Bedingte Perks zählen als aktiv (z. B. Resilience = verletzt, Déjà Vu = auf einem der drei nahen Generatoren).':
-        'I perk condizionali contano come attivi (es. Resilience = ferito, Déjà Vu = su uno dei tre generatori vicini).',
     'Der Killer nimmt dem Generator {lost} Ladungen (Regressions-Ereignisse: {events}).':
         'Il killer toglie {lost} cariche al generatore (eventi di regressione: {events}).',
     'Diminishing Returns anwenden':
@@ -1989,14 +1987,10 @@ T = {
         'Tragitto tra i generatori',
     'Mit Diminishing Returns: {on} · ohne: {off} (ein Generator, alle, ohne Killer).':
         'Con rendimenti decrescenti: {on} · senza: {off} (un generatore, tutti, senza killer).',
-    'Perks kombinieren und ausrechnen, wie lange ein Generator dauert':
-        'Combina i perk e calcola quanto dura un generatore',
     'Rechner':
         'Calcolatore',
     'Situation':
         'Situazione',
-    'Survivor am Generator':
-        'Sopravvissuti al generatore',
     'Survivor {n}':
         'Sopravvissuto {n}',
     'Survivor-Builds':
@@ -2043,8 +2037,6 @@ T = {
         "1 = questo generatore è bloccato all'inizio",
     'An (wie im Spiel seit Patch 9.6.0): von mehreren Tempo-Boni zählt der grösste voll, der zweite halb, der dritte zu einem Viertel, der vierte zu einem Achtel. Aus: alle Boni zählen voll – zum Vergleich.':
         'Attivo (come nel gioco dalla patch 9.6.0): tra più bonus di velocità il maggiore conta per intero, il secondo per metà, il terzo per un quarto, il quarto per un ottavo. Disattivo: tutti i bonus contano per intero – per confronto.',
-    'Werkzeugkasten':
-        'Cassetta degli attrezzi',
     'Eingerechnet: {what}.':
         'Incluso: {what}.',
     'Kicks und die Anzahl je Killer-Perk gelten für jeden Generator einzeln.':
@@ -2097,6 +2089,200 @@ T = {
         'Svuota tutte le build e riporta le ipotesi ai valori iniziali.',
     'Runden vom Map-Banner bis zum Rundenende (ab 1 min), nur lokal gespeichert.':
         'Partite dal banner della mappa alla fine (da 1 min), salvate solo in locale.',
+    ' für Survivor {n}':
+        ' per il sopravvissuto {n}',
+    'Als Build A merken':
+        'Memorizza come build A',
+    'Andere heilen':
+        'Curare gli altri',
+    'Aufheben und Ablegen':
+        'Raccogliere e lasciare',
+    'Aufhängen':
+        'Appendere al gancio',
+    'Aufschlüsselung':
+        'Dettaglio',
+    'Ausgangstor öffnen':
+        "Aprire il cancello d'uscita",
+    'Bedingte Perks zählen als aktiv (z. B. Resilience = verletzt, Hope = Tore mit Strom); die Bedingung steht in der Aufschlüsselung. Ein Werkzeugkasten wirkt beim Reparieren, ein Med-Kit beim Heilen anderer.':
+        'I perk condizionali contano come attivi (es. Resilience = ferito, Hope = cancelli alimentati); la condizione è indicata nel dettaglio. Una cassetta degli attrezzi agisce durante la riparazione, un kit medico curando gli altri.',
+    'Bedingung':
+        'Condizione',
+    'Befreien':
+        'Liberare dal gancio',
+    'Bereich':
+        'Ambito',
+    'Bester nächster Perk':
+        'Miglior perk successivo',
+    'Bewegung (Haste, Hindered)':
+        'Movimento (Haste, Hindered)',
+    'Build A':
+        'Build A',
+    'Build A ist gemerkt: die Spalten „Build A“ und „Unterschied“ zeigen ihn neben dem, was jetzt gewählt ist (− = jetzt schneller bzw. kürzer).':
+        'La build A è memorizzata: le colonne «Build A» e «Differenza» la mostrano accanto alla scelta attuale (− = ora più veloce o più breve).',
+    'Ducken':
+        'Accovacciato',
+    'Ein Generator braucht 90 Ladungen, ein Survivor schafft 1 pro Sekunde; jeder weitere am selben Generator kostet alle 15 % Tempo.':
+        'Un generatore richiede 90 cariche, un sopravvissuto ne aggiunge 1 al secondo; ogni altro sullo stesso generatore costa a tutti il 15 % di velocità.',
+    'Erholen am Boden (bis 95 %)':
+        'Recupero a terra (fino al 95 %)',
+    'Fenster, langsam':
+        'Finestra, lento',
+    'Fenster, mittel':
+        'Finestra, medio',
+    'Fenster, schnell':
+        'Finestra, veloce',
+    'Fenster-Vault':
+        'Scavalcare una finestra',
+    'Gehen':
+        'Camminando',
+    'Generator beschädigen':
+        'Danneggiare un generatore',
+    'Geschwindigkeit in m/s. Für Haste zusammen mit Hindered nennt das Wiki keine eigene Formel – gerechnet wird wie bei Aktionen (Annahme).':
+        'Velocità in m/s. Per Haste insieme a Hindered la wiki non indica una formula propria: si calcola come per le azioni (ipotesi).',
+    'Grundwert':
+        'Valore base',
+    'Haken (Befreien, Sabotieren)':
+        'Ganci (liberare, sabotare)',
+    'Haken sabotieren':
+        'Sabotare un gancio',
+    'Heilen und Erholen':
+        'Cura e recupero',
+    'Hex-Totem segnen':
+        'Benedire un totem Hex',
+    'Hält die jetzige Auswahl (Builds und Annahmen) als Build A fest. Die Ergebnistabelle zeigt ihn danach neben allem, was Sie ändern – so lassen sich zwei Builds vergleichen.':
+        'Memorizza la scelta attuale (build e ipotesi) come build A. La tabella dei risultati la mostra poi accanto a ogni modifica: così si confrontano due build.',
+    'Item':
+        'Oggetto',
+    'Killer mit 3,85 m/s':
+        'Killer a 3,85 m/s',
+    'Killer mit 4,4 m/s':
+        'Killer a 4,4 m/s',
+    'Killer mit 4,6 m/s':
+        'Killer a 4,6 m/s',
+    'Killer: Aktionen':
+        'Killer: azioni',
+    'Killer: Bewegung':
+        'Killer: movimento',
+    'Killer: Erholung nach Angriffen':
+        'Killer: recupero dopo gli attacchi',
+    'Kriechen':
+        'Strisciando',
+    'Tokens der Survivor-Perks':
+        'Gettoni dei perk dei sopravvissuti',
+    'Tokens des Perks':
+        'gettoni del perk',
+    'Mit Diminishing Returns: {on} · ohne: {off} ({what}).':
+        'Con rendimenti decrescenti: {on} · senza: {off} ({what}).',
+    'Nach einem Fehlschlag':
+        'Dopo un attacco mancato',
+    'Nach einem Treffer':
+        'Dopo un colpo a segno',
+    'Nennwert':
+        'Valore nominale',
+    'Noch kein Perk gewählt, der in diesem Bereich wirkt.':
+        'Nessun perk scelto che agisca in questo ambito.',
+    'Palette oder Wand zerstören':
+        'Distruggere un bancale o una parete',
+    'Palette, langsam':
+        'Bancale, lento',
+    'Palette, schnell':
+        'Bancale, veloce',
+    'Perk-Bilder: eigene Bilder (PNG oder WebP, benannt wie der Perk) im Ordner „{folder}“ des Datenordners erscheinen nach dem nächsten Start in den Auswahllisten.':
+        'Immagini dei perk: le proprie immagini (PNG o WebP, con il nome del perk) nella cartella «{folder}» della cartella dati compaiono negli elenchi dopo il prossimo avvio.',
+    'Perks kombinieren und ausrechnen, was sie nach Diminishing Returns bringen':
+        'Combina i perk e calcola quanto rendono dopo i rendimenti decrescenti',
+    'Quelle':
+        'Fonte',
+    'Rennen':
+        'Correndo',
+    'Reparieren (Generatoren)':
+        'Riparazione (generatori)',
+    'Sich selbst heilen (Med-Kit)':
+        'Curarsi da soli (kit medico)',
+    'Spind durchsuchen':
+        'Controllare un armadietto',
+    'Sterbende aufheben':
+        'Rialzare un sopravvissuto morente',
+    'Survivor im Team':
+        'Sopravvissuti nella squadra',
+    'Tempo {p} %':
+        'velocità {p} %',
+    'Tore mit Strom':
+        'cancelli alimentati',
+    'Totem reinigen':
+        'Purificare un totem',
+    'Totem segnen':
+        'Benedire un totem',
+    'Totems, Truhen, Tore':
+        'Totem, forzieri, cancelli',
+    'Tragen':
+        'Trasportando',
+    'Truhe öffnen':
+        'Aprire un forziere',
+    'Unterschied':
+        'Differenza',
+    'Vaults (Fenster, Paletten)':
+        'Scavalcamenti (finestre, bancali)',
+    'Vergisst Build A; die Tabelle zeigt wieder nur die jetzige Auswahl.':
+        'Dimentica la build A; la tabella mostra di nuovo solo la scelta attuale.',
+    'Vergleich beenden':
+        'Termina confronto',
+    'Von mehreren Boni (oder Mali) auf dasselbe zählt der größte voll, der zweite zur Hälfte, der dritte zu 25 %, der vierte zu 12,5 %, jeder weitere zu 5 % (seit Patch 9.6.0). Boni werden addiert, Mali multipliziert.':
+        'Di più bonus (o malus) sulla stessa cosa il maggiore conta per intero, il secondo per metà, il terzo per il 25 %, il quarto per il 12,5 %, ogni altro per il 5 % (dalla patch 9.6.0). I bonus si sommano, i malus si moltiplicano.',
+    'Zeit je Aktion; ohne Grundwert im Wiki steht nur das Tempo da.':
+        'Tempo per azione; senza un valore base nella wiki è indicata solo la velocità.',
+    'alle':
+        'tutti',
+    'die Hälfte':
+        'la metà',
+    'ein Generator, alle zusammen: {a} → {b}':
+        'un generatore, tutti insieme: {a} → {b}',
+    'eine':
+        'uno',
+    'gesund':
+        'in salute',
+    'höchstens {p}':
+        'al massimo {p}',
+    'im Boon-Bereich':
+        "nell'area del Boon",
+    'im Terrorradius':
+        'nel raggio di terrore',
+    'in Reichweite':
+        'nel raggio',
+    'mit der Obsession':
+        "con l'Ossessione",
+    'nach Auslösung':
+        "dopo l'attivazione",
+    'nach einer Befreiung':
+        'dopo una liberazione',
+    'solange das Hex-Totem steht':
+        'finché il totem Hex è in piedi',
+    'verletzt':
+        'ferito',
+    'wirkt mit':
+        'agisce con',
+    'zu {k}. am Generator: ×{c}':
+        'in {k} al generatore: ×{c}',
+    'zählt zu':
+        'conta per',
+    '{n} Hakenstufen':
+        '{n} fasi di gancio',
+    '{n} Survivor am Leben':
+        '{n} sopravvissuti in vita',
+    '{n} verletzt, sterbend oder am Haken':
+        '{n} feriti, morenti o al gancio',
+    '{n} Tokens':
+        '{n} gettoni',
+    '{side}: kein freier Platz im Build.':
+        '{side}: nessuno spazio libero nella build.',
+    '{side}: kein weiterer Perk ändert hier etwas.':
+        '{side}: nessun altro perk cambia qualcosa qui.',
+    '{s} s lang':
+        'per {s} s',
+    '„Als Build A merken“ hält die jetzige Auswahl fest; danach zeigt die Tabelle jede Änderung daneben.':
+        '«Memorizza come build A» fissa la scelta attuale; poi la tabella mostra ogni modifica accanto.',
+    'Tempo (relativ)':
+        'Velocità relativa',
     'Claude hat unverständlich geantwortet.':
         'Claude ha dato una risposta illeggibile.',
     'Claude ist nicht erreichbar – keine Internetverbindung?':
