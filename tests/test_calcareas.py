@@ -616,3 +616,57 @@ def test_the_page_takes_a_killer_its_add_ons_and_the_items_add_ons(app_root):
         assert app.calc_killer_var.get() == app_calc.NONE and app.settings.get("calc")["killer_addons"] == []
     finally:
         app.quit()
+
+
+def test_a_perk_is_in_a_build_only_once(app_root):
+    """1.53.1 (Saru: "Beim Calculator kann ein Survivor 2x dasselbe Perk haben. Das macht keinen Sinn"): a perk
+    chosen in a build is not offered in its other places, a second one (older settings) is taken out – for the
+    Killer's build and the two kinds of Overzealous too; another Survivor may have the same perk."""
+    from fogscout.app import App
+    calc = {"area": "repair", "n": 2, "survivors": [[["Resilience", "Prove Thyself", "Resilience"], "", []],
+                                                    [["Resilience"], "", []]],
+            "killer": ["Thanatophobia", "Thanatophobia"], "counts": {"Thanatophobia": 3}}
+    (app_root / "settings.json").write_text(json.dumps({"welcome_seen": True, "calc": calc}), encoding="utf-8")
+    app = App(str(app_root), simulate=str(app_root / "sim"))
+    try:
+        none = app_calc.NONE
+        first, second = app.calc_surv[0][0], app.calc_surv[1][0]
+        assert [v.get() for v in first] == ["Resilience", "Prove Thyself", none, none]      # the second one is out
+        assert second[0].get() == "Resilience"                                           # another build: its own
+        assert [v.get() for v, _n, _m in app.calc_kill] == ["Thanatophobia", none, none, none]
+        boxes = [box for box, _var, _side in app.calc_perk_boxes]
+        assert "Resilience" in boxes[0].cget("values") and "Prove Thyself" not in boxes[0].cget("values")
+        assert "Resilience" not in boxes[2].cget("values") and "Déjà Vu" in boxes[2].cget("values")
+        assert "Resilience" not in boxes[5].cget("values")                                # Survivor 2, second place
+        assert "Thanatophobia" not in boxes[17].cget("values") and "Thanatophobia" in boxes[16].cget("values")
+        # chosen twice all the same (by hand in the settings, or a list not yet refreshed): taken out, kept once
+        first[3].set("Prove Thyself")
+        app._calc_changed()
+        assert first[3].get() == none and app.settings.get("calc")["survivors"][0][0] == ["Resilience",
+                                                                                          "Prove Thyself"]
+        # the two kinds of Overzealous are one perk
+        first[2].set("Overzealous (Dull Totem)")
+        app._calc_changed()
+        assert "Overzealous (Hex Totem)" not in boxes[3].cget("values")
+        assert {"Overzealous (Dull Totem)", "Overzealous (Hex Totem)"} <= set(boxes[2].cget("values"))
+        first[3].set("Overzealous (Hex Totem)")
+        app._calc_changed()
+        assert first[3].get() == none
+        # a place given up offers the perk again; in another area the rule is the same
+        first[0].set(none)
+        app._calc_changed()
+        assert "Resilience" in boxes[1].cget("values") and "Resilience" in boxes[3].cget("values")
+        app.calc_area_var.set("Heilen und Erholen")
+        first[0].set("Botany Knowledge")
+        app._calc_changed()
+        assert "Botany Knowledge" not in boxes[3].cget("values") and "Botany Knowledge" in boxes[4].cget("values")
+        # the add-on chosen in one place is not offered in the other
+        app.calc_surv[0][1].set("Toolbox")
+        app._calc_changed()
+        (abox, avar), (bbox, _bvar) = app.calc_item_addons[0]
+        avar.set("Socket Swivels")
+        app._calc_changed()
+        assert "Socket Swivels" not in bbox.cget("values") and "Socket Swivels" in abox.cget("values")
+    finally:
+        app.quit()
+

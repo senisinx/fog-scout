@@ -381,9 +381,10 @@ class LayoutMemory:
             self.anchor_var.set(self._anchor_text(MAP_CORNERS[(col, row)]))
             self._anchor_changed()
             return
-        box = self._cell_box(name, col, row)
+        data = self._preview_data()                         # 1.53.1: one look for the place and for setting it
+        box = self._cell_box(name, col, row, data)
         if box is not None:
-            self._preview_pick_now(("place", name, box[0], box[1]))
+            self._preview_pick_now(("place", name, box[0], box[1]), data)
 
     def _focus_mode_toggle(self):
         """"Fokus": the overlay editor's canvas takes the whole window – list and inspector away, the navigation

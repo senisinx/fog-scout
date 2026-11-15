@@ -1574,12 +1574,14 @@ class App(ServerTab, StatsTab, ExportDialog, RecordingsTab, DiscordPresence, Spo
                 self._el_show_switch(name, False)
         self._context_menu(items, pos, act)
 
-    def _preview_pick_now(self, value):
+    def _preview_pick_now(self, value, data=None):
         """A click or drag on the preview: an element dragged by the mouse goes where it was dropped ("place",
         1.64.1 – map, system values/"today" or music card, each to its own place); a click on an empty spot puts
-        the map's centre there ("move"). Always an own position, like dragging in the game."""
+        the map's centre there ("move"). Always an own position, like dragging in the game. ``data``: the look at
+        the preview the place was worked out in (1.53.1, quick places: the sample picture comes from a thread, a
+        second look may show the element in another size – the place would not fit it)."""
         self._layout_mark()
-        data = self._preview_data()
+        data = data or self._preview_data()
         _gx, _gy, gw, gh = self._game_rect()
         if value[0] == "place":
             _what, name, x, y = value
