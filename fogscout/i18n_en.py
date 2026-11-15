@@ -716,8 +716,6 @@ EN = {
     "Fog Scout {version} (Build {build}) ist geladen und per SHA-256 geprüft. Jetzt installieren? Das Programm schliesst sich und startet danach neu.":
         "Fog Scout {version} (build {build}) is downloaded and checked with SHA-256. Install it now? The program closes and starts again afterwards.",
     "Installieren": "Install",
-    "Update gesperrt: eine Runde läuft oder ein Clip wird gespeichert. Danach noch einmal auf „Aktualisieren und neu starten“ klicken.":
-        "Update blocked: a round is running or a clip is being saved. Click “Update and restart” again afterwards.",
     "Programm schliesst sich und installiert das Update …": "The program closes and installs the update …",
     "Das Update wurde nicht gestartet: Die Setup-Datei hat sich seit dem Download verändert oder fehlt. Bitte das Update noch einmal laden.":
         "The update was not started: the setup file changed since the download or is missing. Please download the update once more.",
@@ -1800,6 +1798,8 @@ EN = {
         '“Keep as build A” holds what is chosen now; the table then shows every change beside it.',
     'Tempo (relativ)':
         'Relative speed',
+    'Update gesperrt: OBS nimmt gerade auf – der Neustart würde die Aufnahme beenden. Aufnahme stoppen, dann noch einmal auf „Aktualisieren und neu starten“ klicken.':
+        'Update locked: OBS is recording – the restart would end the recording. Stop the recording, then click “Update and restart” again.',
     'Claude hat unverständlich geantwortet.': 'Claude gave an answer that could not be read.',
     'Claude ist nicht erreichbar – keine Internetverbindung?': 'Claude cannot be reached – no internet connection?',
     'Claude: Zu viele Anfragen – gleich noch einmal versuchen.': 'Claude: too many requests – try again in a moment.',

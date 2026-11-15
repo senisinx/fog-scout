@@ -1377,9 +1377,8 @@ class SettingsTab:
         self._release_install(path, sha256)
 
     def _release_install(self, path, sha256=""):
-        if self._round_running() or self._clips_saving():
-            msg = _("Update gesperrt: eine Runde läuft oder ein Clip wird gespeichert. Danach noch einmal auf "
-                    "„Aktualisieren und neu starten“ klicken.")
+        msg = self._update_blocked()
+        if msg:
             self.upd_status.set(msg)
             self._log(msg, "System")
             return
@@ -1442,6 +1441,21 @@ class SettingsTab:
         """1.8.63: a round is open (map detected, no end yet) or OBS records – no restart for an update now."""
         return self._hist is not None or self.recorder.recording
 
+    def _update_blocked(self) -> str:
+        """Why an update may not restart the program now, in the user's words ("" = it may). 1.52.1 (Saru's
+        picture: "Update locked: a round is running" in the lobby – OBS was recording by hand): each reason has
+        its own line, so the user knows what to end."""
+        if self._hist is not None:
+            return _("Update gesperrt: eine Runde läuft. Nach dem Rundenende noch einmal auf „Aktualisieren und neu "
+                     "starten“ klicken.")
+        if self.recorder.recording:
+            return _("Update gesperrt: OBS nimmt gerade auf – der Neustart würde die Aufnahme beenden. Aufnahme "
+                     "stoppen, dann noch einmal auf „Aktualisieren und neu starten“ klicken.")
+        if self._clips_saving():                  # the same for a clip the editor is still writing
+            return _("Update gesperrt: ein Clip wird noch gespeichert. Danach noch einmal auf „Aktualisieren und neu "
+                     "starten“ klicken.")
+        return ""
+
     @staticmethod
     def _clip_editor():
         """The clip editor's module once an editor was opened (else None: no save can run, nothing to import)."""
@@ -1476,13 +1490,8 @@ class SettingsTab:
     def apply_update(self):
         # 1.8.63 (user: "mach eine Sperre rein, dass wenn es in einer Runde ist, kein Update stattfinden kann"): the
         # update restarts the program (start.bat installs it) – that would end the round's record and recording
-        if self._round_running():
-            self.upd_status.set(_("Update gesperrt: eine Runde läuft. Nach dem Rundenende noch einmal auf „Aktualisieren und neu starten“ klicken."))
-            self._log(_("Update gesperrt: eine Runde läuft. Nach dem Rundenende noch einmal auf „Aktualisieren und neu starten“ klicken."), "System")
-            return
-        if self._clips_saving():                  # the same for a clip the editor is still writing
-            msg = _("Update gesperrt: ein Clip wird noch gespeichert. Danach noch einmal auf „Aktualisieren und neu "
-                    "starten“ klicken.")
+        msg = self._update_blocked()
+        if msg:
             self.upd_status.set(msg)
             self._log(msg, "System")
             return
