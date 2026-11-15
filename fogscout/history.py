@@ -20,7 +20,7 @@ KEEP = 5000                 # newest rounds kept when the file is tidied
 # oldest rounds were gone for good once there were more than KEEP. The statistics do not read it (their speed is why
 # the file is kept short); "Alles sichern (ZIP)" packs it, "Alle Runden löschen" removes it.
 ARCHIVE = "rounds-archive.jsonl"
-# 1.56 (review F14): every read-change-write of the file holds this lock – a restore from a backup runs in a thread
+# 1.55.5 (review F14): every read-change-write of the file holds this lock – a restore from a backup runs in a thread
 # while the window's thread corrects rounds or saves the balance; without it the last writer won and the other
 # change was gone. Re-entrant: a writer may call another one.
 LOCK = threading.RLock()
@@ -59,7 +59,7 @@ _FIELDS = tuple(f.name for f in fields(Round))
 
 def _dump(r: Round) -> str:
     """One stored line of a round – the same text as ``json.dumps(asdict(r), ensure_ascii=False)`` (fields in their
-    order). 1.56 (review F2): asdict deep-copies every value and took ~60 % of a correction's rewrite at 5000 rounds."""
+    order). 1.55.5 (review F2): asdict deep-copies every value and took ~60 % of a correction's rewrite at 5000 rounds."""
     return json.dumps({k: getattr(r, k) for k in _FIELDS}, ensure_ascii=False)
 
 
@@ -113,7 +113,7 @@ def _archived_tail(path: str, size: int) -> set:
 
 def archive_lines(path: str, lines) -> None:
     """1.50.6: ``lines`` at the end of the archive file ``path``, on the disk before the caller drops them from its
-    own file (OSError when not). 1.56 (review F7): when the caller's rewrite failed after the archive was written,
+    own file (OSError when not). 1.55.5 (review F7): when the caller's rewrite failed after the archive was written,
     its next tidying hands over the same lines again – lines whose ``t`` already stands in the archive's end (as
     many bytes as these lines) are left out. Only the end is compared, not "older than the newest archived line":
     a restore can bring rounds older than those, and they must still reach the archive."""
@@ -147,7 +147,7 @@ def append(path: str, rnd: Round) -> None:
 
 
 def _slack() -> int:
-    """1.56 (review F1): how far the file may grow past KEEP before it is tidied (5 % of it, 250 at KEEP = 5000).
+    """1.55.5 (review F1): how far the file may grow past KEEP before it is tidied (5 % of it, 250 at KEEP = 5000).
     Trimmed to exactly KEEP, every further round rewrote the whole file (~150 ms in the window's thread)."""
     return KEEP // 20
 
@@ -164,7 +164,7 @@ def _tidy(path: str) -> None:
             rounds = load(path)
             kept = rounds[-KEEP:]
             lost = _lost_lines(path)
-            # 1.56 (review F5): lost-round lines older than the kept rounds go to the archive too (were dropped)
+            # 1.55.5 (review F5): lost-round lines older than the kept rounds go to the archive too (were dropped)
             old = [(r.t, _dump(r)) for r in rounds[:-KEEP]] + \
                 [(d["t"], json.dumps(d, ensure_ascii=False)) for d in lost if d["t"] < kept[0].t]
             # first into the archive – when that cannot be written (OSError), nothing is taken out
@@ -471,7 +471,7 @@ def wait_summary(rounds) -> dict:
     w = sorted(r.wait for r in rounds if r.wait is not None and normal(r))
     if not w:
         return {"count": 0, "avg": 0.0, "median": 0.0, "min": 0.0, "max": 0.0}
-    # 1.56 (review F8): median() – an even count took the upper middle value instead of the mean of both
+    # 1.55.5 (review F8): median() – an even count took the upper middle value instead of the mean of both
     return {"count": len(w), "avg": sum(w) / len(w), "median": median(w), "min": w[0], "max": w[-1]}
 
 
@@ -547,12 +547,12 @@ def regions_at(rounds, now: float, min_rounds: int = 3) -> tuple:
         if len(rs) < min_rounds:
             continue
         pings = [r.ping for r in rs if r.ping is not None]
-        rows.append((code, len(rs), median(r.wait for r in rs), sum(pings) / len(pings) if pings else None))   # 1.56 (F8)
+        rows.append((code, len(rs), median(r.wait for r in rs), sum(pings) / len(pings) if pings else None))   # 1.55.5 (F8)
     return block, sorted(rows, key=lambda row: (row[2], row[0]))
 
 
 def _change(path: str, ts, fn) -> list:
-    """1.56 (review F2): apply ``fn(round) -> bool`` (True: changed) to the rounds that started at the times ``ts``
+    """1.55.5 (review F2): apply ``fn(round) -> bool`` (True: changed) to the rounds that started at the times ``ts``
     and rewrite the file once – marking k rounds was k full rewrites. Returns the changed rounds in the order of
     ``ts`` (each once); nothing changed = nothing written."""
     with LOCK:

@@ -343,7 +343,7 @@ def test_the_program_starts_shows_every_page_and_quits(app_root):
 
 @pytest.mark.parametrize("code", ["en", "it", "ru", "zh", "ja", "ko"])
 def test_every_button_has_its_info_text_in_every_language(app_root, code):
-    """1.56 (audit U-1): two German labels with one translation (it „Annulla“, ru „Удалить все“, zh/ja/ko „系统“ …)
+    """1.55.3 (audit U-1): two German labels with one translation (it „Annulla“, ru „Удалить все“, zh/ja/ko „系统“ …)
     resolved to the wrong German key – a wrong tip or none. Built in each language, nothing lacks one."""
     import json
     from fogscout import i18n, tooltip
@@ -1269,7 +1269,7 @@ def test_the_export_dialog_filters_rounds_and_writes_csv_or_a_text_list(app_root
         app.export_farming_var.set(True)
         app.export_from_var.set(time.strftime("%H:%M", time.localtime(t2 - 60)))   # typed: a time alone (today)
         assert app.export_preset_var.get() == "Eigener Zeitraum"
-        assert app._export_job is not None                                  # 1.56: rows follow when typing pauses
+        assert app._export_job is not None                                  # 1.55.5: rows follow when typing pauses
         app._export_typed_done()
         assert app.export_count_var.get() == "1 Runden, 4 Spalten"
         app.export_from_var.set("irgendwann")
@@ -1292,7 +1292,7 @@ def test_the_export_dialog_filters_rounds_and_writes_csv_or_a_text_list(app_root
 
 
 def test_typing_a_time_into_the_export_dialog_refreshes_once_the_typing_pauses(app_root):
-    """1.56 (review): every key in Von/Bis rebuilt the table (~83 ms at 5000 rounds). Now one refresh
+    """1.55.5 (review): every key in Von/Bis rebuilt the table (~83 ms at 5000 rounds). Now one refresh
     TYPING_PAUSE_MS after the last key – each key moves the timer; copy/save refresh at once and drop it."""
     import json
     from fogscout import app_export, history
@@ -1348,7 +1348,7 @@ def test_the_discord_state_follows_round_and_lobby_and_the_records_tab_draws(app
         f = Found(200.0, 12.0, "survivor")
         app._queue = {"state": "lobby", "role": "survivor", "found": f}
         assert app._discord_state().since == 200.0
-        app.current = ("coal-tower", 2)                       # 1.56 (audit B1): a map shown by hand, round running
+        app.current = ("coal-tower", 2)                       # 1.55.3 (audit B1): a map shown by hand, round running
         app.round.start(250.0)
         st = app._discord_state()
         assert (st.phase, st.map, st.realm, st.since) == ("match", "Coal Tower II", "The MacMillan Estate", 250.0)
@@ -1376,7 +1376,7 @@ def test_the_discord_state_follows_round_and_lobby_and_the_records_tab_draws(app
 
 
 def test_a_redraw_of_the_killer_table_keeps_the_marked_killer_and_the_note_being_typed(app_root):
-    """1.56 (audit S-2): _stats_part_killers emptied the table before reading the selection – every redraw lost
+    """1.55.3 (audit S-2): _stats_part_killers emptied the table before reading the selection – every redraw lost
     the marked killer, and _stats_alias_buttons then cleared the killer note the user was typing."""
     import json
     from fogscout import history
@@ -3007,7 +3007,7 @@ def test_the_screenshots_tab_lists_pictures_and_opens_the_picture_editor(app_roo
 
 
 def test_the_recording_card_is_drawn_once_when_the_page_is_built(app_root):
-    """1.56 (audit V-5): the card was built saying "Warte auf OBS …" and showing, and only the first tick of the
+    """1.55.7 (audit V-5): the card was built saying "Warte auf OBS …" and showing, and only the first tick of the
     shown page hid it while recordings were off – it flashed. Built, it already says how things are."""
     from fogscout.app import App
     app = App(str(app_root), simulate=str(app_root / "sim"))

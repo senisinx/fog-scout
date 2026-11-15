@@ -436,7 +436,7 @@ def test_the_fastest_region_at_this_time_of_day():
     rs.append(h.Round(t=base, seconds=600, map_id="a", map="A", region="eu-west-2", wait=1, custom=True))
     block, rows = h.regions_at(rs, base + 1800)
     assert block == datetime.datetime.fromtimestamp(base).hour // h.HOUR_BLOCK * h.HOUR_BLOCK
-    # 1.56 (F8): an even count is the mean of both middle values (210, 220), as history.median
+    # 1.55.5 (F8): an even count is the mean of both middle values (210, 220), as history.median
     assert [(c, n, w) for c, n, w, _p in rows] == [("eu-central-1", 3, 70), ("us-east-1", 4, 215.0)]
     assert rows[0][3] == 30.0 and rows[1][3] is None
     assert h.regions_at(rs, base + 1800, min_rounds=4)[1][0][0] == "us-east-1"
@@ -492,7 +492,7 @@ def test_rounds_beyond_the_limit_go_to_the_archive_not_away(tmp_path, monkeypatc
 
 
 def test_the_file_is_tidied_once_per_slack_not_after_every_round(tmp_path, monkeypatch):
-    """1.56 (review F1): trimmed to exactly KEEP, every round after the 5000th rewrote the whole file (~150 ms in the
+    """1.55.5 (review F1): trimmed to exactly KEEP, every round after the 5000th rewrote the whole file (~150 ms in the
     window's thread). It may now grow by _slack() (5 % of KEEP) before it is cut back to KEEP."""
     import json
     from fogscout import fsops
@@ -513,7 +513,7 @@ def test_the_file_is_tidied_once_per_slack_not_after_every_round(tmp_path, monke
 
 
 def test_a_tidied_lost_round_goes_to_the_archive_too(tmp_path, monkeypatch):
-    """1.56 (review F5): lost-round lines older than the kept rounds were dropped by the tidying – they go to the
+    """1.55.5 (review F5): lost-round lines older than the kept rounds were dropped by the tidying – they go to the
     archive with the rounds, in time order."""
     import json
     monkeypatch.setattr(h, "KEEP", 2)
@@ -532,7 +532,7 @@ def test_a_tidied_lost_round_goes_to_the_archive_too(tmp_path, monkeypatch):
 
 
 def test_lines_archived_before_a_failed_rewrite_are_not_archived_twice(tmp_path, monkeypatch):
-    """1.56 (review F7): archive first, then rewrite – when the rewrite failed, the next tidying archived the same
+    """1.55.5 (review F7): archive first, then rewrite – when the rewrite failed, the next tidying archived the same
     lines again. Lines whose start already stands at the archive's end are left out; an older line that is not
     there yet (a restored round) still goes in."""
     import json
@@ -559,7 +559,7 @@ def test_lines_archived_before_a_failed_rewrite_are_not_archived_twice(tmp_path,
 
 
 def test_a_round_is_written_as_asdict_wrote_it(tmp_path):
-    """1.56 (review F2): the lines come from _dump instead of dataclasses.asdict – the same bytes, every field in
+    """1.55.5 (review F2): the lines come from _dump instead of dataclasses.asdict – the same bytes, every field in
     its order; a correction leaves the other lines byte for byte as they were."""
     import dataclasses
     import json
@@ -582,7 +582,7 @@ def test_a_round_is_written_as_asdict_wrote_it(tmp_path):
 
 
 def test_corrections_of_many_rounds_rewrite_the_file_once(tmp_path, monkeypatch):
-    """1.56 (review F2): marking k rounds was k full rewrites (~100 ms each at 5000 rounds). The *_many functions
+    """1.55.5 (review F2): marking k rounds was k full rewrites (~100 ms each at 5000 rounds). The *_many functions
     change all of them and write once; they return what they changed, in the order asked, each round once."""
     from fogscout import fsops
     p = str(tmp_path / h.FILE)
@@ -607,7 +607,7 @@ def test_corrections_of_many_rounds_rewrite_the_file_once(tmp_path, monkeypatch)
 
 
 def test_the_median_wait_of_an_even_count_is_the_mean_of_both_middle_values():
-    """1.56 (review F8): wait_summary and regions_at took the upper middle value; history.median averages."""
+    """1.55.5 (review F8): wait_summary and regions_at took the upper middle value; history.median averages."""
     import datetime
     base = datetime.datetime(2026, 11, 2, 19, 10).timestamp()
     rs = [h.Round(t=base + i * 86400, seconds=600, map_id="a", map="A", region="eu-central-1", wait=w)
@@ -618,7 +618,7 @@ def test_the_median_wait_of_an_even_count_is_the_mean_of_both_middle_values():
 
 
 def test_a_correction_waits_for_a_restore_that_is_writing_and_both_stay(tmp_path, monkeypatch):
-    """1.56 (review F14): a restore (its own thread) and a correction in the window's thread (the balance after a
+    """1.55.5 (review F14): a restore (its own thread) and a correction in the window's thread (the balance after a
     round) both read, change and write rounds.jsonl – the one writing last threw the other's change away. With
     history.LOCK the correction waits until the restore has written, then reads its result."""
     import threading
@@ -657,7 +657,7 @@ def test_a_correction_waits_for_a_restore_that_is_writing_and_both_stay(tmp_path
 
 @pytest.mark.skipif(not hasattr(__import__("time"), "tzset"), reason="time.tzset: not on Windows")
 def test_last_week_starts_on_its_monday_also_in_the_week_after_a_clock_change(monkeypatch):
-    """1.56 (review F10): the week before was start − 7 × 24 h – in the week after the clocks went back (Europe/Berlin,
+    """1.55.5 (review F10): the week before was start − 7 × 24 h – in the week after the clocks went back (Europe/Berlin,
     25.10.2026) that is Monday 01:00, a round in its first hour fell out of "Vorwoche" (overview tiles and the week
     Claude gets)."""
     import time
@@ -681,7 +681,7 @@ def test_last_week_starts_on_its_monday_also_in_the_week_after_a_clock_change(mo
 
 
 def test_a_farming_round_without_a_wait_counts_as_instant_for_bloodpoints_per_hour():
-    """1.56 (review F11): the tables show "sofort" for a farming round without a measured wait (its lobby filled at
+    """1.55.5 (review F11): the tables show "sofort" for a farming round without a measured wait (its lobby filled at
     once); BP per hour with waiting gave it the average wait of the others. It counts 0 s now; other rounds without
     a wait keep the average, a custom game is never "sofort"."""
     from fogscout import dashboard

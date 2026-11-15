@@ -946,7 +946,7 @@ def test_subtitles_are_moved_and_trimmed_in_the_ruler_with_one_undo_step_each(qa
 
 
 def test_i_and_o_on_a_still_leave_it_alone_and_say_why(qapp, clip, tmp_path):
-    """1.56 (E-2): the I/O keys on a still moved its picture 0.1 s per press (I) or gave it an end (O); now the
+    """1.55.8 (E-2): the I/O keys on a still moved its picture 0.1 s per press (I) or gave it an end (O); now the
     still stays, no undo step is made and the status line says how to change a still's length."""
     from fogscout import sequence
     win = _window(qapp, clip, tmp_path)
@@ -969,7 +969,7 @@ def test_i_and_o_on_a_still_leave_it_alone_and_say_why(qapp, clip, tmp_path):
 
 
 def test_the_sound_plays_in_pieces_on_one_clock_and_leaves_no_wav(qapp, clip, tmp_path, monkeypatch):
-    """1.56 (P-1): playback no longer waits for the WAV of the whole stretch – the first piece starts with the
+    """1.55.8 (P-1): playback no longer waits for the WAV of the whole stretch – the first piece starts with the
     picture, each further one is made while the one before plays and starts when that one ends (on the first
     piece's clock, as one WAV would run on); a played piece is removed, none is left in %TEMP% afterwards."""
     import tempfile

@@ -28,7 +28,7 @@ NAMES = {"de": "German", "en": "English", "it": "Italian", "ru": "Russian", "zh"
 _lang = "de"
 _table: dict = {}
 _reverse: dict = {}
-_sources: dict = {}                 # 1.56: translation -> every German key that has it (in table order)
+_sources: dict = {}                 # 1.55.3: translation -> every German key that has it (in table order)
 
 
 def system_language() -> str:
@@ -107,7 +107,7 @@ def _(msg: str, /, **kw) -> str:
 
 
 def source(text: str, among=None) -> str:
-    """German original of a (translated) text – for lookups keyed by the German label. ``among`` (1.56): the keys
+    """German original of a (translated) text – for lookups keyed by the German label. ``among`` (1.55.3): the keys
     the caller looks up (tooltips, log categories) – two German texts can share one translation (it „Annulla“,
     zh „系统“), and the one of them in ``among`` is meant; without it the last one wins."""
     if among is not None:

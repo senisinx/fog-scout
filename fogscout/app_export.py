@@ -17,7 +17,7 @@ from .i18n import _
 from .lobby import killer_label
 
 log = logging.getLogger("fogscout.export")
-# 1.56 (review): typing into Von/Bis rebuilt the whole table on every key (~83 ms at 5000 rounds) – now once the
+# 1.55.5 (review): typing into Von/Bis rebuilt the whole table on every key (~83 ms at 5000 rounds) – now once the
 # typing pauses this long
 TYPING_PAUSE_MS = 250
 

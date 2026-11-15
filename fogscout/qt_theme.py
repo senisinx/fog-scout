@@ -59,7 +59,7 @@ THEMES = {
 # The palette below the theme list (1.63, user's wish): one click = this colour as own accent (theme "custom").
 # Base colours; derive_accent makes each one readable in dark, light and OLED.
 # 1.23 (audit, prompt.md, Phase 3 design system): the window's sizes in one place, px at 100 % – TYPE scales with
-# the text zoom (ui_zoom), RADIUS and PAD_CARD do not; 1.56: ICON does too (icon_px – at 150 % the signs stood
+# the text zoom (ui_zoom), RADIUS and PAD_CARD do not; 1.55.7: ICON does too (icon_px – at 150 % the signs stood
 # small beside the text). stylesheet(), qt_editor.editor_qss() and the cards take them
 # from here; a radius of half an element's own height (round handles, swatches) stays where the element is styled.
 TYPE = {"label": 11, "small": 12, "body": 13, "nav": 14, "big": 16, "h1": 21, "display": 22}
@@ -106,7 +106,7 @@ def current_zoom() -> float:
 
 
 def icon_px(px: int) -> int:
-    """1.56 (audit V-4): an icon size of ICON (px at 100 %) at the window's text zoom, rounded."""
+    """1.55.7 (audit V-4): an icon size of ICON (px at 100 %) at the window's text zoom, rounded."""
     return max(1, round(px * _zoom))
 
 

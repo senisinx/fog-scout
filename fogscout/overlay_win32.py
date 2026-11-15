@@ -402,7 +402,7 @@ class HudWindow:
                 if err:
                     self.last_error = err
             return
-        # 1.56 (audit B4): the opacity on the screen includes the fade – after a fade-out the window was hidden at
+        # 1.55.6 (audit B4): the opacity on the screen includes the fade – after a fade-out the window was hidden at
         # opacity 0 and set_fade(1.0) does not push while hidden; with the bare opacity in the key the next show_at
         # at the same place pushed nothing and the card stayed invisible
         pos = (int(x), int(y), round(self.opacity * self.fade, 3))
@@ -438,7 +438,7 @@ class HudWindow:
                                       None if self.dragging else self._pos[:2], self.opacity * fade)
             if err:
                 self.last_error = err
-            self._pos = self._pos[:2] + (round(self.opacity * fade, 3),)    # what the screen has now (1.56)
+            self._pos = self._pos[:2] + (round(self.opacity * fade, 3),)    # what the screen has now (1.55.6)
 
     @property
     def shown(self):
@@ -823,7 +823,7 @@ class PictureOverlay:
         key = (height, text_h, avail) + self._content_key()
         if self._fit is None or self._fit[0] != key:
             timer, self._timer = self._timer, key[3]
-            waiting, self._waiting = self._waiting, key[-1]      # 1.56: measured with the widest digits too
+            waiting, self._waiting = self._waiting, key[-1]      # 1.55.6: measured with the widest digits too
             self._wait_wrap = False
             try:
                 self.text_height = text_h
@@ -860,7 +860,7 @@ class PictureOverlay:
         return height
 
     def _fit_waiting(self, text_h: int, avail: float) -> int:
-        """1.56: the text height of the waiting card (no map: its width depends on the text alone) – the largest
+        """1.55.6: the text height of the waiting card (no map: its width depends on the text alone) – the largest
         one at most ``avail`` wide. The small lines have a minimum font size, so a long lobby line can stay wider
         than the bar at any text height: then the largest text height at that narrowest width (smaller text would
         only be harder to read). Searched by halving – the 4 proportional steps of the map card stopped anywhere
@@ -899,7 +899,7 @@ class PictureOverlay:
                 self._editing, self.show_map, self.show_caption, self._caption, self.transparent, self.backdrop,
                 self._floor, id(self._frames[0][0]) if self._frames else None, self.skin, self.accent, self.realm,
                 self._rec, self._last, self._waiting_memo,
-                # 1.56: the waiting card (its lobby line counts seconds: measured with the widest digits) – last
+                # 1.55.6: the waiting card (its lobby line counts seconds: measured with the widest digits) – last
                 tuple(re.sub(r"\d", "0", line) for line in self._waiting))
 
     def fit_room(self, height: int, room: int) -> int:
@@ -950,7 +950,7 @@ class PictureOverlay:
             self._pics = [pic]
             self._key, self._base_key, self._frame_i = key, None, 0     # the map is rebuilt afterwards
             self._size = (pic.width, pic.height)
-        # 1.56: only measuring (fit_width) puts nothing on the screen – before, every size tried was pushed
+        # 1.55.6: only measuring (fit_width) puts nothing on the screen – before, every size tried was pushed
         if push and self._shown and self._pushed_key != self._key:
             self._push()
             self._pushed_key = self._key

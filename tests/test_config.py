@@ -65,7 +65,7 @@ def test_the_backup_leaves_out_this_pcs_own_values_and_an_old_backup_still_impor
 
 
 def test_an_old_backup_is_migrated_like_an_old_settings_file(tmp_path):
-    """1.56 (audit S-1): read_backup merged over the defaults and stamped the current version without running the
+    """1.55.3 (audit S-1): read_backup merged over the defaults and stamped the current version without running the
     migrations – a backup of version 8 brought back the old statistics tab order, the page "detect" in the
     navigation, the old clip sources and the record row the later versions removed."""
     old = dict(config.DEFAULTS, settings_version=8, setup_root="C:/Example/Old",

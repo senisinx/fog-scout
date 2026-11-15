@@ -39,7 +39,7 @@ UMLAUTS = str.maketrans({"ä": "ae", "ö": "oe", "ü": "ue", "Ä": "Ae", "Ö": "
 
 
 def _name(*parts) -> str:
-    """A file name from page key and tab titles. 1.56: letters of any script are kept (\\w) – a Russian, Chinese,
+    """A file name from page key and tab titles. 1.55.7: letters of any script are kept (\\w) – a Russian, Chinese,
     Japanese or Korean tab title lost all its characters and the tabs of one page overwrote each other."""
     return "-".join(re.sub(r"\W+", "_", str(p).translate(UMLAUTS)).strip("_")
                     for p in parts if p) + ".png"

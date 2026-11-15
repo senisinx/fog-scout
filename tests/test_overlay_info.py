@@ -277,7 +277,7 @@ def _bare_overlay(pushes):
 
 
 def test_the_waiting_card_fits_by_its_own_lines_whatever_was_measured_before():
-    """1.56 (audit B3): the waiting lines were not part of fit_width's key – "Warte auf Map" alone measured first,
+    """1.55.6 (audit B3): the waiting lines were not part of fit_width's key – "Warte auf Map" alone measured first,
     the lobby line then reused that fit (classic: 768 px in a 406 px bar), and the long line measured first left
     the short card tiny. Each card now measures the same as on a fresh overlay; the long lobby line (wider than the
     bar even at the smallest font) settles on the largest text at that narrowest width."""
@@ -322,7 +322,7 @@ def test_the_waiting_card_fits_by_its_own_lines_whatever_was_measured_before():
 
 
 def test_the_waiting_card_is_measured_off_screen_and_shown_once():
-    """1.56: _render_waiting pushed every size fit_width tried while the card was on screen."""
+    """1.55.6: _render_waiting pushed every size fit_width tried while the card was on screen."""
     pushes = []
     ov = _bare_overlay(pushes)
     ov._shown = True
@@ -334,7 +334,7 @@ def test_the_waiting_card_is_measured_off_screen_and_shown_once():
 
 
 def test_a_card_shown_again_after_a_fade_out_is_pushed_at_full_opacity(monkeypatch):
-    """1.56 (audit B4): HudWindow.show_at pushed only when (x, y, opacity) changed – the fade was not in it. After a
+    """1.55.6 (audit B4): HudWindow.show_at pushed only when (x, y, opacity) changed – the fade was not in it. After a
     fade-out (_fade_tick: hide(), set_fade(1.0) – no push while hidden) the card came back at the same place with
     the surface still at opacity 0: invisible. Window calls stubbed, the pushes recorded."""
     import ctypes
@@ -371,7 +371,7 @@ def test_a_card_shown_again_after_a_fade_out_is_pushed_at_full_opacity(monkeypat
 
 
 def test_the_still_up_next_block_is_drawn_once_and_stays_pixel_identical():
-    """1.56 (audit P2): the classic music card is redrawn every second and drew the unchanged "Als nächstes" block
+    """1.55.6 (audit P2): the classic music card is redrawn every second and drew the unchanged "Als nächstes" block
     each time (~1.8 ms, twice beside the card). The still block is kept by its inputs – the same pixels as drawn
     anew; a sliding block (song change) is always drawn."""
     from fogscout import overlay_render as orr

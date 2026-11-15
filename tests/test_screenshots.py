@@ -51,7 +51,7 @@ def test_every_page_tab_and_setup_step_gives_a_picture(app_root):
 
 
 def test_names_of_tabs_in_other_scripts_stay_apart():
-    """1.56 (audit): `_name` dropped every non-Latin letter – the Russian/Chinese/Japanese/Korean tabs of one page
+    """1.55.7 (audit): `_name` dropped every non-Latin letter – the Russian/Chinese/Japanese/Korean tabs of one page
     all became "settings.png" and overwrote each other. Letters of any script stay; a repeat gets a number."""
     tool = _tool()
     names = {tool._name("settings", t) for t in ("Общие", "Распознавание", "常规", "識別", "일반", "Match-Daten")}
@@ -62,7 +62,7 @@ def test_names_of_tabs_in_other_scripts_stay_apart():
 
 
 def test_every_control_has_an_accessible_name(app_root):
-    """1.56 (a11y audit, agent-ui/dyn6.py): most controls had no accessible name – every labelled tick box (its text
+    """1.55.7 (a11y audit, agent-ui/dyn6.py): most controls had no accessible name – every labelled tick box (its text
     is a label beside the box), most choices, the sliders, the entries and the overlay list's icon-only buttons. With
     every page and tab shown once (tools/screenshots.shoot: the App fills what is on display), each tick box, choice,
     slider and entry has a name, and every button a screen reader can reach says what it is."""

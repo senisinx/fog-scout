@@ -184,14 +184,14 @@ def _run_cancellable(cmd, timeout: float, cancel=None, stdout: bool = False, std
                 pass
 
 
-ANALYSIS_DIR = os.path.join("cache", "analysis")   # 1.56: waveform/track_levels kept below the data folder
+ANALYSIS_DIR = os.path.join("cache", "analysis")   # 1.55.8: waveform/track_levels kept below the data folder
 ANALYSIS_VERSION = 1             # raise when either computes something else (old entries are then never read again)
 _ANALYSIS_PRUNED = set()         # cache folders pruned in this session (thumbs.prune, once)
 _ANALYSIS_LOCK = threading.Lock()
 
 
 def _analysis_file(cache_dir, path: str, kind: str, params) -> str | None:
-    """1.56: the cache file of analysis ``kind`` of ``path`` – named by the file's quick fingerprint (size, first and
+    """1.55.8: the cache file of analysis ``kind`` of ``path`` – named by the file's quick fingerprint (size, first and
     last MiB: filehash.qfp), its mtime and ``params``: a changed recording never finds an old entry. None without a
     folder or when the file cannot be read."""
     if not cache_dir:
@@ -254,7 +254,7 @@ def track_levels(path: str, n_tracks: int, ffmpeg: str | None = None, timeout: f
                  cache_dir: str | None = None) -> dict:
     """1.8.18 (user: Discord never heard in the clips): the loudest moment of each audio track in dB {index:
     dB}, from one ffmpeg run over the sound only (seconds even for a long round) – which source OBS really
-    recorded. {} without ffmpeg, with fewer than two tracks or on failure. 1.56: ``cache_dir`` = kept there
+    recorded. {} without ffmpeg, with fewer than two tracks or on failure. 1.55.8: ``cache_dir`` = kept there
     (_analysis_file) – a recording opened again does not decode its sound once more."""
     ffmpeg = ffmpeg or ffmpeg_exe()
     if not ffmpeg or n_tracks < 2:
@@ -483,7 +483,7 @@ def waveform(path: str, duration: float, ffmpeg: str | None = None, per_s: int =
              timeout: float = 300, cancel=None, cache_dir: str | None = None) -> list:
     """1.16: the loudness along the recording for the timeline's audio track – the peak of each 1/``per_s`` s
     as 0…1 (the first audio track = OBS's full mix), [] when there is no sound or ffmpeg fails. One ffmpeg run that
-    decodes the sound to mono at WAVE_RATE Hz (a 20-min round: 9.6 MB through the pipe, ~2 s). 1.56: ``cache_dir``
+    decodes the sound to mono at WAVE_RATE Hz (a 20-min round: 9.6 MB through the pipe, ~2 s). 1.55.8: ``cache_dir``
     = kept there (_analysis_file)."""
     ffmpeg = ffmpeg or ffmpeg_exe()
     if not ffmpeg or duration <= 0:
@@ -813,14 +813,14 @@ def sound_wav(path: str, start: float, end: float, ffmpeg: str | None = None, mi
     return None
 
 
-SOUND_FIRST_S = 15.0             # 1.56: output seconds of the first sound piece of a playback (the picture waits for it)
+SOUND_FIRST_S = 15.0             # 1.55.8: output seconds of the first sound piece of a playback (the picture waits for it)
 SOUND_CHUNK_S = 60.0             # … of each further piece, made while the one before plays
 SOUND_TAIL_S = 5.0               # a last piece shorter than this goes with the one before
 
 
 def sound_chunks(start: float, end: float, speed: float = 1.0, reverse: bool = False, first: float | None = None,
                  rest: float | None = None, tail: float | None = None) -> list:
-    """1.56 (P-1): the pieces the preview's sound of source ``start``..``end`` is made in – [(source from, source to,
+    """1.55.8 (P-1): the pieces the preview's sound of source ``start``..``end`` is made in – [(source from, source to,
     output seconds after the stretch's start)], one after the other without gap or overlap (edges on the
     millisecond sound_wav seeks to). Until 1.55 one WAV of the whole stretch came before the picture: an uncut
     round of 20 min waited 2–9 s and wrote up to 423 MB to %TEMP%. Backwards: one piece (ffmpeg's areverse needs
@@ -1268,7 +1268,7 @@ def source_inputs(parts, join_gap: float | None = None, most: int | None = None)
 
 
 def part_frames(parts, fps: float) -> list:
-    """1.56: frames of the finished clip each part fills at ``fps`` – its edges on the timeline (output time,
+    """1.55.8: frames of the finished clip each part fills at ``fps`` – its edges on the timeline (output time,
     added up) rounded to the frame grid, at least one frame each. Cut per part, every part lost or gained up to a
     frame (whole source frames, then setpts/tempo, then concat), so 30 parts drifted 0.13 s from the timeline and
     the fade-out ended before the file did; rounded from the running sum, the clip is the timeline's length within
@@ -1455,7 +1455,7 @@ def edit_graph(edit: Edit, info: Info, mode: str = "exact", target_mb: float = D
             else:
                 back = "areverse," if p.reverse else ""
                 chains.append(f"{asrc[i]}{trim}asetpts=PTS-STARTPTS,{back}{atempo(p.speed)}[a{i}]")
-    # 1.56: every part exactly its frames (part_frames) – picture on the frame grid, the last frame repeated when
+    # 1.55.8: every part exactly its frames (part_frames) – picture on the frame grid, the last frame repeated when
     # one is missing, sound padded/cut to the same length – so concat lays the parts where the timeline has them
     counts = part_frames(parts, fps)
     for i, nf in enumerate(counts):
@@ -1471,7 +1471,7 @@ def edit_graph(edit: Edit, info: Info, mode: str = "exact", target_mb: float = D
         vcur, acur = "[vcat]", "[acat]" if sound else None
     else:
         vcur, acur = "[vf0]", "[af0]" if sound else None
-    total = sum(counts) / fps                         # 1.56: the file's length – fades, music and the plan use it
+    total = sum(counts) / fps                         # 1.55.8: the file's length – fades, music and the plan use it
     # 1.21: the user's own track (A2) under the game sound – ducked, faded, mixed (musictrack.chain)
     music = getattr(edit, "music", None) if mode != "gif" else None
     if music is not None and music_input is not None:

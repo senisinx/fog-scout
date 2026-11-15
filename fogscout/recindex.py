@@ -169,7 +169,7 @@ def expired_farming(recs: list[Recording], days: int, now: float) -> list[Record
 
 
 def protected_paths(folder: str, protect) -> set:
-    """1.56 (audit E-1): ``protect`` (index names relative to ``folder`` or absolute paths – files queued for
+    """1.55.1 (audit E-1): ``protect`` (index names relative to ``folder`` or absolute paths – files queued for
     upload or open in an editor) as normalised absolute paths."""
     out = set()
     for n in protect or ():
@@ -180,7 +180,7 @@ def protected_paths(folder: str, protect) -> set:
 
 
 def in_use(folder: str, r: Recording, paths: set) -> bool:
-    """1.56: one of ``r``'s files (the recording, its pre-roll) is among ``paths`` (protected_paths)."""
+    """1.55.1: one of ``r``'s files (the recording, its pre-roll) is among ``paths`` (protected_paths)."""
     if not paths:
         return False
     for n in (r.file, r.pre):
@@ -192,7 +192,7 @@ def in_use(folder: str, r: Recording, paths: set) -> bool:
 
 def prune_farming(folder: str, recs: list[Recording], days: int, now: float | None = None, protect=()):
     """Delete the expired farming recordings (``expired_farming``) – only files named in the index, only inside
-    ``folder``; 1.56: never one in ``protect`` (queued for upload, open in an editor – ``protected_paths``; it
+    ``folder``; 1.55.1: never one in ``protect`` (queued for upload, open in an editor – ``protected_paths``; it
     goes on a later look). Returns (entries left, files deleted)."""
     paths = protected_paths(folder, protect)
     gone = [r for r in expired_farming(recs, days, time.time() if now is None else now)
@@ -226,7 +226,7 @@ def prune(folder: str, recs: list[Recording], limit: int, reserve: int = RESERVE
           free=None, protect=()) -> tuple[list[Recording], list[str]]:
     """Keep the folder's recordings under ``limit`` bytes (0 = the whole drive) and ``reserve`` bytes free on
     the drive: delete not-kept ones of the index in ``prune_rank`` order (farming/short first, marked last,
-    oldest first) – only files named in it, only inside ``folder``; 1.56: never one in ``protect`` (like kept).
+    oldest first) – only files named in it, only inside ``folder``; 1.55.1: never one in ``protect`` (like kept).
     Entries whose files are gone drop out. ``free`` = bytes free now (measured when None).
     Returns (entries left, files deleted)."""
     left, deleted = [], []

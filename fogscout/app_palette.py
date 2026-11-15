@@ -237,7 +237,7 @@ class PaletteMixin:
         if not data.get("rounds"):
             self.qt.palette.show_error(_("Noch keine Runden – Claude hätte nichts zum Auswerten."))
             return
-        if not statsclaude.enough(data):      # 1.56 (audit SEC-4): never the values of a single round
+        if not statsclaude.enough(data):      # 1.55.4 (audit SEC-4): never the values of a single round
             self.qt.palette.show_error(_("Zu wenige Runden – Claude bekommt die Statistik erst ab {n} Runden.",
                                          n=statsclaude.MIN_GROUP))
             return
@@ -266,7 +266,7 @@ class PaletteMixin:
         if not rounds:
             q.palette.show_error(_("Noch keine Runden – Claude hätte nichts zum Auswerten."))
             return
-        if not statsclaude.enough(data):      # 1.56 (audit SEC-4): never the values of a single round
+        if not statsclaude.enough(data):      # 1.55.4 (audit SEC-4): never the values of a single round
             q.palette.show_error(_("Zu wenige Runden – Claude bekommt die Statistik erst ab {n} Runden.",
                                    n=statsclaude.MIN_GROUP))
             return
