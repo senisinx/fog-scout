@@ -1,0 +1,45 @@
+# TEMPORARY, removed before the merge: the Windows suite twenty times with tests/staleprobe.py, to see where a label
+# gets the colour of a style sheet its window never had (failed once in "windows", passed in the re-run).
+name: Stale sheet probe (temporary)
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  probe:
+    name: probe ${{ matrix.run }}
+    runs-on: windows-latest
+    timeout-minutes: 40
+    strategy:
+      fail-fast: false
+      matrix:
+        run: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262  # v4.4.0
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065  # v5.6.0
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Pakete (wie der Job windows)
+        run: |
+          $PSNativeCommandUseErrorActionPreference = $true
+          $ErrorActionPreference = "Stop"
+          python -m pip install pip==26.2.1
+          python -m pip install --require-hashes --only-binary=:all: -r requirements.txt
+          python -m pip install -r requirements-dev.txt
+          python -m pip install --require-hashes --no-deps -r requirements-extra.txt
+      - name: pytest mit der Sonde, zweimal
+        env:
+          PYTHONUNBUFFERED: "1"
+          PYTHONPATH: tests
+        run: |
+          python -X faulthandler -m pytest -q --timeout=900 -p staleprobe tests
+          python -X faulthandler -m pytest -q --timeout=900 -p staleprobe tests
+          exit 0
