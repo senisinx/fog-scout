@@ -75,13 +75,18 @@ def region_from_ptr(name: str) -> str | None:
 def pick_server(flows, region_of, ports=None) -> dict | None:
     """Busiest partner with enough traffic whose region is known. ``flows`` is sorted busiest first;
     ``region_of(ip)`` returns a region code, or None when not an AWS server / not resolved yet. ``ports``
-    (1.11.6): DBD's own local UDP ports – then only partners that talked to one of them count (no ports = DBD has
-    no UDP socket = not in a match); None = unknown, the busiest partner as before. Flows without local ports (a
-    result file of an older helper) are judged the old way."""
+    (1.11.6): DBD's own local UDP ports – only partners that talked to one of them count (no ports = DBD has no UDP
+    socket = not in a match). 1.50.7 (user: "Rückfall weg"): ports unknown (None: no DBD window, its process or
+    Windows' table not readable) or a flow without local ports (result file of an older helper) = no server – before,
+    the busiest partner was taken and its address looked up by reverse DNS, which could be a voice chat or another
+    program; the hard rule allows the lookup for the game server's address only. ``region_of`` is asked only for
+    partners of DBD's ports (it starts the lookup)."""
+    if ports is None:
+        return None
     for f in flows:
         if f.get("pps", 0) < MIN_PPS:
             break
-        if ports is not None and "lports" in f and not set(f["lports"]) & ports:
+        if "lports" not in f or not set(f["lports"]) & ports:
             continue
         code = region_of(f["ip"])
         if code:
@@ -365,7 +370,7 @@ class ConnectionWatch:
     def _update_ports(self, now: float, hwnd) -> None:
         """1.11.6: DBD's own UDP ports, looked up every PORTS_EVERY s while its window is there."""
         if not hwnd:
-            self.ports, self.ports_why, self._pid_of = None, "kein DBD-Fenster (Schätzung)", (None, None)
+            self.ports, self.ports_why, self._pid_of = None, "kein DBD-Fenster – keine Anzeige", (None, None)
             return
         if now - self._ports_at < PORTS_EVERY and self._pid_of[0] == hwnd:
             return
@@ -376,9 +381,9 @@ class ConnectionWatch:
         ports = udp_ports(pid) if pid else None
         self.ports = ports
         if pid is None:
-            self.ports_why = "Prozess des DBD-Fensters unbekannt (Schätzung)"
+            self.ports_why = "Prozess des DBD-Fensters unbekannt – keine Anzeige"
         elif ports is None:
-            self.ports_why = "Verbindungstabelle von Windows nicht lesbar (Schätzung)"
+            self.ports_why = "Verbindungstabelle von Windows nicht lesbar – keine Anzeige"
         else:
             self.ports_why = f"{len(ports)} aus der Verbindungstabelle von Windows"
 
