@@ -16,7 +16,7 @@ if errorlevel 1 (
   powershell -NoProfile -Command "Start-Process -FilePath $env:DBDMS_SELF -Verb RunAs"
   exit /b 0
 )
-".venv\Scripts\python.exe" -m fogscout.autostart install
+".venv\Scripts\python.exe" -E -m fogscout.autostart install
 if errorlevel 1 (
   echo.
   echo Einrichtung fehlgeschlagen - Meldung oben.

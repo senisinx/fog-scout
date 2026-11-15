@@ -5495,6 +5495,12 @@ T = {
         'Отразить по вертикали',
     'Noch keine Runden – Claude hätte nichts zum Auswerten.':
         'Раундов пока нет — Claude не на что смотреть.',
+    'Zu wenige Runden – Claude bekommt die Statistik erst ab {n} Runden.':
+        'Слишком мало раундов — Claude получает статистику только начиная с {n} раундов.',
+    'Der Update-Ordner ist ein Link – Download abgelehnt.':
+        'Папка обновлений является ссылкой — загрузка отклонена.',
+    'YouTube: Anmeldung fehlgeschlagen ({error}) – Client-ID und Client-Secret prüfen und noch einmal „Mit YouTube verbinden“ klicken.':
+        'YouTube: ошибка входа ({error}) — проверьте Client ID и Client Secret и нажмите «Подключить YouTube» ещё раз.',
     'Schickt deine Bitte und das Bild, wie es hier zu sehen ist (bereits zensierte Bereiche bleiben zensiert), an Claude; nichts wird geändert, bevor du übernimmst.':
         'Отправляет Claude ваше пожелание и изображение в показанном здесь виде (уже зацензуренные области остаются зацензуренными); ничего не меняется, пока вы не примените.',
     'Schickt die Frage und Zähler/Quoten deiner Runden an Claude – keine einzelne Runde, keine Namen':

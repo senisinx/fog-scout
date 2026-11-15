@@ -130,12 +130,6 @@ def hud_x(side: str, gx: float, gw: float, margin: float, w: float, bar: float =
     return gx + margin if side == "left" else gx + gw - margin - w
 
 
-def below_hud(hud_side, anchor: str) -> bool:
-    """Map at the top of the same bar as the system values: it moves down below them."""
-    tops = {"left": ("auto", "top-left"), "right": ("top-right",), "above": ("auto", "top-left", "top-right")}
-    return bool(hud_side) and anchor in tops.get(hud_side, ())
-
-
 def vbars(measured, gw: float, gh: float, now: float):
     """(top, bottom) black bars above/below the picture to put map and system values in, or None.
     ``measured``: worker.vbars = (top, bottom, time, (w, h)). Only for windows without side bars, only while the

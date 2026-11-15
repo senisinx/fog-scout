@@ -35,15 +35,19 @@ def tray_dot(state: State, unsure: bool = False, game_found: bool = True) -> str
 
 
 def is_problem(worker_status: str) -> bool:
+    """Guess from German/English words – only for callers without the worker's flag (the app passes
+    ``problem``, 1.56: the words differ in the other languages)."""
     low = (worker_status or "").lower()
     return any(w in low for w in ("fehl", "schwarz", "minimiert", "abgestürzt",       # German texts
                                    "fail", "black", "minimi", "crash"))                # English texts
 
 
-def user_state(worker_status: str = "", *, auto_detect: bool = True, game_found: bool = False,
+def user_state(worker_status: str = "", *, problem: bool | None = None, auto_detect: bool = True, game_found: bool = False,
                simulate: bool = False, has_map: bool = False, map_label: str = "",
                visible_wanted: bool = True, hidden_after_match: bool = False, menu_paused: bool = False) -> State:
-    if is_problem(worker_status):
+    if problem is None:
+        problem = is_problem(worker_status)
+    if problem:
         return State("err", worker_status)
     shown = has_map and visible_wanted and not hidden_after_match
     if shown and menu_paused:

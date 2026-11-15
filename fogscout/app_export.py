@@ -17,6 +17,9 @@ from .i18n import _
 from .lobby import killer_label
 
 log = logging.getLogger("fogscout.export")
+# 1.56 (review): typing into Von/Bis rebuilt the whole table on every key (~83 ms at 5000 rounds) – now once the
+# typing pauses this long
+TYPING_PAUSE_MS = 250
 
 
 class ExportDialog:
@@ -158,10 +161,21 @@ class ExportDialog:
         self._export_refresh()
 
     def _export_typed(self):
-        """Typing into Von/Bis: the preset box says "Eigener Zeitraum"."""
+        """Typing into Von/Bis: the preset box says "Eigener Zeitraum"; the rows follow TYPING_PAUSE_MS after the
+        last key (copy and save refresh at once, so they never use a stale range)."""
         if getattr(self, "_export_filling", False):
             return
         self.export_preset_var.set(dict(self._export_presets)["custom"])
+        self._export_cancel_typed()
+        self._export_job = self.root.after(TYPING_PAUSE_MS, self._export_typed_done)
+
+    def _export_cancel_typed(self):
+        job, self._export_job = getattr(self, "_export_job", None), None
+        if job is not None:
+            self.root.after_cancel(job)
+
+    def _export_typed_done(self):
+        self._export_job = None
         self._export_refresh()
 
     def _export_filter(self):
@@ -187,6 +201,7 @@ class ExportDialog:
 
     def _export_refresh(self):
         """Every change: the rows anew, the count and the first lines; columns and format are remembered."""
+        self._export_cancel_typed()                 # a refresh due from typing is done by this one
         dlg = getattr(self, "_export_dlg", None)
         if dlg is None or not dlg.winfo_exists():
             return

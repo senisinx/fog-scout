@@ -208,7 +208,7 @@ class MatchEndTracker:
         if self.menu:
             parts.append(_("Menü offen – Overlay pausiert"))
         elif self.candidate:
-            parts.append(f"{_(self.candidate)}? ({self.streak}/2)")
+            parts.append(f"{_(self.candidate)}? ({self.streak}/{self.LOOKS_NEEDED.get(self.candidate, 2)})")
         else:
             parts.append(_("im Match"))
         if not self.use_end:

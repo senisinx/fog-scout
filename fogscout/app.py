@@ -144,6 +144,7 @@ class App(ServerTab, StatsTab, ExportDialog, RecordingsTab, DiscordPresence, Spo
         self._last_place = None
         self._log_alert = False          # an error in the log the user has not looked at yet
         self._worker_status = ""
+        self._worker_problem = False     # 1.56: the worker's flag – the status text is translated
         self._layout_unsure = False
         self._unsure = None              # doubtful detection: {"label", "t", "shown", "fit", "name"}
         self._rejected = None            # (map_id, time) thrown away with "Falsch erkannt"
@@ -742,7 +743,6 @@ class App(ServerTab, StatsTab, ExportDialog, RecordingsTab, DiscordPresence, Spo
             return lambda: (_("Verschieben beenden.") if self.edit_btn.cget("text") == _("Fertig") else
                             _("Anordnen: alle Elemente mit der Maus ziehen – in der Vorschau und direkt im Spiel. "
                               "Strg+Mausrad ändert die Grösse, Esc beendet.")
-                            + self._hk_hint("edit_position")
                             + self._hk_hint("edit_position"))
         if w in hk:
             return _("Klicken und die neue Tastenkombination drücken: Strg/Alt + Taste, oder eine Taste allein "
@@ -752,7 +752,7 @@ class App(ServerTab, StatsTab, ExportDialog, RecordingsTab, DiscordPresence, Spo
         if text in dict(LANGS).values():
             return _("Map-Namen in dieser Spielsprache erkennen. Nur die Sprachen anhaken, in denen du spielst – "
                      "weniger Sprachen, weniger Verwechslungen.")
-        if i18n.source(text) in CATS:
+        if i18n.source(text, CATS) in CATS:
             return _("Meldungen der Art „{category}“ im Log anzeigen.", category=text)
         return None
 
@@ -1168,7 +1168,7 @@ class App(ServerTab, StatsTab, ExportDialog, RecordingsTab, DiscordPresence, Spo
         if k in ("menu", "match_end") and d.get("gen") not in (None, self._watch_gen):
             return                               # about a map that is no longer on display
         if k == "status":
-            self._set_status(d["text"])
+            self._set_status(d["text"], d.get("problem", False))
         elif k == "banner":
             self._log(_("Map-Banner gefunden, lese …"), "Erkennung")
         elif k == "detected":
@@ -1267,6 +1267,7 @@ class App(ServerTab, StatsTab, ExportDialog, RecordingsTab, DiscordPresence, Spo
             log.error(d["text"])
             # 1.8.38: the status line and the tray dot say it too (the window is mostly hidden while playing)
             self._worker_status = _("Die Erkennung ist abgestürzt – bitte Fog Scout neu starten.")
+            self._worker_problem = True
             self._inform("Fog Scout", _("Die Erkennung ist abgestürzt:") + "\n\n" + d["text"][-1500:])
 
     # ---------------------------------------------------------- round timer
@@ -1283,9 +1284,11 @@ class App(ServerTab, StatsTab, ExportDialog, RecordingsTab, DiscordPresence, Spo
         overlay_text = fmt_duration(r.elapsed(time.time())) if r.start_t is not None and r.running else ""
         self.overlay.set_timer(overlay_text if self.settings["overlay"].get("show_timer", True) else "")
 
-    def _set_status(self, text):
-        """Technical status from the worker: goes to the log; the status line shows a plain summary."""
+    def _set_status(self, text, problem=False):
+        """Technical status from the worker: goes to the log; the status line shows a plain summary.
+        ``problem`` (1.56) = the worker's flag that it needs action (red status, tray dot)."""
         self._worker_status = text
+        self._worker_problem = bool(problem)
         self._log(text, "System")
 
     def _scan_result(self, d):

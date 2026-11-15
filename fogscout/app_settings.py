@@ -1128,7 +1128,8 @@ class SettingsTab:
         """What the player reads about Fog Scout now (status.user_state): the tray's dot and – since 1.24 – the
         foot of the window's navigation."""
         m = self.catalog.maps.get(self.current[0]) if self.current else None
-        return status.user_state(self._worker_status, auto_detect=bool(self.settings.get("auto_detect", True)),
+        return status.user_state(self._worker_status, problem=self._worker_problem,
+                                 auto_detect=bool(self.settings.get("auto_detect", True)),
                                  game_found=self.game is not None, simulate=bool(self.simulate),
                                  has_map=self.overlay.has_map(), map_label=m.label(self.current[1]) if m else "",
                                  visible_wanted=self.user_visible,

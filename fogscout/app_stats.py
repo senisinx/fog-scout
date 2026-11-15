@@ -919,8 +919,8 @@ class StatsTab:
         rounds, pairs = c.rounds, c.pairs
         res = official.results([(r, m) for r, m in pairs if r.role == "killer"], lambda r: r.killer)
         t = self.stats_kill
+        keep = t.selection()          # 1.56 (audit S-2): read before the rows go – the note being typed stayed
         t.delete(*t.get_children())
-        keep = t.selection()
         for name, n, avg, top in history.per_killer(rounds):
             ks = res.get(name, {}).get("kills") or []
             t.insert("", "end", iid=name, values=(killer_label(name), n, f"{sum(ks) / len(ks):.2f}" if ks else "–",
@@ -1649,12 +1649,8 @@ class StatsTab:
         ts = self._stats_selected_ts()
         if not ts:
             return
-        done = []
         try:
-            for t in ts:
-                r = history.set_role(self._hist_path(), t, role)
-                if r is not None:
-                    done.append(r)
+            done = history.set_role_many(self._hist_path(), ts, role)     # 1.56 (F2): one rewrite for all
         except OSError as e:
             self._log(_("Rolle konnte nicht gespeichert werden: {error}", error=e), "Fehler")
             return
@@ -1679,16 +1675,13 @@ class StatsTab:
         if not picked:
             return
         on = not all(r.farming for r in picked)
-        done = []
         try:
-            for r0 in picked:
-                r = history.set_farming(self._hist_path(), r0.t, on)
-                if r is not None:
-                    done.append(r)
-                    self.recorder.set_farming(r0.t, on)          # the recording moves into/out of "Farming"
+            done = history.set_farming_many(self._hist_path(), [r0.t for r0 in picked], on)   # 1.56 (F2): one rewrite
         except OSError as e:
             self._log(_("Rolle konnte nicht gespeichert werden: {error}", error=e), "Fehler")
             return
+        for r in done:
+            self.recorder.set_farming(r.t, on)                   # the recording moves into/out of "Farming"
         if len(done) == 1:
             r = done[0]
             when = time.strftime("%d.%m.%y %H:%M", time.localtime(r.t))
@@ -1768,10 +1761,9 @@ class StatsTab:
         if farming:
             done = 0
             try:
-                for r in rounds:
-                    if history.set_farming(self._hist_path(), r.t, True) is not None:
-                        self.recorder.set_farming(r.t, True)
-                        done += 1
+                for r in history.set_farming_many(self._hist_path(), [r.t for r in rounds], True):   # 1.56 (F2)
+                    self.recorder.set_farming(r.t, True)
+                    done += 1
             except OSError as e:
                 self._log(_("Runden nicht geändert: {error}", error=e), "Fehler")
             self._log(_("{n} Runden als Farming markiert.", n=done), "System")
@@ -1792,10 +1784,9 @@ class StatsTab:
             return
         done = 0
         try:
-            for r in found:
-                if history.set_farming(self._hist_path(), r.t, True) is not None:
-                    self.recorder.set_farming(r.t, True)
-                    done += 1
+            for r in history.set_farming_many(self._hist_path(), [r.t for r in found], True):   # 1.56 (F2)
+                self.recorder.set_farming(r.t, True)
+                done += 1
         except OSError as e:
             self._log(_("Runden nicht geändert: {error}", error=e), "Fehler")
         self._log(_("{n} Runden als Farming markiert.", n=done), "System")
@@ -1822,12 +1813,8 @@ class StatsTab:
         if not self._ask(_("Runde löschen"), question, self._stats_delete_round,
                          ok_text=_("Löschen"), danger=True):
             return
-        gone = []
         try:
-            for t in self._stats_selected_ts():
-                r = history.delete(self._hist_path(), t)
-                if r is not None:
-                    gone.append(r)
+            gone = history.delete_many(self._hist_path(), self._stats_selected_ts())   # 1.56 (F2): one rewrite
         except OSError as e:
             self._log(_("Runde konnte nicht gelöscht werden: {error}", error=e), "Fehler")
             return
@@ -1846,9 +1833,8 @@ class StatsTab:
         if not ts or target is None:
             return
         try:
-            r = None
-            for t in ts:
-                r = history.set_killer(self._hist_path(), t, target) or r
+            changed = history.set_killer_many(self._hist_path(), ts, target)       # 1.56 (F2): one rewrite
+            r = changed[-1] if changed else None
         except OSError as e:
             self._log(_("Killer konnte nicht gespeichert werden: {error}", error=e), "Fehler")
             return
@@ -1867,11 +1853,7 @@ class StatsTab:
         if not ts or target is None:
             return
         try:
-            changed = []
-            for t in ts:
-                r = history.set_map(self._hist_path(), t, target.id, target.name)
-                if r is not None:
-                    changed.append(r)
+            changed = history.set_map_many(self._hist_path(), ts, target.id, target.name)   # 1.56 (F2): one rewrite
         except OSError as e:
             self._log(_("Map konnte nicht gespeichert werden: {error}", error=e), "Fehler")
             return
@@ -2058,7 +2040,7 @@ class StatsTab:
         if getattr(self, "_record_key", None) != key:
             j = self._joined()
             pairs = [(r, j.off[id(r)]) for r in j.rounds if id(r) in j.off and history.normal(r)]
-            # 1.38.28 (F2): by map and by map × killer (own killer, or the lobby's as survivor), in time order
+            # 1.38.28 (F2): by map and by map × own killer (survivor rounds have none: ""), in time order
             self._record_cache = (records.record_groups(pairs, lambda r: r.map_id),
                                   records.record_groups(pairs, lambda r: (r.map_id, r.killer)))
             self._record_key = key

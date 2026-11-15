@@ -5495,6 +5495,12 @@ T = {
         '上下反転',
     'Noch keine Runden – Claude hätte nichts zum Auswerten.':
         'まだラウンドがありません – Claude が確認するものがありません。',
+    'Zu wenige Runden – Claude bekommt die Statistik erst ab {n} Runden.':
+        'ラウンドが少なすぎます – Claude に統計を送るのは {n} ラウンド以上からです。',
+    'Der Update-Ordner ist ein Link – Download abgelehnt.':
+        '更新フォルダーがリンクです – ダウンロードを拒否しました。',
+    'YouTube: Anmeldung fehlgeschlagen ({error}) – Client-ID und Client-Secret prüfen und noch einmal „Mit YouTube verbinden“ klicken.':
+        'YouTube：ログインに失敗しました（{error}） – クライアント ID とクライアントシークレットを確認し、もう一度「YouTube に接続」をクリックしてください。',
     'Schickt deine Bitte und das Bild, wie es hier zu sehen ist (bereits zensierte Bereiche bleiben zensiert), an Claude; nichts wird geändert, bevor du übernimmst.':
         '要望と、ここに表示されているとおりの画像（既に検閲した領域は検閲されたまま）を Claude に送信します。適用するまで何も変わりません。',
     'Schickt die Frage und Zähler/Quoten deiner Runden an Claude – keine einzelne Runde, keine Namen':

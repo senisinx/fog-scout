@@ -39,7 +39,8 @@ def fake_app(**kw):
     j = SimpleNamespace(rounds=rounds, off={})
     app = SimpleNamespace(
         current=None, source=None, catalog=SimpleNamespace(maps={"coal": _Map()}, realm_display=lambda m: "MacMillan"),
-        _detail="", _worker_status="", settings={"auto_detect": True, "sysinfo": "off", "welcome_seen": True},
+        _detail="", _worker_status="", _worker_problem=False,
+        settings={"auto_detect": True, "sysinfo": "off", "welcome_seen": True},
         game=None, simulate=False, user_visible=True, hidden_after_match=False, menu_paused=False,
         overlay=SimpleNamespace(has_map=lambda: app.current is not None, floors=lambda: []),
         round=RoundTimer(), conn=SimpleNamespace(running=False, server=None, ping_ms=None), _hist=None,
@@ -706,6 +707,61 @@ def test_hotkey_from_the_window_is_checked():
     h._hk_qt_key("rotate_map", ["ctrl", "alt"], "k", None)
     h._hk_qt_key("scan_now", ["ctrl"], "s", None)                    # not the one recording: ignored
     assert seen == [({"ctrl", "alt"}, "k", None)]
+
+
+def test_every_way_of_changing_a_hotkey_leaves_one_hotkey_thread():
+    """1.56 (audit B2): the right-click "Standard"/"Aus" (_hk_set) started a new hotkey thread without stopping
+    the running one – two threads registered the same keys. Every path stops and joins the old one first."""
+    from fogscout.app_hotkeys import Hotkeys
+    from fogscout.config import DEFAULTS
+
+    class Thread:
+        def __init__(self):
+            self.alive, self.stops, self.joined = True, 0, False
+
+        def is_alive(self):
+            return self.alive
+
+        def stop(self):
+            self.stops += 1
+            self.alive = False
+
+        def join(self, timeout=None):
+            self.joined = True
+
+    class Var:
+        def set(self, v):
+            pass
+
+    class Button:
+        def configure(self, **kw):
+            pass
+
+    class H(Hotkeys):
+        def __init__(self):
+            self.settings = {"hotkeys": dict(DEFAULTS["hotkeys"])}
+            self._hk_rec, self._hk_mods, self.hk_status = None, set(), Var()
+            self.hk_buttons = {k: Button() for k in DEFAULTS["hotkeys"]}
+            self.threads = []
+            self.hotkeys = self._start_hotkeys()
+
+        def _start_hotkeys(self):
+            self.threads.append(Thread())
+            return self.threads[-1]
+
+        def _save_soon(self):
+            pass
+
+        def _log(self, *a):
+            pass
+
+    key = next(iter(DEFAULTS["hotkeys"]))
+    for change in (lambda h: h._hk_set(key, "off"), lambda h: h._hk_set(key, "default"), lambda h: h._hk_defaults(),
+                   lambda h: (h._hk_begin(key), h._hk_stop(save=True, combo="ctrl+alt+f9"))):
+        h = H()
+        change(h)
+        assert [t.alive for t in h.threads] == [False, True]          # the old one ended, one runs
+        assert h.threads[0].stops == 1 and h.threads[0].joined and h.hotkeys is h.threads[1]
 
 
 # ------------------------------------------------------------------ dialogs
@@ -2565,7 +2621,7 @@ def test_each_feature_says_whether_it_works_now_and_what_is_missing():
     assert st(app, "detect", True) == ("off", "wartet auf DBD")
     app.game = object()
     assert st(app, "detect", True) == ("ok", "aktiv")
-    app._worker_status = "Bildaufnahme fehlgeschlagen"
+    app._worker_status, app._worker_problem = "Bildaufnahme fehlgeschlagen", True
     assert st(app, "detect", True) == ("err", "Fehler – Details im Log")
     assert st(app, "rec", True) == ("", "")                                    # no recorder: nothing to say
     app.recorder = SimpleNamespace(recording=False, space=SimpleNamespace(t=1.0, folder=""))

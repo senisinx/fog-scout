@@ -304,3 +304,61 @@ def test_the_worker_builds_no_model_while_dbd_is_not_running(tmp_path, monkeypat
     finally:
         wk.stop()
         wk.join(timeout=10)
+
+
+def test_no_model_loads_before_dbd_and_none_with_the_automatic_detection_off(tmp_path, monkeypatch):
+    """1.56 (audit D-4, D-5): the models of other ticked scripts (here Cyrillic) were loaded when the worker started
+    – BannerReader asked the pool in __init__ (+94 MB with ru/ja/ko, also without DBD). With "Automatische
+    Erkennung" off and DBD running, the loading-screen look still took the whole picture once a second and the main
+    model was built. Now: nothing before DBD; with DBD but detection off neither a model nor a whole picture; on
+    again, both models load before the first look and the loading screen is looked at."""
+    pytest.importorskip("onnxruntime")
+    import queue
+    import time
+    from types import SimpleNamespace
+    from fogscout import config, ocr, worker
+    game = {"window": None}
+    grabs, asked = [], []
+
+    class Grabber:
+        def grab(self, left, top, width, height):
+            import numpy as np
+            grabs.append((width, height))
+            return np.zeros((height, width, 3), np.uint8)
+
+        def primary_monitor(self):
+            return 0, 0, 1920, 1080
+
+        def close(self):
+            pass
+
+    class Pool(ocr.ModelPool):
+        def get(self, model):
+            asked.append(model)
+            return super().get(model)
+
+    monkeypatch.setattr(worker, "ScreenGrabber", Grabber)
+    monkeypatch.setattr(worker, "ModelPool", Pool)
+    monkeypatch.setattr(worker, "find_game_window", lambda *a, **k: game["window"])
+    monkeypatch.setattr(worker, "foreground_root", lambda: 1)
+    monkeypatch.setattr(worker, "cursor_state", lambda: None)
+    settings = config.Settings(str(tmp_path / "settings.json"))
+    settings.set("auto_detect", False)
+    wk = worker.DetectionWorker(ROOT, settings, Catalog(ROOT, ["en", "ru"]), queue.Queue(), data_dir=str(tmp_path))
+    wk.start()
+    try:
+        deadline = time.time() + 30
+        while wk.recognizer is None and time.time() < deadline:
+            time.sleep(0.05)
+        time.sleep(1.2)                                                  # no DBD
+        assert not wk.recognizer.built and asked == []
+        game["window"] = SimpleNamespace(hwnd=1, left=0, top=0, width=1920, height=1080, minimized=False)
+        time.sleep(2.5)                                                  # DBD, detection off: two start looks due
+        assert not wk.recognizer.built and asked == [] and (1920, 1080) not in grabs
+        settings.set("auto_detect", True)
+        while not (wk.recognizer.built and asked and (1920, 1080) in grabs) and time.time() < deadline:
+            time.sleep(0.05)
+        assert wk.recognizer.built and asked == ["cyrillic"] and (1920, 1080) in grabs
+    finally:
+        wk.stop()
+        wk.join(timeout=10)

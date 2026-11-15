@@ -15,7 +15,6 @@ The result is left in .venv\\update_status.txt for the program to show in its lo
 """
 from __future__ import annotations
 
-import hashlib
 import json
 import os
 import re
@@ -90,8 +89,10 @@ def _t(root, text, **kw) -> str:
     return out.format(**kw) if kw else out
 
 
-UNSAFE_PREFIXES = ("SSL_CERT_", "PYTHON", "GIT_")         # 1.38.21 (audit SEC-2): as fogscout/launch.py – this
-UNSAFE_NAMES = ("REQUESTS_CA_BUNDLE", "CURL_CA_BUNDLE")   # script runs as administrator from start.bat
+# 1.38.21 (audit SEC-2): as fogscout/launch.py – this script runs as administrator from start.bat. 1.56 (audit
+# SEC-1): also OPENSSL_* (OPENSSL_CONF loads a provider DLL into the process) and SSLKEYLOGFILE (TLS keys to a file).
+UNSAFE_PREFIXES = ("SSL_CERT_", "PYTHON", "GIT_", "OPENSSL_")
+UNSAFE_NAMES = ("REQUESTS_CA_BUNDLE", "CURL_CA_BUNDLE", "SSLKEYLOGFILE")
 
 
 def _clean_environment(environ) -> dict:
@@ -99,6 +100,16 @@ def _clean_environment(environ) -> dict:
     certificates it trusts. Proxies stay."""
     return {k: v for k, v in environ.items()
             if not (k.upper().startswith(UNSAFE_PREFIXES) or k.upper() in UNSAFE_NAMES)}
+
+
+def _harden_own_environment() -> list:
+    """1.56 (audit SEC-1): the same variables out of this process itself, first thing in ``main`` – ``-E`` only
+    covers PYTHON*, but OpenSSL reads OPENSSL_CONF when hashlib is first imported (``_digest``; it is imported
+    there, not at the top, for this reason). Returns the names dropped."""
+    gone = sorted(k for k in os.environ if k not in _clean_environment(os.environ))
+    for key in gone:
+        del os.environ[key]
+    return gone
 
 
 def _git_exe() -> str | None:
@@ -164,7 +175,7 @@ def _git(root, *args, timeout=15):
     env = dict(_clean_environment(os.environ), GIT_TERMINAL_PROMPT="0", GCM_INTERACTIVE="never")   # never wait for a password
     kept = _global_settings(exe, env)
     env["GIT_CONFIG_GLOBAL"] = "/dev/null"         # Git for Windows maps it to nul
-    hard = ["-c", "core.fsmonitor=false", "-c", "core.hooksPath=" + os.path.join(root, ".venv", "no-hooks"),
+    hard = ["-c", "core.fsmonitor=false", "-c", "core.hooksPath=" + _no_hooks(),
             "-c", "credential.helper=", "-c", "http.sslVerify=true", *kept]
     try:
         r = subprocess.run([exe, *hard, *args], cwd=root, capture_output=True, text=True, encoding="utf-8",
@@ -173,6 +184,25 @@ def _git(root, *args, timeout=15):
     except (OSError, subprocess.TimeoutExpired) as e:
         return 1, str(e)
     return r.returncode, (r.stdout or r.stderr).strip()
+
+
+def _no_hooks() -> str:
+    """1.56 (audit SEC-3): where git looks for hooks – a place that can never hold one. Before it was
+    <root>/.venv/no-hooks, inside the folder the user writes to: a hook planted there ran as administrator. Linux:
+    os.devnull (a device, never a folder). Windows: a folder below System32 that does not exist and only
+    administrators could create ("nul" is no safe choice there: git would take it as a folder relative to the
+    checkout); System32 from GetSystemDirectoryW, never from the environment."""
+    if sys.platform == "win32":
+        try:
+            import ctypes
+            buf = ctypes.create_unicode_buffer(32768)
+            n = ctypes.windll.kernel32.GetSystemDirectoryW(buf, len(buf))
+            if 0 < n < len(buf) and os.path.isabs(buf.value):
+                return os.path.join(buf.value, "fogscout-no-hooks")
+        except Exception:
+            pass
+        return r"C:\Windows\System32\fogscout-no-hooks"
+    return os.devnull
 
 
 def _enabled(root) -> bool:
@@ -298,6 +328,7 @@ def update(root: str, branch: str = "main"):
 
 # ------------------------------------------------------------------ packages
 def _digest(path) -> str | None:
+    import hashlib                                  # 1.56: not at the top – see _harden_own_environment
     try:
         with open(path, "rb") as fh:
             return hashlib.sha256(fh.read()).hexdigest()
@@ -308,7 +339,9 @@ def _digest(path) -> str | None:
 def sync_packages(root: str, venv: str, run=None) -> list:
     """pip install for every requirements file that changed since it was last installed.
     Returns messages. ``run(args) -> exit code`` can be replaced in tests."""
-    run = run or (lambda args: subprocess.run(args).returncode)
+    # 1.56 (audit SEC-2): pip runs as administrator – without the user's PYTHON*/OPENSSL_*/SSLKEYLOGFILE (``-I``
+    # ignores PYTHON* and the current folder; a sitecustomize on PYTHONPATH ran as administrator before)
+    run = run or (lambda args: subprocess.run(args, env=_clean_environment(os.environ)).returncode)
     msgs = []
     for name, no_deps in REQUIREMENTS:
         digest = _digest(os.path.join(root, name))
@@ -326,8 +359,9 @@ def sync_packages(root: str, venv: str, run=None) -> list:
         # every pinned package has wheels for Windows and Python 3.12–3.14
         # 1.38.57 (security review): isolated (no pip.ini, no PIP_* of the user – they could name another index),
         # only PyPI, and only files whose SHA-256 is in the requirements file (tools/hash_requirements.py)
-        args = [sys.executable, "-m", "pip", "install", "--disable-pip-version-check", "--isolated", "--index-url",
-                "https://pypi.org/simple", "--only-binary=:all:", "--require-hashes", "-r", os.path.join(root, name)]
+        args = [sys.executable, "-I", "-m", "pip", "install", "--disable-pip-version-check", "--isolated",
+                "--index-url", "https://pypi.org/simple", "--only-binary=:all:", "--require-hashes", "-r",
+                os.path.join(root, name)]
         if no_deps:
             args.insert(-2, "--no-deps")
         if run(args) == 0:
@@ -357,6 +391,7 @@ def main(argv) -> int:
             stream.reconfigure(errors="replace")
         except (AttributeError, ValueError):
             pass
+    _harden_own_environment()
     root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     venv = os.path.join(root, ".venv")
     if "--deps" in argv:

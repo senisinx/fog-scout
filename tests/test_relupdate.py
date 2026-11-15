@@ -408,6 +408,36 @@ def test_the_update_folder_is_cleaned_at_start_but_only_of_our_files(tmp_path):
     assert relupdate.clean_update_folder(str(tmp_path / "none")) == 0
 
 
+@pytest.mark.skipif(sys.platform == "win32", reason="symlinks need a privilege on Windows; junctions are reparse "
+                                                     "points, caught by the same fsops.is_link")
+@pytest.mark.parametrize("linked", ["cache", os.path.join("cache", "update")])
+def test_a_linked_update_folder_is_neither_written_nor_cleaned(tmp_path, linked):
+    """1.56 (audit SEC-5): data_dir is the user's – a junction at cache or cache/update made the elevated program
+    write the setup and delete setup names wherever it pointed. Now: refused, nothing there touched."""
+    data, elsewhere = tmp_path / "data", tmp_path / "elsewhere"
+    elsewhere.mkdir()
+    (elsewhere / "FogScout-Setup-1.20.exe").write_bytes(b"someone else's")
+    if linked == "cache":
+        data.mkdir()
+        os.symlink(elsewhere, data / "cache", target_is_directory=True)
+        (elsewhere / "update").mkdir()
+        target = elsewhere / "update"
+        (target / "FogScout-Setup-1.20.exe").write_bytes(b"someone else's")
+    else:
+        (data / "cache").mkdir(parents=True)
+        os.symlink(elsewhere, data / "cache" / "update", target_is_directory=True)
+        target = elsewhere
+    before = sorted(os.listdir(target))
+    rel = relupdate.parse_release(_release())
+    with pytest.raises(ValueError, match="Link"):
+        relupdate.download(rel, str(data), opener=FakeGitHub())
+    assert relupdate.clean_update_folder(str(data / relupdate.UPDATE_DIR)) == 0
+    assert sorted(os.listdir(target)) == before and (target / "FogScout-Setup-1.20.exe").read_bytes() == b"someone else's"
+    from fogscout import fsops
+    assert fsops.is_link(str(data / linked)) and not fsops.is_link(str(tmp_path / "missing"))
+    assert not fsops.is_link(str(elsewhere))
+
+
 def test_only_one_download_and_no_check_while_it_runs(monkeypatch):
     """Audit M-1: a second click while the setup downloads must not start a second writer of the same .part."""
     from fogscout import app_settings

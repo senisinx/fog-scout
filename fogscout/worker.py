@@ -32,6 +32,7 @@ END_CHECK_INTERVAL = 0.5          # seconds between two looks for result screen 
 END_IDLE_INTERVAL = 1.0           # … and while nothing points to the end yet (whole-screen grab: ~14 MB each)
 IN_MATCH_RATE = 1.0               # scans per second while a detected map is being played (banner only at the start)
 VBAR_STRIP_S = 1.0                # 1.8.65: without a map, a look at the bars above/below at most this often
+BLACK_WARN_S = 8.0                # a black banner strip this long (DBD found) = "Aufnahme ist schwarz"
 VBAR_LOOKS = 5                    # looks (1/s) whose smallest black bar above/below counts (dark scenes at the edge)
 MID_MATCH_AFTER = 30.0            # s after the map appeared: a "banner" now is in the game world -> strict reading
 MID_MATCH_SPAN = 2.0              # … and it must stay on screen this long (a real banner stands still for ~5 s,
@@ -106,6 +107,7 @@ def scan_rate(base: float, *, in_match: bool, session: bool, since_button: float
 
 class DetectionWorker(threading.Thread):
     inputs_rect = None               # 1.39: the input card on screen (set by the UI; a default for bare instances)
+    fade_rects = ()                  # 1.56: windows still fading out (their *_rect is cleared already)
 
     def __init__(self, root_dir: str, settings, catalog, events: queue.Queue, simulate: str | None = None,
                  data_dir: str | None = None):
@@ -289,6 +291,7 @@ class DetectionWorker(threading.Thread):
         last_hist = 0.0
         last_status = None
         black_since = None
+        capture_warn = None               # 1.56: black/failed capture – overrides "DBD gefunden" until a good look
         fails, failed = 0, False          # 1.8.38: ticks in a row that raised, did the last one
 
         while self.running:
@@ -329,8 +332,13 @@ class DetectionWorker(threading.Thread):
                     with self.times.measure("window"):
                         window = find_game_window(window)   # 1.34.1 (P4): the known window checked first
                     window_checked = tick
-                if (source is not None or window is not None) and not rec.built:
+                # 1.56 (audit D-5): with the automatic detection off only a map on display needs the model here (its
+                # round end); a manual scan or any other look builds it on first use
+                auto = bool(self.settings.get("auto_detect", True))
+                if (source is not None or (window is not None and (auto or self.map_on_screen))) and not rec.built:
                     rec.load()                       # 1.50.4: built here, before the first look needs it
+                if auto and (source is not None or window is not None):
+                    reader.load()                    # 1.56 (D-4): the other scripts' models (ticked ones) the same way
                 if source is not None:
                     frame = source.current()
                     if frame is None:
@@ -346,7 +354,8 @@ class DetectionWorker(threading.Thread):
                             wcap.stop()                # capture went on copying its pictures (the stop below is
                             wcap = None                # never reached from here)
                             self.capture_info = describe(None, False)
-                        self._status(_("DBD ist minimiert"), last_status)
+                        capture_warn = None
+                        self._status(_("DBD ist minimiert"), last_status, problem=True)
                         last_status = _("DBD ist minimiert")
                         self._nap(0.5)
                         continue
@@ -419,11 +428,19 @@ class DetectionWorker(threading.Thread):
 
                 if not self.settings.get("auto_detect", True):
                     status = _("Automatische Erkennung ist aus")
-                if status != last_status:
-                    self._status(status, last_status)
-                    last_status = status
+                if not (self.settings.get("auto_detect", True) and (source is not None or window is not None)):
+                    capture_warn = None          # no banner look this tick: nothing left to warn about
+                # 1.56: one status per tick – a black or failed capture stays the status until a good look (it
+                # alternated with "DBD gefunden" every tick before: two log lines a second)
+                shown = capture_warn or status
+                if shown != last_status:
+                    self._status(shown, last_status, problem=bool(capture_warn))
+                    last_status = shown
                 sep = None
-                start_due = (not self.map_on_screen and not session and tick - last_start_look >= START_LOOK_INTERVAL
+                # 1.56 (D-5): only with the automatic detection – the lobby look arms the match start, and without it
+                # the whole picture once a second was taken for nothing
+                start_due = (auto and not self.map_on_screen and not session
+                             and tick - last_start_look >= START_LOOK_INTERVAL
                              and (source is not None or window is not None))
                 whole_tried = False
                 if start_due and source is None:
@@ -457,19 +474,22 @@ class DetectionWorker(threading.Thread):
                     try:
                         img = grab(box)
                     except Exception as e:           # e.g. window moved off-screen
-                        warn = _("Bildschirmaufnahme fehlgeschlagen: {error}", error=e)
-                        self._status(warn, last_status)
-                        last_status = warn
+                        capture_warn = _("Bildschirmaufnahme fehlgeschlagen: {error}", error=e)
+                        self._status(capture_warn, last_status, problem=True)
+                        last_status = capture_warn
                         self._nap(1.0)
                         continue
                     if img is not None and img.size and sum(cv2.mean(img)[:3]) < 3.0 and window is not None:
                         black_since = black_since or tick
-                        if tick - black_since > 8:
-                            warn = _("Aufnahme ist schwarz – DBD im Modus „Fenster-Vollbild“ betreiben")
-                            self._status(warn, last_status)
-                            last_status = warn
+                        capture_warn = (_("Aufnahme ist schwarz – DBD im Modus „Fenster-Vollbild“ betreiben")
+                                        if tick - black_since > BLACK_WARN_S else None)
                     else:
                         black_since = None
+                        capture_warn = None
+                    shown = capture_warn or status        # 1.56: the grab worked – a failure warning ends here
+                    if shown != last_status:
+                        self._status(shown, last_status, problem=bool(capture_warn))
+                        last_status = shown
 
                     if img is None:
                         sep = res = None                # covered by another window: nothing of DBD to read
@@ -760,9 +780,11 @@ class DetectionWorker(threading.Thread):
         elif ev[0] == "remind":
             self.post("queue", what="remind", seconds=ev[1])
 
-    def _status(self, text, last):
+    def _status(self, text, last, problem=False):
+        """1.56: ``problem`` = needs the player's action (minimised, black or failed capture) – a flag, since
+        the text is translated and the app cannot tell it from the words."""
         if text != last:
-            self.post("status", text=text)
+            self.post("status", text=text, problem=problem)
 
     def _bp_due(self, tick) -> bool:
         """1.16.2 (A7): read the counter every lobby look until CONFIRM_LOOKS readings agree (what the app needs
@@ -857,7 +879,7 @@ class DetectionWorker(threading.Thread):
     def _own_windows(self) -> bool:
         """Any of our own windows up (the UI sets their screen rectangles): a screen picture needs them blacked out."""
         return bool(self.overlay_rect or self.hud_rect or self.media_rect or self.today_rect or self.info_rect
-                    or self.inputs_rect or self.guide_rects or self.toast_rect)
+                    or self.inputs_rect or self.guide_rects or self.toast_rect or self.fade_rects)
 
     def _mask_screen(self, img, from_screen: bool, left, top):
         """1.13.1: the one test before every look – black out our own windows in ``img`` (picture of the screen
@@ -877,7 +899,8 @@ class DetectionWorker(threading.Thread):
     def _mask_overlay(self, img, left, top):
         """Black out our own overlay in a screenshot (it is always on top and would
         otherwise be read as part of the game picture)."""
-        for r in (self.hud_rect, self.media_rect, self.today_rect, self.inputs_rect, self.toast_rect, *self.guide_rects):
+        for r in (self.hud_rect, self.media_rect, self.today_rect, self.inputs_rect, self.toast_rect, *self.guide_rects,
+                  *self.fade_rects):
             if r:
                 self._black_out(img, r, left, top)
         lines = self._black_out(img, self.info_rect, left, top)      # 1.8.24: the map's lines apart – they

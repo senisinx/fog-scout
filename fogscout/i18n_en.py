@@ -4113,6 +4113,12 @@ EN = {
         'Flip vertically',
     'Noch keine Runden – Claude hätte nichts zum Auswerten.':
         'No rounds yet – Claude would have nothing to look at.',
+    'Zu wenige Runden – Claude bekommt die Statistik erst ab {n} Runden.':
+        'Too few rounds – Claude gets the statistics only from {n} rounds on.',
+    'Der Update-Ordner ist ein Link – Download abgelehnt.':
+        'The update folder is a link – download refused.',
+    'YouTube: Anmeldung fehlgeschlagen ({error}) – Client-ID und Client-Secret prüfen und noch einmal „Mit YouTube verbinden“ klicken.':
+        'YouTube: login failed ({error}) – check the client ID and client secret and click "Connect to YouTube" once more.',
     'Schickt deine Bitte und das Bild, wie es hier zu sehen ist (bereits zensierte Bereiche bleiben zensiert), an Claude; nichts wird geändert, bevor du übernimmst.':
         'Sends your wish and the picture as shown here (areas already censored stay censored) to Claude; nothing changes before you apply it.',
     'Schickt die Frage und Zähler/Quoten deiner Runden an Claude – keine einzelne Runde, keine Namen':
