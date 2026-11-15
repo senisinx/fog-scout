@@ -1951,6 +1951,12 @@ T = {
         'Claude не нашёл ничего подходящего.',
     'Claude hat die Frage abgelehnt.':
         'Claude отклонил вопрос.',
+    'Claude: Die Antwort wurde abgeschnitten – die Frage enger stellen und noch einmal versuchen.':
+        'Claude: ответ был обрезан – сформулируйте вопрос точнее и попробуйте ещё раз.',
+    'Claude ist gerade überlastet – in ein paar Minuten noch einmal versuchen.':
+        'Claude сейчас перегружен – попробуйте ещё раз через несколько минут.',
+    'Claude hat die Anfrage nicht angenommen – zu gross oder vom gewählten Modell nicht unterstützt.':
+        'Claude не принял запрос – он слишком большой или не поддерживается выбранной моделью.',
     'Claude hat unverständlich geantwortet.':
         'Ответ Claude не удалось прочитать.',
     'Claude ist nicht erreichbar – keine Internetverbindung?':

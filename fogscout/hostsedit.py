@@ -262,8 +262,13 @@ def apply_job(job: dict) -> dict:
         shutil.copy2(path, backup)
     was_ro = _set_readonly(path, False)
     try:
-        with open(path, "wb") as fh:
+        # 1.50.5 (review): written over the old bytes and cut to length afterwards, then flushed to the disk –
+        # "wb" emptied the file first, so a crash or a locked file right then left an empty hosts file
+        with open(path, "r+b") as fh:
             fh.write(data)
+            fh.truncate()
+            fh.flush()
+            os.fsync(fh.fileno())
     finally:
         if was_ro:
             _set_readonly(path, True)

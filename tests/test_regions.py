@@ -165,3 +165,43 @@ def test_an_elevated_program_writes_the_hosts_file_itself_without_runas(monkeypa
         raise PermissionError(13, "denied")
     monkeypatch.setattr(regions.hostsedit, "apply_job", denied)
     assert regions.run_job({"block": []})["ok"] is False
+
+
+@only_linux_hosts
+def test_the_uninstaller_takes_only_the_own_section_out(tmp_path, monkeypatch):
+    """1.50.5 (review): before, blocked regions stayed blocked after an uninstallation. Only the own section goes –
+    a line of another program stays – and a hosts file that cannot be read never stops the uninstaller."""
+    from fogscout import __main__ as entry
+    foreign = "0.0.0.0 gamelift.us-west-2.amazonaws.com\r\n"
+    f = tmp_path / "hosts"
+    f.write_bytes((WIN_DEFAULT + foreign).encode("latin-1"))
+    monkeypatch.setenv("DBDMS_HOSTS_FILE", str(f))
+    assert regions.run_job({"block": regions.block_list(["eu-central-1"]), "remove_foreign": False})["changed"]
+    assert hostsedit.BEGIN in f.read_text(encoding="latin-1")
+    assert entry.release_regions()
+    text = f.read_bytes().decode("latin-1")
+    assert hostsedit.BEGIN not in text and foreign.strip() in text
+    assert text.rstrip() == (WIN_DEFAULT + foreign).rstrip()
+    monkeypatch.setenv("DBDMS_HOSTS_FILE", str(tmp_path / "missing"))
+    assert entry.release_regions() is False
+
+
+@only_linux_hosts
+def test_the_hosts_file_is_never_emptied_before_it_is_written(tmp_path, monkeypatch):
+    """1.50.5 (review): "wb" emptied the file first. A shorter text still ends where it should."""
+    import builtins
+    f = tmp_path / "hosts"
+    f.write_bytes(WIN_DEFAULT.encode("latin-1"))
+    monkeypatch.setenv("DBDMS_HOSTS_FILE", str(f))
+    modes, real = [], builtins.open
+
+    def spy(file, mode="r", *a, **kw):
+        if str(file) == str(f):
+            modes.append(mode)
+        return real(file, mode, *a, **kw)
+    monkeypatch.setattr(builtins, "open", spy)
+    assert hostsedit.apply_job({"block": regions.block_list(["eu-central-1"])})["changed"]
+    long_text = f.read_bytes()
+    assert hostsedit.apply_job({"block": []})["changed"]
+    assert f.read_bytes() == WIN_DEFAULT.encode("latin-1") and len(f.read_bytes()) < len(long_text)
+    assert "wb" not in modes and "w" not in modes and modes.count("r+b") == 2

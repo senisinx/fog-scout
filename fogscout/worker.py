@@ -146,6 +146,7 @@ class DetectionWorker(threading.Thread):
         self._scanner = None
         self.recognizer = None            # 1.50.4: ocr.LazyRecognizer of the run (built once DBD is found)
         self._reported = set()
+        self._report_logged = {}          # key -> (text, time): what _report last wrote to the log file
         self._fail_text, self._fail_logged = "", 0.0     # 1.8.38: last tick error logged, when
         self._broken = None                              # 1.38.9: why the current run gave up (None: it did not)
         self._last_frame_save = 0.0
@@ -188,7 +189,13 @@ class DetectionWorker(threading.Thread):
 
     def _report(self, key, text):
         """An unexpected error: full text to the log file, one line to the UI (once per kind)."""
-        log.error(text)
+        # 1.50.5 (review): the looks call this about once a second – the same text goes to the file at most every
+        # TICK_FAIL_LOG_S (before: a lasting fault wrote one traceback per second into a log without a size limit)
+        now = time.time()
+        last = self._report_logged.get(key)
+        if last is None or last[0] != text or now - last[1] >= TICK_FAIL_LOG_S:
+            self._report_logged[key] = (text, now)
+            log.error(text)
         if key not in self._reported:
             self._reported.add(key)
             last = text.strip().splitlines()[-1] if text.strip() else key

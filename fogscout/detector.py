@@ -78,19 +78,32 @@ def find_separator(img: np.ndarray, frame_w: int, frame_h: int, letterboxed: boo
     s = min(1.0, 1080.0 / max(1, frame_h))
     # 1.16.1 (audit, measured 3.7 → 1.7 ms on a 3440×1440 ROI): grey first, then one channel is scaled, not three
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-    g = (cv2.resize(gray, None, fx=s, fy=s, interpolation=cv2.INTER_AREA) if s < 1.0 else gray).astype(np.int16)
-    k = 3
+    g = cv2.resize(gray, None, fx=s, fy=s, interpolation=cv2.INTER_AREA) if s < 1.0 else gray
+    ridge = _ridge(g)
+    tolerant = letterboxed and min(frame_h, frame_w * 9 / 16) < SMALL_PICTURE_H
+    for ridge_min, bright_min in SEPARATOR_PASSES[:None if tolerant else 1]:
+        sep = _separator_in(_separator_mask(g, ridge_min, bright_min, ridge), frame_w, frame_h, s)
+        if sep is not None:
+            return sep
+    return None
+
+
+def _ridge(g: np.ndarray, k: int = 3) -> np.ndarray:
+    """How much brighter each pixel of the grey picture is than both pixels ``k`` rows above and below (0 = not).
+    1.50.5 (review, measured): in uint8 with OpenCV's saturating subtract instead of int16 numpy – the same mask
+    for every threshold ≥ 0 (204 cases over every test picture), 7.1 → 1.7 ms on a 2580×1080 grey picture."""
     up = np.zeros_like(g)
     up[k:] = g[:-k]
     dn = np.zeros_like(g)
     dn[:-k] = g[k:]
-    ridge = g - np.maximum(up, dn)
-    tolerant = letterboxed and min(frame_h, frame_w * 9 / 16) < SMALL_PICTURE_H
-    for ridge_min, bright_min in SEPARATOR_PASSES[:None if tolerant else 1]:
-        sep = _separator_in(((ridge > ridge_min) & (g > bright_min)).astype(np.uint8), frame_w, frame_h, s)
-        if sep is not None:
-            return sep
-    return None
+    return cv2.subtract(g, cv2.max(up, dn))
+
+
+def _separator_mask(g: np.ndarray, ridge_min: int, bright_min: int, ridge: np.ndarray | None = None) -> np.ndarray:
+    """The 0/1 mask of one pass: a bright ridge (ridge > ridge_min and grey > bright_min)."""
+    ridge = _ridge(g) if ridge is None else ridge
+    return cv2.bitwise_and(cv2.threshold(ridge, ridge_min, 1, cv2.THRESH_BINARY)[1],
+                           cv2.threshold(g, bright_min, 1, cv2.THRESH_BINARY)[1])
 
 
 def _separator_in(mask: np.ndarray, frame_w: int, frame_h: int, s: float) -> Separator | None:

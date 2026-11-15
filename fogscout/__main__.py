@@ -294,7 +294,20 @@ def install_tasks() -> int:
 def remove_tasks() -> int:
     """1.32: ``FogScout.exe --remove-tasks`` – the uninstaller: tasks and shortcuts go, the data folder stays."""
     from . import autostart
+    release_regions()
     return 0 if autostart.uninstall()[0] else 1
+
+
+def release_regions() -> bool:
+    """1.50.5 (review): the uninstaller takes Fog Scout's own section out of the hosts file – before, blocked server
+    regions stayed blocked after the program was gone, with nothing left to show why. Only the own section
+    (``remove_foreign`` off: entries of other programs stay), through the same code as the Server tab; a failure
+    never stops the uninstallation."""
+    try:
+        from . import hostsedit
+        return bool(hostsedit.apply_job({"block": [], "remove_foreign": False}).get("ok"))
+    except Exception:
+        return False
 
 
 def offer_takeover(data: str, ask=None) -> list:

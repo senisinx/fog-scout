@@ -27,16 +27,21 @@ MODEL = "claude-opus-5-5"            # the default model; effort low keeps the a
 # prices in $ per million tokens – input, output, cache read (a cache write costs 1.25 × input). An estimate only:
 # the API bills; Anthropic's prices can change (checked 2026-10). Haiku: prompts up to 100 000 tokens.
 MODELS = {"opus": "claude-opus-5-5", "sonnet": "claude-sonnet-5-5", "haiku": "claude-haiku-5-5"}
-PRICES = {"claude-opus-5-5": (4.0, 20.0, 0.20), "claude-sonnet-5-5": (2.0, 10.0, 0.20),
+PRICES = {"claude-opus-5-5": (4.0, 20.0, 0.20), "claude-sonnet-5-5": (2.0, 10.0, 0.10),
           "claude-haiku-5-5": (0.10, 0.50, 0.01)}
 CACHE_WRITE = 1.25
 FALLBACK_MODELS = ("claude-opus-5-5", "claude-sonnet-5-5")   # the server-side fallback ("default"); not on Haiku
 _model = [MODEL]                     # the picked model (set_model); one list cell – the asking threads only read it
 EFFORT = "low"
 FALLBACK_BETA = "server-side-fallback-2026-07-01"   # a declined request is retried server-side ("default")
-MAX_TOKENS = 1024
-HTTP_TIMEOUT = 20.0
-IMAGE_TIMEOUT = 60.0                 # 1.35: a request with a picture uploads more and takes longer
+# 1.50.5 (review): the models think before they answer and the thinking counts towards max_tokens – with 1024 a
+# longer answer could end cut off (stop_reason "max_tokens", shown as "unreadable"). Only used tokens are billed.
+MAX_TOKENS = 4096
+# 1.50.5 (review): the request is not streamed, so the timeout is the whole time the model may take – 20 s / 60 s
+# ended a slow answer as "no internet". Not measured against the API (no key in the review); the user waits in a
+# thread and can go on working.
+HTTP_TIMEOUT = 45.0
+IMAGE_TIMEOUT = 150.0                # 1.35: a request with a picture uploads more and takes longer
 MAX_BODY = 1024 * 1024        # 1.38.57 (security review): a larger answer is a network error (a reply is a few KB)
 MAX_ERROR_BODY = 64 * 1024    # … an error answer is read only this far
 MAX_IDS = 5
@@ -75,6 +80,10 @@ ERRORS = {"auth": N_("Claude: Der API-Key wird nicht angenommen – unter Einste
                       "„Guthaben aufladen“."),
           "refused": N_("Claude hat die Frage abgelehnt."),
           "bad": N_("Claude hat unverständlich geantwortet."),
+          "long": N_("Claude: Die Antwort wurde abgeschnitten – die Frage enger stellen und noch einmal versuchen."),
+          "busy": N_("Claude ist gerade überlastet – in ein paar Minuten noch einmal versuchen."),
+          "request": N_("Claude hat die Anfrage nicht angenommen – zu gross oder vom gewählten Modell nicht "
+                        "unterstützt."),
           "net": N_("Claude ist nicht erreichbar – keine Internetverbindung?")}
 
 
@@ -85,7 +94,8 @@ def error_text(kind: str) -> str:
 
 class AskError(Exception):
     """``kind``: auth (key wrong), rate (too many requests), quota (credit used up), net, bad (answer unusable),
-    refused (the model declined)."""
+    refused (the model declined); 1.50.5: long (answer cut off at max_tokens), busy (the API is overloaded or
+    failed: 5xx), request (the API did not take the request: 400/404/413)."""
 
     def __init__(self, kind: str, detail: str = ""):
         super().__init__(detail or kind)
@@ -226,6 +236,8 @@ def reply_json(reply: dict) -> dict:
     """The JSON object of a structured answer (AskError refused/bad otherwise)."""
     if reply.get("stop_reason") == "refusal":
         raise AskError("refused")
+    if reply.get("stop_reason") == "max_tokens":         # 1.50.5: cut off – its JSON is incomplete, say why
+        raise AskError("long")
     text = "".join(b.get("text", "") for b in reply.get("content") or () if b.get("type") == "text")
     try:
         data = json.loads(text)
@@ -258,7 +270,9 @@ def send(key: str, payload: dict, timeout: float = HTTP_TIMEOUT) -> dict:
                 raise AskError("net", "too large")
             reply = json.loads(data.decode("utf-8"))
         if isinstance(reply, dict):                      # 1.36: what it cost (estimate), also for a refusal
-            METER.add(str(payload.get("model") or MODEL), reply.get("usage"))
+            # 1.50.5: priced as the model that answered (a server-side fallback is another model) when it is known
+            served = reply.get("model")
+            METER.add(served if served in PRICES else str(payload.get("model") or MODEL), reply.get("usage"))
         return reply
     except urllib.error.HTTPError as e:
         code = e.code
@@ -274,6 +288,10 @@ def send(key: str, payload: dict, timeout: float = HTTP_TIMEOUT) -> dict:
             raise AskError("rate") from None
         if code == 402 or "credit" in str(err.get("message", "")).lower():
             raise AskError("quota") from None
+        if code in (400, 404, 413, 422):                 # 1.50.5: not the line – the request itself was not taken
+            raise AskError("request", f"HTTP {code}") from None
+        if code >= 500:                                  # 500, 529 overloaded: the API's side, try again later
+            raise AskError("busy", f"HTTP {code}") from None
         raise AskError("net", f"HTTP {code}") from None
     except (urllib.error.URLError, OSError, TimeoutError) as e:
         raise AskError("net", type(e).__name__) from None

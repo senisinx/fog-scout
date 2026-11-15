@@ -1951,6 +1951,12 @@ T = {
         'Claude 没有找到合适的内容。',
     'Claude hat die Frage abgelehnt.':
         'Claude 拒绝了这个问题。',
+    'Claude: Die Antwort wurde abgeschnitten – die Frage enger stellen und noch einmal versuchen.':
+        'Claude：回答被截断 – 请把问题问得更具体后重试。',
+    'Claude ist gerade überlastet – in ein paar Minuten noch einmal versuchen.':
+        'Claude 目前负载过高 – 请几分钟后重试。',
+    'Claude hat die Anfrage nicht angenommen – zu gross oder vom gewählten Modell nicht unterstützt.':
+        'Claude 未接受该请求 – 请求过大或所选模型不支持。',
     'Claude hat unverständlich geantwortet.':
         'Claude 给出的回答无法读取。',
     'Claude ist nicht erreichbar – keine Internetverbindung?':

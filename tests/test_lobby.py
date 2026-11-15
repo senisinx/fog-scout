@@ -673,3 +673,28 @@ def test_an_unchanged_lobby_corner_is_not_read_again(reader):
     assert st.reuse(a, 10.0 + lobby.LOBBY_STEADY_S) is None              # read again after LOBBY_STEADY_S
     st.remember(None, v, 20.0)                                           # nothing grabbed: nothing kept
     assert st.reuse(a, 20.5) is None
+
+
+def test_a_lasting_fault_of_a_look_is_logged_once_a_minute_not_every_second(tmp_path, monkeypatch, caplog):
+    """1.50.5 (review): the looks report about once a second; the same traceback went to the log file each time
+    (a file without a size limit). The UI still hears it once."""
+    import logging
+    import queue
+    from fogscout import config, worker
+    from fogscout.catalog import Catalog
+    wk = worker.DetectionWorker(ROOT, config.Settings(str(tmp_path / "settings.json")), Catalog(ROOT, ["en"]),
+                                queue.Queue(), data_dir=str(tmp_path))
+    posted, now = [], [1000.0]
+    wk.post = lambda kind, **kw: posted.append((kind, kw))
+    monkeypatch.setattr(worker.time, "time", lambda: now[0])
+    with caplog.at_level(logging.ERROR, logger=worker.log.name):
+        for i in range(30):
+            now[0] = 1000.0 + i
+            wk._report("Lobby-Erkennung", "Traceback\nValueError: x")
+        assert len(caplog.records) == 1 and len(posted) == 1
+        wk._report("Lobby-Erkennung", "Traceback\nKeyError: y")            # another fault: at once
+        wk._report("Matchbeginn", "Traceback\nValueError: x")              # another look: its own count
+        assert len(caplog.records) == 3
+        now[0] = 1030.0 + worker.TICK_FAIL_LOG_S + 1
+        wk._report("Lobby-Erkennung", "Traceback\nKeyError: y")
+        assert len(caplog.records) == 4 and len(posted) == 2

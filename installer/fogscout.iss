@@ -6,7 +6,8 @@
 ; scheduled task). After copying it runs "FogScout.exe --install-tasks": the tasks "Fog Scout" / "Fog Scout
 ; (Autostart)" and the Start menu/desktop shortcuts now start the .exe (fogscout/autostart.py); a start.bat
 ; installation they started until now is noted and offered for takeover at the first start (fogscout/takeover.py,
-; copy only – the old folder stays). The uninstaller runs "--remove-tasks" first; the data folder
+; copy only – the old folder stays). The uninstaller runs "--remove-tasks" first (1.50.5: it also
+; takes the own section out of the hosts file, so no server region stays blocked); the data folder
 ; %LOCALAPPDATA%\FogScout stays (settings, rounds, recordings index are the user's).
 ; Unsigned for now (Windows SmartScreen asks once – README).
 

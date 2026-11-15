@@ -1468,6 +1468,12 @@ EN = {
     'Claude denkt nach …': 'Claude is thinking …',
     'Claude hat nichts Passendes gefunden.': 'Claude found nothing that fits.',
     'Claude hat die Frage abgelehnt.': 'Claude declined the question.',
+    'Claude: Die Antwort wurde abgeschnitten – die Frage enger stellen und noch einmal versuchen.':
+        'Claude: The answer was cut off – ask a narrower question and try again.',
+    'Claude ist gerade überlastet – in ein paar Minuten noch einmal versuchen.':
+        'Claude is overloaded right now – try again in a few minutes.',
+    'Claude hat die Anfrage nicht angenommen – zu gross oder vom gewählten Modell nicht unterstützt.':
+        'Claude did not accept the request – too large or not supported by the chosen model.',
     'Claude hat unverständlich geantwortet.': 'Claude gave an answer that could not be read.',
     'Claude ist nicht erreichbar – keine Internetverbindung?': 'Claude cannot be reached – no internet connection?',
     'Claude: Zu viele Anfragen – gleich noch einmal versuchen.': 'Claude: too many requests – try again in a moment.',
