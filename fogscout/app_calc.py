@@ -219,6 +219,9 @@ class CalcTab:
         c = ui.Combobox(parent, textvariable=var, values=values, state="readonly", width=width)
         if px:
             c._dbdms_px = px
+            # 1.54.1: a box of fixed width cuts a long name ("Scourge Hook: Pain Resonance") – the whole of it
+            # on hover
+            c._dbdms_tip = lambda: "" if var.get() in ("", NONE) else var.get()
         if icons and self._calc_icons().any():
             c._dbdms_icons = self._calc_icons().finder(icons)   # value -> picture file or None (app_qt.ui_state)
         c.bind("<<ComboboxSelected>>", lambda e: self._calc_changed())
@@ -734,7 +737,9 @@ class CalcTab:
             top = tree.insert("", "end", iid=f"g{gi}", text=head, open=True,
                               values=("", "", _("Tempo {p} %", p=f"{mult * 100:.4g}"), ""))
             for pi, p in enumerate(parts):
-                if p.cap is not None:
+                if p.beaten:                              # 1.54.1: of one group only the strongest counts
+                    values = (signed_pct(p.value), "0 %", "—", _("nur {name} zählt", name=p.beaten))
+                elif p.cap is not None:
                     values = ("", "", _("höchstens {p}", p=signed_pct(p.cap)), when_text(p))
                 else:
                     share = _("Add-on: 100 %") if p.exempt else f"{p.weight * 100:g} %"
@@ -875,7 +880,7 @@ class CalcTab:
         for ln in lines:
             if not ln.parts:
                 continue
-            key = (ln.subject, tuple((p.source, p.value, p.weight, p.when, p.seconds, p.cap, p.exempt)
+            key = (ln.subject, tuple((p.source, p.value, p.weight, p.when, p.seconds, p.cap, p.exempt, p.beaten)
                                      for p in ln.parts))
             if key in index:
                 groups[index[key]][0].append(self._calc_row(ln.row, ln.label))

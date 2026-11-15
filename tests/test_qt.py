@@ -774,6 +774,61 @@ def test_dashboard_view_draws_tiles_bars_and_heatmap(qapp, keep):
     assert qt_window.ink_on(qt_window.heat_colour(4, dark=False)).name() == "#f0efec"   # light ink on dark blue
 
 
+def test_a_wrapping_row_works_its_height_out_once_and_again_when_something_in_it_changes(qapp, keep):
+    """1.54.1 (measured: the calculator's page asked its rows 14 571 times for their height while it was first
+    shown – 588 times now): the height for a width is kept until Qt says that the row changed. A kept height
+    must never outlive a change: another text, a hidden control, one more control."""
+    from PySide6.QtCore import QRect
+    from PySide6.QtWidgets import QPushButton, QVBoxLayout, QWidget
+    from fogscout.qt_layouts import FlowRow, TileGrid
+    host = keep(QWidget())
+    box = QVBoxLayout(host)
+    row = FlowRow()                                      # nested, like the rows of every page
+    box.addLayout(row)
+    buttons = [QPushButton(f"Knopf {i}") for i in range(4)]
+    for b in buttons:
+        row.addWidget(b)
+    asked = []
+    place = row._place
+    row._place = lambda rect, apply: asked.append(apply) or place(rect, apply)
+    fresh = lambda w: place(QRect(0, 0, w, 0), False)
+    width = row.sizeHint().width() + 20
+    host.resize(width + 40, 300)
+    host.show()
+    qapp.processEvents()
+    del asked[:]
+    one_line = row.heightForWidth(width)
+    assert [row.heightForWidth(width) for _i in range(50)] == [one_line] * 50
+    assert asked.count(False) <= 1                                            # worked out once, not 51 times
+    buttons[0].setText("Ein sehr langer Text, mit dem die Zeile nicht mehr in eine Zeile passt")
+    qapp.processEvents()
+    assert row.heightForWidth(width) == fresh(width) > one_line               # another text: wraps now
+    for b in buttons[1:]:
+        b.hide()
+    qapp.processEvents()
+    assert row.heightForWidth(width) == fresh(width) < 2 * one_line           # hidden: one line again
+    for b in buttons[1:]:
+        b.show()
+    row.addWidget(QPushButton("Noch ein Knopf"))
+    assert row.heightForWidth(width) == fresh(width)                          # one more control: at once
+    qapp.processEvents()
+    assert row.heightForWidth(width) == fresh(width) and row.heightForWidth(4000) == one_line
+    for w in range(200, 260):                                                 # a window being dragged
+        assert row.heightForWidth(w) == fresh(w)
+    assert len(row._heights) <= 9
+    grid = TileGrid(min_width=100, columns=4)
+    box.addLayout(grid)
+    tiles = [QPushButton(f"Kachel {i}") for i in range(4)]
+    for t in tiles:
+        grid.addWidget(t)
+    qapp.processEvents()
+    two_rows = grid.heightForWidth(230)
+    assert two_rows == grid._place(QRect(0, 0, 230, 0), False) > grid.heightForWidth(900)
+    tiles[2].hide(), tiles[3].hide()
+    qapp.processEvents()
+    assert grid.heightForWidth(230) == grid._place(QRect(0, 0, 230, 0), False) < two_rows
+
+
 def test_narrow_window_wraps_instead_of_cutting_off(qapp, keep):
     """1.59.1 (user's screenshots): rows of controls wrap, tiles take fewer columns, tick box texts wrap, the
     navigation shows only icons – nothing wider than the window."""

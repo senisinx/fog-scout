@@ -111,6 +111,8 @@ def shoot(app, out: str, pages=None, settle=None) -> list:
         q.show_setup(True)
         for i in range(len(q.setup.pages)):
             q.setup.go(i)
+            app._poll()
+            app._qt_refresh(force=True)       # like grab_page: the state now, not whenever the timer comes
             _settle()
             grab(q, "setup", i + 1)
         q.show_setup(False)

@@ -2303,6 +2303,8 @@ T = {
         'Senza un effetto calcolabile: {names}.',
     '1 = die Survivor leiden nach dem Heilen unter dem Effekt':
         "1 = i sopravvissuti subiscono l'effetto dopo la cura",
+    'nur {name} zählt':
+        'conta solo {name}',
     'Claude hat unverständlich geantwortet.':
         'Claude ha dato una risposta illeggibile.',
     'Claude ist nicht erreichbar – keine Internetverbindung?':
