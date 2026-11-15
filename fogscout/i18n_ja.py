@@ -2051,6 +2051,20 @@ T = {
         '一緒に発電機を修理し終えてから {s} 秒間、全員の速度 +{p} %',
     'jeder Great Skill Check in Folge bringt {p} % mehr Bonus (bis {n} Tokens)':
         'グレートスキルチェックが連続するたびにボーナスが {p} % 増加（最大 {n} トークン）',
+    'Skill Checks kommen öfter: +{p} Prozentpunkte Chance je Sekunde':
+        'スキルチェックが増える：毎秒の発生確率 +{p} パーセントポイント',
+    'Skill Checks kommen für alle am Generator öfter: +{p} Prozentpunkte Chance je Sekunde':
+        '発電機にいる全員のスキルチェックが増える：毎秒の発生確率 +{p} パーセントポイント',
+    'Skill Checks der Survivor kommen öfter: +{p} Prozentpunkte Chance je Sekunde':
+        '生存者のスキルチェックが増える：毎秒の発生確率 +{p} パーセントポイント',
+    'ein verfehlter Skill Check kostet {p} % Fortschritt mehr':
+        'スキルチェック失敗で失う進行度が {p} % 増加',
+    'jeder erfolgreiche Skill Check der anderen bringt im Mittel +{p} % Fortschritt (W20)':
+        '他の生存者のスキルチェック成功ごとに平均 +{p} % の進行度（d20）',
+    'ein verfehlter Skill Check kostet {p} % weniger Fortschritt':
+        'スキルチェック失敗で失う進行度が {p} % 減少',
+    '+{p} Prozentpunkte Skill-Check-Chance je Token':
+        'トークン1つにつきスキルチェック発生率 +{p} ポイント',
     'jeder Generator braucht {v} Ladungen weniger':
         '各発電機の必要チャージが {v} 減少',
     'ein Generator braucht {v} Ladungen weniger':
@@ -5481,6 +5495,12 @@ T = {
         '上下反転',
     'Noch keine Runden – Claude hätte nichts zum Auswerten.':
         'まだラウンドがありません – Claude が確認するものがありません。',
+    'Zu wenige Runden – Claude bekommt die Statistik erst ab {n} Runden.':
+        'ラウンドが少なすぎます – Claude に統計を送るのは {n} ラウンド以上からです。',
+    'Der Update-Ordner ist ein Link – Download abgelehnt.':
+        '更新フォルダーがリンクです – ダウンロードを拒否しました。',
+    'YouTube: Anmeldung fehlgeschlagen ({error}) – Client-ID und Client-Secret prüfen und noch einmal „Mit YouTube verbinden“ klicken.':
+        'YouTube：ログインに失敗しました（{error}） – クライアント ID とクライアントシークレットを確認し、もう一度「YouTube に接続」をクリックしてください。',
     'Schickt deine Bitte und das Bild, wie es hier zu sehen ist (bereits zensierte Bereiche bleiben zensiert), an Claude; nichts wird geändert, bevor du übernimmst.':
         '要望と、ここに表示されているとおりの画像（既に検閲した領域は検閲されたまま）を Claude に送信します。適用するまで何も変わりません。',
     'Schickt die Frage und Zähler/Quoten deiner Runden an Claude – keine einzelne Runde, keine Namen':

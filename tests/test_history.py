@@ -436,7 +436,8 @@ def test_the_fastest_region_at_this_time_of_day():
     rs.append(h.Round(t=base, seconds=600, map_id="a", map="A", region="eu-west-2", wait=1, custom=True))
     block, rows = h.regions_at(rs, base + 1800)
     assert block == datetime.datetime.fromtimestamp(base).hour // h.HOUR_BLOCK * h.HOUR_BLOCK
-    assert [(c, n, w) for c, n, w, _p in rows] == [("eu-central-1", 3, 70), ("us-east-1", 4, 220)]
+    # 1.56 (F8): an even count is the mean of both middle values (210, 220), as history.median
+    assert [(c, n, w) for c, n, w, _p in rows] == [("eu-central-1", 3, 70), ("us-east-1", 4, 215.0)]
     assert rows[0][3] == 30.0 and rows[1][3] is None
     assert h.regions_at(rs, base + 1800, min_rounds=4)[1][0][0] == "us-east-1"
     assert h.regions_at([], base)[1] == []
@@ -488,3 +489,207 @@ def test_rounds_beyond_the_limit_go_to_the_archive_not_away(tmp_path, monkeypatc
     assert len(h.load(p)) == 23                            # not archived = not dropped
     h.clear(p)
     assert not os.path.exists(p) and not os.path.exists(arch)
+
+
+def test_the_file_is_tidied_once_per_slack_not_after_every_round(tmp_path, monkeypatch):
+    """1.56 (review F1): trimmed to exactly KEEP, every round after the 5000th rewrote the whole file (~150 ms in the
+    window's thread). It may now grow by _slack() (5 % of KEEP) before it is cut back to KEEP."""
+    import json
+    from fogscout import fsops
+    monkeypatch.setattr(h, "KEEP", 40)
+    assert h._slack() == 2
+    p = str(tmp_path / h.FILE)
+    writes = []
+    real = fsops.write_atomic
+    monkeypatch.setattr(fsops, "write_atomic", lambda path, data: (writes.append(path), real(path, data)))
+    for i in range(60):
+        h.append(p, h.Round(1000.0 + i, 600.0, "m", "Map %d" % i, sys={"gpu_temp": 60.0}))   # > 200 bytes a line
+        assert len(h.load(p)) <= h.KEEP + h._slack()
+    assert len(writes) == 6                                  # after rounds 43, 46, …, 58 – not one for each of 20
+    kept = h.load(p)
+    arch = [json.loads(line)["t"] for line in open(h.archive_path(p, h.ARCHIVE), encoding="utf-8")]
+    assert arch == [1000.0 + i for i in range(len(arch))] and len(arch) + len(kept) == 60   # each once, in order
+    assert kept[0].t == 1000.0 + len(arch)
+
+
+def test_a_tidied_lost_round_goes_to_the_archive_too(tmp_path, monkeypatch):
+    """1.56 (review F5): lost-round lines older than the kept rounds were dropped by the tidying – they go to the
+    archive with the rounds, in time order."""
+    import json
+    monkeypatch.setattr(h, "KEEP", 2)
+    monkeypatch.setattr(os.path, "getsize", lambda _p: 10 ** 9)
+    p = str(tmp_path / h.FILE)
+    h.append(p, rnd("A", 600, 1.0))
+    h.append_lost(p, 1.5, "Old Lost", "banner", map_id="old", role="killer")
+    h.append(p, rnd("B", 600, 2.0))
+    h.append(p, rnd("C", 600, 3.0))                          # 3 rounds > KEEP + 0: tidied to B, C
+    h.append_lost(p, 3.5, "New Lost", "banner")
+    h.append(p, rnd("D", 600, 4.0))                          # tidied to C, D
+    assert [r.map for r in h.load(p)] == ["C", "D"] and h.load_lost(p) == [(3.5, "New Lost", "banner")]
+    arch = [json.loads(line) for line in open(h.archive_path(p, h.ARCHIVE), encoding="utf-8")]
+    assert [d["t"] for d in arch] == [1.0, 1.5, 2.0]
+    assert arch[1] == {"lost": True, "t": 1.5, "map": "Old Lost", "reason": "banner", "map_id": "old", "role": "killer"}
+
+
+def test_lines_archived_before_a_failed_rewrite_are_not_archived_twice(tmp_path, monkeypatch):
+    """1.56 (review F7): archive first, then rewrite – when the rewrite failed, the next tidying archived the same
+    lines again. Lines whose start already stands at the archive's end are left out; an older line that is not
+    there yet (a restored round) still goes in."""
+    import json
+    from fogscout import fsops
+    monkeypatch.setattr(h, "KEEP", 5)
+    monkeypatch.setattr(os.path, "getsize", lambda _p: 10 ** 9)
+    p = str(tmp_path / h.FILE)
+    for i in range(5):
+        h.append(p, h.Round(1000.0 + i, 600, "m", "M"))
+    real = fsops.write_atomic
+
+    def locked(path, data):
+        raise PermissionError(13, "locked", path)
+    monkeypatch.setattr(fsops, "write_atomic", locked)
+    h.append(p, h.Round(1005.0, 600, "m", "M"))              # archived 1000, the rewrite fails (swallowed)
+    monkeypatch.setattr(fsops, "write_atomic", real)
+    h.append(p, h.Round(1006.0, 600, "m", "M"))              # archives 1000 and 1001 – 1000 only once
+    arch = h.archive_path(p, h.ARCHIVE)
+    assert [json.loads(line)["t"] for line in open(arch, encoding="utf-8")] == [1000.0, 1001.0]
+    assert [r.t for r in h.load(p)] == [1002.0 + i for i in range(5)]
+    again = open(arch, encoding="utf-8").read().splitlines()[-1:]           # the 1001 line, handed over again
+    h.archive_lines(arch, [h._dump(h.Round(10.0, 600, "m", "M"))] + again)  # 10: older, but new to the archive
+    assert [json.loads(line)["t"] for line in open(arch, encoding="utf-8")] == [1000.0, 1001.0, 10.0]
+
+
+def test_a_round_is_written_as_asdict_wrote_it(tmp_path):
+    """1.56 (review F2): the lines come from _dump instead of dataclasses.asdict – the same bytes, every field in
+    its order; a correction leaves the other lines byte for byte as they were."""
+    import dataclasses
+    import json
+    full = h.Round(t=1700000000.25, seconds=612.5, map_id="coal", map="Coal Tower – Léry's", region="eu-central-1",
+                   source="auto", wait=33.0, role="killer", custom=False, farming=True, ping=41.5, killer="The Nurse",
+                   sys={"gpu_temp": 61.0, "fps": 118.0}, stalls=2, stall_max=1.5, balance=1234567)
+    bare = h.Round(t=5.0, seconds=60.0, map_id="m", map="M")
+    for r in (full, bare):
+        assert h._dump(r) == json.dumps(dataclasses.asdict(r), ensure_ascii=False)
+    assert list(json.loads(h._dump(full))) == [f.name for f in dataclasses.fields(h.Round)]
+    p = str(tmp_path / h.FILE)
+    h.append(p, bare)
+    h.append(p, h.Round(t=9.0, seconds=60.0, map_id="x", map="X"))
+    h.append(p, full)
+    before = open(p, "rb").read().splitlines()
+    assert h.set_farming(p, 9.0, True) is not None
+    after = open(p, "rb").read().splitlines()
+    assert after[0] == before[0] and after[2] == before[2] and after[1] != before[1]
+    assert json.loads(after[1])["farming"] is True
+
+
+def test_corrections_of_many_rounds_rewrite_the_file_once(tmp_path, monkeypatch):
+    """1.56 (review F2): marking k rounds was k full rewrites (~100 ms each at 5000 rounds). The *_many functions
+    change all of them and write once; they return what they changed, in the order asked, each round once."""
+    from fogscout import fsops
+    p = str(tmp_path / h.FILE)
+    for i in range(6):
+        h.append(p, h.Round(t=100.0 + i, seconds=600, map_id="a", map="A", role="survivor", custom=i == 0))
+    writes = []
+    real = fsops.write_atomic
+    monkeypatch.setattr(fsops, "write_atomic", lambda path, data: (writes.append(path), real(path, data)))
+    got = h.set_farming_many(p, [103.0, 100.0, 103.0, 999.0], True)
+    assert [r.t for r in got] == [103.0, 100.0] and len(writes) == 1
+    rs = {r.t: r for r in h.load(p)}
+    assert rs[100.0].farming and not rs[100.0].custom and rs[103.0].farming and not rs[101.0].farming
+    assert [r.t for r in h.set_role_many(p, [101.0, 102.0], "killer")] == [101.0, 102.0] and len(writes) == 2
+    assert [r.t for r in h.set_killer_many(p, [102.0, 104.0], "The Nurse")] == [102.0, 104.0]
+    assert [r.t for r in h.set_map_many(p, [104.0, 105.0], "b", "B")] == [104.0, 105.0] and len(writes) == 4
+    assert h.set_map_many(p, [104.0], "b", "B") == [] and len(writes) == 4      # nothing changed: nothing written
+    assert [r.t for r in h.delete_many(p, [101.0, 105.0, 7.0])] == [101.0, 105.0] and len(writes) == 5
+    assert [(r.t, r.role, r.killer, r.map, r.farming) for r in h.load(p)] == [
+        (100.0, "survivor", "", "A", True), (102.0, "killer", "The Nurse", "A", False),
+        (103.0, "survivor", "", "A", True), (104.0, "killer", "The Nurse", "B", False)]
+    assert h.delete(p, 999.0) is None and h.set_killer(p, 100.0, "The Hag").killer == "The Hag"
+
+
+def test_the_median_wait_of_an_even_count_is_the_mean_of_both_middle_values():
+    """1.56 (review F8): wait_summary and regions_at took the upper middle value; history.median averages."""
+    import datetime
+    base = datetime.datetime(2026, 11, 2, 19, 10).timestamp()
+    rs = [h.Round(t=base + i * 86400, seconds=600, map_id="a", map="A", region="eu-central-1", wait=w)
+          for i, w in enumerate((10.0, 20.0, 40.0, 100.0))]
+    assert h.wait_summary(rs)["median"] == 30.0
+    assert h.wait_summary(rs[:3])["median"] == 20.0                      # an odd count: the middle one, as before
+    assert h.regions_at(rs, base, min_rounds=1)[1][0][2] == 30.0
+
+
+def test_a_correction_waits_for_a_restore_that_is_writing_and_both_stay(tmp_path, monkeypatch):
+    """1.56 (review F14): a restore (its own thread) and a correction in the window's thread (the balance after a
+    round) both read, change and write rounds.jsonl – the one writing last threw the other's change away. With
+    history.LOCK the correction waits until the restore has written, then reads its result."""
+    import threading
+    from fogscout import backups, fsops
+    data, src = str(tmp_path / "data"), str(tmp_path / "src")
+    os.makedirs(data)
+    os.makedirs(src)
+    p = os.path.join(data, h.FILE)
+    h.append(p, h.Round(t=1000.0, seconds=600, map_id="a", map="A"))
+    h.append(os.path.join(src, h.FILE), h.Round(t=500.0, seconds=600, map_id="b", map="B"))
+    zpath = str(tmp_path / "b.zip")
+    backups.archive(src, zpath, {})
+    entered, go = threading.Event(), threading.Event()
+    real = fsops.write_atomic
+
+    def slow(path, data_):
+        if threading.current_thread().name == "restore" and path == p:
+            entered.set()
+            assert go.wait(30)
+        return real(path, data_)
+    monkeypatch.setattr(fsops, "write_atomic", slow)
+    restore = threading.Thread(target=backups.restore, args=(data, zpath), name="restore")
+    restore.start()
+    assert entered.wait(30)                                  # the restore has read the file and is writing it
+    done = []
+    balance = threading.Thread(target=lambda: done.append(h.set_balance(p, 1000.0, 123456)))
+    balance.start()
+    balance.join(0.3)
+    assert balance.is_alive() and done == []                 # waits for the lock instead of reading the old file
+    go.set()
+    restore.join(30)
+    balance.join(30)
+    assert done and done[0].balance == 123456
+    assert [(r.t, r.balance) for r in h.load(p)] == [(500.0, None), (1000.0, 123456)]   # the restore and the balance
+
+
+@pytest.mark.skipif(not hasattr(__import__("time"), "tzset"), reason="time.tzset: not on Windows")
+def test_last_week_starts_on_its_monday_also_in_the_week_after_a_clock_change(monkeypatch):
+    """1.56 (review F10): the week before was start − 7 × 24 h – in the week after the clocks went back (Europe/Berlin,
+    25.10.2026) that is Monday 01:00, a round in its first hour fell out of "Vorwoche" (overview tiles and the week
+    Claude gets)."""
+    import time
+    from types import SimpleNamespace
+    from fogscout import overview, statsclaude
+    monkeypatch.setenv("TZ", "Europe/Berlin")
+    time.tzset()
+    try:
+        now = time.mktime((2026, 10, 28, 12, 0, 0, 0, 0, -1))                   # Wednesday after the change
+        early = h.Round(t=time.mktime((2026, 10, 19, 0, 30, 0, 0, 0, -1)), seconds=600, map_id="a", map="A",
+                        role="killer")                                          # Monday 00:30 of the week before
+        this = h.Round(t=now - 3600, seconds=600, map_id="a", map="A", role="killer")
+        wk = statsclaude.week([early, this], {}, now)
+        assert wk["last_week"]["rounds"] == 1 and wk["this_week"]["rounds"] == 1
+        app = SimpleNamespace(_joined=lambda: SimpleNamespace(rounds=[early, this], off={}))
+        tiles, _note = overview.week(app, now)
+        assert tiles[0].value == "1" and tiles[0].sub.startswith("Vorwoche 1")
+    finally:
+        monkeypatch.undo()
+        time.tzset()
+
+
+def test_a_farming_round_without_a_wait_counts_as_instant_for_bloodpoints_per_hour():
+    """1.56 (review F11): the tables show "sofort" for a farming round without a measured wait (its lobby filled at
+    once); BP per hour with waiting gave it the average wait of the others. It counts 0 s now; other rounds without
+    a wait keep the average, a custom game is never "sofort"."""
+    from fogscout import dashboard
+    from fogscout.official import Match
+    rs = [h.Round(t=1, seconds=500, map_id="a", map="A", role="survivor", wait=60.0),
+          h.Round(t=2, seconds=500, map_id="a", map="A", role="survivor", wait=120.0),
+          h.Round(t=3, seconds=500, map_id="a", map="A", role="survivor", farming=True),              # sofort
+          h.Round(t=4, seconds=500, map_id="a", map="A", role="survivor"),                            # unknown
+          h.Round(t=5, seconds=500, map_id="a", map="A", role="survivor", farming=True, custom=True)]  # unknown
+    ms = [Match(t=0, map="A", seconds=600, bp=10000) for _r in rs]
+    assert dashboard.bp_rate(list(zip(rs, ms))).wait_s == 60 + 120 + 0 + 90 + 90

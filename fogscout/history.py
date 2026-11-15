@@ -8,7 +8,8 @@ from __future__ import annotations
 import json
 import math
 import os
-from dataclasses import asdict, dataclass
+import threading
+from dataclasses import dataclass, fields
 
 from . import fsops, jsonlcache
 
@@ -19,6 +20,10 @@ KEEP = 5000                 # newest rounds kept when the file is tidied
 # oldest rounds were gone for good once there were more than KEEP. The statistics do not read it (their speed is why
 # the file is kept short); "Alles sichern (ZIP)" packs it, "Alle Runden löschen" removes it.
 ARCHIVE = "rounds-archive.jsonl"
+# 1.56 (review F14): every read-change-write of the file holds this lock – a restore from a backup runs in a thread
+# while the window's thread corrects rounds or saves the balance; without it the last writer won and the other
+# change was gone. Re-entrant: a writer may call another one.
+LOCK = threading.RLock()
 
 
 @dataclass
@@ -39,6 +44,15 @@ class Round:
     stalls: int | None = None   # 1.11.9: receive gaps ≥ netwatch.STALL_S from the game server (None: not measured)
     stall_max: float | None = None   # … the longest one in seconds
     balance: int | None = None  # 1.13: bloodpoint balance read in the lobby after the round (bloodpoints.py), None: not read
+
+
+_FIELDS = tuple(f.name for f in fields(Round))
+
+
+def _dump(r: Round) -> str:
+    """One stored line of a round – the same text as ``json.dumps(asdict(r), ensure_ascii=False)`` (fields in their
+    order). 1.56 (review F2): asdict deep-copies every value and took ~60 % of a correction's rewrite at 5000 rounds."""
+    return json.dumps({k: getattr(r, k) for k in _FIELDS}, ensure_ascii=False)
 
 
 def should_record(seconds: float) -> bool:
@@ -67,12 +81,47 @@ def archive_path(path: str, name: str) -> str:
     return os.path.join(os.path.dirname(os.path.abspath(path)), name)
 
 
+def _archived_tail(path: str, size: int) -> set:
+    """The start times (``t``) of the complete lines in the last ``size`` bytes of the archive file ``path``."""
+    out = set()
+    try:
+        with open(path, "rb") as fh:
+            end = fh.seek(0, os.SEEK_END)
+            fh.seek(max(0, end - size))
+            chunk = fh.read()
+    except OSError:
+        return out
+    if end > size:
+        chunk = chunk[chunk.find(b"\n") + 1:]            # the first line is cut: left out
+    for raw in chunk.split(b"\n"):
+        try:
+            d = json.loads(raw.decode("utf-8"))
+            if isinstance(d, dict):
+                out.add(float(d["t"]))
+        except (ValueError, KeyError, TypeError, UnicodeDecodeError):
+            continue
+    return out
+
+
 def archive_lines(path: str, lines) -> None:
     """1.50.6: ``lines`` at the end of the archive file ``path``, on the disk before the caller drops them from its
-    own file (OSError when not)."""
+    own file (OSError when not). 1.56 (review F7): when the caller's rewrite failed after the archive was written,
+    its next tidying hands over the same lines again – lines whose ``t`` already stands in the archive's end (as
+    many bytes as these lines) are left out. Only the end is compared, not "older than the newest archived line":
+    a restore can bring rounds older than those, and they must still reach the archive."""
     lines = list(lines)
     if not lines:
         return
+    seen = _archived_tail(path, sum(len(line.encode("utf-8")) + 1 for line in lines) + 1)
+    if seen:
+        def t_of(line):
+            try:
+                return float(json.loads(line)["t"])
+            except (ValueError, KeyError, TypeError):
+                return None
+        lines = [line for line in lines if t_of(line) not in seen]
+        if not lines:
+            return
     with open(path, "a+b") as fh:
         if fh.tell() > 0:
             fh.seek(-1, os.SEEK_END)
@@ -84,29 +133,42 @@ def archive_lines(path: str, lines) -> None:
 
 
 def append(path: str, rnd: Round) -> None:
-    _append_line(path, json.dumps(asdict(rnd), ensure_ascii=False))
-    _tidy(path)
+    with LOCK:
+        _append_line(path, _dump(rnd))
+        _tidy(path)
+
+
+def _slack() -> int:
+    """1.56 (review F1): how far the file may grow past KEEP before it is tidied (5 % of it, 250 at KEEP = 5000).
+    Trimmed to exactly KEEP, every further round rewrote the whole file (~150 ms in the window's thread)."""
+    return KEEP // 20
 
 
 def _tidy(path: str) -> None:
-    """Keep the file from growing forever: rewrite it with the newest KEEP rounds now and then."""
+    """Keep the file from growing forever: once it holds more than KEEP + _slack() rounds, rewrite it with the
+    newest KEEP – one rewrite per _slack() new rounds, not one per round."""
     try:
-        if os.path.getsize(path) < KEEP * 200:
-            return
-        rounds = load(path)
-        if len(rounds) <= KEEP:
-            return
-        kept = rounds[-KEEP:]
-        # first into the archive – when that cannot be written (OSError), nothing is taken out
-        archive_lines(archive_path(path, ARCHIVE), [json.dumps(asdict(r), ensure_ascii=False) for r in rounds[:-KEEP]])
-        _rewrite(path, kept, [d for d in _lost_lines(path) if d["t"] >= kept[0].t])
+        with LOCK:
+            if os.path.getsize(path) < (KEEP + _slack()) * 200:
+                return
+            if len(_LINES.items(path)) <= KEEP + _slack():     # counted without copying every round
+                return
+            rounds = load(path)
+            kept = rounds[-KEEP:]
+            lost = _lost_lines(path)
+            # 1.56 (review F5): lost-round lines older than the kept rounds go to the archive too (were dropped)
+            old = [(r.t, _dump(r)) for r in rounds[:-KEEP]] + \
+                [(d["t"], json.dumps(d, ensure_ascii=False)) for d in lost if d["t"] < kept[0].t]
+            # first into the archive – when that cannot be written (OSError), nothing is taken out
+            archive_lines(archive_path(path, ARCHIVE), [line for _t, line in sorted(old, key=lambda x: x[0])])
+            _rewrite(path, kept, [d for d in lost if d["t"] >= kept[0].t])
     except OSError:
         pass
 
 
 def _rewrite(path: str, rounds, lost) -> None:
     """Write rounds and lost-round lines (as ``_lost_lines()`` returns them) back in time order (atomic)."""
-    lines = [(r.t, json.dumps(asdict(r), ensure_ascii=False)) for r in rounds] + \
+    lines = [(r.t, _dump(r)) for r in rounds] + \
         [(d["t"], json.dumps(d, ensure_ascii=False)) for d in lost]
     text = "".join(line + "\n" for _t, line in sorted(lines, key=lambda x: x[0]))
     data = text.encode("utf-8")
@@ -125,7 +187,8 @@ def append_lost(path: str, t: float, map_label: str, reason: str, **known) -> No
     count once the official match data brings its length. load() skips these lines."""
     rec = {"lost": True, "t": t, "map": map_label, "reason": reason}
     rec.update({k: v for k, v in known.items() if k in LOST_KEYS and v not in (None, "")})
-    _append_line(path, json.dumps(rec, ensure_ascii=False))
+    with LOCK:
+        _append_line(path, json.dumps(rec, ensure_ascii=False))
 
 
 def _lost_lines(path: str) -> list:
@@ -381,7 +444,8 @@ def wait_summary(rounds) -> dict:
     w = sorted(r.wait for r in rounds if r.wait is not None and normal(r))
     if not w:
         return {"count": 0, "avg": 0.0, "median": 0.0, "min": 0.0, "max": 0.0}
-    return {"count": len(w), "avg": sum(w) / len(w), "median": w[len(w) // 2], "min": w[0], "max": w[-1]}
+    # 1.56 (review F8): median() – an even count took the upper middle value instead of the mean of both
+    return {"count": len(w), "avg": sum(w) / len(w), "median": median(w), "min": w[0], "max": w[-1]}
 
 
 def _wait_key(r, by):
@@ -423,25 +487,61 @@ def regions_at(rounds, now: float, min_rounds: int = 3) -> tuple:
     for code, rs in groups.items():
         if len(rs) < min_rounds:
             continue
-        waits = sorted(r.wait for r in rs)
         pings = [r.ping for r in rs if r.ping is not None]
-        rows.append((code, len(rs), waits[len(waits) // 2], sum(pings) / len(pings) if pings else None))
+        rows.append((code, len(rs), median(r.wait for r in rs), sum(pings) / len(pings) if pings else None))   # 1.56 (F8)
     return block, sorted(rows, key=lambda row: (row[2], row[0]))
+
+
+def _change(path: str, ts, fn) -> list:
+    """1.56 (review F2): apply ``fn(round) -> bool`` (True: changed) to the rounds that started at the times ``ts``
+    and rewrite the file once – marking k rounds was k full rewrites. Returns the changed rounds in the order of
+    ``ts`` (each once); nothing changed = nothing written."""
+    with LOCK:
+        rounds = load(path)
+        at = {}
+        for r in rounds:
+            at.setdefault(r.t, r)
+        done, seen = [], set()
+        for t in ts:
+            hit = at.get(t) or next((r for r in rounds if abs(r.t - t) < 1e-6), None)
+            if hit is None or id(hit) in seen:
+                continue
+            seen.add(id(hit))
+            if fn(hit):
+                done.append(hit)
+        if done:
+            if fn is _drop:
+                gone = {id(r) for r in done}
+                rounds = [r for r in rounds if id(r) not in gone]
+            _rewrite(path, rounds, _lost_lines(path))
+        return done
+
+
+def _first(changed: list):
+    return changed[0] if changed else None
+
+
+def _drop(_r) -> bool:
+    return True
+
+
+def set_role_many(path: str, ts, role: str) -> list:
+    """Correct the role of the rounds that started at ``ts`` (role: killer | survivor | custom); one rewrite.
+    Returns the rounds found (also those that had that role already)."""
+    if role not in ROLES + ("custom",):
+        raise ValueError(role)
+
+    def change(hit):
+        hit.custom = role == "custom"
+        hit.role = "" if hit.custom else role       # the waiting time stays (ignored for custom games): undo-able
+        return True
+    return _change(path, ts, change)
 
 
 def set_role(path: str, t: float, role: str):
     """Correct the role of the round that started at ``t`` (role: killer | survivor | custom).
     Rewrites the file; returns the changed round or None."""
-    if role not in ROLES + ("custom",):
-        raise ValueError(role)
-    rounds = load(path)
-    hit = next((r for r in rounds if abs(r.t - t) < 1e-6), None)
-    if hit is None:
-        return None
-    hit.custom = role == "custom"
-    hit.role = "" if hit.custom else role       # the waiting time stays (ignored for custom games): undo-able
-    _rewrite(path, rounds, _lost_lines(path))
-    return hit
+    return _first(set_role_many(path, [t], role))
 
 
 def set_result_role(path: str, t: float, role: str):
@@ -449,13 +549,13 @@ def set_result_role(path: str, t: float, role: str):
     custom game stays one, farming stays). Returns the changed round, or None (no such round / already that role)."""
     if role not in ROLES:
         raise ValueError(role)
-    rounds = load(path)
-    hit = next((r for r in rounds if abs(r.t - t) < 1e-6), None)
-    if hit is None or hit.role == role:
-        return None
-    hit.role = role
-    _rewrite(path, rounds, _lost_lines(path))
-    return hit
+
+    def change(hit):
+        if hit.role == role:
+            return False
+        hit.role = role
+        return True
+    return _first(_change(path, [t], change))
 
 
 def set_balance(path: str, t: float, balance: int):
@@ -463,67 +563,77 @@ def set_balance(path: str, t: float, balance: int):
     end, the lobby comes later). Returns the changed round, or None (no such round / already that value)."""
     if not isinstance(balance, int) or isinstance(balance, bool) or balance < 0:
         raise ValueError(balance)
-    rounds = load(path)
-    hit = next((r for r in rounds if abs(r.t - t) < 1e-6), None)
-    if hit is None or hit.balance == balance:
-        return None
-    hit.balance = balance
-    _rewrite(path, rounds, _lost_lines(path))
-    return hit
+
+    def change(hit):
+        if hit.balance == balance:
+            return False
+        hit.balance = balance
+        return True
+    return _first(_change(path, [t], change))
+
+
+def set_farming_many(path: str, ts, farming: bool) -> list:
+    """1.2.20: mark / unmark the rounds that started at ``ts`` as farming rounds (the role stays).
+    1.5.5: marking a round as farming also drops "custom game" – a farming round is a public round, and a
+    custom game is never counted as farming (select()). One rewrite; returns the rounds found."""
+    def change(hit):
+        hit.farming = bool(farming)
+        if farming:
+            hit.custom = False
+        return True
+    return _change(path, ts, change)
 
 
 def set_farming(path: str, t: float, farming: bool):
-    """1.2.20: mark / unmark the round that started at ``t`` as a farming round (the role stays).
-    1.5.5: marking a round as farming also drops "custom game" – a farming round is a public round, and a
-    custom game is never counted as farming (select()). Rewrites the file; returns the changed round or None."""
-    rounds = load(path)
-    hit = next((r for r in rounds if abs(r.t - t) < 1e-6), None)
-    if hit is None:
-        return None
-    hit.farming = bool(farming)
-    if farming:
-        hit.custom = False
-    _rewrite(path, rounds, _lost_lines(path))
-    return hit
+    """set_farming_many for one round: the changed round or None."""
+    return _first(set_farming_many(path, [t], farming))
+
+
+def delete_many(path: str, ts) -> list:
+    """Remove the rounds that started at ``ts`` (e.g. false detections); one rewrite. Returns the removed rounds."""
+    return _change(path, ts, _drop)
 
 
 def delete(path: str, t: float):
     """Remove the round that started at ``t`` (e.g. a false detection). Returns the removed round or None."""
-    rounds = load(path)
-    hit = next((r for r in rounds if abs(r.t - t) < 1e-6), None)
-    if hit is None:
-        return None
-    _rewrite(path, [r for r in rounds if r is not hit], _lost_lines(path))
-    return hit
+    return _first(delete_many(path, [t]))
+
+
+def set_killer_many(path: str, ts, killer: str) -> list:
+    """Set the killer of the rounds that started at ``ts`` (also makes them killer rounds – e.g. a round
+    wrongly counted as survivor has no name from the lobby); one rewrite. Returns the rounds found."""
+    if not killer:
+        raise ValueError(killer)
+
+    def change(hit):
+        hit.killer, hit.role, hit.custom = killer, "killer", False
+        return True
+    return _change(path, ts, change)
 
 
 def set_killer(path: str, t: float, killer: str):
-    """Set the killer of the round that started at ``t`` (also makes it a killer round – e.g. a round
-    wrongly counted as survivor has no name from the lobby). Returns the changed round or None."""
-    if not killer:
-        raise ValueError(killer)
-    rounds = load(path)
-    hit = next((r for r in rounds if abs(r.t - t) < 1e-6), None)
-    if hit is None:
-        return None
-    hit.killer, hit.role, hit.custom = killer, "killer", False
-    _rewrite(path, rounds, _lost_lines(path))
-    return hit
+    """set_killer_many for one round: the changed round or None."""
+    return _first(set_killer_many(path, [t], killer))
+
+
+def set_map_many(path: str, ts, map_id: str, label: str) -> list:
+    """1.38.26 (project review F3): the map of the rounds that started at ``ts`` – a wrongly read banner could not be
+    corrected before (``official.correct_maps`` covers only some cases); one rewrite. Returns the changed rounds
+    (not those that had that map already)."""
+    if not map_id or not label:
+        raise ValueError((map_id, label))
+
+    def change(hit):
+        if hit.map_id == map_id and hit.map == label:
+            return False
+        hit.map_id, hit.map = map_id, label
+        return True
+    return _change(path, ts, change)
 
 
 def set_map(path: str, t: float, map_id: str, label: str):
-    """1.38.26 (project review F3): the map of the round that started at ``t`` – a wrongly read banner could not be
-    corrected before (``official.correct_maps`` covers only some cases). Returns the changed round, or None (no
-    such round / already that map)."""
-    if not map_id or not label:
-        raise ValueError((map_id, label))
-    rounds = load(path)
-    hit = next((r for r in rounds if abs(r.t - t) < 1e-6), None)
-    if hit is None or (hit.map_id == map_id and hit.map == label):
-        return None
-    hit.map_id, hit.map = map_id, label
-    _rewrite(path, rounds, _lost_lines(path))
-    return hit
+    """set_map_many for one round: the changed round, or None (no such round / already that map)."""
+    return _first(set_map_many(path, [t], map_id, label))
 
 
 # ------------------------------------------------------------------ ping

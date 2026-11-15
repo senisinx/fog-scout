@@ -965,3 +965,20 @@ def test_the_setup_assistant_sets_up_obs_and_leads_to_the_server_page(app_root, 
         assert not app.qt._setup_on and app.qt.current_key() == "server"
     finally:
         app.quit()
+
+
+def test_the_recorder_learns_the_files_in_use_only_when_they_change():
+    """1.56 (audit E-1): the upload queue's names and every editor's file (a montage: all its sources) go to the
+    recorder, which never prunes them – sent once per change, not on every tick."""
+    from types import SimpleNamespace
+    sent = []
+    app = SimpleNamespace(_yt_queued={"Farming/up.mkv"}, recorder=SimpleNamespace(protect=sent.append),
+                          _clip_windows=[SimpleNamespace(path="/rec/a.mkv"),
+                                         SimpleNamespace(path="/rec/b.mkv", sources=["/rec/b.mkv", "/rec/c.mkv"]),
+                                         SimpleNamespace()])
+    RecordingsTab._rec_protect(app)
+    RecordingsTab._rec_protect(app)
+    assert sent == [frozenset({"Farming/up.mkv", "/rec/a.mkv", "/rec/b.mkv", "/rec/c.mkv"})]
+    app._yt_queued, app._clip_windows = set(), []
+    RecordingsTab._rec_protect(app)
+    assert sent[-1] == frozenset() and len(sent) == 2

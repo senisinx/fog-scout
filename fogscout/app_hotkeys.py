@@ -111,6 +111,15 @@ class Hotkeys:
         else:
             self.hk_status.set(_("Zum Ändern anklicken und die neue Tastenkombination drücken."))
         self._hk_show_all()
+        self._hk_restart()
+
+    def _hk_restart(self):
+        """1.56 (audit B2): the one place that replaces the hotkey thread – the running one is stopped and joined
+        first (the right-click "Standard"/"Aus" started a second thread beside it; recording had stopped it)."""
+        old = self.hotkeys
+        if old.is_alive():
+            old.stop()
+            old.join(timeout=1.5)
         self.hotkeys = self._start_hotkeys()
 
     def _hk_set(self, key, what):
@@ -136,7 +145,5 @@ class Hotkeys:
         self.settings["hotkeys"].update(DEFAULTS["hotkeys"])
         self._save_soon()
         self._hk_show_all()
-        self.hotkeys.stop()
-        self.hotkeys.join(timeout=1.5)
-        self.hotkeys = self._start_hotkeys()
+        self._hk_restart()
         self.hk_status.set(_("Standard-Hotkeys wiederhergestellt."))

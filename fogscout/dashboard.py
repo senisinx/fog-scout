@@ -68,7 +68,8 @@ class BpRate:
     rounds: int = 0
     bp: int = 0
     play_s: float = 0.0          # match length (the stats page's, else banner to end)
-    wait_s: float = 0.0          # search time in the lobby (rounds without a known wait: the average of the others)
+    wait_s: float = 0.0          # search time in the lobby (rounds without a known wait: the average of the others;
+                                 # 1.56: a farming round without one is "sofort" = 0 s)
 
     @property
     def per_round(self):
@@ -92,7 +93,10 @@ def bp_rate(pairs) -> BpRate:
     out.play_s = sum(m.seconds if m.seconds > 0 else r.seconds for r, m in got)
     waits = [r.wait for r, _m in got if r.wait is not None]
     avg_wait = sum(waits) / len(waits) if waits else 0.0
-    out.wait_s = sum(r.wait if r.wait is not None else avg_wait for r, _m in got)
+    # 1.56 (review F11): a farming round without a measured wait had no search (an instant lobby) – the tables say
+    # "sofort" for it, so it counts 0 s here too instead of the average of the others
+    out.wait_s = sum(r.wait if r.wait is not None else 0.0 if r.farming and not r.custom else avg_wait
+                     for r, _m in got)
     return out
 
 

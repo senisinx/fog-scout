@@ -626,6 +626,7 @@ class RecordingsTab:
         tab stays selected when the window goes to the tray, and the index, a stat per file, the clips and the
         screenshots were read every REC_REFRESH_S and OBS asked every STATUS_POLL_S for nobody."""
         self._clip_windows_prune()
+        self._rec_protect()
         if self.nb.select() != str(self.tab_recordings):
             return
         q = getattr(self, "qt", None)
@@ -634,6 +635,19 @@ class RecordingsTab:
         if self._rec_dirty or time.time() - self._rec_rendered > REC_REFRESH_S:
             self._rec_render()
         self._rec_card_tick()
+
+    def _rec_protect(self):
+        """1.56 (audit E-1): pruning (room, farming days) deleted recordings queued for YouTube or open in an editor.
+        The recorder learns those files whenever they change: the upload queue's names and the editors' paths
+        (a montage: each of its sources)."""
+        names = set(getattr(self, "_yt_queued", ()) or ())
+        for w in self._clip_windows:
+            names.update(p for p in [getattr(w, "path", None), *(getattr(w, "sources", None) or ())]
+                         if isinstance(p, str) and p)
+        names = frozenset(names)
+        if names != getattr(self, "_rec_protected", frozenset()):
+            self._rec_protected = names
+            self.recorder.protect(names)
 
     # ---- 1.15: the recording card
     def _rec_card_tick(self):

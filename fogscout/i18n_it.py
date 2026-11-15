@@ -1178,7 +1178,7 @@ T = {
     'Position zurücksetzen':
         'Ripristina posizione',
     'Rückgängig':
-        'Annulla',
+        'Annulla modifica',
     'Karte darf grösser als der Balken werden':
         'La mappa può diventare più grande della barra',
     'Karte füllt den Balken aus':
@@ -2051,6 +2051,20 @@ T = {
         '+{p} % di velocità per tutti per {s} s dopo un generatore completato insieme',
     'jeder Great Skill Check in Folge bringt {p} % mehr Bonus (bis {n} Tokens)':
         'ogni prova di abilità ottima consecutiva dà il {p} % di bonus in più (fino a {n} gettoni)',
+    'Skill Checks kommen öfter: +{p} Prozentpunkte Chance je Sekunde':
+        'le prove di abilità arrivano più spesso: +{p} punti percentuali di probabilità al secondo',
+    'Skill Checks kommen für alle am Generator öfter: +{p} Prozentpunkte Chance je Sekunde':
+        'le prove di abilità arrivano più spesso per tutti al generatore: +{p} punti percentuali di probabilità al secondo',
+    'Skill Checks der Survivor kommen öfter: +{p} Prozentpunkte Chance je Sekunde':
+        'le prove di abilità dei sopravvissuti arrivano più spesso: +{p} punti percentuali di probabilità al secondo',
+    'ein verfehlter Skill Check kostet {p} % Fortschritt mehr':
+        'una prova di abilità fallita costa il {p} % di progresso in più',
+    'jeder erfolgreiche Skill Check der anderen bringt im Mittel +{p} % Fortschritt (W20)':
+        'ogni prova di abilità riuscita degli altri dà in media +{p} % di progresso (d20)',
+    'ein verfehlter Skill Check kostet {p} % weniger Fortschritt':
+        'una prova di abilità fallita costa il {p} % di progresso in meno',
+    '+{p} Prozentpunkte Skill-Check-Chance je Token':
+        '+{p} punti percentuali di probabilità di prova di abilità per gettone',
     'jeder Generator braucht {v} Ladungen weniger':
         'ogni generatore richiede {v} cariche in meno',
     'ein Generator braucht {v} Ladungen weniger':
@@ -2570,7 +2584,7 @@ T = {
     'Vorlage „{name}“ angewendet.':
         'Preimpostazione «{name}» applicata.',
     'Setzt Karte, Systemwerte, „Heute“ und Musik auf einmal auf die gewählte Anordnung. „Rückgängig“ holt die vorherige zurück.':
-        'Mette subito mappa, valori di sistema, «Oggi» e musica nella disposizione scelta. «Annulla» riporta quella precedente.',
+        'Mette subito mappa, valori di sistema, «Oggi» e musica nella disposizione scelta. «Annulla modifica» riporta quella precedente.',
     'Weich ein- und ausblenden':
         'Dissolvenza morbida in entrata e uscita',
     'In kleinen DBD-Fenstern ausblenden':
@@ -5481,6 +5495,12 @@ T = {
         'Capovolgi verticalmente',
     'Noch keine Runden – Claude hätte nichts zum Auswerten.':
         'Ancora nessun round – Claude non avrebbe nulla da guardare.',
+    'Zu wenige Runden – Claude bekommt die Statistik erst ab {n} Runden.':
+        'Troppo pochi round – Claude riceve le statistiche solo da {n} round in su.',
+    'Der Update-Ordner ist ein Link – Download abgelehnt.':
+        'La cartella degli aggiornamenti è un collegamento – download rifiutato.',
+    'YouTube: Anmeldung fehlgeschlagen ({error}) – Client-ID und Client-Secret prüfen und noch einmal „Mit YouTube verbinden“ klicken.':
+        'YouTube: accesso non riuscito ({error}) – controlla ID client e client secret e fai clic ancora una volta su «Connetti a YouTube».',
     'Schickt deine Bitte und das Bild, wie es hier zu sehen ist (bereits zensierte Bereiche bleiben zensiert), an Claude; nichts wird geändert, bevor du übernimmst.':
         "Invia a Claude la tua richiesta e l'immagine come appare qui (le aree già censurate restano censurate); nulla cambia prima che tu lo applichi.",
     'Schickt die Frage und Zähler/Quoten deiner Runden an Claude – keine einzelne Runde, keine Namen':

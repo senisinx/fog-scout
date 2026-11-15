@@ -1568,6 +1568,20 @@ EN = {
         '+{p} % speed for everyone for {s} s after a generator finished together',
     'jeder Great Skill Check in Folge bringt {p} % mehr Bonus (bis {n} Tokens)':
         'every great skill check in a row gives {p} % more bonus (up to {n} tokens)',
+    'Skill Checks kommen öfter: +{p} Prozentpunkte Chance je Sekunde':
+        'skill checks come more often: +{p} percentage points of chance per second',
+    'Skill Checks kommen für alle am Generator öfter: +{p} Prozentpunkte Chance je Sekunde':
+        'skill checks come more often for everyone at the generator: +{p} percentage points of chance per second',
+    'Skill Checks der Survivor kommen öfter: +{p} Prozentpunkte Chance je Sekunde':
+        "the survivors' skill checks come more often: +{p} percentage points of chance per second",
+    'ein verfehlter Skill Check kostet {p} % Fortschritt mehr':
+        'a missed skill check costs {p} % more progress',
+    'jeder erfolgreiche Skill Check der anderen bringt im Mittel +{p} % Fortschritt (W20)':
+        'every successful skill check of the others gives +{p} % progress on average (d20)',
+    'ein verfehlter Skill Check kostet {p} % weniger Fortschritt':
+        'a missed skill check costs {p} % less progress',
+    '+{p} Prozentpunkte Skill-Check-Chance je Token':
+        '+{p} percentage points Skill Check chance per token',
     'jeder Generator braucht {v} Ladungen weniger':
         'every generator needs {v} charges less',
     'ein Generator braucht {v} Ladungen weniger':
@@ -4117,6 +4131,12 @@ EN = {
         'Flip vertically',
     'Noch keine Runden – Claude hätte nichts zum Auswerten.':
         'No rounds yet – Claude would have nothing to look at.',
+    'Zu wenige Runden – Claude bekommt die Statistik erst ab {n} Runden.':
+        'Too few rounds – Claude gets the statistics only from {n} rounds on.',
+    'Der Update-Ordner ist ein Link – Download abgelehnt.':
+        'The update folder is a link – download refused.',
+    'YouTube: Anmeldung fehlgeschlagen ({error}) – Client-ID und Client-Secret prüfen und noch einmal „Mit YouTube verbinden“ klicken.':
+        'YouTube: login failed ({error}) – check the client ID and client secret and click "Connect to YouTube" once more.',
     'Schickt deine Bitte und das Bild, wie es hier zu sehen ist (bereits zensierte Bereiche bleiben zensiert), an Claude; nichts wird geändert, bevor du übernimmst.':
         'Sends your wish and the picture as shown here (areas already censored stay censored) to Claude; nothing changes before you apply it.',
     'Schickt die Frage und Zähler/Quoten deiner Runden an Claude – keine einzelne Runde, keine Namen':

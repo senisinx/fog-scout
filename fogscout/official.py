@@ -22,6 +22,7 @@ import logging
 import math
 import os
 import re
+import threading
 import traceback
 from dataclasses import asdict, dataclass, field
 from functools import lru_cache
@@ -52,6 +53,7 @@ MAX_FILE = 5_000_000                    # bytes; the page's 30 matches are ~20 k
 MAX_MATCHES = 500                       # per file
 KEEP = 5000                             # newest matches kept in official.jsonl
 ARCHIVE = "official-archive.jsonl"      # 1.50.6: older ones go here first (history.archive_lines), never just away
+LOCK = threading.RLock()                # 1.56 (review F14): around every read-change-write (merge, restore)
 PAGE_LIMIT = 30                         # the page gives the newest 30 matches only
 EARLIEST = 1598918400.0                 # 2020-09-01: the page's stats begin here
 # banner (rounds.jsonl) minus the page's start: measured +31 … +51 s, median +38 (user's data, Oct 2026)
@@ -305,27 +307,36 @@ def _write(path: str, matches, gaps) -> None:
 
 def merge(path: str, matches) -> tuple:
     """Add matches (a match already stored is replaced by the newer copy). -> (new matches, gap or None)."""
-    stored = {round(m.t): m for m in load(path)}
-    gaps = load_gaps(path)
-    newest = max(stored) if stored else None
-    new = sum(1 for m in matches if round(m.t) not in stored)
-    gap = None
-    if newest is not None and len(matches) >= PAGE_LIMIT and min(m.t for m in matches) > newest:
-        gap = (float(newest), min(m.t for m in matches))
-        gaps.append(gap)
-    for m in matches:
-        stored[round(m.t)] = m
-    ordered = sorted(stored.values(), key=lambda m: m.t)
+    with LOCK:
+        stored = {round(m.t): m for m in load(path)}
+        gaps = load_gaps(path)
+        newest = max(stored) if stored else None
+        new = sum(1 for m in matches if round(m.t) not in stored)
+        gap = None
+        if newest is not None and len(matches) >= PAGE_LIMIT and min(m.t for m in matches) > newest:
+            gap = (float(newest), min(m.t for m in matches))
+            gaps.append(gap)
+        for m in matches:
+            stored[round(m.t)] = m
+        write_kept(path, sorted(stored.values(), key=lambda m: m.t), gaps)
+        return new, gap
+
+
+def write_kept(path: str, ordered, gaps) -> list:
+    """Write the matches ``ordered`` (oldest first) and ``gaps``: the newest KEEP stay in the file, older ones go to
+    the archive first (when that cannot be written, nothing is taken out). Returns the matches kept in the file.
+    1.56 (review F6): shared with backups.restore, which cut to KEEP without archiving."""
     kept = ordered[-KEEP:]
-    if len(ordered) > KEEP:
-        from . import history
-        try:
-            history.archive_lines(history.archive_path(path, ARCHIVE),
-                                  [json.dumps(asdict(m), ensure_ascii=False) for m in ordered[:-KEEP]])
-        except OSError:
-            kept = ordered                                   # not archived: nothing is taken out
-    _write(path, kept, [g for g in gaps if kept and g[1] >= kept[0].t])
-    return new, gap
+    with LOCK:
+        if len(ordered) > KEEP:
+            from . import history
+            try:
+                history.archive_lines(history.archive_path(path, ARCHIVE),
+                                      [json.dumps(asdict(m), ensure_ascii=False) for m in ordered[:-KEEP]])
+            except OSError:
+                kept = ordered                               # not archived: nothing is taken out
+        _write(path, kept, [g for g in gaps if kept and g[1] >= kept[0].t])
+    return kept
 
 
 def clear(path: str) -> None:

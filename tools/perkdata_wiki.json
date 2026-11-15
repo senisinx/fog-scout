@@ -4960,6 +4960,9 @@
 "perk:Appraisal":{
 "h":"ca28cfca81d34f70"
 },
+"perk:Autodidact":{
+"h":"2724d6d0c87e9176"
+},
 "perk:Babysitter":{
 "h":"d9b509b1fb4ac829",
 "n":[
@@ -5032,6 +5035,26 @@
 30.0
 ]
 },
+"perk:Bardic Inspiration":{
+"h":"6180fdb128dbf2fc",
+"n":[
+1.0,
+2.0,
+3.0,
+8.0,
+10.0,
+11.0,
+15.0,
+16.0,
+19.0,
+20.0,
+35.0,
+42.0,
+90.0,
+100.0,
+110.0
+]
+},
 "perk:Batteries Included":{
 "h":"e53d09714dd46c1f",
 "n":[
@@ -5057,6 +5080,9 @@
 45.0,
 50.0
 ]
+},
+"perk:Bite the Bullet":{
+"h":"f77304c77aaad4c0"
 },
 "perk:Blast Mine":{
 "h":"8aaee0c79051d884"
@@ -5235,15 +5261,15 @@
 ]
 },
 "perk:Calm Spirit":{
-"h":"08a5876086dcbb3e",
+"h":"467c2d7a3172a252",
 "n":[
 1.0,
 2.0,
 4.0,
-8.0,
-9.0,
-10.0,
-10.2,
+10.3,
+23.0,
+24.0,
+25.0,
 35.0
 ]
 },
@@ -5321,16 +5347,15 @@
 ]
 },
 "perk:Dark Arrogance":{
-"h":"b38727b8f7e9a52e",
+"h":"b30325227f11d1eb",
 "n":[
 1.0,
 3.0,
 4.0,
-10.0,
-10.2,
+10.3,
+13.0,
+14.0,
 15.0,
-20.0,
-25.0,
 36.0,
 40.0
 ]
@@ -5345,6 +5370,20 @@
 30.0,
 35.0,
 40.0
+]
+},
+"perk:Deadline":{
+"h":"451d5f4ccdb973b7",
+"n":[
+1.0,
+3.0,
+4.0,
+6.0,
+7.5,
+8.0,
+10.0,
+40.0,
+50.0
 ]
 },
 "perk:Deadlock / No Holds Barred":{
@@ -5574,6 +5613,9 @@
 52.0
 ]
 },
+"perk:Fogwise":{
+"h":"78cb5bb160439a03"
+},
 "perk:Forced Hesitation":{
 "h":"03d3885a07075992",
 "n":[
@@ -5665,6 +5707,9 @@
 31.0,
 40.0
 ]
+},
+"perk:Gearhead":{
+"h":"6793170ca150c123"
 },
 "perk:Grim Embrace":{
 "h":"e3a3dbb1d69c3614",
@@ -5808,6 +5853,9 @@
 43.0
 ]
 },
+"perk:Hex: Thrill of the Hunt":{
+"h":"a29c89dd44a2db5d"
+},
 "perk:Hex: Under Your Thumb":{
 "h":"43129f9560df668e",
 "n":[
@@ -5833,6 +5881,9 @@
 5.0,
 9.2
 ]
+},
+"perk:Human Greed":{
+"h":"cb10c3784656220d"
 },
 "perk:Hyperfocus":{
 "h":"729b170d8ff0379a",
@@ -5892,6 +5943,9 @@
 20.0,
 30.0
 ]
+},
+"perk:Last Standing":{
+"h":"7382457d6ee71a1f"
 },
 "perk:Lay Waste":{
 "h":"8d2993dd22a4fe17"
@@ -6001,6 +6055,26 @@
 100.0
 ]
 },
+"perk:No Quarter":{
+"h":"f80268ab56586dc3"
+},
+"perk:One-Two-Three-Four!":{
+"h":"4fe35cbdf72bec95",
+"n":[
+1.0,
+2.0,
+3.0,
+9.2,
+15.0,
+16.0,
+20.0,
+35.0,
+49.0,
+90.0,
+100.0,
+110.0
+]
+},
 "perk:Oppression":{
 "h":"cd89943f8c3fc6f8"
 },
@@ -6018,6 +6092,9 @@
 85.0,
 130.0
 ]
+},
+"perk:Overcome":{
+"h":"810f81a16fd767cb"
 },
 "perk:Overzealous (Dull Totem)":{
 "h":"0d410f5fbcb61654",
@@ -6129,6 +6206,9 @@
 35.0
 ]
 },
+"perk:Quick & Quiet":{
+"h":"28817cc67b4e6102"
+},
 "perk:Quick Gambit":{
 "h":"98b9f5ca86d76277"
 },
@@ -6158,6 +6238,9 @@
 33.0
 ]
 },
+"perk:Reactive Healing":{
+"h":"ad38c36d3aee6241"
+},
 "perk:Repressed Alliance":{
 "h":"2ce57cc017a06b2a"
 },
@@ -6172,8 +6255,14 @@
 10.2
 ]
 },
+"perk:Resurgence":{
+"h":"0bc08fc62cf0dbb0"
+},
 "perk:Road Life":{
 "h":"98c36f46fb883a7d"
+},
+"perk:Rookie Spirit":{
+"h":"215325ceb8f5a42f"
 },
 "perk:Saboteur":{
 "h":"c765e75155846050",
@@ -6189,6 +6278,12 @@
 65.0,
 70.0
 ]
+},
+"perk:Scavenger":{
+"h":"43788b11f4260c44"
+},
+"perk:Scourge Hook: Monstrous Shrine":{
+"h":"97a39f9a7305f752"
 },
 "perk:Scourge Hook: Pain Resonance":{
 "h":"6def502e24ad76d2",
@@ -6253,15 +6348,15 @@
 ]
 },
 "perk:Slippery Meat":{
-"h":"c4fac583c800fa38",
+"h":"46628280863d3061",
 "n":[
 1.0,
 4.0,
-5.0,
-10.2,
-90.0,
-95.0,
-100.0
+7.0,
+10.3,
+65.0,
+70.0,
+75.0
 ]
 },
 "perk:Sloppy Butcher":{
@@ -6418,6 +6513,19 @@
 51.0
 ]
 },
+"perk:Technician":{
+"h":"46f9a9a60a0a034c",
+"n":[
+1.0,
+2.0,
+3.0,
+4.0,
+9.0,
+10.1,
+16.0,
+30.0
+]
+},
 "perk:Tenacity":{
 "h":"7ce7503108b50a47",
 "n":[
@@ -6448,6 +6556,9 @@
 20.0,
 35.0
 ]
+},
+"perk:This Is Not Happening":{
+"h":"c7ea021657d5c3b6"
 },
 "perk:Thrilling Tremors":{
 "h":"c465d4a59b611139"
@@ -6511,6 +6622,19 @@
 35.0,
 40.0,
 1943.0
+]
+},
+"perk:Unnerving Presence":{
+"h":"83c899d31ae6f9e0",
+"n":[
+1.0,
+3.6,
+4.0,
+10.0,
+30.0,
+40.0,
+50.0,
+60.0
 ]
 },
 "perk:Unrelenting":{
@@ -6596,6 +6720,9 @@
 53.0,
 60.0
 ]
+},
+"perk:Will to Live":{
+"h":"5a970acaa1c0024a"
 },
 "perk:Windows of Opportunity":{
 "h":"cfd7e7c5c316bed5",
@@ -6954,5 +7081,1862 @@
 "Windows of Opportunity",
 "Wiretap",
 "Zanshin Tactics"
+],
+"tags":{
+"A Nurse's Calling":[
+"Auras",
+"Healing"
+],
+"A Place For Us":[
+"Elusive",
+"Healing",
+"Obsession"
+],
+"Ace in the Hole":[
+"Add-ons",
+"Chests",
+"Items"
+],
+"Adrenaline":[
+"Exhausted",
+"Haste",
+"Healing"
+],
+"Aftercare":[
+"Auras"
+],
+"Agitation":[
+"Carrying",
+"MovementSpeed",
+"TerrorRadius"
+],
+"Alert":[
+"Auras",
+"BreakableWalls",
+"Generators",
+"Pallets"
+],
+"Alien Instinct":[
+"Auras",
+"Hooks",
+"Oblivious"
+],
+"All-Shaking Thunder":[
+"Falling",
+"Lunge"
+],
+"Any Means Necessary":[
+"Auras",
+"Pallets"
+],
+"Apocalyptic Ingenuity":[
+"Auras",
+"Chests",
+"FragilePallet",
+"Pallets"
+],
+"Appraisal":[
+"ActionSpeed",
+"Chests",
+"Items",
+"RummageAbility"
+],
+"Autodidact":[
+"BonusProgression",
+"Healing",
+"Regression",
+"SkillChecks",
+"Tokens"
+],
+"Awakened Awareness":[
+"Auras",
+"Carrying"
+],
+"Babysitter":[
+"Auras",
+"Haste",
+"PoolsOfBlood",
+"ScratchMarks",
+"Stealth"
+],
+"Background Player":[
+"Exhausted",
+"Haste",
+"Hooks"
+],
+"Bada Bada Boom":[
+"Auras",
+"Generators",
+"Hindered",
+"Trap",
+"VaultLocations"
+],
+"Balanced Landing":[
+"ActionNoise",
+"Exhausted",
+"Falling",
+"Haste"
+],
+"Bamboozle":[
+"ActionSpeed",
+"VaultLocations",
+"Vaulting",
+"WindowBlocker"
+],
+"Barbecue & Chilli":[
+"Auras",
+"Hooks"
+],
+"Bardic Inspiration":[
+"BonusProgression",
+"Screams",
+"SkillChecks"
+],
+"Batteries Included":[
+"Generators",
+"Haste"
+],
+"Beast of Prey":[
+"Bloodlust",
+"Deception",
+"Stealth",
+"Undetectable"
+],
+"Best Gift Ever":[
+"Flashlights",
+"FogVials",
+"Items",
+"Keys",
+"Maps",
+"Med-Kits",
+"Toolboxes"
+],
+"Better Together":[
+"Auras",
+"Generators"
+],
+"Better than New":[
+"ActionSpeed",
+"Blessing",
+"Chests",
+"Cleansing",
+"Healing",
+"HealingProficiency",
+"Totems"
+],
+"Bite the Bullet":[
+"Healing",
+"LoudNoiseNotifications",
+"SkillChecks"
+],
+"Bitter Murmur":[
+"Auras",
+"Generators"
+],
+"Blast Mine":[
+"Auras",
+"Generators",
+"KillerBlind",
+"KillerStun",
+"SurvivorBlind",
+"Trap"
+],
+"Blood Echo":[
+"Exhausted",
+"Haemorrhage",
+"Hooks"
+],
+"Blood Pact":[
+"Auras",
+"Haste",
+"Obsession"
+],
+"Blood Rush":[
+"Exhausted",
+"Healing",
+"Hooks"
+],
+"Blood Warden":[
+"Auras",
+"ExitGates",
+"GateBlocker",
+"Hooks"
+],
+"Bloodhound":[
+"PoolsOfBlood"
+],
+"Boil Over":[
+"Auras",
+"Hooks",
+"Wiggle"
+],
+"Bond":[
+"Auras"
+],
+"Boon: Circle of Healing":[
+"ActionSpeed",
+"Boon",
+"Healing",
+"HealingProficiency",
+"Totems"
+],
+"Boon: Dark Theory":[
+"Boon",
+"Haste",
+"Totems"
+],
+"Boon: Exponential":[
+"Boon",
+"Recovering",
+"RecoverySpeed",
+"Totems"
+],
+"Boon: Illumination":[
+"Auras",
+"Blessing",
+"Boon",
+"Chests",
+"Cleansing",
+"Generators",
+"Totems"
+],
+"Boon: Shadow Step":[
+"Auras",
+"Boon",
+"ScratchMarks",
+"Totems"
+],
+"Boon: Steadfast":[
+"Boon",
+"Generators",
+"RegressionSpeed",
+"Totems"
+],
+"Borrowed Time":[
+"ConspicuousActions",
+"Endurance",
+"Haste"
+],
+"Botany Knowledge":[
+"ActionSpeed",
+"Healing",
+"HealingProficiency"
+],
+"Bound by Obsession":[
+"ActionSpeeds",
+"Auras",
+"CleansingProficiency",
+"HealingProficiency",
+"Obsession",
+"RepairingProficiency"
+],
+"Breakdown":[
+"Auras",
+"Hooks"
+],
+"Breakout":[
+"ActionSpeed",
+"Haste",
+"Wiggle"
+],
+"Brutal Strength":[
+"ActionSpeed",
+"BreakableWalls",
+"Generators",
+"Pallets"
+],
+"Buckle Up":[
+"Auras",
+"ConspicuousActions",
+"Exhausted",
+"Haste",
+"Recovering"
+],
+"Built to Last":[
+"ItemRecharge",
+"Items",
+"Lockers"
+],
+"Call of Brine":[
+"Generators",
+"Regression",
+"SkillChecks"
+],
+"Calm Spirit":[
+"ActionNoise",
+"ActionSpeed",
+"Chests",
+"CleansingProficiency",
+"Crows",
+"Screams",
+"Stealth",
+"Totems"
+],
+"Camaraderie":[
+"EntityProgression",
+"Hooks",
+"Struggling"
+],
+"Celestial Witness":[
+"Auras",
+"Obsession"
+],
+"Champion of Light":[
+"Flashlights",
+"Haste",
+"Hindered",
+"KillerBlind"
+],
+"Change of Plan":[
+"ItemRecharge",
+"Items",
+"Lockers",
+"Med-Kits",
+"Toolboxes"
+],
+"Chemical Trap":[
+"Auras",
+"Generators",
+"Hindered",
+"Pallets"
+],
+"Clairvoyance":[
+"Auras",
+"Chests",
+"Generators",
+"Hatch",
+"Hooks",
+"Totems"
+],
+"Clean Break":[
+"AutoHeal",
+"Broken"
+],
+"Come and Get Me!":[
+"Auras",
+"GruntsOfPain",
+"PoolsOfBlood",
+"ScratchMarks",
+"Screams"
+],
+"Conviction":[
+"Broken",
+"Healing",
+"Recovering"
+],
+"Corrective Action":[
+"Auras",
+"SkillChecks",
+"Tokens"
+],
+"Corrupt Intervention":[
+"GenBlocker",
+"Generators"
+],
+"Coulrophobia":[
+"ActionSpeed",
+"Healing",
+"HealingProficiency",
+"RotationSpeed",
+"SkillChecks",
+"TerrorRadius"
+],
+"Counterforce":[
+"Totems"
+],
+"Coup de Grâce":[
+"Generators",
+"Lunge",
+"Tokens"
+],
+"Cross-Examination":[
+"Elusive"
+],
+"Cruel Limits":[
+"Auras",
+"Generators",
+"VaultLocations",
+"WindowBlocker"
+],
+"Cull the Weak":[
+"ActionSpeed",
+"HealingProficiency",
+"Obsession",
+"RepairingProficiency",
+"SabotageProficiency",
+"Tokens"
+],
+"Cut Loose":[
+"LoudNoiseNotifications",
+"Stealth",
+"Vaulting"
+],
+"Dance With Me":[
+"Lockers",
+"Pallets",
+"ScratchMarks",
+"Stealth",
+"Vaulting"
+],
+"Dark Arrogance":[
+"ActionSpeed",
+"EffectDuration",
+"KillerBlind",
+"KillerStun",
+"Pallets",
+"Vaulting",
+"Windows"
+],
+"Dark Devotion":[
+"Deception",
+"Obsession",
+"Stealth",
+"TerrorRadius",
+"TerrorRadiusTransfer",
+"Undetectable"
+],
+"Dark Sense":[
+"Auras",
+"Generators"
+],
+"Darkness Revealed":[
+"Auras",
+"Lockers"
+],
+"Dead Hard":[
+"DeepWound",
+"Endurance",
+"Exhausted"
+],
+"Dead Man's Switch":[
+"Auras",
+"GenBlocker",
+"Generators",
+"Hooks"
+],
+"Deadline":[
+"Healing",
+"InjuredState",
+"Repairing",
+"SkillCheckProbability",
+"SkillChecks"
+],
+"Deathbound":[
+"AuraFlareUp",
+"Healing",
+"LoudNoiseNotifications",
+"Oblivious"
+],
+"Deception":[
+"Deception",
+"Lockers",
+"LoudNoiseNotifications",
+"PoolsOfBlood",
+"ScratchMarks",
+"Stealth"
+],
+"Deerstalker":[
+"Auras"
+],
+"Deliverance":[
+"Broken",
+"Chance",
+"EscapeAttempt",
+"Hooks"
+],
+"Desperate Measures":[
+"ActionSpeed",
+"Healing",
+"HealingProficiency"
+],
+"Detective's Hunch":[
+"Auras",
+"Chests",
+"Generators",
+"Totems"
+],
+"Discordance":[
+"Auras",
+"Generators",
+"LoudNoiseNotifications"
+],
+"Dissolution":[
+"Pallets",
+"TerrorRadius",
+"Vaulting"
+],
+"Distortion":[
+"Auras",
+"Chase",
+"ScratchMarks",
+"Stealth"
+],
+"Distressing":[
+"TerrorRadius"
+],
+"Diversion":[
+"Deception",
+"LoudNoiseNotifications",
+"ScratchMarks",
+"TerrorRadius"
+],
+"Do No Harm":[
+"ActionSpeed",
+"BonusProgression",
+"HealingProficiency",
+"HookStates",
+"SkillChecks"
+],
+"Dominance":[
+"Auras",
+"ChestBlocker",
+"Chests",
+"TotemBlocker",
+"Totems"
+],
+"Down to the Last":[
+"ActionSpeed",
+"Auras",
+"ExitGates",
+"Generators",
+"Hatch",
+"Obsession",
+"RepairingProficiency",
+"Stealth"
+],
+"Dragon's Grip":[
+"Exposed",
+"Generators",
+"LoudNoiseNotifications",
+"Screams"
+],
+"Dramaturgy":[
+"Add-ons",
+"Exhausted",
+"Exposed",
+"Haste",
+"Items"
+],
+"Duty of Care":[
+"Haste",
+"ProtectionHits"
+],
+"Déjà Vu":[
+"ActionSpeed",
+"Auras",
+"Generators"
+],
+"Empathic Connection":[
+"ActionSpeed",
+"Auras",
+"Healing",
+"HealingProficiency",
+"InjuredState"
+],
+"Empathy":[
+"Auras",
+"InjuredState"
+],
+"Enduring":[
+"KillerStun",
+"Pallets",
+"StunRecovery"
+],
+"Eruption":[
+"Auras",
+"Generators"
+],
+"Extrasensory Perception":[
+"Auras",
+"Chests",
+"Crouching",
+"Elusive",
+"ExitGates",
+"Generators",
+"Hatch",
+"Oblivious",
+"Stealth",
+"Totems"
+],
+"Exultation":[
+"Charges",
+"KillerStun",
+"Pallets",
+"RarityUpgrade"
+],
+"Eyes of Belmont":[
+"Auras",
+"Generators"
+],
+"Fast Track":[
+"BonusProgression",
+"Generators",
+"SkillChecks",
+"Tokens"
+],
+"Finesse":[
+"ActionSpeed",
+"Vaulting"
+],
+"Fire Up":[
+"ActionSpeed",
+"Breaking",
+"Damaging",
+"Dropping",
+"PickingUp",
+"Tokens",
+"Vaulting"
+],
+"Five Moves Ahead":[
+"Auras",
+"Chase",
+"Pallets"
+],
+"Fixated":[
+"Haste",
+"ScratchMarks"
+],
+"Flashbang":[
+"FlashGrenades",
+"Generators",
+"Lockers"
+],
+"Flip-Flop":[
+"Conversion",
+"Recovering",
+"Wiggle"
+],
+"Flow State":[
+"ActionSpeed",
+"Blessing",
+"Cleansing",
+"Healing",
+"Unhooking"
+],
+"Fogwise":[
+"Auras",
+"Generators",
+"SkillChecks"
+],
+"For the People":[
+"Broken",
+"DeepWound",
+"Healing",
+"Obsession"
+],
+"Forced Hesitation":[
+"Hindered"
+],
+"Forced Penance":[
+"Broken",
+"ProtectionHits"
+],
+"Forever Entwined":[
+"ActionSpeed",
+"Dropping",
+"Hooking",
+"PickingUp",
+"Tokens"
+],
+"Franklin's Demise":[
+"Auras",
+"ForcedItemDrop",
+"Items"
+],
+"Friendly Competition":[
+"ActionSpeed",
+"Generators",
+"RepairingProficiency"
+],
+"Friends 'til the End":[
+"Auras",
+"Exposed",
+"Hooks",
+"LoudNoiseNotifications",
+"Obsession"
+],
+"Fruits of Your Labor":[
+"Generators",
+"Haste",
+"Healing"
+],
+"Funny Business":[
+"Generators",
+"Haste"
+],
+"Furtive Chase":[
+"Haste",
+"Hooks",
+"Obsession",
+"Undetectable"
+],
+"Game Afoot":[
+"BreakableWalls",
+"Generators",
+"Haste",
+"Obsession",
+"Pallets"
+],
+"Gearhead":[
+"Auras",
+"Generators",
+"SkillChecks"
+],
+"Genetic Limits":[
+"Exhausted"
+],
+"Ghost Notes":[
+"Exhausted",
+"ScratchMarks"
+],
+"Grim Embrace":[
+"Auras",
+"GenBlocker",
+"Generators",
+"Hooks",
+"Obsession",
+"Tokens"
+],
+"Hardened":[
+"Auras",
+"Chests",
+"Screams",
+"Totems"
+],
+"Haywire":[
+"ExitGates",
+"RegressionSpeed"
+],
+"Head On":[
+"Exhausted",
+"KillerStun",
+"Lockers"
+],
+"Help Wanted":[
+"AttackCooldown",
+"Generators",
+"Regression"
+],
+"Hex: Blood Favour":[
+"Hex",
+"PalletBlocker",
+"Pallets",
+"Totems"
+],
+"Hex: Crowd Control":[
+"Hex",
+"Totems",
+"VaultLocations",
+"Vaulting",
+"WindowBlocker"
+],
+"Hex: Devour Hope":[
+"Exposed",
+"Haste",
+"Hex",
+"Hooks",
+"Killing",
+"Tokens",
+"Totems"
+],
+"Hex: Face the Darkness":[
+"Auras",
+"Hex",
+"LoudNoiseNotifications",
+"TerrorRadius"
+],
+"Hex: Fortune's Fool":[
+"Auras",
+"Hex",
+"Oblivious",
+"Totems"
+],
+"Hex: Haunted Ground":[
+"Exposed",
+"Hex",
+"Totems"
+],
+"Hex: Hive Mind":[
+"Auras",
+"Generators",
+"Hex",
+"ProgressionPenalty",
+"Regression"
+],
+"Hex: Huntress Lullaby":[
+"ActionNoise",
+"Hex",
+"Hooks",
+"ProgressionPenalty",
+"SkillChecks",
+"Tokens",
+"Totems"
+],
+"Hex: No One Escapes Death":[
+"ExitGates",
+"Exposed",
+"Haste",
+"Hex",
+"Totems"
+],
+"Hex: Nothing but Misery":[
+"Hex",
+"Hindered",
+"Totems"
+],
+"Hex: Overture of Doom":[
+"Auras",
+"Generators",
+"Hex",
+"TerrorRadius",
+"TerrorRadiusTransfer",
+"Totems",
+"Undetectable"
+],
+"Hex: Pentimento":[
+"ActionSpeed",
+"Auras",
+"HealingProficiency",
+"Hex",
+"RepairingProficiency",
+"Tokens",
+"TotemBlocker",
+"Totems"
+],
+"Hex: Retribution":[
+"Auras",
+"Hex",
+"Oblivious",
+"Totems"
+],
+"Hex: Ruin":[
+"Generators",
+"Hex",
+"Regression",
+"Totems"
+],
+"Hex: Scared to Death":[
+"Hindered"
+],
+"Hex: The Third Seal":[
+"Blindness",
+"Hex",
+"Totems"
+],
+"Hex: Thrill of the Hunt":[
+"ActionSpeed",
+"Blessing",
+"Cleansing",
+"Hex",
+"Tokens",
+"Totems"
+],
+"Hex: Two Can Play":[
+"Hex",
+"KillerBlind",
+"KillerStun",
+"SurvivorBlind",
+"Totems"
+],
+"Hex: Under Your Thumb":[
+"Haste",
+"Hex",
+"Totems"
+],
+"Hex: Undying":[
+"Auras",
+"Hex",
+"Totems"
+],
+"Hex: Wretched Fate":[
+"Auras",
+"Generators",
+"Hex",
+"Obsession",
+"Totems"
+],
+"Hoarder":[
+"Chests",
+"Items",
+"LoudNoiseNotifications"
+],
+"Hope":[
+"ExitGates",
+"Haste"
+],
+"Hubris":[
+"Exposed",
+"KillerStun"
+],
+"Human Greed":[
+"ActionSpeed",
+"Auras",
+"Chests"
+],
+"Hyperfocus":[
+"BonusProgression",
+"RotationSpeed",
+"SkillCheckDifficulty",
+"SkillCheckProbability",
+"SkillChecks",
+"TriggerOdds"
+],
+"Hysteria":[
+"Oblivious"
+],
+"I'm All Ears":[
+"Auras",
+"Vaulting"
+],
+"Infectious Fright":[
+"AuraFlareUp",
+"LoudNoiseNotifications",
+"TerrorRadius"
+],
+"Inner Focus":[
+"Auras",
+"ScratchMarks"
+],
+"Inner Strength":[
+"Broken",
+"DeepWound",
+"Healing",
+"Lockers",
+"Totems"
+],
+"Insidious":[
+"Deception",
+"Stealth",
+"Undetectable"
+],
+"Invocation: Treacherous Crows":[
+"Auras",
+"Basement",
+"Broken",
+"Crows",
+"InjuredState",
+"Invocation",
+"Killer",
+"TerrorRadius"
+],
+"Invocation: Weaving Spiders":[
+"Auras",
+"Basement",
+"Broken",
+"Generators",
+"InjuredState",
+"Invocation",
+"RepairRequirement"
+],
+"Iron Grasp":[
+"ActionTime",
+"Carrying",
+"Wiggle"
+],
+"Iron Maiden":[
+"ActionSpeed",
+"AuraFlareUp",
+"Exposed",
+"Lockers",
+"LoudNoiseNotifications"
+],
+"Iron Will":[
+"Exhausted",
+"GruntsOfPain",
+"Stealth"
+],
+"Keep Them Waiting":[
+"AttackCooldown",
+"Obsession",
+"Tokens"
+],
+"Kill Spree":[
+"ExitGates",
+"Killing"
+],
+"Kindred":[
+"Auras",
+"Hooks",
+"KillerAura"
+],
+"Knock Out":[
+"Hindered",
+"Pallets"
+],
+"Languid Touch":[
+"Crows",
+"Exhausted"
+],
+"Last Stand":[
+"KillerStun",
+"Pallets",
+"TerrorRadius",
+"Vaulting",
+"Windows"
+],
+"Last Standing":[
+"ActionSpeed"
+],
+"Laughingstock":[
+"Exhausted",
+"Generators",
+"Oblivious"
+],
+"Lay Waste":[
+"Generators",
+"Regression",
+"RegressionSpeed"
+],
+"Leader":[
+"ActionSpeed",
+"Chests",
+"CleansingProficiency",
+"ExitGates",
+"HealingProficiency",
+"SabotageProficiency"
+],
+"Left Behind":[
+"Auras",
+"Hatch"
+],
+"Lend a Hand":[
+"Healing"
+],
+"Lethal Pursuer":[
+"Auras"
+],
+"Leverage":[
+"ActionSpeed",
+"Healing",
+"HealingProficiency",
+"Hooks"
+],
+"Light-Footed":[
+"Stealth"
+],
+"Lightborn":[
+"Auras",
+"BlindingResistance"
+],
+"Lightweight":[
+"ScratchMarks",
+"Stealth"
+],
+"Lithe":[
+"Exhausted",
+"Haste",
+"Pallets",
+"Vaulting"
+],
+"Low Profile":[
+"PoolsOfBlood",
+"ScratchMarks"
+],
+"Lucky Break":[
+"PoolsOfBlood",
+"ScratchMarks",
+"Stealth"
+],
+"Lucky Star":[
+"Auras",
+"Generators",
+"GruntsOfPain",
+"Lockers",
+"PoolsOfBlood",
+"Stealth"
+],
+"Machine Learning":[
+"Auras",
+"Generators",
+"Haste",
+"Undetectable"
+],
+"Mad Grit":[
+"ActionPause",
+"AttackCooldown",
+"Carrying",
+"Wiggle"
+],
+"Made for This":[
+"ConspicuousActions",
+"DeepWound",
+"Endurance",
+"Haste",
+"Healing"
+],
+"Make Your Choice":[
+"Exposed",
+"Hooks",
+"LoudNoiseNotifications"
+],
+"Merciless Storm":[
+"Generator",
+"SkillChecks"
+],
+"Mettle of Man":[
+"Auras",
+"Obsession",
+"ProtectionHits"
+],
+"Mindbreaker":[
+"Blindness",
+"Exhausted",
+"Generators"
+],
+"Mirrored Illusion":[
+"Chests",
+"ExitGates",
+"Generators",
+"Totems"
+],
+"Moment of Glory":[
+"AutoHeal",
+"Broken",
+"Chests",
+"Healing"
+],
+"Monitor & Abuse":[
+"TerrorRadius"
+],
+"Nemesis":[
+"Auras",
+"Blinding",
+"KillerStun",
+"Lockers",
+"Oblivious",
+"Obsession",
+"Pallets"
+],
+"No Holds Barred":[
+"Auras",
+"GenBlocker",
+"Generators"
+],
+"No Mither":[
+"Broken",
+"GruntsOfPain",
+"PoolsOfBlood",
+"Recovering",
+"Stealth"
+],
+"No One Left Behind":[
+"ActionSpeed",
+"Auras",
+"EffectDuration",
+"ExitGates",
+"Haste",
+"HealingProficiency"
+],
+"No Quarter":[
+"Broken",
+"Healing",
+"Self-Healing",
+"SkillChecks"
+],
+"No Way Out":[
+"ExitGates",
+"GateSwitchBlocker",
+"LoudNoiseNotifications",
+"Tokens"
+],
+"None Are Free":[
+"Generators",
+"PalletBlocker",
+"WindowBlocker"
+],
+"Nowhere to Hide":[
+"Auras",
+"Generators"
+],
+"Off the Record":[
+"Auras",
+"GruntsOfPain",
+"Hooks",
+"ScratchMarks, Endurance"
+],
+"One-Two-Three-Four!":[
+"Healing",
+"Repairing",
+"SkillCheckProbability",
+"SkillChecks"
+],
+"Open-Handed":[
+"Auras",
+"Vision"
+],
+"Oppression":[
+"Generators",
+"Regression",
+"SkillChecks"
+],
+"Overcharge":[
+"Generators",
+"ProgressionPenalty",
+"Regression",
+"RegressionSpeed",
+"SkillChecks"
+],
+"Overcome":[
+"Exhausted",
+"MovementSpeed"
+],
+"Overwhelming Presence":[
+"Auras",
+"Exhausted",
+"Items"
+],
+"Overzealous":[
+"ActionSpeed",
+"Generators",
+"RepairingProficiency",
+"Totems"
+],
+"Parental Guidance":[
+"GruntsOfPain",
+"PoolsOfBlood",
+"ScratchMarks"
+],
+"Phantom Fear":[
+"Auras",
+"Screams",
+"TerrorRadius"
+],
+"Pharmacy":[
+"ActionNoise",
+"ActionSpeed",
+"Chests",
+"Items",
+"Med-Kits",
+"RummageAbility"
+],
+"Plot Twist":[
+"DyingState",
+"GruntsOfPain",
+"Haste",
+"Healing",
+"PoolsOfBlood",
+"SelfRecovery"
+],
+"Plunderer's Instinct":[
+"Auras",
+"Chests",
+"Items"
+],
+"Poised":[
+"Auras",
+"Generators",
+"ScratchMarks",
+"Stealth"
+],
+"Pop Goes the Weasel":[
+"Generators",
+"Hooks",
+"ProgressionPenalty"
+],
+"Potential Energy":[
+"BonusProgression",
+"Generators",
+"SkillChecks",
+"Tokens"
+],
+"Power Struggle":[
+"KillerStun",
+"Pallets",
+"Wiggle"
+],
+"Predator":[
+"Auras"
+],
+"Premonition":[
+"Auras",
+"Warning"
+],
+"Prove Thyself":[
+"ActionSpeed",
+"Generators",
+"RepairingProficiency"
+],
+"Quick & Quiet":[
+"Lockers",
+"LoudNoiseNotifications",
+"Pallets",
+"RepairingProficiency",
+"Stealth",
+"Vaulting"
+],
+"Quick Gambit":[
+"ActionSpeed",
+"Auras",
+"Chase",
+"RepairingProficiency"
+],
+"Rampage":[
+"BreakableWalls",
+"Haste",
+"Pallets"
+],
+"Rancor":[
+"AuraFlareUp",
+"Auras",
+"Exposed",
+"Generators",
+"Killing",
+"LoudNoiseNotifications",
+"Obsession"
+],
+"Rapid Brutality":[
+"Bloodlust",
+"Haste"
+],
+"Rapid Response":[
+"Auras",
+"Exhausted",
+"Lockers"
+],
+"Ravenous":[
+"Exposed",
+"Hooks",
+"Screams"
+],
+"Reactive Healing":[
+"BonusProgression",
+"Healing"
+],
+"Reassurance":[
+"ActionPause",
+"EntityProgression",
+"Hooks"
+],
+"Red Herring":[
+"Auras",
+"Deception",
+"Generators",
+"Lockers",
+"LoudNoiseNotifications"
+],
+"Remember Me":[
+"ActionTime",
+"ExitGates",
+"Obsession",
+"Tokens"
+],
+"Repressed Alliance":[
+"Auras",
+"GenBlocker",
+"Generators"
+],
+"Residual Manifest":[
+"Blindness",
+"Chests",
+"Items",
+"KillerBlind"
+],
+"Resilience":[
+"ActionSpeed",
+"Blessing",
+"Chests",
+"Cleansing",
+"ExitGates",
+"Generators",
+"Healing",
+"Hooks",
+"Opening",
+"Repairing",
+"Sabotaging",
+"Searching",
+"Totems",
+"Unhooking",
+"Vaulting",
+"Windows"
+],
+"Resurgence":[
+"BonusProgression",
+"Healing",
+"Hooks"
+],
+"Road Life":[
+"ActionSpeed",
+"Generators",
+"HealingProficiency",
+"SelfHealing",
+"SkillChecks",
+"Tokens"
+],
+"Rookie Spirit":[
+"Auras",
+"Generators",
+"SkillChecks"
+],
+"Saboteur":[
+"ActionSpeed",
+"Auras",
+"Hooks",
+"Sabotage",
+"ScourgeHookAuras"
+],
+"Salvation's Cry":[
+"Auras"
+],
+"Scavenger":[
+"Chests",
+"Items",
+"SkillChecks",
+"Tokens"
+],
+"Scene Partner":[
+"Auras",
+"Screams",
+"TerrorRadius"
+],
+"Scourge Hook: Floods of Rage":[
+"Auras",
+"Hooks",
+"ScourgeHooks"
+],
+"Scourge Hook: Hangman's Trick":[
+"Auras",
+"Hooks",
+"LoudNoiseNotifications",
+"Sabotage",
+"ScourgeHooks"
+],
+"Scourge Hook: Jagged Compass":[
+"Auras",
+"Generators",
+"Hooks",
+"ScourgeHooks"
+],
+"Scourge Hook: Monstrous Shrine":[
+"ActionSpeed",
+"Basement",
+"Generators",
+"Hooks",
+"ScourgeHooks"
+],
+"Scourge Hook: Pain Resonance":[
+"Auras",
+"Generators",
+"Hooks",
+"ProgressionPenalty",
+"Regression",
+"ScourgeHooks"
+],
+"Scourge Hook: Weeping Wounds":[
+"ActionSpeed",
+"Auras",
+"Haemorrhage",
+"HealingProficiency",
+"Hooks",
+"Mangled",
+"ScourgeHooks"
+],
+"Second Wind":[
+"Broken",
+"Healing",
+"Hooks"
+],
+"Secret Project":[
+"Deception",
+"GenBlocker",
+"Generators",
+"Stealth",
+"Totems",
+"Undetectable"
+],
+"See How They Run":[
+"Chase",
+"Haste",
+"Obsession",
+"Tokens"
+],
+"Self-Care":[
+"ActionSpeed",
+"Efficiency",
+"Healing",
+"HealingProficiency",
+"SelfHealing"
+],
+"Self-Preservation":[
+"Elusive",
+"GruntsOfPain",
+"PoolsOfBlood",
+"ScratchMarks",
+"Stealth"
+],
+"Septic Touch":[
+"Blindness",
+"Exhausted",
+"Healing",
+"TerrorRadius"
+],
+"Shadowborn":[
+"Haste",
+"KillerBlind"
+],
+"Shared Trauma":[
+"Exhausted"
+],
+"Shattered Hope":[
+"Auras",
+"BoonDestroyer",
+"Totems"
+],
+"Shoulder the Burden":[
+"Broken",
+"HookStates",
+"Screams"
+],
+"Silent Shadow":[
+"Undetectable"
+],
+"Slippery Meat":[
+"Haste",
+"Hooks",
+"Unhooking"
+],
+"Sloppy Butcher":[
+"Haemorrhage",
+"Mangled",
+"PoolsOfBlood"
+],
+"Small Game":[
+"Totems",
+"Warning"
+],
+"Smash Hit":[
+"Exhausted",
+"Haste",
+"KillerStun",
+"Pallets"
+],
+"Solidarity":[
+"Conversion",
+"Healing"
+],
+"Soul Guard":[
+"ConspicuousActions",
+"Cursed",
+"DeepWound",
+"Endurance",
+"SelfRecovery"
+],
+"Specialist":[
+"Chests",
+"Generators",
+"RepairRequirement",
+"SkillChecks",
+"Tokens"
+],
+"Spies from the Shadows":[
+"Crows",
+"LoudNoiseNotifications"
+],
+"Spine Chill":[
+"ActionSpeed",
+"Screams"
+],
+"Spirit Fury":[
+"KillerStun",
+"Pallets"
+],
+"Sprint Burst":[
+"Exhausted",
+"Haste"
+],
+"Stake Out":[
+"SkillChecks",
+"TerrorRadius",
+"Tokens"
+],
+"Starstruck":[
+"Exposed",
+"TerrorRadius"
+],
+"Still Sight":[
+"Auras",
+"Chests",
+"Generators",
+"KillerAura"
+],
+"Streetwise":[
+"Auras",
+"Charges",
+"Chests",
+"Items",
+"KillerAura"
+],
+"Strength in Shadows":[
+"ActionSpeed",
+"Auras",
+"Basement",
+"Efficiency",
+"Healing",
+"HealingProficiency",
+"SelfHealing"
+],
+"Stridor":[
+"Breathing",
+"GruntsOfPain"
+],
+"Superior Anatomy":[
+"ActionSpeed",
+"Pallets",
+"VaultLocations",
+"Vaulting"
+],
+"Surge":[
+"Generators",
+"ProgressionPenalty",
+"Regression"
+],
+"Surveillance":[
+"ActionNoise",
+"Auras",
+"Generators"
+],
+"THWACK!":[
+"Auras",
+"BreakableWalls",
+"Hooks",
+"LoudNoiseNotifications",
+"Pallets",
+"Screams",
+"Tokens"
+],
+"Teamwork: Collective Stealth":[
+"Healing",
+"ScratchMarks",
+"Stealth",
+"Teamwork"
+],
+"Teamwork: Full Circuit":[
+"ActionSpeed",
+"Generators",
+"SkillCheckDifficulty",
+"SkillChecks",
+"Teamwork"
+],
+"Teamwork: Power of Two":[
+"Haste",
+"Healing",
+"Teamwork"
+],
+"Teamwork: Soft-Spoken":[
+"ActionNoise",
+"ActionSpeed",
+"Generators",
+"Teamwork"
+],
+"Teamwork: Throw Down":[
+"Auras",
+"Endurance",
+"KillerBlind",
+"KillerStun",
+"Pallets",
+"Teamwork"
+],
+"Teamwork: Toughen Up":[
+"GruntsOfPain",
+"KillerBlind",
+"KillerStun",
+"Pallets",
+"PoolsOfBlood",
+"ScratchMarks",
+"Teamwork"
+],
+"Technician":[
+"ActionNoise",
+"Generators",
+"LoudNoiseNotifications",
+"ProgressionPenalty",
+"SkillChecks"
+],
+"Tenacity":[
+"Auras",
+"GruntsOfPain",
+"Haste",
+"Recovering"
+],
+"Terminus":[
+"Broken",
+"ExitGates"
+],
+"Territorial Imperative":[
+"Auras",
+"Basement"
+],
+"Thanatophobia":[
+"ActionSpeed",
+"RepairingProficiency",
+"SabotageProficiency",
+"Totems"
+],
+"This Is Not Happening":[
+"SkillCheckDifficulty",
+"SkillChecks"
+],
+"Thrilling Tremors":[
+"Auras",
+"GenBlocker",
+"Generators"
+],
+"Tinkerer":[
+"Deception",
+"Generators",
+"LoudNoiseNotifications",
+"Stealth",
+"Undetectable"
+],
+"Trail of Torment":[
+"Auras",
+"Deception",
+"Generators",
+"Stealth",
+"Undetectable"
+],
+"Troubleshooter":[
+"Auras",
+"Chase",
+"Generators",
+"Pallets"
+],
+"Turn Back the Clock":[
+"Generators",
+"Hooks",
+"ProgressionPenalty"
+],
+"Ultimate Weapon":[
+"Blindness",
+"Lockers",
+"LoudNoiseNotifications"
+],
+"Unbound":[
+"Haste",
+"InjuredState",
+"Vaulting",
+"Windows"
+],
+"Unbreakable":[
+"Recovering",
+"RecoverySpeed",
+"SelfRecovery"
+],
+"Undone":[
+"GenBlocker",
+"Generators",
+"Regression",
+"Tokens"
+],
+"Unforeseen":[
+"Deception",
+"Generators",
+"TerrorRadius",
+"TerrorRadiusTransfer",
+"Undetectable"
+],
+"Unnerving Presence":[
+"SkillCheckDifficulty",
+"SkillCheckProbability",
+"SkillChecks",
+"TerrorRadius",
+"TriggerOdds"
+],
+"Unrelenting":[
+"AttackCooldown"
+],
+"Up the Ante":[
+"Chance",
+"EscapeAttempts"
+],
+"Urban Evasion":[
+"Crouching",
+"Haste"
+],
+"Valkyrie's Rage":[
+"Chase",
+"Pallets"
+],
+"Vigil":[
+"Blindness",
+"Broken",
+"Exhausted",
+"Exposed",
+"Haemorrhage",
+"Hindered",
+"Mangled",
+"Oblivious",
+"RecoverySpeed"
+],
+"Visionary":[
+"Auras",
+"Generators"
+],
+"Wake Up!":[
+"ActionSpeed",
+"Auras",
+"ExitGates"
+],
+"Wandering Eye":[
+"Auras",
+"InjuredState"
+],
+"We See You":[
+"Auras",
+"KillerAura"
+],
+"We'll Make It":[
+"ActionSpeed",
+"Healing",
+"HealingProficiency"
+],
+"We're Gonna Live Forever":[
+"ActionSpeed",
+"ConspicuousActions",
+"DeepWound",
+"Endurance",
+"Healing",
+"HealingProficiency"
+],
+"Weave Attunement":[
+"Auras",
+"ForcedItemDrop",
+"Items",
+"Oblivious"
+],
+"Whispers":[
+"Warning"
+],
+"Wicked":[
+"Auras",
+"Basement",
+"Chance",
+"EscapeAttempt",
+"Hooks"
+],
+"Wide Open Throttle":[
+"Haste",
+"Pallets"
+],
+"Will to Live":[
+"KillerStun",
+"Obsession",
+"SkillChecks"
+],
+"Windows of Opportunity":[
+"Auras",
+"BreakableWalls",
+"Pallets",
+"VaultLocations"
+],
+"Wiretap":[
+"Auras",
+"Generators",
+"Trap"
+],
+"Zanshin Tactics":[
+"Auras",
+"Pallets",
+"Windows"
 ]
+}
 }

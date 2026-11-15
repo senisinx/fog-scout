@@ -81,8 +81,9 @@ class DiscordPresence:
             return discordrpc.GameState(running, "match", h.get("map", ""), self._realm_name(m, english=True) if m else "",
                                         h.get("role") or "", self._killer_name(h.get("killer")), h.get("t"))
         if self.current and self.round.running:          # a map shown by hand (hotkey, Maps page)
-            m = self.catalog.maps.get(self.current)
-            return discordrpc.GameState(running, "match", m.label(1) if m else str(self.current),
+            m = self.catalog.maps.get(self.current[0])   # 1.56: current is (map id, layout) – the whole tuple was
+            return discordrpc.GameState(running, "match",   # never found, Discord showed "('coal-tower', 1)"
+                                        m.label(self.current[1]) if m else str(self.current[0]),
                                         self._realm_name(m, english=True) if m else "", q.get("role") or "",
                                         self._killer_name(q.get("killer")), self.round.start_t)
         state = q.get("state")

@@ -142,9 +142,12 @@ class Ipc:
             raise IpcError("bad frame")
         body = self._read(length) if length else b"{}"
         try:
-            return op, json.loads(body.decode("utf-8") or "{}")
+            data = json.loads(body.decode("utf-8") or "{}")
         except ValueError as e:
             raise IpcError(f"bad json: {e}") from None
+        if not isinstance(data, dict):        # 1.56 (audit SEC-6): anything local can serve the pipe – a list or a
+            raise IpcError("bad frame")       # number crashed the callers (AttributeError) and leaked the pipe
+        return op, data
 
     def close(self):
         for h in (self._f, self._s):
@@ -171,10 +174,15 @@ def connect(client_id: str) -> Ipc:
             ipc.close()
             seen = e
             continue
-        if op == OP_FRAME and d.get("evt") == "READY":
-            return ipc
-        ipc.close()
-        msg = d.get("message") or d.get("data", {}).get("message") if isinstance(d, dict) else ""
+        try:
+            if op == OP_FRAME and d.get("evt") == "READY":
+                ok, ipc = ipc, None
+                return ok
+            data = d.get("data")
+            msg = d.get("message") or (data.get("message") if isinstance(data, dict) else "")
+        finally:
+            if ipc is not None:               # 1.56 (audit SEC-6): closed on every way out but READY
+                ipc.close()
         raise IpcError(_peer_text(msg or f"op {op}"), "client_id" if op == OP_CLOSE else "")
     raise IpcError(_("Discord nicht gefunden – läuft es?") if seen is None else _peer_text(seen), "absent")
 

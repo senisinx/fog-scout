@@ -111,7 +111,8 @@ def test_a_perk_acts_only_on_its_rows_and_on_the_right_survivors():
     assert line("objects", "gate", team, subject=0).mult == pytest.approx(1.3)  # from the other Leader
     assert line("objects", "gate", team, subject=1).mult == pytest.approx(1.3)  # two Leaders: once
     assert line("objects", "gate", [S(("Leader",)), S()], subject=0).mult == 1.0    # not for its owner
-    assert line("hook", "unhook", [S(("Slippery Meat",)), S()], subject=1).result == pytest.approx(0.5)
+    # 1.56 (patch 10.3.0): others unhook you 65/70/75 % faster (was 90/95/100 %) – tier III: 1 s / 1.75
+    assert line("hook", "unhook", [S(("Slippery Meat",)), S()], subject=1).result == pytest.approx(1 / 1.75)
     # Tokens of a Survivor perk: all, half, one
     flow = [S(("Flow State",))]
     assert line("objects", "bless", flow).mult == pytest.approx(1.75)
@@ -137,6 +138,37 @@ def test_the_killers_own_actions_and_what_survivors_do_to_them():
     assert ln.result == pytest.approx(4.6 * 1.05 * 0.8) and len(ln.parts) == 2          # the perk of two: once
     assert line("k_move", "carry", [S()], K(("Agitation",)), subject=g.KILLER).result == pytest.approx(4.3424)
     assert line("k_move", "k460", [S()], K(("Agitation",)), subject=g.KILLER).mult == 1.0
+
+
+def test_the_values_changed_by_patch_10_3_0():
+    """1.56 (tools/check_perkdata.py reported them): Calm Spirit 23/24/25 % (was 8/9/10 %), Dark Arrogance
+    vaulting +15 % and hit recovery +13/14/15 %, but missed attacks recover 15 % slower (was +25 % / +10 % on both)."""
+    calm = [S(("Calm Spirit",))]
+    for row in ("cleanse", "bless", "chest"):
+        assert line("objects", row, calm).mult == pytest.approx(1.25)              # 14 s → 11.2 s, 8 s → 6.4 s
+    assert line("objects", "chest", calm).result == pytest.approx(6.4)
+    assert line("objects", "gate", calm).mult == 1.0
+    da = K(("Dark Arrogance",))
+    assert line("k_action", "kvault", [S()], da, subject=g.KILLER).result == pytest.approx(1.7 / 1.15)
+    assert line("k_attack", "hit", [S()], da, subject=g.KILLER).result == pytest.approx(2.7 / 1.15)
+    assert line("k_attack", "miss", [S()], da, subject=g.KILLER).result == pytest.approx(1.5 / 0.85)
+    # with Unrelenting (+40 % after a miss): bonuses add, the penalty multiplies – 1.5 / (1.4 · 0.85)
+    both = K(("Dark Arrogance", "Unrelenting"))
+    assert line("k_attack", "miss", [S()], both, subject=g.KILLER).result == pytest.approx(1.5 / (1.4 * 0.85))
+
+
+def test_skill_check_perks_count_on_generators_and_are_named_where_they_cannot():
+    """1.56: the heal rows have no Skill Checks (a fixed time per Health State), so what Deadline, One-Two-Three-
+    Four!, Bardic Inspiration and Unnerving Presence do while healing – and the healing-only perks Autodidact, Bite
+    the Bullet, Reactive Healing and Resurgence – is named as not calculated instead of invented."""
+    checks = ("Deadline", "One-Two-Three-Four!", "Bardic Inspiration", "Technician")
+    assert all(n in g.perk_names(D, "S", "repair") for n in checks)
+    assert "Unnerving Presence" in g.perk_names(D, "K", "repair")
+    for name in ("Deadline", "One-Two-Three-Four!", "Bardic Inspiration", "Unnerving Presence", "Autodidact",
+                 "Bite the Bullet", "Reactive Healing", "Resurgence"):
+        assert name in D.not_modelled_areas and name not in D.perks, name
+    healer = [S(("Deadline", "One-Two-Three-Four!", "Bardic Inspiration")), S(("Bardic Inspiration",))]
+    assert all(ln.mult == 1.0 for ln in g.area_lines(D, "heal", healer, K(("Unnerving Presence",))))
 
 
 def test_the_repair_breakdown_gives_the_speed_the_generator_runs_at():
@@ -492,7 +524,7 @@ def test_every_perk_of_the_calculator_has_its_picture_in_the_program():
     want = [(n, "perks") for n in set(D.survivor) | set(D.killer) | set(D.perks)] + \
         [(n, "items") for n in g.item_names(D)] + \
         [(n, "addon") for v in list(D.killer_addon_lists.values()) + list(D.item_addon_lists.values()) for n in v]
-    assert len(want) == len(set(want)) == 1100
+    assert len(want) == len(set(want)) == 1105
     assert {(kind, n) for n, kind in want if index.find(n, kind) is None} == NO_PICTURE
     for n, kind in want:                                      # a picture is of the kind asked for
         path = index.find(n, kind)
