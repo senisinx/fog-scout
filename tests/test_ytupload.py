@@ -640,6 +640,34 @@ def test_the_browser_login_hands_a_refresh_token_to_the_app(fake):
         up.join(timeout=3)
 
 
+def test_a_refused_code_exchange_asks_for_a_new_login_with_a_hint(fake):
+    """1.56 (audit SEC-7): the browser came back, but Google refused the code exchange (wrong secret, stale code) –
+    the YouTubeError ended in the generic error state. Now, as with Spotify: login needed, and what to check."""
+    seen = {}
+
+    def browser(url):
+        seen.update(dict(urllib.parse.parse_qsl(urllib.parse.urlsplit(url).query)))
+        return True
+    events = []
+    up = _uploader(events, opener=browser)
+    try:
+        up.configure(True, CID, SECRET, "private", "", [], {})
+        assert _wait(lambda: up.state == "login_needed")
+        up.login()
+        assert _wait(lambda: "state" in seen and up.state == "linking")
+        opener = urllib.request.build_opener(urllib.request.ProxyHandler({}))   # no verifier known: invalid_grant
+        with opener.open(f"{seen['redirect_uri']}?code=unknown&state={seen['state']}", timeout=3) as r:
+            assert r.status == 200
+        assert _wait(lambda: any(k == "status" and "Anmeldung fehlgeschlagen" in d[0] for k, d in events))
+        assert up.state == "login_needed" and not up.linked
+        text = next(d[0] for k, d in events if k == "status" and "Anmeldung fehlgeschlagen" in d[0])
+        assert "Client-Secret" in text and "Fehler –" not in text and SECRET not in text
+        assert not [d for k, d in events if k == "token" and d]                    # nothing stored
+    finally:
+        up.quit()
+        up.join(timeout=3)
+
+
 def test_a_new_login_without_the_windows_encryption_is_kept_in_memory_only(monkeypatch):
     """1.28 (audit F2): no DPAPI → no "token" event, the status says the connection lasts until quitting."""
     events = []

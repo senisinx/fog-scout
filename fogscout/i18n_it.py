@@ -5495,6 +5495,12 @@ T = {
         'Capovolgi verticalmente',
     'Noch keine Runden – Claude hätte nichts zum Auswerten.':
         'Ancora nessun round – Claude non avrebbe nulla da guardare.',
+    'Zu wenige Runden – Claude bekommt die Statistik erst ab {n} Runden.':
+        'Troppo pochi round – Claude riceve le statistiche solo da {n} round in su.',
+    'Der Update-Ordner ist ein Link – Download abgelehnt.':
+        'La cartella degli aggiornamenti è un collegamento – download rifiutato.',
+    'YouTube: Anmeldung fehlgeschlagen ({error}) – Client-ID und Client-Secret prüfen und noch einmal „Mit YouTube verbinden“ klicken.':
+        'YouTube: accesso non riuscito ({error}) – controlla ID client e client secret e fai clic ancora una volta su «Connetti a YouTube».',
     'Schickt deine Bitte und das Bild, wie es hier zu sehen ist (bereits zensierte Bereiche bleiben zensiert), an Claude; nichts wird geändert, bevor du übernimmst.':
         "Invia a Claude la tua richiesta e l'immagine come appare qui (le aree già censurate restano censurate); nulla cambia prima che tu lo applichi.",
     'Schickt die Frage und Zähler/Quoten deiner Runden an Claude – keine einzelne Runde, keine Namen':

@@ -108,7 +108,9 @@ def summary(rounds, off: dict, include_farming: bool = True) -> dict:
     official.Match. Custom games never count; farming rounds only with ``include_farming``."""
     used = [r for r in rounds if not r.custom and (include_farming or not r.farming)]
     out = {"rounds": len(used)}
-    if not used:
+    if len(used) < MIN_GROUP:
+        # 1.56 (audit SEC-4): MIN_GROUP held only for the groups – with one round "all" (and the first/last day)
+        # were that round's own values. Below MIN_GROUP only the count goes (enough() then says: too few rounds)
         return out
     days = sorted(time.strftime("%Y-%m-%d", time.localtime(r.t)) for r in used)
     out["first_day"], out["last_day"] = days[0], days[-1]
@@ -144,6 +146,12 @@ def summary(rounds, off: dict, include_farming: bool = True) -> dict:
         if table:
             out[kind] = table
     return out
+
+
+def enough(data: dict) -> bool:
+    """1.56: a summary (or ``week``) holds values worth sending – at least one part reached MIN_GROUP rounds."""
+    parts = [data[k] for k in ("this_week", "last_week") if isinstance(data.get(k), dict)] or [data]
+    return any("all" in p for p in parts)
 
 
 def _name(item) -> str:
