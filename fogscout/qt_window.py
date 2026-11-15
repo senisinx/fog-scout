@@ -19,7 +19,7 @@ from PySide6.QtWidgets import (QAbstractItemView, QApplication,
 from . import i18n, qt_icons, qt_theme
 from .status import DOT_STYLE
 from .i18n import N_, _
-from .qt_app import FIRA, application          # 1.14.2: made before the heavy imports (splash)
+from .qt_app import FIRA, application, set_sheet          # 1.14.2: made before the heavy imports (splash)
 from .qt_common import (SLIDER_MAX, WheelGuard, guard_wheel, pixmap_from_pil, set_glyph, _label, _tip, _card, _set,
                         _scroll_page)
 from .qt_views import (FactBox, CHECKS, _check, Table, LogView, HotkeyButton, Chart, HEAT_RAMP,
@@ -784,7 +784,7 @@ class MainWindow(QMainWindow):
                 self._stale.remove(old)
             old.deleteLater()
         if self._qss:
-            page.setStyleSheet(self._qss)
+            set_sheet(page, self._qss)
         self._pages[key] = page
         return page
 
@@ -1041,7 +1041,7 @@ class MainWindow(QMainWindow):
     def open_dialog(self, key, title, node):
         self.close_dialog(key)
         dlg = DialogWindow(self, self._post, key, title, node)
-        dlg.setStyleSheet(self._qss)
+        set_sheet(dlg, self._qss)
         self.dialogs[key] = dlg
         dlg.show()
         dlg.raise_()
@@ -1155,7 +1155,7 @@ class MainWindow(QMainWindow):
         menu = QMenu(self)
         menu.setAttribute(Qt.WA_DeleteOnClose)
         if self._qss:
-            menu.setStyleSheet(self._qss)
+            set_sheet(menu, self._qss)
         for it in items:
             if it is None:
                 menu.addSeparator()
@@ -1226,7 +1226,7 @@ class MainWindow(QMainWindow):
             return
         self._qss = qss
         for w in (self._side, self.message, self.palette):
-            w.setStyleSheet(qss)
+            set_sheet(w, qss)
         current = self.stack.currentWidget()
         self._stale = [self.stack.widget(i) for i in range(self.stack.count())]
         self._style_page(current)
@@ -1236,7 +1236,7 @@ class MainWindow(QMainWindow):
     def _style_page(self, page):
         if page in self._stale:
             self._stale.remove(page)
-            page.setStyleSheet(self._qss)
+            set_sheet(page, self._qss)
 
     def _style_next(self):
         if self._stale:

@@ -24,6 +24,7 @@ from PySide6.QtWidgets import (QApplication, QCheckBox, QComboBox, QFrame, QHBox
 
 from . import annotate, clipedit, encoders, imageedit, launch, obsrec, qt_theme
 from .i18n import N_, _
+from .qt_app import set_sheet
 from .qt_common import Bridge, Channel, guard_wheel
 from .qt_layouts import FlowRow
 
@@ -1089,7 +1090,7 @@ class LoadingScreen(QWidget):
         self.done_n = 0
         self.finished = False
         self.setAttribute(Qt.WA_StyledBackground, True)
-        self.setStyleSheet("LoadingScreen { background: rgba(14, 15, 18, 215); }")
+        set_sheet(self, "LoadingScreen { background: rgba(14, 15, 18, 215); }")
         outer = QVBoxLayout(self)
         outer.addStretch()
         row = QHBoxLayout()
@@ -1242,7 +1243,7 @@ class ClipBase(QWidget):
         self.setObjectName("page")
         self.setWindowTitle(title or _("Clip bearbeiten – {name}", name=os.path.basename(path)))
         if qss:
-            self.setStyleSheet(qss)
+            set_sheet(self, qss)
         self.sound_box = QCheckBox(_("Ton"))
         self.sound_box.setChecked(bool(sound))
         self.sound_box.setToolTip(_("Beim Abspielen den Ton der Aufnahme mitlaufen lassen (Windows)."))

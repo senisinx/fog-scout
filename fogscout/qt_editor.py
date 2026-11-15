@@ -31,6 +31,7 @@ from .editormusic import MusicMixin
 from .editorproject import ProjectMixin
 from .qt_clip import (CENSOR_LABELS, CONTENT_LABEL, CROP_LABELS, DRAW_TOOLS, MARK_AFTER_S, MARK_BEFORE_S, SHOW_FOR,
                       SIZE_LABELS, SPEED_LABELS, STEP_BIG, STEP_SMALL, ClipBase, PreviewView, seg_part)
+from .qt_app import set_sheet
 from .qt_common import guard_wheel
 from .qt_layouts import FlowRow
 from .qt_library import MediaLibrary
@@ -328,7 +329,7 @@ class EditorWindow(ClaudeMixin, InputMixin, MomentsMixin, MontageMixin, MusicMix
 
     def _build(self, mode, sound):
         c = self.colours = qt_theme.colours(self.dark)
-        self.setStyleSheet((self.styleSheet() or "") + editor_qss(c, qt_theme.current_zoom()))   # 1.22.3: zoom
+        set_sheet(self, (self.styleSheet() or "") + editor_qss(c, qt_theme.current_zoom()))   # 1.22.3: zoom
         self.ratio = self.devicePixelRatioF() if hasattr(self, "devicePixelRatioF") else 1.0
         outer = QVBoxLayout(self)
         outer.setContentsMargins(0, 0, 0, 0)
@@ -1191,7 +1192,7 @@ class EditorWindow(ClaudeMixin, InputMixin, MomentsMixin, MontageMixin, MusicMix
             b.setFocusPolicy(Qt.NoFocus)
             b.setCheckable(True)
             b.setToolTip(_("Farbe"))
-            b.setStyleSheet(f"QPushButton {{ background: {colour}; }}")
+            set_sheet(b, f"QPushButton {{ background: {colour}; }}")
             b.clicked.connect(lambda _c=False, col=colour: self._draw_colour(col))
             pr.addWidget(b)
             self.colour_btns[colour] = b

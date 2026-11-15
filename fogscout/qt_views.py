@@ -15,6 +15,7 @@ from . import qt_theme
 from .catalog import shown
 from .qt_layouts import FlowRow, TileGrid
 from .i18n import _
+from .qt_app import set_sheet
 from .qt_common import _label, _card, _set, _tip
 
 
@@ -148,7 +149,7 @@ class FactBox(QWidget):
         colour = qt_theme.readable(f.colour) if f.colour is not None else None    # 1.22.3: readable on light
         if colour != self._colour:
             self._colour = colour
-            self.value.setStyleSheet(f"color: {colour};" if colour else "")
+            set_sheet(self.value, f"color: {colour};" if colour else "")
         if self.bar is not None:
             self.bar.setVisible(f.frac is not None)
             self.bar.setValue(round(1000 * min(1.0, max(0.0, f.frac or 0.0))))
@@ -1014,8 +1015,8 @@ class SwatchView(QWidget):
             for b in self._buttons:
                 colour = b.property("swatch")
                 ring = qt_theme.colours(dark)["fg"] if colour == chosen else "transparent"
-                b.setStyleSheet(f"QPushButton {{ background: {colour}; border: 2px solid {ring}; "
-                                f"border-radius: 4px; padding: 0; min-width: 0; }}")
+                set_sheet(b, f"QPushButton {{ background: {colour}; border: 2px solid {ring}; "
+                             f"border-radius: 4px; padding: 0; min-width: 0; }}")
                 b.setAccessibleName(colour)
 
     def _pick(self):

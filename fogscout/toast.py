@@ -12,6 +12,8 @@ from PySide6.QtCore import Qt
 from PySide6.QtGui import QGuiApplication
 from PySide6.QtWidgets import QFrame, QLabel, QVBoxLayout, QWidget
 
+from .qt_app import set_sheet
+
 IS_WIN = sys.platform == "win32"
 BG, FG, DIM, ACCENT = "#1e1f22", "#f2f2f2", "#b5bac1", "#c8102e"
 WIDTH = 340                       # px (logical)
@@ -25,8 +27,8 @@ class _Window(QWidget):
         self.setAttribute(Qt.WA_DeleteOnClose)
         self.setAttribute(Qt.WA_StyledBackground, True)
         self._on_click = on_click
-        self.setStyleSheet(f"QWidget#toast {{ background: {ACCENT}; }} QFrame#body {{ background: {BG}; }}"
-                           f"QLabel {{ background: transparent; font-family: 'Segoe UI'; }}")
+        set_sheet(self, f"QWidget#toast {{ background: {ACCENT}; }} QFrame#body {{ background: {BG}; }}"
+                        f"QLabel {{ background: transparent; font-family: 'Segoe UI'; }}")
         self.setObjectName("toast")
         outer = QVBoxLayout(self)
         outer.setContentsMargins(4, 1, 1, 1)               # red frame: 4 px on the left, 1 px around
@@ -37,11 +39,11 @@ class _Window(QWidget):
         lay.setContentsMargins(14, 10, 14, 10)
         lay.setSpacing(2)
         head = QLabel(title)
-        head.setStyleSheet(f"color: {FG}; font-size: 16px; font-weight: 700;")
+        set_sheet(head, f"color: {FG}; font-size: 16px; font-weight: 700;")
         lay.addWidget(head)
         line = QLabel(text)
         line.setWordWrap(True)
-        line.setStyleSheet(f"color: {DIM}; font-size: 13px;")
+        set_sheet(line, f"color: {DIM}; font-size: 13px;")
         lay.addWidget(line)
         self.setFixedWidth(WIDTH)
 

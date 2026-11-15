@@ -782,7 +782,7 @@ def test_editor_sliders_draw_a_thin_track_not_a_grey_box(qapp):
     track, in dark and light, enabled and not; a disabled slider's filled part stays grey."""
     from PySide6.QtCore import Qt
     from PySide6.QtWidgets import QFrame, QHBoxLayout, QSlider
-    from fogscout import qt_theme
+    from fogscout import qt_app, qt_theme
     from fogscout.qt_editor import editor_qss
     for dark in (True, False):
         c = qt_theme.colours(dark)
@@ -795,7 +795,7 @@ def test_editor_sliders_draw_a_thin_track_not_a_grey_box(qapp):
             s.setValue(120)
             s.setEnabled(enabled)
             lay.addWidget(s)
-            frame.setStyleSheet(qt_theme.stylesheet(dark) + editor_qss(c))
+            qt_app.set_sheet(frame, qt_theme.stylesheet(dark) + editor_qss(c))
             frame.resize(300, 40)
             frame.show()
             qapp.processEvents()

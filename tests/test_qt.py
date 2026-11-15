@@ -1,5 +1,6 @@
 """Control window (Qt): colours, the overview model (pure) and the window itself (offscreen on Linux)."""
 import queue
+import sys
 import time
 from types import SimpleNamespace
 
@@ -1566,12 +1567,12 @@ def test_style_buttons_switch_at_once_and_pages_can_be_warmed(qapp, keep):
 def test_a_theme_change_styles_the_page_on_display_first(qapp, keep):
     """1.3.4: the style sheet goes to the visible page at once and to the hidden ones one by one (or when opened) –
     on the whole window Qt repolished all 1236 widgets (≈ 250 ms per theme/zoom click)."""
-    from fogscout import qt_theme, qt_window
+    from fogscout import qt_app, qt_theme, qt_window
     win = keep(qt_window.MainWindow(lambda *a: None))
     win.apply_theme(True, 1.0)
     win._stale.clear()                                            # as if the idle restyling had finished
     for i in range(win.stack.count()):
-        win.stack.widget(i).setStyleSheet(win._qss)
+        qt_app.set_sheet(win.stack.widget(i), win._qss)
     win.apply_theme(False, 1.0)
     light = qt_theme.stylesheet(False, 1.0)
     assert win.styleSheet() == "" and win.stack.currentWidget().styleSheet() == light
@@ -2121,7 +2122,7 @@ def test_the_grid_is_laid_out_right_while_its_pictures_still_load(qapp, keep, tm
     added to the visible grid was shown by Qt's queued show, so the first layout pass counted it as hidden and
     the scroll area sized the grid to its viewport – with the pictures loading, nothing laid it out again."""
     from PIL import Image
-    from fogscout import qt_theme, qt_window
+    from fogscout import qt_app, qt_theme, qt_window
     from fogscout.qt_maps import TILE_H
     pics = []
     for i in range(3):
@@ -2130,7 +2131,7 @@ def test_the_grid_is_laid_out_right_while_its_pictures_still_load(qapp, keep, tm
         pics.append(str(p))
     items = _grid_items()
     page = keep(qt_window.MapsPage(lambda a, arg=None: None))
-    page.setStyleSheet(qt_theme.stylesheet(True))
+    qt_app.set_sheet(page, qt_theme.stylesheet(True))
     page.resize(1090, 760)
     page.show()
     page.show_maps(items, None, {(m, v): pics[hash(m) % 3] for _r, _l, m, v in items}, [], {}, "classic")
@@ -2729,19 +2730,20 @@ def test_a_tile_button_ends_in_dots_when_the_tile_is_narrow(qapp, keep):
     """1.23 (audit, seen at 1280 px): the overview tile's "Match-Daten einrichten …" was cut on both sides; it
     ends in "…" now and shows whole when there is room."""
     from PySide6.QtGui import QFontDatabase
+    from fogscout import qt_app
     from fogscout.qt_views import ElideButton
     # 1.23.1: with DejaVu Sans (the CI's font) elidedText cut the last character at exactly the size hint
     for family in [f for f in ("DejaVu Sans", "Inter") if f in QFontDatabase.families()]:
         for size in range(10, 18):
             b = keep(ElideButton())
             b.show()
-            b.setStyleSheet(f"QPushButton {{ font-family: '{family}'; font-size: {size}px; padding: 6px 14px; }}")
+            qt_app.set_sheet(b, f"QPushButton {{ font-family: '{family}'; font-size: {size}px; padding: 6px 14px; }}")
             b.set_full_text("Match-Daten einrichten …")
             b.resize(b.sizeHint())
             assert b.text() == "Match-Daten einrichten …", (family, size, b.text())
     b = keep(ElideButton())
     b.show()
-    b.setStyleSheet(qt_theme.stylesheet(True))
+    qt_app.set_sheet(b, qt_theme.stylesheet(True))
     b.set_full_text("Match-Daten einrichten …")
     b.resize(b.sizeHint())
     assert b.text() == "Match-Daten einrichten …"
@@ -2778,6 +2780,7 @@ def test_a_disabled_primary_button_does_not_look_active_and_shows_the_focus(qapp
     """1.22.3 (audit): the ID rule QPushButton#primary outranked :disabled – a disabled primary button kept the
     accent fill and looked clickable; the focus of an ID-styled button (rowplay) was invisible."""
     from PySide6.QtWidgets import QPushButton
+    from fogscout import qt_app
     from PySide6.QtGui import QColor
     for dark in (True, False):
         c = qt_theme.colours(dark)
@@ -2787,7 +2790,7 @@ def test_a_disabled_primary_button_does_not_look_active_and_shows_the_focus(qapp
             b = QPushButton("Anwenden")
             b.setObjectName("primary")
             b.setEnabled(enabled)
-            b.setStyleSheet(qss)
+            qt_app.set_sheet(b, qss)
             b.resize(140, 36)
             shots.append(b.grab().toImage().pixelColor(8, 18))     # the padding, not the text
         on, off = shots
@@ -3141,6 +3144,108 @@ def test_the_overview_fixes_of_the_visual_qa(qapp, keep):
     assert abs(dot.mapTo(win, dot.rect().center()).x() - nav_icon_centre) <= 1
 
 
+def _sheet_tree():
+    """A widget that will carry a sheet and a dim label in it – what the navigation is to its "Ctrl+F" sign."""
+    from PySide6.QtWidgets import QLabel, QVBoxLayout, QWidget
+    side = QWidget()
+    lay = QVBoxLayout(side)
+    label = QLabel("x")
+    label.setProperty("class", "dim")
+    lay.addWidget(label)
+    return side, label
+
+
+def _dead_then_reborn(first, second, rounds=60):
+    """``rounds`` times: a widget gets the dark sheet with ``first``, its label works out its size (the widget itself
+    is never polished) and it dies; a new one gets the light sheet with ``second``. How often the new one came to
+    lie at a dead one's address, and how often its label then had the wrong colour or the wrong early height."""
+    import shiboken6
+    from PySide6.QtGui import QPalette
+    dark = 'QLabel[class="dim"] { color: #9ba1a9; font-size: 30px; }'
+    light = 'QLabel[class="dim"] { color: #5f636a; font-size: 12px; }'
+    dead, reborn, colour, height = set(), 0, 0, 0
+    for _i in range(rounds):
+        side, label = _sheet_tree()
+        first(side, dark)
+        label.sizeHint()
+        dead.add(shiboken6.getCppPointer(side)[0])
+        shiboken6.delete(side)
+        side, label = _sheet_tree()
+        second(side, light)
+        if shiboken6.getCppPointer(side)[0] in dead:
+            reborn += 1
+            height += label.sizeHint().height() > 25             # before Qt polishes anything itself
+            side.ensurePolished()
+            colour += label.palette().color(QPalette.WindowText).name() != "#5f636a"
+        shiboken6.delete(side)
+    return reborn, colour, height
+
+
+def test_a_widget_never_gets_the_sheet_of_a_dead_one_at_its_address(qapp, keep):
+    """1.54.2 (the theme test below failed once on Windows: the "Ctrl+F" sign of a window with the light sheet had
+    the dark theme's colour; the re-run passed). Qt keeps each parsed sheet under the address of the widget that
+    carries it and forgets it only when that widget itself was polished – a window with a sheet that was never
+    shown (most windows of the tests, a start in the tray) left the sheet behind when it died, and the next widget
+    at that address was styled with it. ``set_sheet`` makes Qt track the widget and drop what it holds; every
+    sheet of the program goes through it."""
+    from PySide6.QtCore import Qt
+    from PySide6.QtWidgets import QWidget
+    from fogscout import qt_app
+    other = keep(QWidget())
+    other.setStyleSheet("QLabel { color: red; }")           # a styled widget lives on: Qt keeps its caches
+    raw = QWidget.setStyleSheet
+    side, _label = _sheet_tree()
+    keep(side)
+    qt_app.set_sheet(side, "QLabel { color: red; }")
+    assert side.testAttribute(Qt.WA_StyleSheet)              # Qt tracks it: its sheet goes when it dies
+    # what Qt does by itself (so this test would see the fault): a dead widget's sheet styles the new one
+    reborn, colour, height = _dead_then_reborn(raw, raw)
+    if not reborn:
+        pytest.skip("this allocator gave no new widget a dead one's address")
+    if sys.platform.startswith("linux"):                     # measured there: every time, Qt 6.11.2
+        assert colour == reborn and height == reborn, (reborn, colour, height)
+    # drops it: the dead one's sheet was kept, the new one gets its own all the same – colour and size
+    reborn, colour, height = _dead_then_reborn(raw, qt_app.set_sheet)
+    assert reborn and (colour, height) == (0, 0), (reborn, colour, height)
+    # never leaves one: a widget that got its sheet here takes it along when it dies
+    reborn, colour, height = _dead_then_reborn(qt_app.set_sheet, raw)
+    assert (colour, height) == (0, 0), (reborn, colour, height)
+
+
+def test_a_window_that_is_never_shown_leaves_no_sheet_behind(qapp, keep):
+    """1.54.2: the navigation, the message window, the palette and every page carry the sheet – Qt has to know
+    each of them (WA_StyleSheet = it listens to their end) although nothing was ever polished; before, none was."""
+    from PySide6.QtCore import Qt
+    from PySide6.QtWidgets import QWidget
+    from fogscout import qt_window
+    win = keep(qt_window.MainWindow(lambda a, arg=None: None))
+    win.apply_theme(True, 1.0)
+    win.search.sizeHint()                                    # a child works its rules out
+    carriers = [w for w in [win.message] + win.findChildren(QWidget) if w.styleSheet() == win._qss]
+    assert {win._side, win.message, win.palette, win.stack.currentWidget()} <= set(carriers)
+    assert [w.objectName() for w in carriers if not w.testAttribute(Qt.WA_StyleSheet)] == []
+    assert not win._side.testAttribute(Qt.WA_WState_Polished)    # … and still nothing but they was polished
+
+
+def test_every_style_sheet_is_set_through_set_sheet():
+    """1.54.2: ``setStyleSheet`` is called in one place only – a new call beside it could again be styled with a
+    dead widget's sheet (and leave its own behind)."""
+    import ast
+    from pathlib import Path
+    pkg = Path(__file__).resolve().parent.parent / "fogscout"
+    found = []
+    for path in sorted(pkg.glob("*.py")):
+        tree = ast.parse(path.read_text(encoding="utf-8"))
+        allowed = set()
+        if path.name == "qt_app.py":
+            fn = next(n for n in tree.body if isinstance(n, ast.FunctionDef) and n.name == "set_sheet")
+            allowed = {id(n) for n in ast.walk(fn)}
+        for node in ast.walk(tree):
+            if isinstance(node, ast.Attribute) and node.attr == "setStyleSheet" and id(node) not in allowed:
+                found.append(f"{path.name}:{node.lineno}")
+    assert found == []
+
+
 def test_placeholders_grips_and_handles_are_readable_in_every_theme(qapp, keep):
     """1.25 (audit): with `color` in the style sheet Qt drew placeholder text as the text colour at 50 % (3.3:1 in
     light mode) – the sheet now names the dim colour; scroll handles, card grips and map bars use the token `handle`
@@ -3169,8 +3274,9 @@ def test_placeholders_grips_and_handles_are_readable_in_every_theme(qapp, keep):
         win.search_keys.ensurePolished()                     # 1.38.55: the search button's "Ctrl+F" sign is dim
         got = win.search_keys.palette().color(QPalette.WindowText)
         # 1.54.1: failed once on Windows (dark dim instead of light, the same commit passed in the re-run and under
-        # 3.14) – no window of this test ever had a dark sheet. What it says should it happen again: which sheet
-        # the navigation has, whether the application has one, and the application's own colours
+        # 3.14) – no window of this test ever had a dark sheet. 1.54.2: Qt had kept the dark sheet of a dead window
+        # under the address this navigation got (set_sheet, the three tests above). What it says should it happen
+        # again: which sheet the navigation has, whether the application has one, the application's own colours
         light, darker = qt_theme.colours(False)["dim"], qt_theme.colours(True)["dim"]
         sheet = win._side.styleSheet()
         assert got.name() == light, {

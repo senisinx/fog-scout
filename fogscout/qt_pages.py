@@ -13,6 +13,7 @@ from PySide6.QtWidgets import (QBoxLayout, QComboBox, QDialog, QFrame, QGridLayo
 from . import qt_theme
 from .qt_layouts import FlowRow, TileGrid, WrapCheck
 from .i18n import N_, _
+from .qt_app import set_sheet
 from .qt_common import SLIDER_MAX, guard_wheel, pixmap_from_pil, steady_scroll, _label, _tip, _card, _set, _scroll_page, page_head, set_glyph
 from .qt_views import FactBox, Table, LogView, HotkeyButton, Chart, SwatchView, TilesView, DashboardView
 from .qt_preview import PreviewView
@@ -512,7 +513,7 @@ class OverviewPage(QWidget):
             want = qt_theme.bar_style(col) if col is not None else ""
             if want != colour[0]:
                 colour[0] = want
-                bar.setStyleSheet(want)
+                set_sheet(bar, want)
         _set(self.sys_note, o.system_note)
         self.sys_note.setVisible(bool(o.system_note))
 
@@ -736,7 +737,7 @@ def make_control(kind, key, post):
         w = _label(cls="big", wrap=True)
     elif kind == "value":
         w = _label()
-        w.setStyleSheet("font-weight: 600;")
+        set_sheet(w, "font-weight: 600;")
     else:                                                     # label, entry (shown, not edited)
         w = _label(wrap=True)
     return w, extra

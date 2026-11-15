@@ -21,6 +21,7 @@ from PySide6.QtWidgets import (QComboBox, QFrame, QHBoxLayout, QLabel, QLineEdit
 from . import annotate, askclaude, hudnames, imageclaude, imageedit, launch, qt_theme
 from .i18n import N_, _
 from .qt_clip import DRAW_TOOLS, SIZE_LABELS, PreviewView
+from .qt_app import set_sheet
 from .qt_common import Bridge, PlainLabel, guard_wheel
 from .qt_layouts import FlowRow
 
@@ -67,7 +68,7 @@ class ImageWindow(QWidget):
         self.setObjectName("page")
         self.setWindowTitle(_("Bild bearbeiten – {name}", name=os.path.basename(path)))
         if qss:
-            self.setStyleSheet(qss)
+            set_sheet(self, qss)
         try:
             with Image.open(path) as im:
                 self.original = imageedit.converted(im, "RGB")   # 16-bit grey scaled, not clipped
@@ -273,8 +274,8 @@ class ImageWindow(QWidget):
             b.setCheckable(True)
             b.setToolTip(_("Farbe"))
             c = qt_theme.colours(qt_theme.current_dark())             # 1.22.3: the ring was white on white
-            b.setStyleSheet(f"QPushButton {{ background: {colour}; border: 2px solid {c['border']}; border-radius: 4px; }}"
-                            f"QPushButton:checked {{ border: 2px solid {c['head']}; }}")
+            set_sheet(b, f"QPushButton {{ background: {colour}; border: 2px solid {c['border']}; border-radius: 4px; }}"
+                         f"QPushButton:checked {{ border: 2px solid {c['head']}; }}")
             b.clicked.connect(self._colour_clicked)
             r.addWidget(b)
             self.colour_btns[colour] = b
