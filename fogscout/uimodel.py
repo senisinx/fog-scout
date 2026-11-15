@@ -611,6 +611,15 @@ class Dashboard(Widget):
         self.command = command
 
 
+class Heatmap(Widget):
+    """A heatmap of rows × columns (dashboard.Grid in ``data``), drawn by qt_views.HeatmapView – no clicks."""
+
+    def __init__(self, master=None, **kw):
+        super().__init__(master, **kw)
+        self.data = None
+        self.dark = True
+
+
 class Tiles(Widget):
     """A row of key figure tiles (dashboard.Tile list in ``data``) – fewer columns in a narrow window."""
 

@@ -927,16 +927,21 @@ class Heatmap(QWidget):
         cols = max(1, len(d.columns))
         cell_w = max(36, min(96, (self.width() - name_w) / cols))
         from .dashboard import MATRIX_MIN, short_killer
+        # a dashboard.Grid (weekday × time of day …) brings its own scale and texts; the dashboard's killer × map
+        # keeps 0–4 kills, map names in the UI language and short killer names
+        top, share, grid = float(getattr(d, "top", 4.0)), bool(getattr(d, "share", False)), hasattr(d, "legend")
+        row_text = (lambda x: x) if grid else shown
+        col_text = (lambda x: x) if grid else short_killer
         p.setPen(QColor(c["dim"]))
         for j, k in enumerate(d.columns):
             x = name_w + j * cell_w
             p.drawText(QRectF(x, 0, cell_w, self.HEAD), Qt.AlignHCenter | Qt.AlignVCenter,
-                       fm.elidedText(short_killer(k), Qt.ElideRight, round(cell_w) - 4))
+                       fm.elidedText(col_text(k), Qt.ElideRight, round(cell_w) - 4))
         for i, m in enumerate(d.rows):
             y = self.HEAD + i * self.ROW
             p.setPen(QColor(c["fg"]))
             p.drawText(QRectF(0, y, name_w - 8, self.ROW), Qt.AlignLeft | Qt.AlignVCenter,
-                       fm.elidedText(shown(m), Qt.ElideRight, name_w - 8))
+                       fm.elidedText(row_text(m), Qt.ElideRight, name_w - 8))
             for j, k in enumerate(d.columns):
                 rect = QRectF(name_w + j * cell_w + 1, y + 1, cell_w - 2, self.ROW - 2)     # 2 px surface gap
                 cell = d.cells.get((m, k))
@@ -947,26 +952,28 @@ class Heatmap(QWidget):
                                                     -(self.ROW / 2 - 3)), 2, 2)
                     continue
                 avg, n = cell
-                fill = heat_colour(avg, self._dark)
+                fill = heat_colour(avg, self._dark, top)
                 p.setPen(Qt.NoPen)
                 p.setBrush(fill)
                 p.drawRoundedRect(rect, 4, 4)
                 p.setPen(ink_on(fill))
-                p.drawText(rect, Qt.AlignCenter, f"{avg:.1f}")
-                self._hits.append((rect, _("{map} · {killer}: Ø {kills} Kills ({n} Runden)", map=shown(m), killer=k,
-                                           kills=f"{avg:.1f}", n=n), m, k))
+                value = f"{avg:.0%}" if share else f"{avg:.1f}"
+                p.drawText(rect, Qt.AlignCenter, value)
+                tip = (_("{row} · {column}: {value} ({n} Runden)", row=m, column=k, value=value, n=n) if grid else
+                       _("{map} · {killer}: Ø {kills} Kills ({n} Runden)", map=shown(m), killer=k, kills=value, n=n))
+                self._hits.append((rect, tip, m, k))
         # legend: the ramp from 0 to 4 kills
         ly = self.HEAD + len(d.rows) * self.ROW + 10
         grad = QLinearGradient(name_w, 0, name_w + 160, 0)
         for t in range(5):
-            grad.setColorAt(t / 4, heat_colour(t, self._dark))
+            grad.setColorAt(t / 4, heat_colour(t * top / 4, self._dark, top))
         p.setPen(Qt.NoPen)
         p.setBrush(grad)
         p.drawRoundedRect(QRectF(name_w, ly, 160, 8), 4, 4)
         p.setPen(QColor(c["dim"]))
         p.drawText(QRectF(name_w - 30, ly - 5, 24, 18), Qt.AlignRight | Qt.AlignVCenter, "0")
-        p.drawText(QRectF(name_w + 166, ly - 5, 260, 18), Qt.AlignLeft | Qt.AlignVCenter,
-                   _("4 Kills · leer = weniger als {n} Runden", n=MATRIX_MIN))
+        p.drawText(QRectF(name_w + 166, ly - 5, 300, 18), Qt.AlignLeft | Qt.AlignVCenter,
+                   d.legend if grid else _("4 Kills · leer = weniger als {n} Runden", n=MATRIX_MIN))
         p.end()
 
     def mouseMoveEvent(self, e):
@@ -984,6 +991,21 @@ class Heatmap(QWidget):
         hit = next(((m, k) for r, _t, m, k in self._hits if r.contains(pos)), None)
         if hit and self._on_click:
             self._on_click(("cell",) + hit)
+
+
+class HeatmapView(Heatmap):
+    """A heatmap of the UI model (uimodel.Heatmap, a dashboard.Grid in ``data``) – no clicks, hidden without rows."""
+
+    def __init__(self):
+        super().__init__(None)
+        self._shown = None
+
+    def show_state(self, st):
+        d, dark = st.get("data"), bool(st.get("dark", True))
+        if (id(d), dark) != self._shown:
+            self._shown = (id(d), dark)
+            self.set_data(d, dark)
+        self.setVisible(bool(st.get("visible", True)) and d is not None and bool(d.rows))
 
 
 class SwatchView(QWidget):

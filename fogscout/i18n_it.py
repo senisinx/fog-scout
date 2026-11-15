@@ -4031,8 +4031,8 @@ T = {
         'Potere/oggetto',
     'ohne':
         'senza',
-    'Dein Loadout laut Stats-Seite (ab Userscript Version 3). „Ergebnis“ = als Killer Ø Kills, als Survivor Anteil entkommen; „ohne“ = dasselbe in deinen Runden derselben Rolle ohne diesen Eintrag. Builds ab {n} Runden. Embleme: Ø Stufe von keins (0) bis Iri (4); „voll“ = Kategorie mit {max} Punkten.':
-        'Il tuo loadout dalla pagina statistiche (userscript versione 3 o più recente). «Risultato» = da Killer Ø uccisioni, da Sopravvissuto la quota di fughe; «senza» = lo stesso nei tuoi round di quel ruolo senza questa voce. Build da {n} round. Emblemi: Ø livello da nessuno (0) a iri (4); «pieno» = categoria a {max} punti.',
+    'Dein Loadout laut Stats-Seite (ab Userscript Version 3). „Ergebnis“ = als Killer Ø Kills, als Survivor Anteil entkommen; „ohne“ = dasselbe in deinen Runden derselben Rolle ohne diesen Eintrag. Builds ab {n} Runden. Embleme: Ø Stufe von keins (0) bis Iri (4); „voll“ = Kategorie mit {max} Punkten. Perk-Paare = je zwei Perks desselben Loadouts, ab {n} Runden; „Ø BP“/„BP ohne“ = Ø Bloodpoints mit und ohne den Eintrag.':
+        'Il tuo loadout dalla pagina statistiche (userscript versione 3 o più recente). «Risultato» = da Killer Ø uccisioni, da Sopravvissuto la quota di fughe; «senza» = lo stesso nei tuoi round di quel ruolo senza questa voce. Build da {n} round. Emblemi: Ø livello da nessuno (0) a iri (4); «pieno» = categoria a {max} punti. Coppie di perk = due perk dello stesso loadout, da {n} round; «Ø BP»/«BP senza» = Ø punti sangue con e senza la voce.',
     'Event-Modus':
         'Modalità evento',
     'keins':
@@ -5931,4 +5931,72 @@ T = {
         'Perk del killer {n}',
     'Ein Standbild hat keinen Anfang und kein Ende zum Schneiden – seine Länge stellst du unter „Standbild“ ein oder ziehst seinen Rand.':
         'Un fermo immagine non ha inizio né fine da tagliare – impostane la durata in «Fermo immagine» o trascinane il bordo.',
+    '100 % entkommen · leer = weniger als {n} Runden':
+        '100 % fuggito · vuoto = meno di {n} round',
+    '{row} · {column}: {value} ({n} Runden)':
+        '{row} · {column}: {value} ({n} round)',
+    'Verbindung und Ergebnis':
+        'Connessione e risultato',
+    'Verbindung':
+        'Connessione',
+    'Killer-Runden':
+        'Round da killer',
+    'Survivor-Runden':
+        'Round da sopravvissuto',
+    'Ping = Median zur Server-Region während der Runde, Aussetzer = Lücken im Empfang vom Spielserver – beides nur, wenn „Verbundener Spielserver“ lief. Ergebnis laut Stats-Seite.':
+        'Ping = mediana verso la regione del server durante il round, interruzioni = vuoti nella ricezione dal server di gioco – entrambi solo se «Server di gioco connesso» era attivo. Risultato dalla pagina delle statistiche.',
+    'BP ohne':
+        'BP senza',
+    'Perk-Paar':
+        'Coppia di perk',
+    'Form':
+        'Forma',
+    'Runde der Sitzung':
+        'Round della sessione',
+    'Ergebnis laut Stats-Seite nach Wochentag und Uhrzeit (Blöcke zu {h} Stunden) – ein Feld braucht mindestens {n} Runden. Darunter dasselbe nach der Stelle der Runde in ihrer Sitzung (eine Sitzung endet nach {m} Minuten ohne Runde): Lässt du nach ein paar Runden nach?':
+        'Risultato dalla pagina delle statistiche per giorno della settimana e ora (blocchi di {h} ore) – una casella richiede almeno {n} round. Sotto, lo stesso in base alla posizione del round nella sessione (una sessione finisce dopo {m} minuti senza round): cali dopo qualche round?',
+    'Überleben':
+        'Sopravvivenza',
+    'Ø überlebt':
+        'Ø sopravvissuto',
+    'Gegnerischer Killer':
+        'Killer avversario',
+    'Wie viel des Matches du als Survivor erlebt hast: deine Zeit im Match geteilt durch die Gesamtdauer laut Stats-Seite (ab Userscript Version 3). Nur Survivor-Matches, die beide Werte kennen.':
+        'Quanta parte della partita hai vissuto da sopravvissuto: il tuo tempo nella partita diviso per la durata totale dalla pagina delle statistiche (dalla versione 3 dello userscript). Solo partite da sopravvissuto con entrambi i valori.',
+    'Noch keine Runden mit Ping oder Aussetzern und einem Ergebnis von der Stats-Seite in dieser Auswahl – dafür auf der Seite Server „Verbundener Spielserver“ einschalten.':
+        'Ancora nessun round con ping o interruzioni e un risultato dalla pagina delle statistiche in questa selezione – per questo attiva «Server di gioco connesso» nella pagina Server.',
+    'Ping unter {n} ms':
+        'Ping sotto {n} ms',
+    'Ping {lo}–{hi} ms':
+        'Ping {lo}–{hi} ms',
+    'Ping über {n} ms':
+        'Ping sopra {n} ms',
+    'mit Aussetzern':
+        'con interruzioni',
+    'ohne Aussetzer':
+        'senza interruzioni',
+    'Killer – Ø Kills nach Wochentag und Uhrzeit':
+        'Killer – Ø uccisioni per giorno e ora',
+    'Survivor – Anteil entkommen nach Wochentag und Uhrzeit':
+        'Sopravvissuto – quota di fughe per giorno e ora',
+    'Noch keine Runden mit Ergebnis von der Stats-Seite in dieser Auswahl – Kills und Entkommen kommen von dort (Einstellungen → Match-Daten).':
+        'Ancora nessun round con un risultato dalla pagina delle statistiche in questa selezione – uccisioni e fughe arrivano da lì (Impostazioni → Dati partita).',
+    '{n}. Runde':
+        '{n}° round',
+    'ab der {n}. Runde':
+        'Dal round {n} in poi',
+    'Noch keine Survivor-Matches mit Gesamtdauer in dieser Auswahl – die Stats-Seite liefert sie ab Userscript Version 3 (Einstellungen → Match-Daten → Offizielle Match-Daten → „Userscript kopieren“).':
+        'Ancora nessuna partita da sopravvissuto con durata totale in questa selezione – la pagina delle statistiche la fornisce dalla versione 3 dello userscript (Impostazioni → Dati partita → Dati partita ufficiali → «Copia userscript»).',
+    '{share} des Matches':
+        '{share} della partita',
+    '{n} Survivor-Matches':
+        '{n} partite da sopravvissuto',
+    'Killer – Median Wartezeit {per}':
+        'Killer – attesa mediana {per}',
+    'Survivor – Median Wartezeit {per}':
+        'Sopravvissuto – attesa mediana {per}',
+    '{when}: Median {time} · {n} Runden':
+        '{when}: mediana {time} · {n} round',
+    'Keine Wartezeiten dieser Rolle in dieser Auswahl.':
+        'Nessun tempo di attesa per questo ruolo in questa selezione.',
 }

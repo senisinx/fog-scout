@@ -12,7 +12,7 @@ from dataclasses import dataclass
 
 from . import official
 from .catalog import shown
-from .dashboard import Tile, play_time, rounds_target
+from .dashboard import Result, Tile, play_time, rounds_target
 from .i18n import _
 from .textnorm import fmt_duration
 
@@ -165,6 +165,24 @@ def session_tiles(rows) -> list:
             Tile(_("Längste Sitzung"), play_time(longest.end - longest.start),
                  _date(longest.start) + " · " + _("{n} Runden", n=len(longest.rounds)),
                  open=rounds_target([r.t for r in longest.rounds]))]
+
+
+FORM_SLOTS = 4            # positions in a session: 1st, 2nd, 3rd and the 4th round on together
+
+
+def session_form(rounds, linked: dict, gap=SESSION_GAP) -> list:
+    """Form within a session: the results grouped by the round's position in its session (the same split as
+    ``session_rows``) – [dashboard.Result] for the 1st, 2nd, 3rd and 4th-and-later rounds; ``linked``: id(round) ->
+    its official match (rounds without one count for the position only). One pass after sorting."""
+    out = [Result() for _i in range(FORM_SLOTS)]
+    pos, last_end = 0, None
+    for r in sorted(rounds, key=lambda r: r.t):
+        pos = pos + 1 if last_end is not None and r.t - last_end <= gap else 1
+        last_end = max(last_end, r.t + r.seconds) if pos > 1 else r.t + r.seconds
+        m = linked.get(id(r))
+        if m is not None:
+            out[min(pos, FORM_SLOTS) - 1].add(official.kills(m), official.escaped(m), m.bp)
+    return out
 
 
 def longest_session(rounds, gap=SESSION_GAP):

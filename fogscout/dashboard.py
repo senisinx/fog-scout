@@ -12,7 +12,7 @@ import math
 
 from . import bloodpoints, history, official
 from .catalog import shown
-from .i18n import _, current as _language
+from .i18n import N_, _, current as _language
 from .textnorm import fmt_duration
 
 MAPS_SHOWN = 10            # map bars: the most played
@@ -278,3 +278,150 @@ def build(rounds, pairs, killer_label=lambda k: k) -> Dashboard:
     d.maps_max = max((n for _m, n, _r in d.maps), default=1)
     d.rows, d.columns, d.cells = matrix(pairs, killer_label)
     return d
+
+
+# ------------------------------------------------------------------ more statistics from the data already stored
+@dataclass
+class Result:
+    """Ø kills (killer rounds), share escaped (survivor rounds) and Ø bloodpoints of a group, with their counts."""
+    kills_sum: int = 0
+    kills_n: int = 0
+    escaped: int = 0
+    survivor_n: int = 0
+    bp_sum: int = 0
+    bp_n: int = 0
+
+    def add(self, k, e, bp=0) -> None:
+        if k is not None:
+            self.kills_sum += k
+            self.kills_n += 1
+        if e is not None:
+            self.escaped += int(e)
+            self.survivor_n += 1
+        if bp > 0:
+            self.bp_sum += bp
+            self.bp_n += 1
+
+    @property
+    def kills(self):
+        return self.kills_sum / self.kills_n if self.kills_n else None
+
+    @property
+    def escape_share(self):
+        return self.escaped / self.survivor_n if self.survivor_n else None
+
+    @property
+    def bp(self):
+        return self.bp_sum / self.bp_n if self.bp_n else None
+
+
+def survival(pairs, killer_label=lambda k: k) -> dict:
+    """How much of the match a survivor lived through: own time in the match (Match.seconds) / the whole match
+    (Match.duration, userscript 3 and newer) – only survivor matches that know both. {"all": (n, Ø share or None),
+    "maps": [(map, n, Ø share)], "killers": [(opposing killer, n, Ø share)]}, the most played first; one pass."""
+    maps, killers = {}, {}
+    n, total = 0, 0.0
+    for r, m in pairs:
+        if m.role != "survivor" or m.seconds <= 0 or m.duration <= 0:
+            continue
+        share = min(1.0, m.seconds / m.duration)       # the page's two clocks may differ by a second
+        n += 1
+        total += share
+        g = maps.setdefault(r.map, [0, 0.0])
+        g[0] += 1
+        g[1] += share
+        k = next((p.character for p in m.opp if p.role == "killer" and p.character), "")
+        if k:
+            g = killers.setdefault(killer_label(k), [0, 0.0])
+            g[0] += 1
+            g[1] += share
+
+    def rows(groups):
+        return sorted(((name, c, s / c) for name, (c, s) in groups.items()), key=lambda x: (-x[1], x[0].lower()))
+    return {"all": (n, total / n if n else None), "maps": rows(maps), "killers": rows(killers)}
+
+
+@dataclass
+class Grid:
+    """A heatmap other than killer × map (qt_views.Heatmap): rows × columns of (Ø value, rounds), the value 0..top;
+    ``share`` writes it as a percentage, ``legend`` names the top of the colour ramp. Rows/columns: texts shown."""
+    rows: list = field(default_factory=list)
+    columns: list = field(default_factory=list)
+    cells: dict = field(default_factory=dict)          # (row, column) -> (mean, n)
+    top: float = 4.0
+    share: bool = False
+    legend: str = ""
+    n: int = 0                                         # rounds with a result in all (also those in no cell)
+
+
+WEEKDAY_NAMES = (N_("Montag"), N_("Dienstag"), N_("Mittwoch"), N_("Donnerstag"), N_("Freitag"), N_("Samstag"),
+                 N_("Sonntag"))
+
+
+def time_grids(pairs) -> dict:
+    """Result by weekday × time of day (blocks of history.HOUR_BLOCK hours, local time): {"killer": Grid of Ø kills,
+    "survivor": Grid of the share escaped}. A cell needs MATRIX_MIN rounds with a result (like ``matrix``); rows and
+    columns without a cell are left out. One pass over the pairs."""
+    import datetime
+    sums = {"killer": {}, "survivor": {}}
+    for r, m in pairs:
+        k, e = official.kills(m), official.escaped(m)
+        if k is None and e is None:
+            continue
+        d = datetime.datetime.fromtimestamp(r.t)
+        cell = (d.weekday(), d.hour // history.HOUR_BLOCK * history.HOUR_BLOCK)
+        g = sums["killer" if k is not None else "survivor"].setdefault(cell, [0, 0])
+        g[0] += k if k is not None else int(e)
+        g[1] += 1
+    out = {}
+    for role, groups in sums.items():
+        kept = {c: (s / n, n) for c, (s, n) in groups.items() if n >= MATRIX_MIN}
+        day = {w: _(WEEKDAY_NAMES[w]) for w in sorted({c[0] for c in kept})}
+        col = {b: f"{b:02d}–{(b + history.HOUR_BLOCK) % 24:02d}" for b in sorted({c[1] for c in kept})}
+        legend = (_("4 Kills · leer = weniger als {n} Runden", n=MATRIX_MIN) if role == "killer" else
+                  _("100 % entkommen · leer = weniger als {n} Runden", n=MATRIX_MIN))
+        out[role] = Grid(rows=list(day.values()), columns=list(col.values()),
+                         cells={(day[w], col[b]): v for (w, b), v in kept.items()},
+                         top=4.0 if role == "killer" else 1.0, share=role == "survivor", legend=legend,
+                         n=sum(n for _s, n in groups.values()))
+    return out
+
+
+PING_BANDS = (40, 80)        # ms: under 40, 40–80, over 80 (Round.ping = median ping to the server region)
+
+
+def connection(pairs) -> list:
+    """Connection against the result: [(key, Result)] for the ping bands "<40", "40-80", ">80" (rounds with a
+    measured ping) and for rounds with and without receive gaps "stalls" / "no_stalls" (rounds where they were
+    measured, Round.stalls not None); groups without a result left out. One pass."""
+    keys = ("<40", "40-80", ">80", "stalls", "no_stalls")
+    groups = {k: Result() for k in keys}
+    lo, hi = PING_BANDS
+    for r, m in pairs:
+        k, e = official.kills(m), official.escaped(m)
+        if k is None and e is None:
+            continue
+        if r.ping is not None:
+            groups["<40" if r.ping < lo else "40-80" if r.ping <= hi else ">80"].add(k, e)
+        if r.stalls is not None:
+            groups["stalls" if r.stalls > 0 else "no_stalls"].add(k, e)
+    return [(k, groups[k]) for k in keys if groups[k].kills_n or groups[k].survivor_n]
+
+
+def wait_trend(rounds, unit: str) -> list:
+    """The median waiting time in the lobby over time per role: [(bucket start, {role: (median s, rounds)})] per
+    hour / day / week from the first to the last bucket with a waiting time, empty buckets included ({}), the newest
+    official.MAX_BUCKETS (like bp_trend). Only normal killer/survivor rounds with a measured wait count (as in
+    history.wait_summary)."""
+    groups = {}
+    for r in rounds:
+        if r.wait is None or r.role not in ("killer", "survivor") or not history.normal(r):
+            continue
+        groups.setdefault(official.bucket_start(r.t, unit), {}).setdefault(r.role, []).append(r.wait)
+    if not groups:
+        return []
+    out, b, last = [], min(groups), max(groups)
+    while b <= last:
+        out.append((b, {role: (history.median(w), len(w)) for role, w in groups.get(b, {}).items()}))
+        b = official._next_bucket(b, unit)
+    return out[-official.MAX_BUCKETS:]

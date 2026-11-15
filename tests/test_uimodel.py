@@ -1416,7 +1416,8 @@ def test_the_statistics_tabs_keep_their_meaning_when_moved(app_root):
         tabs_id, tw, ids = next(s for s in page._tabsets                 # 1.8.76: the group "Runden" holds "Rekorde"
                                 if "Rekorde" in [s[1].tabText(i) for i in range(s[1].count())])
         names = [tw.tabText(i) for i in range(tw.count())]
-        assert tw.tabBar().isMovable() and names == ["Übersicht", "Letzte Runden", "Rekorde", "Verlauf", "Sitzungen"]
+        assert tw.tabBar().isMovable() and names == ["Übersicht", "Letzte Runden", "Rekorde", "Verlauf", "Sitzungen",
+                                                     "Form"]
         assert page._tab_ids(tw, ids) == [str(i) for i in range(tw.count())]
         tw.tabBar().moveTab(0, 2)                                   # "Übersicht" behind "Rekorde"
         ev = []
@@ -1466,11 +1467,12 @@ def test_the_statistics_tabs_are_short_and_the_last_rounds_come_second(app_root)
         # 1.12.7 (user: "Bloodpoints und Farming bei Sonstiges macht keinen Sinn"): no "Sonstiges" any more
         assert groups == ["Runden", "Bloodpoints & Farming", "Gegner & Builds", "Maps, Server & PC"]
         parts = {g: [nb.tab(t, "text") for t in nb.tabs()] for g, nb in zip(groups, app._stats_groups.values())}
-        assert parts["Runden"] == ["Übersicht", "Letzte Runden", "Rekorde", "Verlauf", "Sitzungen"]   # 1.38.47: last
+        # new sub-tabs go last in their group – the saved order of moved tabs counts by position
+        assert parts["Runden"] == ["Übersicht", "Letzte Runden", "Rekorde", "Verlauf", "Sitzungen", "Form"]
         assert parts["Bloodpoints & Farming"] == ["Bloodpoints", "Farming", "Prestige"]   # 1.38.51: last
-        assert parts["Gegner & Builds"] == ["Killer", "Gegner", "Builds"]   # 1.38.51: Prestige moved to BP
+        assert parts["Gegner & Builds"] == ["Killer", "Gegner", "Builds", "Überleben"]   # 1.38.51: Prestige to BP
         assert parts["Maps, Server & PC"] == ["Maps", "Regionen", "Wartezeit", "System"]
-        assert sum(len(v) for v in parts.values()) == 15 and app._stats_current_title() == "Übersicht"   # 1.38.47, 1.38.49
+        assert sum(len(v) for v in parts.values()) == 17 and app._stats_current_title() == "Übersicht"
         app._stats_render()
         app._stats_select("Letzte Runden")
         app._stats_render_tab()
@@ -1631,7 +1633,7 @@ def test_a_saved_tab_order_survives_a_new_tab(app_root):
                                 if "Rekorde" in [s[1].tabText(i) for i in range(s[1].count())])
         old = ["1", "0", "2", "99"]                                          # three known ids and a vanished one
         page.apply_tab_order({tabs_id: old})
-        assert page._tab_ids(tw, ids) == ["1", "0", "2", "3", "4"]           # the new tabs at the end (4: 1.38.47)
+        assert page._tab_ids(tw, ids) == ["1", "0", "2", "3", "4", "5"]      # the new tabs at the end (4, 5: Form)
         assert tw.tabBar().property("dense") is not True                     # 1.8.76: no row has eleven tabs now
     finally:
         app.quit()
@@ -3561,5 +3563,110 @@ def test_a_banner_in_a_game_language_not_ticked_ticks_it(app_root, monkeypatch):
         assert app.settings["game_lang_auto"] is False and "tr" not in app.settings["languages"] and len(sent) == 1
         app._game_language("xx", "?")                                       # never an unknown code
         assert "xx" not in app.settings["languages"]
+    finally:
+        app.quit()
+
+
+def _stats_part(app, title):
+    app.qt.show_page("stats")
+    app._stats_render()
+    app._stats_select(title)
+    app._stats_render_tab()
+    app._qt_refresh(force=True)              # the first refresh opens the tab, the second reads what is on it
+    app._qt_refresh(force=True)
+
+
+def test_the_new_statistics_draw_from_rounds_and_matches_already_stored(app_root):
+    """Statistik: Runden › Form (weekday × time of day as heatmaps, result by place in the session), Gegner & Builds ›
+    Überleben (share of the match lived through), Regionen › connection against the result, Wartezeit › median wait
+    over time, Builds › perk pairs and bloodpoints per entry – all from data the program already stores."""
+    import datetime
+    import json
+    from fogscout import history, official
+    from fogscout.app import App
+    from fogscout.catalog import shown
+    from fogscout.lobby import killer_label
+    from fogscout.qt_views import HeatmapView
+    (app_root / "settings.json").write_text(json.dumps({"welcome_seen": True}), encoding="utf-8")
+    base = (datetime.datetime.now() - datetime.timedelta(days=1)).replace(hour=10, minute=0, second=0, microsecond=0)
+    t1 = base.timestamp()
+    t2, t3 = t1 + 700, t1 + 1400
+    path = str(app_root / "rounds.jsonl")
+    history.append(path, history.Round(t1, 600, "coal", "Coal Tower", role="killer", ping=30.0, stalls=0, wait=30.0))
+    history.append(path, history.Round(t2, 600, "coal", "Coal Tower", role="killer", ping=50.0, stalls=1, wait=90.0))
+    history.append(path, history.Round(t3, 600, "coal", "Coal Tower", role="survivor"))
+
+    def killer(t, kills, perks, bp):
+        dead = official.Player(role="survivor", character="Meg Thomas", status="SACRIFICED", img="VE_Sacrificed")
+        out = official.Player(role="survivor", character="Feng Min", status="ESCAPED", img="VE_Escaped")
+        return official.Match(t=t - 38, map="Coal Tower", role="killer", character="The Nurse", seconds=560, bp=bp,
+                              opp=[dead] * kills + [out] * (4 - kills), perks=[[p, p] for p in perks])
+    surv = official.Match(t=t3 - 38, map="Coal Tower", role="survivor", character="Meg Thomas", seconds=300,
+                          duration=600, status="ESCAPED", img="VE_Escaped",
+                          opp=[official.Player(role="killer", character="The Nurse")])
+    official.merge(str(app_root / official.FILE), [killer(t1, 4, "ABCD", 30000), killer(t2, 2, "ABEF", 20000), surv])
+    app = App(str(app_root), simulate=str(app_root / "sim"))
+    try:
+        _stats_part(app, "Form")
+        rows = [app.stats_form.item(i, "values") for i in app.stats_form.get_children()]
+        assert rows == [("1. Runde", 1, "4.00", "–", "–", "30k"), ("2. Runde", 1, "2.00", "–", "–", "20k"),
+                        ("3. Runde", "–", "–", 1, "100%", "–"), ("ab der 4. Runde", "–", "–", "–", "–", "–")]
+        day = ["Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag", "Samstag", "Sonntag"][base.weekday()]
+        assert app.stats_heat_k.data.cells == {(day, "09–12"): (3.0, 2)} and app.stats_heat_k_var.get()
+        assert app.stats_heat_s.data.rows == [] and app.stats_heat_s_var.get() == ""   # one survivor round: no cell
+        assert app.stats_form_var.get() == ""
+        views = app.qt.forms["stats"].findChildren(HeatmapView)
+        assert len(views) == 2 and {id(v._d) for v in views} == {id(app.stats_heat_k.data), id(app.stats_heat_s.data)}
+        assert [v.isVisibleTo(v.parentWidget()) for v in views if v._d is app.stats_heat_s.data] == [False]
+        _stats_part(app, "Überleben")
+        assert [app.stats_surv_maps.item(i, "values") for i in app.stats_surv_maps.get_children()] == \
+            [(shown(app._joined().rounds[2].map), 1, "50%")]        # the map label as the statistics hold it
+        assert [app.stats_surv_killers.item(i, "values") for i in app.stats_surv_killers.get_children()] == \
+            [(killer_label("The Nurse"), 1, "50%")]
+        assert app.stats_surv_tiles.data[0].value == "50% des Matches" and app.stats_surv_var.get() == ""
+        _stats_part(app, "Regionen")
+        assert list(app.stats_conn.get_children()) == ["<40", "40-80", "stalls", "no_stalls"]
+        assert app.stats_conn.item("<40", "values") == ("Ping unter 40 ms", 1, "4.00", "–", "–")
+        assert app.stats_conn.item("stalls", "values")[:3] == ("mit Aussetzern", 1, "2.00")
+        _stats_part(app, "Wartezeit")
+        panel = app.wait_trend.data["killer"]
+        assert panel["last"] == "01:00" and [v for v, _l, _t in panel["bars"] if v is not None] == [60.0]
+        assert app.wait_trend.data["survivor"]["bars"] == []
+        _stats_part(app, "Builds")
+        pairs = {app.stats_pairs.item(i, "values")[0]: app.stats_pairs.item(i, "values")
+                 for i in app.stats_pairs.get_children()}
+        assert list(pairs) == ["A + B"] and pairs["A + B"][1:] == ("Killer", 2, "100%", "Ø 3.00", "–", "25k", "–")
+        items = {app.stats_items.item(i, "values")[0]: app.stats_items.item(i, "values")
+                 for i in app.stats_items.get_children()}
+        assert items["C"][7:] == ("30k", "20k") and items["A"][7:] == ("25k", "–")
+    finally:
+        app.quit()
+
+
+def test_the_new_statistics_say_what_is_missing_and_how_to_get_it(app_root):
+    """Without matches from the stats page (and without ping or waiting times) each new part says once what is
+    missing and the next step – no empty heatmaps, no table of dashes."""
+    import json
+    from fogscout import history
+    from fogscout.app import App
+    from fogscout.qt_views import HeatmapView
+    (app_root / "settings.json").write_text(json.dumps({"welcome_seen": True}), encoding="utf-8")
+    history.append(str(app_root / "rounds.jsonl"), history.Round(time.time() - 900, 600, "coal", "Coal Tower",
+                                                                  role="killer"))
+    app = App(str(app_root), simulate=str(app_root / "sim"))
+    try:
+        _stats_part(app, "Form")
+        assert "Match-Daten" in app.stats_form_var.get() and not app.stats_form.get_children()
+        assert app.stats_heat_k.data.rows == [] and app.stats_heat_k_var.get() == ""
+        assert not any(v.isVisibleTo(v.parentWidget()) for v in app.qt.forms["stats"].findChildren(HeatmapView))
+        _stats_part(app, "Überleben")
+        assert "Userscript kopieren" in app.stats_surv_var.get() and app.stats_surv_tiles.data == []
+        assert not app.stats_surv_maps.get_children() and not app.stats_surv_killers.get_children()
+        _stats_part(app, "Regionen")
+        assert "Verbundener Spielserver" in app.stats_conn_var.get() and not app.stats_conn.get_children()
+        _stats_part(app, "Wartezeit")
+        assert app.wait_trend.data["killer"]["bars"] == [] and app.wait_trend.data["killer"]["empty"]
+        _stats_part(app, "Builds")
+        assert not app.stats_pairs.get_children()
     finally:
         app.quit()

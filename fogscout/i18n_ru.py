@@ -4031,8 +4031,8 @@ T = {
         'Способность/предмет',
     'ohne':
         'без',
-    'Dein Loadout laut Stats-Seite (ab Userscript Version 3). „Ergebnis“ = als Killer Ø Kills, als Survivor Anteil entkommen; „ohne“ = dasselbe in deinen Runden derselben Rolle ohne diesen Eintrag. Builds ab {n} Runden. Embleme: Ø Stufe von keins (0) bis Iri (4); „voll“ = Kategorie mit {max} Punkten.':
-        'Ваше снаряжение со страницы статистики (юзерскрипт версии 3 или новее). «Результат» = за убийцу ср. убийства, за выжившего доля побегов; «без» = то же в ваших раундах этой роли без этой позиции. Сборки — от {n} раундов. Эмблемы: ср. уровень от нет (0) до радужной (4); «полная» = категория на {max} очков.',
+    'Dein Loadout laut Stats-Seite (ab Userscript Version 3). „Ergebnis“ = als Killer Ø Kills, als Survivor Anteil entkommen; „ohne“ = dasselbe in deinen Runden derselben Rolle ohne diesen Eintrag. Builds ab {n} Runden. Embleme: Ø Stufe von keins (0) bis Iri (4); „voll“ = Kategorie mit {max} Punkten. Perk-Paare = je zwei Perks desselben Loadouts, ab {n} Runden; „Ø BP“/„BP ohne“ = Ø Bloodpoints mit und ohne den Eintrag.':
+        'Ваше снаряжение со страницы статистики (юзерскрипт версии 3 или новее). «Результат» = за убийцу ср. убийства, за выжившего доля побегов; «без» = то же в ваших раундах этой роли без этой позиции. Сборки — от {n} раундов. Эмблемы: ср. уровень от нет (0) до радужной (4); «полная» = категория на {max} очков. Пары перков = два перка одного лоадаута, от {n} раундов; «Ø BP»/«BP без» = Ø очков крови с записью и без неё.',
     'Event-Modus':
         'Режим события',
     'keins':
@@ -5931,4 +5931,72 @@ T = {
         'Перк убийцы {n}',
     'Ein Standbild hat keinen Anfang und kein Ende zum Schneiden – seine Länge stellst du unter „Standbild“ ein oder ziehst seinen Rand.':
         'У стоп-кадра нет начала и конца для обрезки — задайте его длину в «Кадр» или потяните за край.',
+    '100 % entkommen · leer = weniger als {n} Runden':
+        '100 % сбежал · пусто = меньше {n} раундов',
+    '{row} · {column}: {value} ({n} Runden)':
+        '{row} · {column}: {value} ({n} раундов)',
+    'Verbindung und Ergebnis':
+        'Соединение и результат',
+    'Verbindung':
+        'Соединение',
+    'Killer-Runden':
+        'Раунды за убийцу',
+    'Survivor-Runden':
+        'Раунды за выжившего',
+    'Ping = Median zur Server-Region während der Runde, Aussetzer = Lücken im Empfang vom Spielserver – beides nur, wenn „Verbundener Spielserver“ lief. Ergebnis laut Stats-Seite.':
+        'Пинг = медиана до региона сервера за раунд, сбои = пропуски в приёме от игрового сервера — и то и другое только при включённом «Подключённый игровой сервер». Результат — по странице статистики.',
+    'BP ohne':
+        'BP без',
+    'Perk-Paar':
+        'Пара перков',
+    'Form':
+        'Форма',
+    'Runde der Sitzung':
+        'Раунд сессии',
+    'Ergebnis laut Stats-Seite nach Wochentag und Uhrzeit (Blöcke zu {h} Stunden) – ein Feld braucht mindestens {n} Runden. Darunter dasselbe nach der Stelle der Runde in ihrer Sitzung (eine Sitzung endet nach {m} Minuten ohne Runde): Lässt du nach ein paar Runden nach?':
+        'Результат по странице статистики по дням недели и времени суток (блоки по {h} ч) — ячейке нужно не меньше {n} раундов. Ниже то же по месту раунда в сессии (сессия заканчивается после {m} минут без раунда): сдаёшь ли ты после нескольких раундов?',
+    'Überleben':
+        'Выживание',
+    'Ø überlebt':
+        'Ø прожито',
+    'Gegnerischer Killer':
+        'Убийца-противник',
+    'Wie viel des Matches du als Survivor erlebt hast: deine Zeit im Match geteilt durch die Gesamtdauer laut Stats-Seite (ab Userscript Version 3). Nur Survivor-Matches, die beide Werte kennen.':
+        'Какую часть матча ты прожил за выжившего: твоё время в матче, делённое на общую длительность по странице статистики (с версии 3 юзерскрипта). Только матчи за выжившего, где известны оба значения.',
+    'Noch keine Runden mit Ping oder Aussetzern und einem Ergebnis von der Stats-Seite in dieser Auswahl – dafür auf der Seite Server „Verbundener Spielserver“ einschalten.':
+        'В этой выборке пока нет раундов с пингом или сбоями и результатом со страницы статистики — для этого включи «Подключённый игровой сервер» на странице «Сервер».',
+    'Ping unter {n} ms':
+        'Пинг ниже {n} мс',
+    'Ping {lo}–{hi} ms':
+        'Пинг {lo}–{hi} мс',
+    'Ping über {n} ms':
+        'Пинг выше {n} мс',
+    'mit Aussetzern':
+        'со сбоями',
+    'ohne Aussetzer':
+        'без сбоев',
+    'Killer – Ø Kills nach Wochentag und Uhrzeit':
+        'Убийца — Ø убийств по дням недели и времени суток',
+    'Survivor – Anteil entkommen nach Wochentag und Uhrzeit':
+        'Выживший — доля побегов по дням недели и времени суток',
+    'Noch keine Runden mit Ergebnis von der Stats-Seite in dieser Auswahl – Kills und Entkommen kommen von dort (Einstellungen → Match-Daten).':
+        'В этой выборке пока нет раундов с результатом со страницы статистики — убийства и побеги берутся оттуда (Настройки → Данные матчей).',
+    '{n}. Runde':
+        '{n}-й раунд',
+    'ab der {n}. Runde':
+        'С {n}-го раунда',
+    'Noch keine Survivor-Matches mit Gesamtdauer in dieser Auswahl – die Stats-Seite liefert sie ab Userscript Version 3 (Einstellungen → Match-Daten → Offizielle Match-Daten → „Userscript kopieren“).':
+        'В этой выборке пока нет матчей за выжившего с общей длительностью — страница статистики даёт её с версии 3 юзерскрипта (Настройки → Данные матчей → Официальные данные матчей → «Копировать юзерскрипт»).',
+    '{share} des Matches':
+        '{share} матча',
+    '{n} Survivor-Matches':
+        'Матчей за выжившего: {n}',
+    'Killer – Median Wartezeit {per}':
+        'Убийца — медиана ожидания {per}',
+    'Survivor – Median Wartezeit {per}':
+        'Выживший — медиана ожидания {per}',
+    '{when}: Median {time} · {n} Runden':
+        '{when}: медиана {time} · {n} раундов',
+    'Keine Wartezeiten dieser Rolle in dieser Auswahl.':
+        'В этой выборке нет времени ожидания для этой роли.',
 }
