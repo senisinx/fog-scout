@@ -1849,6 +1849,9 @@ class ClipBase(QWidget):
             # while it plays (until 1.55 the whole stretch first: 2–9 s and up to 423 MB for an uncut round)
             self._chunks = clipedit.sound_chunks(start, end, speed, back)
             self._chunk_round += 1
+            if not self._chunks:                                # nothing left of the stretch: no sound to make
+                self._run_player(seg)
+                return
             a, b, _off = self._chunks[0]
             job = self._sound_job(seg, a, b, 0.0)
             threading.Thread(target=lambda: self.bridge.sound.emit(job(), start), name="clip-sound",

@@ -1007,5 +1007,10 @@ def test_the_sound_plays_in_pieces_on_one_clock_and_leaves_no_wav(qapp, clip, tm
             assert abs(n - (b - a) * 44100) <= 64                   # … and each as long as its stretch
         assert len({w for _t, w, _n in played}) == 3
         assert not list(tmp.glob("dbdms-clip-*.wav"))               # every piece removed
+        win.playing = True                                          # a stretch with nothing left (the very end)
+        win._queue = [(6.0, 6.0, 1.0, 0.0)]
+        win._next_segment()
+        assert win.player is not None and win._chunks == []        # the picture plays on, no sound to make
+        win._stop_player()
     finally:
         win.close()
