@@ -38,6 +38,10 @@ STATS_WAIT_GROUPS = [("weekday", N_("nach Wochentag")), ("hour", N_("nach Uhrzei
 # 1.8.76 (user review: thirteen sub-tabs in one row were not to be found): the parts of the statistics in four groups
 # 1.12.7 (user: "Bloodpoints und Farming bei Sonstiges macht keinen Sinn"): Bloodpoints and Farming a group of their
 # own, System (the PC during the rounds) beside maps, regions and waiting – no "Sonstiges" any more
+STATS_ABOUT_FULL = N_("Runden vom Map-Banner bis zum Rundenende (ab 1 min), nur lokal gespeichert. Kills, "
+                      "Escapes und Bloodpoints laut stats.deadbydaylight.com, sobald eine Runde dort "
+                      "zugeordnet ist.")
+STATS_ABOUT_SHORT = N_("Runden vom Map-Banner bis zum Rundenende (ab 1 min), nur lokal gespeichert.")
 STATS_GROUPS = [("rounds", N_("Runden")), ("bp", N_("Bloodpoints & Farming")), ("foes", N_("Gegner & Builds")),
                 ("maps", N_("Maps, Server & PC"))]
 WEEKDAYS = [N_("Montag"), N_("Dienstag"), N_("Mittwoch"), N_("Donnerstag"), N_("Freitag"), N_("Samstag"),
@@ -212,10 +216,11 @@ class StatsTab:
                                                                                                padx=(6, 0))
         ui.Button(fr, text=_("Alle als Farming"), command=self._stats_farm_found).pack(side="left", padx=(18, 0))
         ui.Button(fr, text=_("Alle ignorieren"), command=self._stats_farm_ignore).pack(side="left", padx=(6, 0))
-        ui.Label(box_d, text=_("Runden vom Map-Banner bis zum Rundenende (ab 1 min), nur lokal gespeichert. Kills, "
-                                "Escapes und Bloodpoints laut stats.deadbydaylight.com, sobald eine Runde dort "
-                                "zugeordnet ist."),
-                  style="Dim.TLabel", wraplength=540).pack(anchor="w", pady=(6, 0))
+        # 1.51.1: with the hint about the stats page right above (stats_data_row) only the first sentence – it said
+        # the same about kills, escapes and bloodpoints twice
+        self.stats_about_var = ui.StringVar(value=_(STATS_ABOUT_FULL))
+        ui.Label(box_d, textvariable=self.stats_about_var, style="Dim.TLabel", wraplength=540).pack(
+            anchor="w", pady=(6, 0))
         self._stats_alias_choices = sorted(KILLERS, key=killer_label)
         box2 = self._stats_page(_("Letzte Runden"), "rounds", "_stats_part_last")      # 1.8.2: second tab – the most used after the overview
         self.stats_last = self._stats_tree(box2, (("when", _("Wann"), 120, "w"), ("map", _("Map"), 130, "w"),
@@ -859,12 +864,14 @@ class StatsTab:
                 _("Kills, Entkommen und Bloodpoints kommen von der Stats-Seite – dafür einmal die Match-Daten "
                   "einrichten."))
             self.stats_data_row.pack(anchor="w", fill="x", after=after, pady=(12, 0))    # 1.24.7: the cards' gap
+            self.stats_about_var.set(_(STATS_ABOUT_SHORT))
             if set_up and self.stats_data_btn.winfo_manager():
                 self.stats_data_btn.pack_forget()
             elif not set_up and not self.stats_data_btn.winfo_manager():
                 self.stats_data_btn.pack(anchor="w", pady=(4, 0))
         else:
             self.stats_data_row.pack_forget()
+            self.stats_about_var.set(_(STATS_ABOUT_FULL))
         found = self._stats_farm_candidates()
         if found:
             self.stats_farm_var.set(_("{n} Runden sehen nach Farming aus: {reasons}. Zuletzt: {map}, {when}.",

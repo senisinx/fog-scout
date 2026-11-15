@@ -2049,6 +2049,54 @@ T = {
         '計算に含む：{what}。',
     'Kicks und die Anzahl je Killer-Perk gelten für jeden Generator einzeln.':
         'キックの回数とキラーのパークごとの回数は、発電機1台ごとに適用されます。',
+    '+{p} % Tempo':
+        '速度 +{p} %',
+    '+{p} % Tempo, wenn mindestens ein weiterer Survivor mitrepariert':
+        '他のサバイバーが1人以上一緒に修理しているとき速度 +{p} %',
+    '+{p} % Tempo je weiterem Survivor am Generator (höchstens {max} %), für alle dort':
+        '発電機にいる他のサバイバー1人につき速度 +{p} %（最大 {max} %）、その場の全員に適用',
+    '+{p} % Tempo für alle am Generator; er regressiert halb so schnell':
+        '発電機にいる全員の速度 +{p} %、後退は半分の速さ',
+    '+{p} % Tempo für alle, {s} s lang nach einem gemeinsam fertigen Generator':
+        '一緒に発電機を修理し終えてから {s} 秒間、全員の速度 +{p} %',
+    'jeder Great Skill Check in Folge bringt {p} % mehr Bonus (bis {n} Tokens)':
+        'グレートスキルチェックが連続するたびにボーナスが {p} % 増加（最大 {n} トークン）',
+    'jeder Generator braucht {v} Ladungen weniger':
+        '各発電機の必要チャージが {v} 減少',
+    'ein Generator braucht {v} Ladungen weniger':
+        '発電機1台の必要チャージが {v} 減少',
+    '−{p} % Tempo je Anzahl (höchstens {max} %)':
+        '1回につき速度 −{p} %（最大 {max} %）',
+    '−{first} % Tempo beim ersten, −{p} % je weiterem (höchstens {max} %)':
+        '1つ目で速度 −{first} %、以降1つにつき −{p} %（最大 {max} %）',
+    'ein Kick nimmt {total} % statt {base} %':
+        'キック1回で {base} % ではなく {total} % 減少',
+    'ein Kick nimmt {p} % mehr; die Regression steigt in {s} s von {a} % auf {b} %':
+        'キック1回でさらに {p} % 減少、後退速度は {s} 秒で {a} % から {b} % に上昇',
+    'Regression mit {p} % für {s} s nach dem Kick':
+        'キック後 {s} 秒間、後退速度 {p} %',
+    'Regression mit {p} %, solange niemand repariert':
+        '誰も修理していない間、後退速度 {p} %',
+    'nimmt dem Generator sofort {p} %':
+        '発電機から即座に {p} % 減少',
+    'der erste Kick nimmt {p} % mehr je Token und blockiert {s} s je Token':
+        '最初のキックはトークン1つにつきさらに {p} % 減少し、トークン1つにつき {s} 秒ブロック',
+    'blockiert den Generator {s} s':
+        '発電機を {s} 秒ブロック',
+    '{p} % bei {n}':
+        '{n} のとき {p} %',
+    '+{p} % Tempo, bis {n} Ladungen übertragen sind':
+        '{n} チャージを移し終えるまで速度 +{p} %',
+    'Noch kein Perk gewählt.':
+        'パークがまだ選ばれていません。',
+    'Was die gewählten Perks tun':
+        '選んだパークの効果',
+    'Rechner zurücksetzen':
+        '計算機をリセット',
+    'Leert alle Builds und setzt die Annahmen auf die Startwerte.':
+        'すべてのビルドを消去し、前提を初期値に戻します。',
+    'Runden vom Map-Banner bis zum Rundenende (ab 1 min), nur lokal gespeichert.':
+        'マップバナーからラウンド終了まで（1分以上）のラウンド。保存はこのPCのみ。',
     'Claude hat unverständlich geantwortet.':
         'Claude の回答を読み取れませんでした。',
     'Claude ist nicht erreichbar – keine Internetverbindung?':
@@ -4279,8 +4327,6 @@ T = {
         'プロジェクトを保存しました：{file}',
     'Projekt speichern (Strg+S) – Schnitt, Ausschnitt, Zeichnungen, Zensur und Export-Einstellungen dieser Aufnahme, zum späteren Weiterarbeiten.':
         'プロジェクトを保存します（Ctrl+S）– この録画のカット、切り抜き、描画、検閲、エクスポート設定を、後で続けられるように。',
-    'Runde':
-        'ラウンド',
     'Rückgängig (Strg+Z).':
         '元に戻す（Ctrl+Z）。',
     'Rückgängig.':
@@ -4885,8 +4931,6 @@ T = {
         'モンタージュの録画は最大 {n} 個です。',
     'Jetzt eine Montage – sie wird unter Clips → Montagen gespeichert. Das Projekt der Runde bleibt, wie es zuletzt gespeichert war.':
         'モンタージュになりました – Clips → Montagen に保存されます。ラウンドのプロジェクトは最後に保存した状態のままです。',
-    'Montage':
-        'モンタージュ',
     'Montage aus {n} Aufnahmen':
         '{n} 個の録画のモンタージュ',
     'Montage nicht zu öffnen – ihre erste Aufnahme fehlt: {file}':

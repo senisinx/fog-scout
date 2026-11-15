@@ -105,7 +105,6 @@ def status(root: str) -> tuple:
 
 
 # ---------------------------------------------------------------- 1.38.32 (project review F8): everything in one ZIP
-ARCHIVE_FILES = FILES + ("corpus",)            # the own data a user wants to move or keep (corpus: folder)
 ARCHIVE_DIRS = ("user_maps", "corpus")
 
 

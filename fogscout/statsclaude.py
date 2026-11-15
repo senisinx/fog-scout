@@ -164,13 +164,8 @@ def week(rounds, off: dict, now: float) -> dict:
     return {"this_week": summary(this, off), "last_week": summary(last, off)}
 
 
-def content(question: str, data: dict) -> str:
-    return ("Statistics summary:\n" + json.dumps(data, ensure_ascii=False, sort_keys=True)
-            + "\n\nQuestion: " + str(question or "").strip()[:MAX_QUESTION])
-
-
 def blocks(question: str, data: dict) -> list:
-    """1.36: the same as two text blocks – the summary marked for the API's cache (a follow-up question within five
+    """1.36: what is sent, as two text blocks – the summary marked for the API's cache (a follow-up question within five
     minutes reads it at a twentieth of the price), the question after it."""
     return [{"type": "text", "text": "Statistics summary:\n" + json.dumps(data, ensure_ascii=False, sort_keys=True),
              "cache_control": {"type": "ephemeral"}},

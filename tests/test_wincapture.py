@@ -145,3 +145,63 @@ def test_missing_package_reports_error(monkeypatch):
     assert not cap.start() and "windows-capture" in cap.error
     assert describe(None, True).startswith("Bildschirm")
     assert describe(None, False) == "Bildschirm"
+
+
+def test_a_minimized_dbd_ends_the_window_capture(tmp_path, monkeypatch):
+    """1.51.1 (review): the worker skipped the rest of the tick for a minimized DBD – before the place that stops
+    the capture. A running capture went on copying pictures nobody looked at until DBD came back."""
+    import queue
+    from types import SimpleNamespace
+    import numpy as np
+    from fogscout import config, worker
+    from fogscout.catalog import Catalog
+    root = os.path.join(os.path.dirname(__file__), "..")
+    made = []
+
+    class FakeCapture:
+        def __init__(self, hwnd):
+            self.hwnd, self.closed, self.error, self.options, self.size = hwnd, False, "", {}, None
+            self.running = False
+            made.append(self)
+
+        def start(self):
+            self.running = True
+            return True
+
+        def grab(self, *a, **k):
+            return None
+
+        def stop(self):
+            self.running = False
+
+    class Grabber:
+        def grab(self, left, top, width, height):
+            return np.zeros((height, width, 3), np.uint8)
+
+        def primary_monitor(self):
+            return 0, 0, 1280, 720
+
+    game = SimpleNamespace(hwnd=7, left=0, top=0, width=1280, height=720, minimized=False)
+    monkeypatch.setattr(worker, "IS_WIN", True)
+    monkeypatch.setattr(worker, "ScreenGrabber", Grabber)
+    from fogscout import wincapture
+    monkeypatch.setattr(wincapture, "WindowCapture", FakeCapture)          # the worker imports it when it starts
+    monkeypatch.setattr(worker, "find_game_window", lambda known=None: game)
+    monkeypatch.setattr(worker, "foreground_root", lambda: 99)             # another window in front
+    monkeypatch.setattr(worker, "windows_above", lambda hwnd: [])
+    monkeypatch.setattr(worker, "cursor_state", lambda: None)
+    wk = worker.DetectionWorker(root, config.Settings(str(tmp_path / "settings.json")), Catalog(root, ["en"]),
+                                queue.Queue(), data_dir=str(tmp_path))
+    wk.start()
+    try:
+        deadline = time.time() + 30
+        while not (made and made[0].running) and time.time() < deadline:
+            time.sleep(0.05)
+        assert made and made[0].running                                    # DBD in the background: captured
+        game.minimized = True
+        while made[0].running and time.time() < deadline:
+            time.sleep(0.05)
+        assert not made[0].running                                         # minimized: the capture ended
+    finally:
+        wk.stop()
+        wk.join(timeout=10)

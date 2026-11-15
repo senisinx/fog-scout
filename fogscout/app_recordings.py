@@ -827,33 +827,41 @@ class RecordingsTab:
         self._rec_buttons()
         return True
 
-    def _recording_for(self, t: float):
-        """1.17.1: the path of the recording of the round that started at ``t`` – the index entry with the same start
-        time (as the recordings page pairs them) whose file is there; None without one. The index is read again only
-        when its file changed (os.stat per call, a few rounds at a time)."""
-        folder = self.recorder.folder() if self.settings.get("rec_on", False) or self.settings.get("rec_folder") else None
+    def _rec_index(self, folder) -> tuple:
+        """(recordings, {start time: recording}) of the index in ``folder`` – parsed again only when the file
+        changed (its time and size; 1.51.1, measured with 500 recordings: the page spent 40 % of its 16 ms per
+        render parsing the same index). Read only: the Recorder thread is the one writer and reads its own copy."""
         if not folder:
-            return None
+            return [], {}
         try:
             st = os.stat(os.path.join(folder, obsrec.INDEX))
             stamp = (folder, st.st_mtime_ns, st.st_size)
         except OSError:
-            return None
+            stamp = (folder, None, None)                     # no index (yet), or its old name: read every time
         cached = self.__dict__.get("_rec_by_t")
-        if cached is None or cached[0] != stamp:
+        if cached is None or cached[0] != stamp or stamp[1] is None:
             try:
                 recs = obsrec.load_index(folder)
             except (OSError, ValueError):
                 recs = []
-            cached = self._rec_by_t = (stamp, {r.t: r for r in recs})
-        rec = cached[1].get(t)
+            cached = self._rec_by_t = (stamp, recs, {r.t: r for r in recs})
+        return cached[1], cached[2]
+
+    def _recording_for(self, t: float):
+        """1.17.1: the path of the recording of the round that started at ``t`` – the index entry with the same start
+        time (as the recordings page pairs them) whose file is there; None without one. The index is read again only
+        when its file changed (_rec_index)."""
+        folder = self.recorder.folder() if self.settings.get("rec_on", False) or self.settings.get("rec_folder") else None
+        if not folder:
+            return None
+        rec = self._rec_index(folder)[1].get(t)
         p = obsrec.rel_path(folder, rec.file) if rec is not None else None
         return p if p and os.path.isfile(p) else None
 
     def _rec_render(self, force=False):
         self._rec_dirty, self._rec_rendered = False, time.time()
         folder = self.recorder.folder() if self.settings.get("rec_on", False) or self.settings.get("rec_folder") else None
-        recs = obsrec.load_index(folder) if folder else []
+        recs = self._rec_index(folder)[0]
         sp = self.recorder.space
         if not self.settings.get("rec_on", False) and not recs:
             self.rec_summary_var.set(_("Aufnahmen sind aus."))         # 1.24.3: one wording (the card is hidden)

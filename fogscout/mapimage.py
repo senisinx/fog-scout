@@ -102,7 +102,6 @@ def save(src: str, dest: str, remove_bg: bool = True, title: str = "") -> str:
 
 
 # ------------------------------------------------------------------ rotation (overlay, per map)
-ROTATIONS = (0, 90, 180, 270)
 TITLE_ZONE = (0.04, 0.25)   # the gap below the map name starts within this share of the height
 MIN_GAP = 8                 # px of fully transparent rows between name and map
 

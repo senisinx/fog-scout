@@ -2049,6 +2049,54 @@ T = {
         '반영됨: {what}.',
     'Kicks und die Anzahl je Killer-Perk gelten für jeden Generator einzeln.':
         '걷어차기 횟수와 살인마 퍽별 횟수는 발전기마다 따로 적용됩니다.',
+    '+{p} % Tempo':
+        '속도 +{p} %',
+    '+{p} % Tempo, wenn mindestens ein weiterer Survivor mitrepariert':
+        '다른 생존자가 한 명 이상 함께 수리할 때 속도 +{p} %',
+    '+{p} % Tempo je weiterem Survivor am Generator (höchstens {max} %), für alle dort':
+        '발전기에 있는 다른 생존자 한 명당 속도 +{p} %(최대 {max} %), 그곳의 모두에게 적용',
+    '+{p} % Tempo für alle am Generator; er regressiert halb so schnell':
+        '발전기에 있는 모두의 속도 +{p} %; 퇴행 속도는 절반',
+    '+{p} % Tempo für alle, {s} s lang nach einem gemeinsam fertigen Generator':
+        '발전기를 함께 완료한 뒤 {s}초 동안 모두의 속도 +{p} %',
+    'jeder Great Skill Check in Folge bringt {p} % mehr Bonus (bis {n} Tokens)':
+        '대성공 기술 검사가 연속될 때마다 보너스 {p} % 증가(최대 {n} 토큰)',
+    'jeder Generator braucht {v} Ladungen weniger':
+        '모든 발전기의 필요 충전량 {v} 감소',
+    'ein Generator braucht {v} Ladungen weniger':
+        '발전기 한 대의 필요 충전량 {v} 감소',
+    '−{p} % Tempo je Anzahl (höchstens {max} %)':
+        '횟수당 속도 −{p} %(최대 {max} %)',
+    '−{first} % Tempo beim ersten, −{p} % je weiterem (höchstens {max} %)':
+        '첫 번째에 속도 −{first} %, 이후 하나당 −{p} %(최대 {max} %)',
+    'ein Kick nimmt {total} % statt {base} %':
+        '걷어차기 한 번에 {base} % 대신 {total} % 감소',
+    'ein Kick nimmt {p} % mehr; die Regression steigt in {s} s von {a} % auf {b} %':
+        '걷어차기 한 번에 {p} % 추가 감소; 퇴행 속도가 {s}초 동안 {a} %에서 {b} %로 상승',
+    'Regression mit {p} % für {s} s nach dem Kick':
+        '걷어찬 뒤 {s}초 동안 퇴행 속도 {p} %',
+    'Regression mit {p} %, solange niemand repariert':
+        '아무도 수리하지 않는 동안 퇴행 속도 {p} %',
+    'nimmt dem Generator sofort {p} %':
+        '발전기에서 즉시 {p} % 감소',
+    'der erste Kick nimmt {p} % mehr je Token und blockiert {s} s je Token':
+        '첫 걷어차기는 토큰당 {p} % 추가 감소, 토큰당 {s}초 봉쇄',
+    'blockiert den Generator {s} s':
+        '발전기를 {s}초 봉쇄',
+    '{p} % bei {n}':
+        '{n}일 때 {p} %',
+    '+{p} % Tempo, bis {n} Ladungen übertragen sind':
+        '충전량 {n}을(를) 옮길 때까지 속도 +{p} %',
+    'Noch kein Perk gewählt.':
+        '아직 선택한 퍽이 없습니다.',
+    'Was die gewählten Perks tun':
+        '선택한 퍽의 효과',
+    'Rechner zurücksetzen':
+        '계산기 초기화',
+    'Leert alle Builds und setzt die Annahmen auf die Startwerte.':
+        '모든 빌드를 비우고 가정을 처음 값으로 되돌립니다.',
+    'Runden vom Map-Banner bis zum Rundenende (ab 1 min), nur lokal gespeichert.':
+        '맵 배너부터 라운드 종료까지의 라운드(1분 이상), 이 PC에만 저장됩니다.',
     'Claude hat unverständlich geantwortet.':
         'Claude의 답변을 읽을 수 없습니다.',
     'Claude ist nicht erreichbar – keine Internetverbindung?':
@@ -4279,8 +4327,6 @@ T = {
         '프로젝트 저장됨: {file}',
     'Projekt speichern (Strg+S) – Schnitt, Ausschnitt, Zeichnungen, Zensur und Export-Einstellungen dieser Aufnahme, zum späteren Weiterarbeiten.':
         '프로젝트 저장(Ctrl+S) – 이 녹화의 편집, 자르기, 그림, 가리기, 내보내기 설정을 저장해 나중에 이어서 작업합니다.',
-    'Runde':
-        '라운드',
     'Rückgängig (Strg+Z).':
         '실행 취소(Ctrl+Z).',
     'Rückgängig.':
@@ -4885,8 +4931,6 @@ T = {
         '몽타주에는 녹화를 최대 {n}개까지 넣을 수 있습니다.',
     'Jetzt eine Montage – sie wird unter Clips → Montagen gespeichert. Das Projekt der Runde bleibt, wie es zuletzt gespeichert war.':
         '이제 몽타주입니다 – 클립 → Montagen에 저장됩니다. 라운드의 프로젝트는 마지막으로 저장한 그대로 유지됩니다.',
-    'Montage':
-        '몽타주',
     'Montage aus {n} Aufnahmen':
         '녹화 {n}개의 몽타주',
     'Montage nicht zu öffnen – ihre erste Aufnahme fehlt: {file}':

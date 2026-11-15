@@ -2049,6 +2049,54 @@ T = {
         '已计入：{what}。',
     'Kicks und die Anzahl je Killer-Perk gelten für jeden Generator einzeln.':
         '踢击次数和每个杀手技能的数量按每台发电机单独计算。',
+    '+{p} % Tempo':
+        '速度 +{p} %',
+    '+{p} % Tempo, wenn mindestens ein weiterer Survivor mitrepariert':
+        '至少有一名其他逃生者一起修理时速度 +{p} %',
+    '+{p} % Tempo je weiterem Survivor am Generator (höchstens {max} %), für alle dort':
+        '发电机旁每多一名逃生者速度 +{p} %（最多 {max} %），对在场所有人生效',
+    '+{p} % Tempo für alle am Generator; er regressiert halb so schnell':
+        '发电机旁所有人速度 +{p} %；回退速度减半',
+    '+{p} % Tempo für alle, {s} s lang nach einem gemeinsam fertigen Generator':
+        '共同修好一台发电机后 {s} 秒内所有人速度 +{p} %',
+    'jeder Great Skill Check in Folge bringt {p} % mehr Bonus (bis {n} Tokens)':
+        '每次连续的完美技能检定使奖励增加 {p} %（最多 {n} 个标记）',
+    'jeder Generator braucht {v} Ladungen weniger':
+        '每台发电机所需充能减少 {v}',
+    'ein Generator braucht {v} Ladungen weniger':
+        '一台发电机所需充能减少 {v}',
+    '−{p} % Tempo je Anzahl (höchstens {max} %)':
+        '每计数一次速度 −{p} %（最多 {max} %）',
+    '−{first} % Tempo beim ersten, −{p} % je weiterem (höchstens {max} %)':
+        '第一个速度 −{first} %，之后每个 −{p} %（最多 {max} %）',
+    'ein Kick nimmt {total} % statt {base} %':
+        '一次踢击扣除 {total} % 而非 {base} %',
+    'ein Kick nimmt {p} % mehr; die Regression steigt in {s} s von {a} % auf {b} %':
+        '一次踢击多扣 {p} %；回退速度在 {s} 秒内从 {a} % 升至 {b} %',
+    'Regression mit {p} % für {s} s nach dem Kick':
+        '踢击后 {s} 秒内回退速度为 {p} %',
+    'Regression mit {p} %, solange niemand repariert':
+        '无人修理时回退速度为 {p} %',
+    'nimmt dem Generator sofort {p} %':
+        '立即扣除发电机 {p} %',
+    'der erste Kick nimmt {p} % mehr je Token und blockiert {s} s je Token':
+        '第一次踢击每个标记多扣 {p} %，并每个标记封锁 {s} 秒',
+    'blockiert den Generator {s} s':
+        '封锁发电机 {s} 秒',
+    '{p} % bei {n}':
+        '达到 {n} 时为 {p} %',
+    '+{p} % Tempo, bis {n} Ladungen übertragen sind':
+        '速度 +{p} %，直到转移 {n} 点充能',
+    'Noch kein Perk gewählt.':
+        '尚未选择技能。',
+    'Was die gewählten Perks tun':
+        '所选技能的效果',
+    'Rechner zurücksetzen':
+        '重置计算器',
+    'Leert alle Builds und setzt die Annahmen auf die Startwerte.':
+        '清空所有配置，并将假设恢复为初始值。',
+    'Runden vom Map-Banner bis zum Rundenende (ab 1 min), nur lokal gespeichert.':
+        '从地图横幅到回合结束的回合（1 分钟起），仅保存在本机。',
     'Claude hat unverständlich geantwortet.':
         'Claude 给出的回答无法读取。',
     'Claude ist nicht erreichbar – keine Internetverbindung?':
@@ -4279,8 +4327,6 @@ T = {
         '项目已保存：{file}',
     'Projekt speichern (Strg+S) – Schnitt, Ausschnitt, Zeichnungen, Zensur und Export-Einstellungen dieser Aufnahme, zum späteren Weiterarbeiten.':
         '保存项目（Ctrl+S）：此录像的剪辑、裁剪、绘图、打码和导出设置，以便之后继续编辑。',
-    'Runde':
-        '对局',
     'Rückgängig (Strg+Z).':
         '撤销（Ctrl+Z）。',
     'Rückgängig.':
@@ -4885,8 +4931,6 @@ T = {
         '一个合集最多 {n} 个录像。',
     'Jetzt eine Montage – sie wird unter Clips → Montagen gespeichert. Das Projekt der Runde bleibt, wie es zuletzt gespeichert war.':
         '现在是合集，它保存在 Clips → Montagen 下。该对局的项目保持上次保存时的状态。',
-    'Montage':
-        '合集',
     'Montage aus {n} Aufnahmen':
         '{n} 个录像的合集',
     'Montage nicht zu öffnen – ihre erste Aufnahme fehlt: {file}':

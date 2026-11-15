@@ -39,7 +39,6 @@ PAD_IDS = tuple(k for k, _bit in PAD_BUTTONS)
 
 STICK_DEAD = 0.24              # share of the stick's travel that counts as resting (XInput's own: 7849 / 32767)
 TRIGGER_DEAD = 30 / 255        # XINPUT_GAMEPAD_TRIGGER_THRESHOLD
-ERROR_DEVICE_NOT_CONNECTED = 1167
 PAD_RESCAN_S = 2.0             # a slot without a controller is asked again only this often (XInput is slow there)
 
 LAYOUTS = ("auto", "keyboard", "gamepad")

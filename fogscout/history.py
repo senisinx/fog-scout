@@ -302,7 +302,6 @@ def period_start(period: str, now: float):
 
 
 ROLES = ("killer", "survivor")
-ROLE_FILTERS = ("all", "killer", "survivor", "custom", "farming")
 
 
 def select(rounds, since=None, region=None, role="all", killer=None, map_label=None, farming=None) -> list:
@@ -374,7 +373,6 @@ def per_region(rounds) -> list:
 
 
 # ------------------------------------------------------------------ waiting time in the lobby
-WAIT_GROUPS = ("weekday", "hour", "region")
 HOUR_BLOCK = 3              # time of day in blocks of 3 hours (00–03, 03–06, …)
 
 

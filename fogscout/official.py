@@ -685,7 +685,6 @@ def correct_maps(pairs, map_id_of, label_of) -> dict:
     return fixed
 
 
-TREND_UNITS = ("hour", "day", "week")
 MAX_BUCKETS = 30
 
 

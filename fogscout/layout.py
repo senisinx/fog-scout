@@ -103,9 +103,6 @@ def bar_centre(side: str, gx: float, gw: float, bar: float) -> float:
     return gx + bar / 2 if side == "left" else gx + gw - bar / 2
 
 
-ALIGNS = ("left", "centre", "right")
-
-
 def stack_gap(o: dict, gh: float) -> int:
     """Room between stacked cards and between the system values and a map below/above them (1.2.8, user's
     pick: one slider) – ``overlay.stack_gap`` px at 1440p, scaled with the game height."""

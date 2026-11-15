@@ -42,6 +42,51 @@ COUNT_MEANS = {
 }
 
 
+# what a perk does, in the program's words (the numbers come from perkdata.json) – by the entry's "kind"
+EFFECTS = {
+    "self": N_("+{p} % Tempo"),
+    "self_with_others": N_("+{p} % Tempo, wenn mindestens ein weiterer Survivor mitrepariert"),
+    "team_per_other": N_("+{p} % Tempo je weiterem Survivor am Generator (höchstens {max} %), für alle dort"),
+    "team": N_("+{p} % Tempo für alle am Generator; er regressiert halb so schnell"),
+    "team_timed": N_("+{p} % Tempo für alle, {s} s lang nach einem gemeinsam fertigen Generator"),
+    "great_scale": N_("jeder Great Skill Check in Folge bringt {p} % mehr Bonus (bis {n} Tokens)"),
+    "requirement_all": N_("jeder Generator braucht {v} Ladungen weniger"),
+    "requirement_once": N_("ein Generator braucht {v} Ladungen weniger"),
+    "slow": N_("−{p} % Tempo je Anzahl (höchstens {max} %)"),
+    "slow_first": N_("−{first} % Tempo beim ersten, −{p} % je weiterem (höchstens {max} %)"),
+    "kick_loss": N_("ein Kick nimmt {total} % statt {base} %"),
+    "overcharge": N_("ein Kick nimmt {p} % mehr; die Regression steigt in {s} s von {a} % auf {b} %"),
+    "regress_mult": N_("Regression mit {p} % für {s} s nach dem Kick"),
+    "ruin": N_("Regression mit {p} %, solange niemand repariert"),
+    "instant": N_("nimmt dem Generator sofort {p} %"),
+    "undone": N_("der erste Kick nimmt {p} % mehr je Token und blockiert {s} s je Token"),
+    "block": N_("blockiert den Generator {s} s"),
+}
+
+
+def _pct(v) -> str:
+    return f"{v * 100:g}"
+
+
+def effect_text(entry: dict, mech: dict | None = None) -> str:
+    """One line on what the perk ``entry`` (of perkdata.json) does in the calculation."""
+    kind = entry.get("kind", "")
+    text = EFFECTS.get(kind)
+    if not text:
+        return ""
+    base = (mech or {}).get("kick_loss", 0.05)
+    args = {"p": _pct(entry.get("value", entry.get("per", 0))), "max": _pct(entry.get("max", 0)),
+            "s": f"{entry.get('seconds', entry.get('block', 0)):g}", "n": entry.get("tokens", 0),
+            "v": f"{entry.get('value', 0):g}", "first": _pct(entry.get("first", 0)),
+            "total": _pct(base + entry.get("value", 0)), "base": _pct(base),
+            "a": _pct(entry.get("from", 0)), "b": _pct(entry.get("to", 0))}
+    if kind in ("regress_mult", "ruin"):
+        args["p"] = _pct(entry.get("value", 1))
+    if kind == "slow" and entry.get("full_at"):
+        return _(text, **args) + " · " + _("{p} % bei {n}", p=_pct(entry["full"]), n=entry["full_at"])
+    return _(text, **args)
+
+
 def _secs(v) -> str:
     return _("{n} s", n=v)
 
@@ -107,6 +152,7 @@ class CalcTab:
         kf = ui.LabelFrame(f, text=_("Killer-Build"), padding=8)
         kf.pack(fill="x", pady=(8, 0))
         self.calc_kill = []
+        self.calc_count_boxes = []
         killer, counts = st["killer"], st["counts"] if isinstance(st["counts"], dict) else {}
         for slot in range(SLOTS):
             r = ui.Frame(kf)
@@ -123,6 +169,7 @@ class CalcTab:
             c = ui.Combobox(r, textvariable=nv, values=[str(x) for x in COUNT_CHOICES], state="readonly", width=4)
             c.pack(side="left", padx=(6, 0))
             c.bind("<<ComboboxSelected>>", lambda e: self._calc_changed())
+            self.calc_count_boxes.append(c)
             mv = ui.StringVar(value="")
             ui.Label(r, textvariable=mv, style="Dim.TLabel", wraplength=360).pack(side="left", padx=(10, 0))
             self.calc_kill.append((v, nv, mv))
@@ -152,6 +199,12 @@ class CalcTab:
         self.calc_dr_var = ui.BooleanVar(value=bool(st.get("diminishing", True)))
         ui.Checkbutton(af, text=_("Diminishing Returns anwenden"), variable=self.calc_dr_var,
                        command=self._calc_changed).pack(anchor="w", pady=(2, 0))
+        ui.Button(af, text=_("Rechner zurücksetzen"), command=self._calc_reset).pack(anchor="w", pady=(6, 0))
+
+        ef = ui.LabelFrame(f, text=_("Was die gewählten Perks tun"), padding=8)
+        ef.pack(fill="x", pady=(8, 0))
+        self.calc_effects_var = ui.StringVar(value="")
+        ui.Label(ef, textvariable=self.calc_effects_var, wraplength=640, justify="left").pack(anchor="w")
 
         rf = ui.LabelFrame(f, text=_("Ergebnis"), padding=8)
         rf.pack(fill="x", pady=(8, 0))
@@ -220,13 +273,49 @@ class CalcTab:
         self._save_soon()
         self._calc_render()
 
+    def _calc_reset(self):
+        """All builds and assumptions back to the start values."""
+        self.calc_n_var.set(str(CALC_DEFAULTS["n"]))
+        for vars_, tv in self.calc_surv:
+            for v in vars_:
+                v.set(NONE)
+            tv.set(NONE)
+        for v, nv, _mv in self.calc_kill:
+            v.set(NONE)
+            nv.set("1")
+        for key, (v, choices, labels) in self.calc_opts.items():
+            v.set(labels[choices.index(CALC_DEFAULTS[key])])
+        self.calc_dr_var.set(True)
+        self._calc_changed()
+
+    def _calc_effects(self, d, team, killer) -> str:
+        """One line per chosen perk and toolbox (each once): what it does here."""
+        lines, seen = [], set()
+        for s in team:
+            for name in s.perks:
+                if name not in seen and name in d.survivor:
+                    seen.add(name)
+                    lines.append(f"{name} – {effect_text(d.survivor[name], d.mech)}")
+            if s.toolbox in d.toolboxes and s.toolbox not in seen:
+                seen.add(s.toolbox)
+                e = d.toolboxes[s.toolbox]
+                lines.append(f"{s.toolbox} – " + _("+{p} % Tempo, bis {n} Ladungen übertragen sind",
+                                                   p=_pct(e["bonus"]), n=f"{e['charges']:g}"))
+        for name in killer.perks:
+            if name not in seen and name in d.killer:
+                seen.add(name)
+                lines.append(f"{name} – {effect_text(d.killer[name], d.mech)}")
+        return "\n".join(lines) if lines else _("Noch kein Perk gewählt.")
+
     # ---------------------------------------------------------------- the result
     def _calc_render(self):
         d = self._calc_data()
         n, team, killer, scen, _opts = self._calc_inputs()
-        for v, nv, mv in self.calc_kill:
+        for (v, nv, mv), box in zip(self.calc_kill, self.calc_count_boxes):
             what = COUNT_MEANS.get(v.get()) if v.get() in d.killer else None
             mv.set(_("Anzahl = {what}", what=_(what)) if what else "")
+            box.state(["!disabled" if what else "disabled"])     # a perk without a count: nothing to choose
+        self.calc_effects_var.set(self._calc_effects(d, team, killer))
         t = self.calc_tree
         t.delete(*t.get_children())
         sizes = gencalc.by_size(d, team, killer, scen)

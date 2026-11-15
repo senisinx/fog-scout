@@ -342,6 +342,10 @@ class DetectionWorker(threading.Thread):
                     origin = (0, 0)
                 else:
                     if window is not None and window.minimized:
+                        if wcap is not None:           # 1.51.1 (review): a minimized DBD is not looked at – the
+                            wcap.stop()                # capture went on copying its pictures (the stop below is
+                            wcap = None                # never reached from here)
+                            self.capture_info = describe(None, False)
                         self._status(_("DBD ist minimiert"), last_status)
                         last_status = _("DBD ist minimiert")
                         self._nap(0.5)

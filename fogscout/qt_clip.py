@@ -31,7 +31,6 @@ log = logging.getLogger("fogscout")
 
 CENSOR_LABELS = {"pixel": N_("Verpixelt"), "blur": N_("Verwischt"), "black": N_("Schwarz"),
                  "retouch": N_("Retusche (aus der Umgebung übermalt)")}   # 1.7.2, retouch 1.7.3
-SIDE_W = 400                                     # 1.12.5: px of the big editor's side column (tools, saving)
 MARK_BEFORE_S, MARK_AFTER_S = 20.0, 10.0          # a clip around an F8 mark (on opening, „Clip um Marke“)
 COMPACT_PREVIEW_H = 360                          # 1.8.8: picture height of the preview beside the recordings
 MIX_MAX = 150                                    # 1.8.6: a source may be raised to 150 %

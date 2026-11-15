@@ -151,5 +151,27 @@ def test_the_page_shows_the_times_of_the_builds_and_keeps_them(app_root):
         app.calc_dr_var.set(False)
         app._calc_changed()
         assert app.settings.get("calc")["diminishing"] is False
+        # 1.51.1: what the chosen perks do, each once; a perk without a count greys its count out; reset
+        text = app.calc_effects_var.get()
+        assert "Prove Thyself – +10 % Tempo je weiterem Survivor" in text and text.count("Resilience") == 1
+        assert "Pop Goes the Weasel – ein Kick nimmt 20 % statt 5 %" in text and "Toolbox – +50 % Tempo" in text
+        assert not app.calc_count_boxes[0].instate(["disabled"])              # Pop: kicks with the perk
+        app.calc_kill[2][0].set("Call of Brine")
+        app._calc_killer_picked(2)
+        assert app.calc_count_boxes[2].instate(["disabled"]) and app.calc_count_boxes[3].instate(["disabled"])
+        app._calc_reset()
+        assert [v.get() for v in vars_] == [app_calc.NONE] * 4 and tool.get() == app_calc.NONE
+        assert app.settings.get("calc")["killer"] == [] and app.calc_dr_var.get() is True
+        assert app.calc_effects_var.get() == "Noch kein Perk gewählt."
     finally:
         app.quit()
+
+
+def test_every_perk_of_the_data_file_has_a_line_that_says_what_it_does():
+    """1.51.1: the page explains each chosen perk – no entry without a text, no placeholder left open."""
+    from fogscout import app_calc
+    for e in list(D.survivor.values()) + list(D.killer.values()):
+        text = app_calc.effect_text(e, D.mech)
+        assert text and "{" not in text, e["name"]
+    assert app_calc.effect_text(D.killer["Thanatophobia"], D.mech).endswith("20 % bei 4")
+    assert set(app_calc.COUNT_MEANS) == {n for n, e in D.killer.items() if e.get("count")}
