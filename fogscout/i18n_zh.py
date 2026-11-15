@@ -2287,12 +2287,8 @@ T = {
         '附加品：100 %',
     'Add-ons':
         '附加品',
-    'Add-ons: aufgeführt sind die, deren Wirkung der Rechner berechnen kann (Haste, Hindered, Mangled, Aktionstempo). Die Kraft selbst zählt nur dort mit, wo ein gewähltes Add-on sie verstärkt.':
-        '附加品：仅列出计算器能够计算其效果的附加品（Haste、Hindered、Mangled、动作速度）。能力本身只在所选附加品强化它时才计入。',
     'Bedingte Perks zählen als aktiv (z. B. Resilience = verletzt, Hope = Tore mit Strom); die Bedingung steht in der Aufschlüsselung. Ein Werkzeugkasten wirkt beim Reparieren und Sabotieren, ein Med-Kit beim Heilen; Add-ons zählen voll (keine Diminishing Returns).':
         '条件型技能按已生效计算（例如 Resilience = 受伤，Hope = 大门通电）；条件见明细。工具箱在修理和破坏钩子时生效，医疗包在治疗时生效；附加品全额计算（不受收益递减影响）。',
-    'Für diesen Killer kennt der Rechner kein Add-on mit berechenbarer Wirkung.':
-        '对于这名杀手，计算器没有可计算效果的附加品。',
     'Grundgeschwindigkeit':
         '基础速度',
     'keine regulären Skill Checks, solange der Werkzeugkasten läuft':
@@ -2301,6 +2297,10 @@ T = {
         '+ 另外 {n} 项',
     'Update gesperrt: OBS nimmt gerade auf – der Neustart würde die Aufnahme beenden. Aufnahme stoppen, dann noch einmal auf „Aktualisieren und neu starten“ klicken.':
         '更新已锁定：OBS 正在录制——重启会结束录制。请先停止录制，然后再次点击“更新并重启”。',
+    'Add-ons: alle des gewählten Killers. Berechnet werden die mit Haste, Hindered, Mangled oder Aktionstempo; die Kraft selbst zählt nur dort mit, wo ein gewähltes Add-on sie verstärkt.':
+        '附加品：所选杀手的全部附加品。计算其中带有 Haste、Hindered、Mangled 或动作速度效果的；能力本身只在所选附加品强化它时才计入。',
+    'Ohne berechenbare Wirkung: {names}.':
+        '无可计算效果：{names}。',
     'Claude hat unverständlich geantwortet.':
         'Claude 给出的回答无法读取。',
     'Claude ist nicht erreichbar – keine Internetverbindung?':

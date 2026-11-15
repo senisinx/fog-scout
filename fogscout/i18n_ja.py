@@ -2287,12 +2287,8 @@ T = {
         'アドオン：100 %',
     'Add-ons':
         'アドオン',
-    'Add-ons: aufgeführt sind die, deren Wirkung der Rechner berechnen kann (Haste, Hindered, Mangled, Aktionstempo). Die Kraft selbst zählt nur dort mit, wo ein gewähltes Add-on sie verstärkt.':
-        'アドオン：計算機で効果を計算できるもの（Haste、Hindered、Mangled、アクション速度）だけを表示します。能力そのものは、選んだアドオンが強化する場合にのみ計上されます。',
     'Bedingte Perks zählen als aktiv (z. B. Resilience = verletzt, Hope = Tore mit Strom); die Bedingung steht in der Aufschlüsselung. Ein Werkzeugkasten wirkt beim Reparieren und Sabotieren, ein Med-Kit beim Heilen; Add-ons zählen voll (keine Diminishing Returns).':
         '条件付きパークは発動中として計算します（例：Resilience = 負傷、Hope = ゲート通電）。条件は内訳に表示されます。工具箱は修理とフック破壊時、医療キットは治療時に効きます。アドオンは全額計上されます（効果逓減なし）。',
-    'Für diesen Killer kennt der Rechner kein Add-on mit berechenbarer Wirkung.':
-        'このキラーには、計算できる効果を持つアドオンがありません。',
     'Grundgeschwindigkeit':
         '基本速度',
     'keine regulären Skill Checks, solange der Werkzeugkasten läuft':
@@ -2301,6 +2297,10 @@ T = {
         '+ 他{n}件',
     'Update gesperrt: OBS nimmt gerade auf – der Neustart würde die Aufnahme beenden. Aufnahme stoppen, dann noch einmal auf „Aktualisieren und neu starten“ klicken.':
         'アップデートはロック中です：OBSが録画中です。再起動すると録画が終了します。録画を停止してから、もう一度「アップデートして再起動」をクリックしてください。',
+    'Add-ons: alle des gewählten Killers. Berechnet werden die mit Haste, Hindered, Mangled oder Aktionstempo; die Kraft selbst zählt nur dort mit, wo ein gewähltes Add-on sie verstärkt.':
+        'アドオン：選んだキラーのすべて。計算されるのはHaste、Hindered、Mangled、アクション速度の効果を持つものです。能力そのものは、選んだアドオンが強化する場合にのみ計上されます。',
+    'Ohne berechenbare Wirkung: {names}.':
+        '計算できる効果なし：{names}。',
     'Claude hat unverständlich geantwortet.':
         'Claude の回答を読み取れませんでした。',
     'Claude ist nicht erreichbar – keine Internetverbindung?':

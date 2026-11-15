@@ -213,12 +213,13 @@ class CalcTab:
             icons = self._calc_icon_index = perkicons.Index(perkicons.folders(self.data_dir))
         return icons
 
-    def _calc_choice(self, parent, var, values, width=17, px=PERK_PX, icons=False):
+    def _calc_choice(self, parent, var, values, width=17, px=PERK_PX, icons=""):
+        """A choice of the page. ``icons``: the kind of picture its entries have ("perks", "addon", "items")."""
         c = ui.Combobox(parent, textvariable=var, values=values, state="readonly", width=width)
         if px:
             c._dbdms_px = px
         if icons and self._calc_icons().any():
-            c._dbdms_icons = self._calc_icons().find            # value -> picture file or None (app_qt.ui_state)
+            c._dbdms_icons = self._calc_icons().finder(icons)   # value -> picture file or None (app_qt.ui_state)
         c.bind("<<ComboboxSelected>>", lambda e: self._calc_changed())
         return c
 
@@ -226,7 +227,7 @@ class CalcTab:
         outer, f = self._scroll_tab()
         d = self._calc_data()
         st = self._calc_state()
-        item_names = [NONE] + list(d.toolboxes) + list(d.medkits)
+        item_names = [NONE] + gencalc.item_names(d)
 
         top = ui.LabelFrame(f, text=_("Bereich"), padding=8)
         top.pack(fill="x")
@@ -261,7 +262,7 @@ class CalcTab:
             for slot in range(SLOTS):
                 v = ui.StringVar(value=perks[slot] if slot < len(perks) and self._calc_known(perks[slot], "S")
                                  else NONE)
-                c = self._calc_choice(r, v, [NONE], icons=True)
+                c = self._calc_choice(r, v, [NONE], icons="perks")
                 c.pack(side="left", padx=(6, 0))
                 self.calc_perk_boxes.append((c, v, "S"))
                 vars_.append(v)
@@ -271,12 +272,12 @@ class CalcTab:
             lab._dbdms_px = NAME_PX
             lab.pack(side="left")
             tv = ui.StringVar(value=tool if tool in item_names else NONE)
-            self._calc_choice(r, tv, item_names, icons=True).pack(side="left", padx=(6, 0))
+            self._calc_choice(r, tv, item_names, icons="items").pack(side="left", padx=(6, 0))
             ui.Label(r, text=_("Add-ons")).pack(side="left", padx=(12, 0))
             slots = []
             for k in range(ADDON_SLOTS):                    # 1.53: the item's add-ons (those of the item in hand)
-                av = ui.StringVar(value=had[k] if k < len(had) and had[k] in d.item_addons else NONE)
-                c = self._calc_choice(r, av, [NONE], icons=True)
+                av = ui.StringVar(value=had[k] if k < len(had) and had[k] else NONE)       # _calc_tidy checks it
+                c = self._calc_choice(r, av, [NONE], icons="addon")
                 c.pack(side="left", padx=(6, 0))
                 slots.append((c, av))
             self.calc_item_addons.append(slots)
@@ -288,6 +289,8 @@ class CalcTab:
                          "Sabotieren, ein Med-Kit beim Heilen; Add-ons zählen voll (keine Diminishing Returns)."),
             style="Dim.TLabel", wraplength=620)
         self.calc_team_hint.pack(anchor="w", pady=(6, 0))
+        self.calc_plain_var = ui.StringVar(value="")         # 1.54: chosen add-ons that change nothing computed
+        ui.Label(team, textvariable=self.calc_plain_var, style="Dim.TLabel", wraplength=620).pack(anchor="w")
 
         kf = ui.LabelFrame(f, text=_("Killer-Build"), padding=8)
         kf.pack(fill="x", pady=(8, 0))
@@ -300,8 +303,8 @@ class CalcTab:
         self.calc_killer_addons = []
         had = list(st["killer_addons"]) if isinstance(st["killer_addons"], list) else []
         for k in range(ADDON_SLOTS):
-            av = ui.StringVar(value=had[k] if k < len(had) and had[k] in d.killer_addons else NONE)
-            c = self._calc_choice(r, av, [NONE], px=PERK_PX + 16, icons=True)
+            av = ui.StringVar(value=str(had[k]) if k < len(had) and had[k] else NONE)   # _calc_tidy checks it
+            c = self._calc_choice(r, av, [NONE], px=PERK_PX + 16, icons="addon")
             c.pack(side="left", padx=(6, 0))
             self.calc_killer_addons.append((c, av))
         self.calc_killer_hint = ui.StringVar(value="")
@@ -318,7 +321,7 @@ class CalcTab:
             c = ui.Combobox(r, textvariable=v, values=[NONE], state="readonly", width=26)
             c._dbdms_px = PERK_PX + 40
             if self._calc_icons().any():
-                c._dbdms_icons = self._calc_icons().find
+                c._dbdms_icons = self._calc_icons().finder("perks")
             c.pack(side="left")
             c.bind("<<ComboboxSelected>>", lambda e, s=slot: self._calc_killer_picked(s))
             self.calc_perk_boxes.append((c, v, "K"))
@@ -484,7 +487,7 @@ class CalcTab:
             perks = tuple(p for p in perks if self._calc_known(p, "S"))
             team.append(gencalc.Survivor(perks, item if item in d.toolboxes else "",
                                          medkit=item if item in d.medkits else "",
-                                         addons=tuple(a for a in addons if a in d.item_addons)))
+                                         addons=tuple(addons)))
         names = tuple(p for p in st.get("killer") or [] if self._calc_known(p, "K"))
         counts = {}
         for name, value in (st.get("counts") or {}).items():
@@ -503,7 +506,7 @@ class CalcTab:
                                 kick_at=num("kick_at") / 100, away=num("away"), walk=num("walk"),
                                 stacks=num("stacks") / 100)
         name = str(st.get("killer_name") or "")
-        addons = tuple(a for a in st.get("killer_addons") or [] if a in d.killer_addons)
+        addons = tuple(str(a) for a in st.get("killer_addons") or [])
         return team, gencalc.Killer(names, counts, name if name in d.killers else "", addons), scen
 
     def _calc_killer_picked(self, slot: int):
@@ -624,11 +627,23 @@ class CalcTab:
         d = self._calc_data()
         self._calc_tidy()
         name = self.calc_killer_var.get()
-        self.calc_killer_hint.set(
-            _("Add-ons: aufgeführt sind die, deren Wirkung der Rechner berechnen kann (Haste, Hindered, Mangled, "
-              "Aktionstempo). Die Kraft selbst zählt nur dort mit, wo ein gewähltes Add-on sie verstärkt.")
-            if name == NONE or gencalc.killer_addon_names(d, name) else
-            _("Für diesen Killer kennt der Rechner kein Add-on mit berechenbarer Wirkung."))
+        hint = _("Add-ons: alle des gewählten Killers. Berechnet werden die mit Haste, Hindered, Mangled oder "
+                 "Aktionstempo; die Kraft selbst zählt nur dort mit, wo ein gewähltes Add-on sie verstärkt.")
+        chosen = gencalc.Killer(name=name, addons=tuple(v.get() for _b, v in self.calc_killer_addons))
+        plain = gencalc.plain_addons(d, killer=chosen)
+        if plain:                                            # in a place, but nothing the calculator works out
+            hint += " " + _("Ohne berechenbare Wirkung: {names}.", names=", ".join(plain))
+        self.calc_killer_hint.set(hint)
+        lines = []
+        for i, ((_vars, tv), slots) in enumerate(zip(self.calc_surv, self.calc_item_addons)):
+            if i >= n or tv.get() == NONE:
+                continue
+            plain = gencalc.plain_addons(d, tv.get(), tuple(v.get() for _b, v in slots))
+            if gencalc.item_kind(d, tv.get()) not in ("toolbox", "medkit"):
+                plain = [tv.get()] + plain                   # a flashlight, key, map or fog vial: no speed at all
+            if plain:
+                lines.append(_("Survivor {n}", n=i + 1) + ": " + ", ".join(plain))
+        self.calc_plain_var.set(_("Ohne berechenbare Wirkung: {names}.", names=" · ".join(lines)) if lines else "")
         for i, block in enumerate(self.calc_surv_rows):
             if i < n and not block.winfo_manager():
                 block.pack(fill="x", pady=(0 if i == 0 else 8, 0), before=self.calc_team_hint)

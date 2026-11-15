@@ -15,12 +15,19 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 FOLDER = "perkicons"                  # beside this module
 USER_FOLDER = "perk_icons"            # in the data folder
 EXTS = (".png", ".webp")
-MAX_FILES = 3000                      # a folder with more is not an icon folder
+MAX_FILES = 8000                      # a folder with more is not an icon folder (the program's own: ~1 200)
 MAX_BYTES = 2 * 1024 * 1024           # a picture larger than this is not an icon
 PREFIXES = ("hex", "boon", "scourgehook", "teamwork", "invocation")       # some packs name the file without it
 # how the game and the wiki begin a file name: "iconPerks_", "T_UI_iconsPerks_", "IconAddon_", "IconItems_" – only
 # with the underscore, or "IconAddon_scraps" would lose the s of its name
-LEAD = re.compile(r"^(?:t_ui_)?icons?(?:perks|addons?|items)_", re.IGNORECASE)
+LEAD = re.compile(r"^(?:t_ui_)?icons?(perks|addons?|items)_", re.IGNORECASE)
+KINDS = ("perks", "addon", "items")   # what a file shows, by the beginning of its name ("" = named plainly)
+
+
+def kind_of(stem: str) -> str:
+    """"perks", "addon" or "items" for a file named like the game's icons, "" for any other name."""
+    m = LEAD.match(str(stem))
+    return m.group(1).lower().rstrip("s").replace("perk", "perks").replace("item", "items") if m else ""
 
 
 def key(text: str) -> str:
@@ -34,15 +41,15 @@ def folders(data_dir: str) -> list:
 
 
 def candidates(name: str) -> list:
-    """The keys a file for this perk may have: the whole name, each half of "A / B", without "(…)", without the
+    """The keys a file for this name may have: the whole name, each half of "A / B", without "(…)", without the
     kind in front ("Hex: Ruin" → "ruin")."""
     out = []
     for part in [name] + [p for p in name.split(" / ") if p != name]:
-        part = part.split(" (")[0]
-        k = key(part)
-        for cand in [k] + [k[len(p):] for p in PREFIXES if k.startswith(p) and len(k) > len(p)]:
-            if cand and cand not in out:
-                out.append(cand)
+        for text in (part, part.split(" (")[0]):           # "Jump Rope (Dream Demon)": with the bracket first
+            k = key(text)
+            for cand in [k] + [k[len(p):] for p in PREFIXES if k.startswith(p) and len(k) > len(p)]:
+                if cand and cand not in out:
+                    out.append(cand)
     return out
 
 
@@ -73,7 +80,7 @@ class Index:
                             continue
                     except OSError:
                         continue
-                    files.setdefault(key(stem), path)          # the first folder (the user's) comes first
+                    files.setdefault((kind_of(stem), key(stem)), path)     # the first folder (the user's) first
         return files
 
     def any(self) -> bool:
@@ -81,9 +88,16 @@ class Index:
             self._files = self._scan()
         return bool(self._files)
 
-    def find(self, name: str):
-        """The picture file for a perk name, or None."""
-        if name not in self._found:
-            self._found[name] = next((self._files[k] for k in candidates(name) if k in self._files), None) \
-                if self.any() else None
-        return self._found[name]
+    def find(self, name: str, kind: str = ""):
+        """The picture file for a name, or None. ``kind`` ("perks", "addon", "items"): a file of this kind or one
+        named plainly – a perk and an add-on of the same name never take each other's picture (1.54: 950
+        add-ons). Without a kind any file of the name."""
+        if (name, kind) not in self._found:
+            kinds = (kind, "") if kind else KINDS + ("",)
+            self._found[(name, kind)] = next((self._files[(kd, k)] for k in candidates(name) for kd in kinds
+                                              if (kd, k) in self._files), None) if self.any() else None
+        return self._found[(name, kind)]
+
+    def finder(self, kind: str):
+        """``find`` for one kind of picture (what a choice's entries are)."""
+        return lambda name: self.find(name, kind)

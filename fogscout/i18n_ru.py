@@ -2287,12 +2287,8 @@ T = {
         'улучшение: 100 %',
     'Add-ons':
         'Улучшения',
-    'Add-ons: aufgeführt sind die, deren Wirkung der Rechner berechnen kann (Haste, Hindered, Mangled, Aktionstempo). Die Kraft selbst zählt nur dort mit, wo ein gewähltes Add-on sie verstärkt.':
-        'Улучшения: показаны те, чьё действие калькулятор может рассчитать (Haste, Hindered, Mangled, скорость действий). Сама сила учитывается только там, где её усиливает выбранное улучшение.',
     'Bedingte Perks zählen als aktiv (z. B. Resilience = verletzt, Hope = Tore mit Strom); die Bedingung steht in der Aufschlüsselung. Ein Werkzeugkasten wirkt beim Reparieren und Sabotieren, ein Med-Kit beim Heilen; Add-ons zählen voll (keine Diminishing Returns).':
         'Условные перки считаются активными (например, Resilience = ранен, Hope = ворота запитаны); условие указано в разборе. Ящик с инструментами действует при починке и саботаже, аптечка – при лечении; улучшения считаются полностью (без убывающей отдачи).',
-    'Für diesen Killer kennt der Rechner kein Add-on mit berechenbarer Wirkung.':
-        'Для этого убийцы калькулятор не знает улучшений с рассчитываемым действием.',
     'Grundgeschwindigkeit':
         'Базовая скорость',
     'keine regulären Skill Checks, solange der Werkzeugkasten läuft':
@@ -2301,6 +2297,10 @@ T = {
         '+ ещё {n}',
     'Update gesperrt: OBS nimmt gerade auf – der Neustart würde die Aufnahme beenden. Aufnahme stoppen, dann noch einmal auf „Aktualisieren und neu starten“ klicken.':
         'Обновление заблокировано: OBS ведёт запись – перезапуск прервал бы её. Остановите запись и снова нажмите «Обновить и перезапустить».',
+    'Add-ons: alle des gewählten Killers. Berechnet werden die mit Haste, Hindered, Mangled oder Aktionstempo; die Kraft selbst zählt nur dort mit, wo ein gewähltes Add-on sie verstärkt.':
+        'Улучшения: все у выбранного убийцы. Рассчитываются те, что дают Haste, Hindered, Mangled или скорость действий; сама сила учитывается только там, где её усиливает выбранное улучшение.',
+    'Ohne berechenbare Wirkung: {names}.':
+        'Без рассчитываемого действия: {names}.',
     'Claude hat unverständlich geantwortet.':
         'Ответ Claude не удалось прочитать.',
     'Claude ist nicht erreichbar – keine Internetverbindung?':
