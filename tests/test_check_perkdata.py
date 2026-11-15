@@ -168,7 +168,9 @@ def test_the_tool_runs_from_saved_pages_and_says_so_with_its_exit_code(tool, tmp
     args = ["--from", str(folder), "--data", str(data), "--snapshot", str(snap)]
     assert tool.main(args) == 1 and "ungeprüft  perk:Sprint Burst" in capsys.readouterr().out     # nothing kept yet
     assert tool.main(args + ["--accept"]) == 0 and snap.exists()
-    capsys.readouterr()
+    # 1.55 (the Windows job): the message named the file relative to the repository – impossible when the two
+    # are on different drives (ValueError from os.path.relpath); the path is printed as given
+    assert f"Einträge in {snap}." in capsys.readouterr().out
     assert tool.main(args) == 1                                      # the retired add-on stays a finding
     assert capsys.readouterr().out.strip() == "ausgemustert addon:Old Thing  (decom im Wiki)"
     slim = {**DATA, "not_modelled": [], "killer_addon_lists": {"The Wraith": ['"Shadow Dance" - Blood']}}

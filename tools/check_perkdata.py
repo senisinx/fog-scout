@@ -270,7 +270,8 @@ def main(argv=None) -> int:
         with open(args.snapshot, "w", encoding="utf-8", newline="\n") as fh:
             json.dump(kept, fh, ensure_ascii=False, indent=0, sort_keys=True, separators=(",", ":"))
             fh.write("\n")
-        print(f"Stand übernommen: {len(kept['entries'])} Einträge in {os.path.relpath(args.snapshot, ROOT)}. "
+        # the path as it is: a relative one cannot be formed across two drives (Windows: C: and D:)
+        print(f"Stand übernommen: {len(kept['entries'])} Einträge in {args.snapshot}. "
               "Das Datum „retrieved“ in perkdata.json von Hand nachziehen.")
         return 1 if found["gone"] else 0
     if not lines:
