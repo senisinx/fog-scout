@@ -2051,6 +2051,20 @@ T = {
         '一緒に発電機を修理し終えてから {s} 秒間、全員の速度 +{p} %',
     'jeder Great Skill Check in Folge bringt {p} % mehr Bonus (bis {n} Tokens)':
         'グレートスキルチェックが連続するたびにボーナスが {p} % 増加（最大 {n} トークン）',
+    'Skill Checks kommen öfter: +{p} Prozentpunkte Chance je Sekunde':
+        'スキルチェックが増える：毎秒の発生確率 +{p} パーセントポイント',
+    'Skill Checks kommen für alle am Generator öfter: +{p} Prozentpunkte Chance je Sekunde':
+        '発電機にいる全員のスキルチェックが増える：毎秒の発生確率 +{p} パーセントポイント',
+    'Skill Checks der Survivor kommen öfter: +{p} Prozentpunkte Chance je Sekunde':
+        '生存者のスキルチェックが増える：毎秒の発生確率 +{p} パーセントポイント',
+    'ein verfehlter Skill Check kostet {p} % Fortschritt mehr':
+        'スキルチェック失敗で失う進行度が {p} % 増加',
+    'jeder erfolgreiche Skill Check der anderen bringt im Mittel +{p} % Fortschritt (W20)':
+        '他の生存者のスキルチェック成功ごとに平均 +{p} % の進行度（d20）',
+    'ein verfehlter Skill Check kostet {p} % weniger Fortschritt':
+        'スキルチェック失敗で失う進行度が {p} % 減少',
+    '+{p} Prozentpunkte Skill-Check-Chance je Token':
+        'トークン1つにつきスキルチェック発生率 +{p} ポイント',
     'jeder Generator braucht {v} Ladungen weniger':
         '各発電機の必要チャージが {v} 減少',
     'ein Generator braucht {v} Ladungen weniger':

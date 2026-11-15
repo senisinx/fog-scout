@@ -2051,6 +2051,20 @@ T = {
         '+{p} % к скорости для всех на {s} с после совместно починенного генератора',
     'jeder Great Skill Check in Folge bringt {p} % mehr Bonus (bis {n} Tokens)':
         'каждая отличная проверка реакции подряд даёт на {p} % больше бонуса (до {n} жетонов)',
+    'Skill Checks kommen öfter: +{p} Prozentpunkte Chance je Sekunde':
+        'проверки реакции чаще: +{p} процентных пункта вероятности в секунду',
+    'Skill Checks kommen für alle am Generator öfter: +{p} Prozentpunkte Chance je Sekunde':
+        'проверки реакции чаще для всех у генератора: +{p} процентных пункта вероятности в секунду',
+    'Skill Checks der Survivor kommen öfter: +{p} Prozentpunkte Chance je Sekunde':
+        'проверки реакции выживших чаще: +{p} процентных пункта вероятности в секунду',
+    'ein verfehlter Skill Check kostet {p} % Fortschritt mehr':
+        'проваленная проверка реакции стоит на {p} % прогресса больше',
+    'jeder erfolgreiche Skill Check der anderen bringt im Mittel +{p} % Fortschritt (W20)':
+        'каждая успешная проверка реакции других даёт в среднем +{p} % прогресса (d20)',
+    'ein verfehlter Skill Check kostet {p} % weniger Fortschritt':
+        'проваленная проверка реакции стоит на {p} % прогресса меньше',
+    '+{p} Prozentpunkte Skill-Check-Chance je Token':
+        '+{p} процентных пункта к шансу проверки реакции за жетон',
     'jeder Generator braucht {v} Ladungen weniger':
         'каждому генератору нужно на {v} зарядов меньше',
     'ein Generator braucht {v} Ladungen weniger':

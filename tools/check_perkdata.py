@@ -11,7 +11,10 @@ the numbers in it, written when the values were last read (``--accept``). No tex
     python tools/check_perkdata.py --accept     after reading the changed entries again: keep the new state
 
 What it finds: an entry whose wiki text or numbers changed (with the numbers before and now), an entry that is
-gone or retired (``decom``), perks and add-ons that are new in the wiki. What it cannot find: a value that was
+gone or retired (``decom``), perks and add-ons that are new in the wiki, and (1.56) every perk whose wiki tags
+touch what the calculator computes (``RELEVANT_TAGS``) but that perkdata.json neither calculates nor names in
+``not_modelled``/``not_modelled_areas``/``not_relevant`` – before, only perks new since the last ``--accept`` were
+reported, so perks that were already there were never looked at. What it cannot find: a value that was
 read wrongly in the first place ("raises to 125 %" taken as +125 %) – it compares the wiki with the wiki of
 before, not with the meaning of a sentence.
 
@@ -45,6 +48,13 @@ ALIASES = {
     "perk:Overzealous (Dull Totem)": ("perk:Overzealous",),
     "perk:Overzealous (Hex Totem)": ("perk:Overzealous",),
 }
+# 1.56: wiki tags of perks that may change a speed, a Skill Check or a Generator's progress – every perk with one
+# of them must be decided on in perkdata.json (calculated, "not_modelled", "not_modelled_areas" or "not_relevant")
+RELEVANT_TAGS = frozenset({
+    "SkillChecks", "SkillCheckProbability", "BonusProgression", "Repairing", "RepairingProficiency", "RepairSpeed",
+    "ActionSpeed", "Haste", "MovementSpeed", "Regression", "RegressionSpeed", "ProgressionPenalty",
+    "HealingProficiency", "Hindered"})
+TAGS = re.compile(r"\btags\s*=\s*\{([^}]*)\}")
 KEY = re.compile(r"""^(\s*)\[(?:"((?:[^"\\]|\\.)*)"|'((?:[^'\\]|\\.)*)')\]\s*=""")
 NUMBER = re.compile(r"(?<![\w.])\d+(?:\.\d+)?")
 
@@ -140,6 +150,12 @@ def retired(text: str) -> bool:
     return bool(re.search(r"\bdecom\s*=\s*true\b", text.split("\n", 1)[0]))
 
 
+def tags(text: str) -> list:
+    """The wiki tags of an entry (from its row of the data table, the first line), sorted."""
+    m = TAGS.search(text.split("\n", 1)[0])
+    return sorted(set(re.findall(r'"([^"]+)"', m.group(1)))) if m else []
+
+
 def numbers(text: str) -> list:
     """The numbers of an entry, sorted – without its id, which says nothing about the game."""
     text = re.sub(r"\bid\s*=\s*\d+", "", text)
@@ -163,6 +179,7 @@ def used(data: dict) -> dict:
     listed = {n for k in ("killer_addon_lists", "item_addon_lists") for names in data.get(k, {}).values() for n in names}
     for name in list(data.get("not_modelled", ())) + list(data.get("not_modelled_areas", ())):
         add("addon" if name in listed else "perk", [name], False)      # "not calculated" names perks and add-ons
+    add("perk", data.get("not_relevant", ()), False)                  # 1.56: judged irrelevant – watched too
     add("item", (e["name"] for k in ("toolboxes", "medkits") for e in data.get(k, ())), True)
     add("item", (n for names in data.get("items", {}).values() for n in names), False)
     add("addon", (e["name"] for k in ("addons", "killer_addons", "item_addons") for e in data.get(k, ())), True)
@@ -182,9 +199,30 @@ def state(data: dict, wiki: dict) -> dict:
             continue
         text = "\n".join(wiki[k] for k in names)
         kept[key] = {"h": fingerprint(text), "n": numbers(text)} if valued else {"h": fingerprint(text)}
-    return {"entries": kept,
-            "perks": sorted(k[5:] for k in wiki if k.startswith("perk:") and not retired(wiki[k])),
-            "addons": sorted(k[6:] for k in wiki if k.startswith("addon:") and not retired(wiki[k]))}
+    perks = sorted(k[5:] for k in wiki if k.startswith("perk:") and not retired(wiki[k]))
+    return {"entries": kept, "perks": perks,
+            "addons": sorted(k[6:] for k in wiki if k.startswith("addon:") and not retired(wiki[k])),
+            "tags": {n: t for n in perks for t in [tags(wiki["perk:" + n])] if t}}      # 1.56
+
+
+def classified(data: dict) -> set:
+    """1.56: the wiki names of the perks perkdata.json has decided on – calculated (under the wiki's own names,
+    ``ALIASES``), not calculated (``not_modelled``, ``not_modelled_areas``) or judged irrelevant (``not_relevant``)."""
+    out = set()
+    for name in (e["name"] for k in ("perks", "survivor", "killer") for e in data.get(k, ())):
+        out.update(k[5:] for k in ALIASES.get(f"perk:{name}", (f"perk:{name}",)))
+    out.update(data.get("not_modelled", ()))
+    out.update(data.get("not_modelled_areas", ()))
+    out.update(data.get("not_relevant", ()))
+    return out
+
+
+def unclassified(data: dict, snapshot: dict) -> list:
+    """1.56: [(perk, its relevant tags)] of the perks in ``snapshot`` (the state of ``state``) whose tags touch
+    ``RELEVANT_TAGS`` but that perkdata.json has not decided on (``classified``)."""
+    known = classified(data)
+    return [(name, sorted(set(t) & RELEVANT_TAGS)) for name, t in sorted(snapshot.get("tags", {}).items())
+            if set(t) & RELEVANT_TAGS and name not in known]
 
 
 def compare(data: dict, wiki: dict, snapshot: dict) -> dict:
@@ -216,8 +254,8 @@ def _num(v: float) -> str:
     return f"{v:g}"
 
 
-def report(found: dict) -> list:
-    """The findings as lines of text (none: nothing changed)."""
+def report(found: dict, open_perks=()) -> list:
+    """The findings as lines of text (none: nothing changed). ``open_perks``: the result of ``unclassified``."""
     lines = []
     for key, old, new in found["changed"]:
         line = f"geändert   {key}"
@@ -232,6 +270,8 @@ def report(found: dict) -> list:
     lines += [f"ungeprüft  {key}  (in perkdata.json, aber noch nie mit --accept übernommen)" for key in found["unknown"]]
     lines += [f"neu im Wiki  perk:{name}  (greift er ins Tempo ein?)" for name in found["new_perks"]]
     lines += [f"neu im Wiki  addon:{name}  (in die Add-on-Liste aufnehmen?)" for name in found["new_addons"]]
+    lines += [f"nicht eingeordnet  perk:{name}  (Tags {', '.join(t)}: berechnen oder in not_modelled, "
+              "not_modelled_areas bzw. not_relevant eintragen)" for name, t in open_perks]
     return lines
 
 
@@ -262,18 +302,19 @@ def main(argv=None) -> int:
     except FileNotFoundError:
         snapshot = {}
     found = compare(data, wiki, snapshot)
-    lines = report(found)
+    kept = state(data, wiki)
+    open_perks = unclassified(data, kept)
+    lines = report(found, open_perks)
     for line in lines:
         print(line)
     if args.accept:
-        kept = state(data, wiki)
         with open(args.snapshot, "w", encoding="utf-8", newline="\n") as fh:
             json.dump(kept, fh, ensure_ascii=False, indent=0, sort_keys=True, separators=(",", ":"))
             fh.write("\n")
         # the path as it is: a relative one cannot be formed across two drives (Windows: C: and D:)
         print(f"Stand übernommen: {len(kept['entries'])} Einträge in {args.snapshot}. "
               "Das Datum „retrieved“ in perkdata.json von Hand nachziehen.")
-        return 1 if found["gone"] else 0
+        return 1 if found["gone"] or open_perks else 0
     if not lines:
         print(f"Nichts geändert: {len(snapshot.get('entries', {}))} Einträge wie beim letzten Lesen.")
     return 1 if lines else 0
