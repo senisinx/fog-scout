@@ -283,3 +283,29 @@ def test_the_archived_rounds_are_packed_too(tmp_path):
     with zipfile.ZipFile(dest) as z:
         assert sorted(z.namelist()) == ["fogscout-einstellungen.json", "official-archive.jsonl",
                                         "rounds-archive.jsonl", "rounds.jsonl"]
+
+
+def test_matches_a_restore_pushes_beyond_the_limit_go_to_the_archive(tmp_path, monkeypatch):
+    """1.56 (review F6): the restore cut official.jsonl to its newest KEEP matches without archiving the others and
+    still counted them as added. They go to official-archive.jsonl like official.merge does; counted is what stays."""
+    import json
+    from fogscout import history, official
+    monkeypatch.setattr(official, "KEEP", 5)
+    old, now = str(tmp_path / "old"), str(tmp_path / "now")
+    _data(old, matches=[official.Match(t=1.70e9 + i * 1000, map="M", role="killer") for i in range(4)])
+    _data(now, matches=[official.Match(t=1.70e9 + i * 1000, map="M", role="killer") for i in range(10, 15)])
+    zpath = str(tmp_path / "s.zip")
+    backups.archive(old, zpath, {})
+    got = backups.restore(now, zpath)
+    assert got["matches"] == 0                                         # all four older than the five kept
+    path = os.path.join(now, official.FILE)
+    assert [m.t for m in official.load(path)] == [1.70e9 + i * 1000 for i in range(10, 15)]
+    arch = history.archive_path(path, official.ARCHIVE)
+    assert [json.loads(line)["t"] for line in open(arch, encoding="utf-8")] == [1.70e9 + i * 1000 for i in range(4)]
+    monkeypatch.setattr(official, "KEEP", 7)                           # room for two: those two count
+    os.remove(arch)
+    _data(old, matches=[official.Match(t=1.70e9 + i * 1000, map="M", role="killer") for i in range(20, 22)])
+    backups.archive(old, zpath, {})
+    got = backups.restore(now, zpath)
+    assert got["matches"] == 2 and len(official.load(path)) == 7
+    assert [json.loads(line)["t"] for line in open(arch, encoding="utf-8")] == [1.70e9 + i * 1000 for i in range(4)]
