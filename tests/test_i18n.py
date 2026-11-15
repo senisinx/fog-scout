@@ -169,6 +169,22 @@ def test_the_other_languages_show_their_text_and_english_where_one_is_missing(mo
     assert i18n._("Overlay testen") == "Overlay testen"
 
 
+def test_a_shared_translation_finds_the_tooltip_and_log_category_meant():
+    """1.56 (audit U-1): the reverse table kept the last of two German keys with the same translation – it
+    „Rückgängig“ showed the tip of „Abbrechen“, zh/ja/ko „系统“ was no log category („SYSTEM“ won), and buttons
+    like ru „Alle löschen“ had no tip at all."""
+    from fogscout import tooltip
+    from fogscout.app import CATS
+    try:
+        for code in i18n.CODES:
+            i18n.set_language(code)
+            assert [k for k in tooltip.TIPS if i18n.source(i18n._(k), tooltip.TIPS) != k] == [], code
+            assert [k for k in tooltip.TIPS if tooltip.tip_for_label(i18n._(k)) != i18n._(tooltip.TIPS[k])] == [], code
+            assert [k for k in CATS if i18n.source(i18n._(k), CATS) != k] == [], code
+    finally:
+        i18n.set_language("de")
+
+
 def test_the_start_script_speaks_english_for_the_other_languages(tmp_path, monkeypatch):
     monkeypatch.delenv("DBDMS_LANG", raising=False)
     for code in OTHERS:

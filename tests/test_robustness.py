@@ -176,6 +176,100 @@ def test_a_crashed_detection_shows_in_the_status_line(app):
     from fogscout import status
     app._dispatch(worker.Event("error", {"text": "Traceback …\nRuntimeError: boom"}))
     assert status.is_problem(app._worker_status) and "neu starten" in app._worker_status
+    assert app._worker_problem and app._user_state().kind == "err"
+
+
+@pytest.mark.parametrize("lang", ["it", "ja"])
+def test_a_problem_shows_red_in_every_language(app, lang):
+    """1.56 (audit D-1): status.is_problem matched German/English words – in it/ru/zh/ja/ko a black capture, a
+    minimised DBD or a crashed detection never turned the status red (status line, tray dot, Übersicht)."""
+    from fogscout import i18n, overview, status
+    try:
+        i18n.set_language(lang)
+        text = i18n._("DBD ist minimiert")
+        assert not status.is_problem(text)
+        app._dispatch(worker.Event("status", {"text": text, "problem": True}))
+        assert app._user_state().kind == "err" and status.tray_dot(app._user_state()) == "err"
+        assert overview.switch_state(app, "detect", True)[0] == "err"
+        app._dispatch(worker.Event("status", {"text": i18n._("Automatische Erkennung ist aus"), "problem": False}))
+        assert app._user_state().kind != "err"
+        app._dispatch(worker.Event("error", {"text": "Traceback …\nRuntimeError: boom"}))
+        assert app._user_state().kind == "err"
+    finally:
+        i18n.set_language("de")
+
+
+def test_the_arrange_tip_names_its_hotkey_once(app):
+    """1.56 (audit B5): the tooltip of „Anordnen“ appended „Hotkey: Strg+Alt+P“ twice."""
+    from fogscout.hotkeys import pretty
+    hint = "Hotkey: " + pretty(app.settings["hotkeys"]["edit_position"])
+    tip = app.edit_btn._dbdms_tip()
+    assert tip.count(hint) == 1 and tip.endswith(hint)
+
+
+def _game_worker(tmp_path, monkeypatch, grab):
+    """1.56: a worker that finds a DBD window in front and reads its pixels from ``grab(left, top, w, h)``."""
+    from types import SimpleNamespace
+    game = SimpleNamespace(hwnd=7, left=0, top=0, width=1280, height=720, minimized=False)
+
+    class Grabber:
+        def grab(self, left, top, width, height):
+            return grab(left, top, width, height)
+
+        def primary_monitor(self):
+            return 0, 0, 1280, 720
+
+        def close(self):
+            pass
+
+    monkeypatch.setattr(worker, "ScreenGrabber", Grabber)
+    monkeypatch.setattr(worker, "find_game_window", lambda known=None: game)
+    monkeypatch.setattr(worker, "foreground_root", lambda: 7)
+    monkeypatch.setattr(worker, "cursor_state", lambda: None)
+    events = queue.Queue()
+    w = worker.DetectionWorker(ROOT, config.Settings(str(tmp_path / "settings.json")), Catalog(ROOT, ["en"]),
+                               events, data_dir=str(tmp_path))
+    return w, events
+
+
+def _statuses(w, events, seconds):
+    w.start()
+    try:
+        seen = _events(events, seconds, lambda kinds: False)
+    finally:
+        w.stop()
+        w.join(timeout=10)
+    return [e.data for e in seen if e.kind == "status"]
+
+
+@pytest.mark.parametrize("lang", ["de", "ru"])
+def test_a_black_capture_is_one_status_with_the_problem_flag(tmp_path, monkeypatch, lang):
+    """1.56 (audit D-2): with a black capture the status flipped every tick between "DBD gefunden …" and the warning
+    – two log lines a second; (D-1) the warning carries a flag, as the words differ in each language."""
+    import numpy as np
+    from fogscout import i18n, status
+    monkeypatch.setattr(worker, "BLACK_WARN_S", 0.3)
+    w, events = _game_worker(tmp_path, monkeypatch, lambda left, top, wd, h: np.zeros((h, wd, 3), np.uint8))
+    try:
+        i18n.set_language(lang)
+        found = i18n._("DBD gefunden ({w}×{h}) – warte auf Map-Banner", w=1280, h=720)
+        black = i18n._("Aufnahme ist schwarz – DBD im Modus „Fenster-Vollbild“ betreiben")
+        got = _statuses(w, events, 4)
+    finally:
+        i18n.set_language("de")
+    assert got == [{"text": found, "problem": False}, {"text": black, "problem": True}]
+    if lang != "de":
+        assert not status.is_problem(black)          # the words alone would not tell it (the bug)
+
+
+def test_a_failing_capture_is_one_status_not_one_per_tick(tmp_path, monkeypatch):
+    """1.56 (audit D-2): a capture that raised reported "fehlgeschlagen", the next tick "DBD gefunden" again."""
+    def fail(*_a):
+        raise OSError("off screen")
+    w, events = _game_worker(tmp_path, monkeypatch, fail)
+    got = _statuses(w, events, 4)
+    assert [d["problem"] for d in got] == [False, True], got
+    assert got[1]["text"] == "Bildschirmaufnahme fehlgeschlagen: off screen"
 
 
 def test_a_round_still_open_at_quit_is_kept_as_a_lost_round(app):

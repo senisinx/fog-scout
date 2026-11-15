@@ -183,7 +183,15 @@ def test_loading_screen_needs_three_looks():
     load = EndObservation(loading=True, static=True, reason="Ladebildschirm")
     assert tr.update(Signals(t=1, obs=load)) == []
     assert tr.update(Signals(t=1.5, obs=load)) == []
+    assert "Ladebildschirm? (2/3)" in tr.describe()          # 1.56 (audit D-6): said "(2/2)" one look early
     assert tr.update(Signals(t=2, obs=load)) == [("match_end", "Ladebildschirm")]
+
+
+def test_the_state_line_counts_two_looks_for_other_cues():
+    tr = fresh()
+    other = EndObservation(reason="Ergebnisbildschirm")
+    assert tr.update(Signals(t=1, obs=other)) == []
+    assert "Ergebnisbildschirm? (1/2)" in tr.describe()
 
 
 def test_latch_counts_only_time_with_visible_pointer_in_dbd():

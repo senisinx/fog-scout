@@ -15,7 +15,7 @@ from .connwatch import UNKNOWN, region_name
 from .i18n import N_, _
 from .lobby import killer_label
 from .overlay_render import ping_colour
-from .status import DOT_STYLE, is_problem, user_state
+from .status import DOT_STYLE, user_state
 from .textnorm import fmt_duration, roman
 
 LAST_ROUNDS = 5
@@ -167,7 +167,7 @@ def switch_state(app, key: str, on: bool, is_win: bool = True) -> tuple[str, str
     if not on:
         return "off", _("aus")
     if key == "detect":
-        if is_problem(getattr(app, "_worker_status", "")):
+        if getattr(app, "_worker_problem", False):        # 1.56: the worker's flag, not the translated words
             return "err", _("Fehler – Details im Log")
         if getattr(app, "game", None) is None and not getattr(app, "simulate", False):
             return "off", _("wartet auf DBD")
@@ -550,7 +550,8 @@ def overview_model(app, now: float, is_win: bool) -> Overview:
     o = Overview()
     m = app.catalog.maps.get(app.current[0]) if app.current else None
     label = m.shown_label(app.current[1]) if m else ""
-    st = user_state(app._worker_status, auto_detect=bool(app.settings.get("auto_detect", True)),
+    st = user_state(app._worker_status, problem=getattr(app, "_worker_problem", False),
+                    auto_detect=bool(app.settings.get("auto_detect", True)),
                     game_found=app.game is not None, simulate=bool(app.simulate), has_map=app.overlay.has_map(),
                     map_label=label, visible_wanted=app.user_visible, hidden_after_match=app.hidden_after_match,
                     menu_paused=app.menu_paused)
