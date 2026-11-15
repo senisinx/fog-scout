@@ -1957,6 +1957,98 @@ T = {
         'Claude è sovraccarico in questo momento – riprova tra qualche minuto.',
     'Claude hat die Anfrage nicht angenommen – zu gross oder vom gewählten Modell nicht unterstützt.':
         'Claude non ha accettato la richiesta – troppo grande o non supportata dal modello scelto.',
+    'Annahmen':
+        'Ipotesi',
+    'Anzahl':
+        'Numero',
+    'Anzahl = {what}':
+        'Numero = {what}',
+    'Bedingte Perks zählen als aktiv (z. B. Resilience = verletzt, Déjà Vu = auf einem der drei nahen Generatoren).':
+        'I perk condizionali contano come attivi (es. Resilience = ferito, Déjà Vu = su uno dei tre generatori vicini).',
+    'Der Killer nimmt dem Generator {lost} Ladungen (Regressions-Ereignisse: {events}).':
+        'Il killer toglie {lost} cariche al generatore (eventi di regressione: {events}).',
+    'Diminishing Returns anwenden':
+        'Applica i rendimenti decrescenti',
+    'Ein Generator, Survivor 1 allein':
+        'Un generatore, sopravvissuto 1 da solo',
+    'Ein Generator, {n} Survivor':
+        'Un generatore, {n} sopravvissuti',
+    'Fünf Generatoren, alle zusammen':
+        'Cinque generatori, tutti insieme',
+    'Fünf Generatoren, jeder allein':
+        'Cinque generatori, ognuno da solo',
+    'Great Skill Checks':
+        'Prove di abilità ottime',
+    'Kicks am Generator':
+        'Calci al generatore',
+    'Killer kommt bei':
+        'Il killer arriva al',
+    'Killer-Build':
+        'Build del killer',
+    'Laufweg zwischen Generatoren':
+        'Tragitto tra i generatori',
+    'Mit Diminishing Returns: {on} · ohne: {off} (ein Generator, alle, ohne Killer).':
+        'Con rendimenti decrescenti: {on} · senza: {off} (un generatore, tutti, senza killer).',
+    'Perks kombinieren und ausrechnen, wie lange ein Generator dauert':
+        'Combina i perk e calcola quanto dura un generatore',
+    'Rechner':
+        'Calcolatore',
+    'Situation':
+        'Situazione',
+    'Survivor am Generator':
+        'Sopravvissuti al generatore',
+    'Survivor {n}':
+        'Sopravvissuto {n}',
+    'Survivor-Builds':
+        'Build dei sopravvissuti',
+    'S{n}: {v} c/s':
+        'S{n}: {v} c/s',
+    'Tempo am Generator (Ladungen pro Sekunde, Grundwert 1): {speeds}':
+        'Velocità al generatore (cariche al secondo, base 1): {speeds}',
+    'Verfehlte Skill Checks':
+        'Prove di abilità fallite',
+    'Weg nach dem Kick':
+        'Assenza dopo il calcio',
+    'Werte aus dem Dead by Daylight Wiki (deadbydaylight.wiki.gg, Stand {date}), nach jedem Patch zu prüfen. Nicht berechnet: {names}.':
+        'Valori dal Dead by Daylight Wiki (deadbydaylight.wiki.gg, al {date}), da verificare dopo ogni patch. Non calcolati: {names}.',
+    'mit Killer':
+        'con killer',
+    'ohne Killer':
+        'senza killer',
+    'verletzte, sterbende oder aufgehängte Survivor':
+        'sopravvissuti feriti, morenti o appesi',
+    'Tokens (Haken an anderen als der Obsession)':
+        "gettoni (ganci su sopravvissuti diversi dall'ossessione)",
+    'neu entzündete Totems':
+        'totem riaccesi',
+    '1 = die Survivor sind im Terrorradius':
+        '1 = i sopravvissuti sono nel raggio di terrore',
+    'Kicks mit aktivem Perk (20 % statt 5 %)':
+        'calci con il perk attivo (20 % invece di 5 %)',
+    'Haken, die diesen Generator treffen':
+        'ganci che colpiscono questo generatore',
+    'Downs per Basisangriff in 32 m um diesen Generator':
+        'atterramenti con attacco base entro 32 m da questo generatore',
+    'Downs, während dieser Generator markiert ist':
+        'atterramenti mentre questo generatore è segnato',
+    'Einsätze auf diesen Generator':
+        'usi su questo generatore',
+    'Tokens beim ersten Kick':
+        'gettoni al primo calcio',
+    'so oft wird dieser Generator blockiert':
+        'quante volte questo generatore viene bloccato',
+    'erste Haken (1–3)':
+        'primi ganci (1–3)',
+    '1 = dieser Generator ist am Start blockiert':
+        "1 = questo generatore è bloccato all'inizio",
+    'An (wie im Spiel seit Patch 9.6.0): von mehreren Tempo-Boni zählt der grösste voll, der zweite halb, der dritte zu einem Viertel, der vierte zu einem Achtel. Aus: alle Boni zählen voll – zum Vergleich.':
+        'Attivo (come nel gioco dalla patch 9.6.0): tra più bonus di velocità il maggiore conta per intero, il secondo per metà, il terzo per un quarto, il quarto per un ottavo. Disattivo: tutti i bonus contano per intero – per confronto.',
+    'Werkzeugkasten':
+        'Cassetta degli attrezzi',
+    'Eingerechnet: {what}.':
+        'Incluso: {what}.',
+    'Kicks und die Anzahl je Killer-Perk gelten für jeden Generator einzeln.':
+        'I calci e il numero per ogni perk del killer valgono per ciascun generatore.',
     'Claude hat unverständlich geantwortet.':
         'Claude ha dato una risposta illeggibile.',
     'Claude ist nicht erreichbar – keine Internetverbindung?':

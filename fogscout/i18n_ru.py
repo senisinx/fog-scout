@@ -1957,6 +1957,98 @@ T = {
         'Claude сейчас перегружен – попробуйте ещё раз через несколько минут.',
     'Claude hat die Anfrage nicht angenommen – zu gross oder vom gewählten Modell nicht unterstützt.':
         'Claude не принял запрос – он слишком большой или не поддерживается выбранной моделью.',
+    'Annahmen':
+        'Допущения',
+    'Anzahl':
+        'Количество',
+    'Anzahl = {what}':
+        'Количество = {what}',
+    'Bedingte Perks zählen als aktiv (z. B. Resilience = verletzt, Déjà Vu = auf einem der drei nahen Generatoren).':
+        'Условные перки считаются активными (например, Resilience = ранен, Déjà Vu = на одном из трёх близких генераторов).',
+    'Der Killer nimmt dem Generator {lost} Ladungen (Regressions-Ereignisse: {events}).':
+        'Убийца отнимает у генератора {lost} зарядов (событий регрессии: {events}).',
+    'Diminishing Returns anwenden':
+        'Учитывать убывающую отдачу',
+    'Ein Generator, Survivor 1 allein':
+        'Один генератор, выживший 1 в одиночку',
+    'Ein Generator, {n} Survivor':
+        'Один генератор, выживших: {n}',
+    'Fünf Generatoren, alle zusammen':
+        'Пять генераторов, все вместе',
+    'Fünf Generatoren, jeder allein':
+        'Пять генераторов, каждый отдельно',
+    'Great Skill Checks':
+        'Отличные проверки реакции',
+    'Kicks am Generator':
+        'Удары по генератору',
+    'Killer kommt bei':
+        'Убийца приходит при',
+    'Killer-Build':
+        'Билд убийцы',
+    'Laufweg zwischen Generatoren':
+        'Путь между генераторами',
+    'Mit Diminishing Returns: {on} · ohne: {off} (ein Generator, alle, ohne Killer).':
+        'С убывающей отдачей: {on} · без неё: {off} (один генератор, все, без убийцы).',
+    'Perks kombinieren und ausrechnen, wie lange ein Generator dauert':
+        'Сочетайте перки и считайте, сколько займёт генератор',
+    'Rechner':
+        'Калькулятор',
+    'Situation':
+        'Ситуация',
+    'Survivor am Generator':
+        'Выживших у генератора',
+    'Survivor {n}':
+        'Выживший {n}',
+    'Survivor-Builds':
+        'Билды выживших',
+    'S{n}: {v} c/s':
+        'S{n}: {v} c/s',
+    'Tempo am Generator (Ladungen pro Sekunde, Grundwert 1): {speeds}':
+        'Скорость на генераторе (зарядов в секунду, базовая 1): {speeds}',
+    'Verfehlte Skill Checks':
+        'Проваленные проверки реакции',
+    'Weg nach dem Kick':
+        'Отсутствие после удара',
+    'Werte aus dem Dead by Daylight Wiki (deadbydaylight.wiki.gg, Stand {date}), nach jedem Patch zu prüfen. Nicht berechnet: {names}.':
+        'Значения из Dead by Daylight Wiki (deadbydaylight.wiki.gg, на {date}), проверять после каждого патча. Не учитываются: {names}.',
+    'mit Killer':
+        'с убийцей',
+    'ohne Killer':
+        'без убийцы',
+    'verletzte, sterbende oder aufgehängte Survivor':
+        'раненые, умирающие или повешенные выжившие',
+    'Tokens (Haken an anderen als der Obsession)':
+        'жетоны (повешения не одержимости)',
+    'neu entzündete Totems':
+        'вновь зажжённые тотемы',
+    '1 = die Survivor sind im Terrorradius':
+        '1 = выжившие в радиусе террора',
+    'Kicks mit aktivem Perk (20 % statt 5 %)':
+        'удары с активным перком (20 % вместо 5 %)',
+    'Haken, die diesen Generator treffen':
+        'повешения, бьющие по этому генератору',
+    'Downs per Basisangriff in 32 m um diesen Generator':
+        'сбивания обычной атакой в 32 м от этого генератора',
+    'Downs, während dieser Generator markiert ist':
+        'сбивания, пока этот генератор отмечен',
+    'Einsätze auf diesen Generator':
+        'применения на этом генераторе',
+    'Tokens beim ersten Kick':
+        'жетоны при первом ударе',
+    'so oft wird dieser Generator blockiert':
+        'сколько раз блокируется этот генератор',
+    'erste Haken (1–3)':
+        'первые повешения (1–3)',
+    '1 = dieser Generator ist am Start blockiert':
+        '1 = этот генератор заблокирован в начале',
+    'An (wie im Spiel seit Patch 9.6.0): von mehreren Tempo-Boni zählt der grösste voll, der zweite halb, der dritte zu einem Viertel, der vierte zu einem Achtel. Aus: alle Boni zählen voll – zum Vergleich.':
+        'Вкл. (как в игре с патча 9.6.0): из нескольких бонусов скорости наибольший учитывается полностью, второй — наполовину, третий — на четверть, четвёртый — на одну восьмую. Выкл.: все бонусы учитываются полностью — для сравнения.',
+    'Werkzeugkasten':
+        'Ящик с инструментами',
+    'Eingerechnet: {what}.':
+        'Учтено: {what}.',
+    'Kicks und die Anzahl je Killer-Perk gelten für jeden Generator einzeln.':
+        'Удары и количество для каждого перка убийцы считаются для каждого генератора отдельно.',
     'Claude hat unverständlich geantwortet.':
         'Ответ Claude не удалось прочитать.',
     'Claude ist nicht erreichbar – keine Internetverbindung?':

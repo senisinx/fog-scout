@@ -1,0 +1,349 @@
+{
+ "about": "Numbers for the generator calculator (fogscout/gencalc.py). Facts only, taken from the Dead by Daylight Wiki (deadbydaylight.wiki.gg, text licence CC BY-NC-SA 4.0 – no text was copied) – see THIRD_PARTY.md. Check after every game patch.",
+ "retrieved": "2026-11-15",
+ "source_state": "Module:Datatable/Loadout as of 2026-11-05, Generators 2026-08-31, Dead by Daylight Maths 2026-04-12, Toolboxes 2025-06-16, Skill Checks 2026-06-17",
+ "mechanics": {
+  "charges": 90,
+  "repair_rate": 1.0,
+  "coop_penalty": 0.15,
+  "great_bonus": 0.01,
+  "kick_loss": 0.05,
+  "regression_rate": 0.25,
+  "regression_events": 8,
+  "event_min_loss": 0.025,
+  "diminishing": [
+   1.0,
+   0.5,
+   0.25,
+   0.125,
+   0.05
+  ],
+  "sources": {
+   "generators": "https://deadbydaylight.wiki.gg/wiki/Generators",
+   "maths": "https://deadbydaylight.wiki.gg/wiki/Dead_by_Daylight_Maths",
+   "toolboxes": "https://deadbydaylight.wiki.gg/wiki/Toolboxes",
+   "skill_checks": "https://deadbydaylight.wiki.gg/wiki/Skill_Checks"
+  },
+  "skill_check_chance": 0.08,
+  "skill_check_chance_toolbox": 0.4,
+  "fail_loss": 0.1,
+  "fail_pause": 3.0
+ },
+ "toolboxes": [
+  {
+   "name": "Worn-Out Tools",
+   "bonus": 0.5,
+   "charges": 16
+  },
+  {
+   "name": "Toolbox",
+   "bonus": 0.5,
+   "charges": 20
+  },
+  {
+   "name": "Mechanic's Toolbox",
+   "bonus": 0.75,
+   "charges": 16
+  },
+  {
+   "name": "Commodious Toolbox",
+   "bonus": 0.5,
+   "charges": 32
+  },
+  {
+   "name": "Engineer's Toolbox",
+   "bonus": 1.0,
+   "charges": 16
+  },
+  {
+   "name": "Alex's Toolbox",
+   "bonus": 0.1,
+   "charges": 18
+  }
+ ],
+ "survivor": [
+  {
+   "name": "Prove Thyself",
+   "kind": "team_per_other",
+   "value": 0.1,
+   "max": 0.3,
+   "patch": "7.1.0",
+   "when": "per other Survivor at the Generator (within 4 m), for everyone there; one instance"
+  },
+  {
+   "name": "Resilience",
+   "kind": "self",
+   "value": 0.09,
+   "patch": "10.2.0",
+   "when": "injured"
+  },
+  {
+   "name": "Déjà Vu",
+   "kind": "self",
+   "value": 0.06,
+   "patch": "9.1.0",
+   "when": "on the 3 Generators closest to one another"
+  },
+  {
+   "name": "Overzealous (Dull Totem)",
+   "kind": "self",
+   "value": 0.1,
+   "patch": "6.7.0",
+   "when": "after cleansing or blessing a Dull Totem, until a Health State is lost",
+   "group": "Overzealous"
+  },
+  {
+   "name": "Overzealous (Hex Totem)",
+   "kind": "self",
+   "value": 0.2,
+   "patch": "6.7.0",
+   "when": "after cleansing or blessing a Hex Totem, until a Health State is lost",
+   "group": "Overzealous"
+  },
+  {
+   "name": "Teamwork: Full Circuit",
+   "kind": "self_with_others",
+   "value": 0.05,
+   "patch": "9.4.0",
+   "when": "repairing with at least one other Survivor"
+  },
+  {
+   "name": "Teamwork: Soft-Spoken",
+   "kind": "self_with_others",
+   "value": 0.05,
+   "patch": "9.4.0",
+   "when": "repairing with at least one other Survivor"
+  },
+  {
+   "name": "Friendly Competition",
+   "kind": "team_timed",
+   "value": 0.1,
+   "seconds": 90,
+   "patch": "10.2.0",
+   "when": "for 90 s after completing a Generator with another Survivor, for everyone who took part"
+  },
+  {
+   "name": "Boon: Steadfast",
+   "kind": "team",
+   "value": 0.1,
+   "regression": 0.5,
+   "patch": "",
+   "when": "Generators inside the Boon's range; they also regress 50 % slower; one instance"
+  },
+  {
+   "name": "Hyperfocus",
+   "kind": "great_scale",
+   "value": 0.3,
+   "tokens": 6,
+   "patch": "6.2.0",
+   "when": "each Great Skill Check in a row adds a Token (max 6): +30 % of the bonus per Token"
+  },
+  {
+   "name": "Invocation: Weaving Spiders",
+   "kind": "requirement_all",
+   "value": 10,
+   "patch": "8.0.0",
+   "when": "after the Invocation: every Generator needs 10 Charges less; one instance"
+  },
+  {
+   "name": "Specialist",
+   "kind": "requirement_once",
+   "value": 24,
+   "patch": "8.1.0",
+   "when": "6 Tokens used on one Generator (4 Charges per Token)"
+  },
+  {
+   "name": "Fast Track",
+   "kind": "requirement_once",
+   "value": 15,
+   "patch": "9.6.0",
+   "when": "3 Tokens used on one Generator (5 Charges per Token)"
+  }
+ ],
+ "addons": [
+  {
+   "name": "Brand New Part",
+   "kind": "requirement_once",
+   "value": 10,
+   "patch": "7.1.0"
+  }
+ ],
+ "killer": [
+  {
+   "name": "Thanatophobia",
+   "kind": "slow",
+   "per": 0.02,
+   "max": 0.08,
+   "full": 0.2,
+   "full_at": 4,
+   "count": 4,
+   "default": 2,
+   "patch": "6.1.2",
+   "count_means": "injured, dying or hooked Survivors"
+  },
+  {
+   "name": "Dying Light / Cull the Weak",
+   "kind": "slow",
+   "per": 0.03,
+   "max": 0.33,
+   "count": 11,
+   "default": 4,
+   "patch": "",
+   "count_means": "Tokens (hooks of Survivors other than the Obsession); the Obsession itself is not slowed"
+  },
+  {
+   "name": "Hex: Pentimento",
+   "kind": "slow_first",
+   "first": 0.2,
+   "per": 0.03,
+   "max": 0.32,
+   "count": 5,
+   "default": 1,
+   "patch": "8.7.0",
+   "count_means": "Rekindled Totems"
+  },
+  {
+   "name": "Distressing",
+   "kind": "slow",
+   "per": 0.08,
+   "max": 0.08,
+   "count": 1,
+   "default": 1,
+   "patch": "8.4.0",
+   "count_means": "Survivors inside the Terror Radius (1 = yes)"
+  },
+  {
+   "name": "Pop Goes the Weasel",
+   "kind": "kick_loss",
+   "value": 0.15,
+   "count": 8,
+   "default": 1,
+   "patch": "9.5.0",
+   "count_means": "kicks with the perk active (20 % instead of 5 %)"
+  },
+  {
+   "name": "Overcharge",
+   "kind": "overcharge",
+   "value": 0.04,
+   "from": 0.85,
+   "to": 1.3,
+   "seconds": 30,
+   "patch": "6.7.0",
+   "count_means": ""
+  },
+  {
+   "name": "Call of Brine",
+   "kind": "regress_mult",
+   "value": 1.5,
+   "seconds": 90,
+   "patch": "10.1.0",
+   "count_means": ""
+  },
+  {
+   "name": "Hex: Ruin",
+   "kind": "ruin",
+   "value": 1.5,
+   "patch": "9.2.0",
+   "count_means": ""
+  },
+  {
+   "name": "Scourge Hook: Pain Resonance",
+   "kind": "instant",
+   "value": 0.2,
+   "count": 4,
+   "default": 1,
+   "patch": "8.0.0",
+   "count_means": "hooks that hit this Generator"
+  },
+  {
+   "name": "Surge",
+   "kind": "instant",
+   "value": 0.08,
+   "count": 8,
+   "default": 1,
+   "patch": "6.1.0",
+   "count_means": "downs with a Basic Attack within 32 m of this Generator"
+  },
+  {
+   "name": "Eruption",
+   "kind": "instant",
+   "value": 0.1,
+   "count": 8,
+   "default": 1,
+   "patch": "6.6.0",
+   "count_means": "downs while this Generator is marked by a kick"
+  },
+  {
+   "name": "Turn Back the Clock",
+   "kind": "instant",
+   "value": 0.1,
+   "count": 8,
+   "default": 1,
+   "patch": "9.4.0",
+   "count_means": "uses on this Generator"
+  },
+  {
+   "name": "Undone",
+   "kind": "undone",
+   "value": 0.1,
+   "block": 10,
+   "count": 3,
+   "default": 3,
+   "patch": "10.2.0",
+   "count_means": "Tokens used with the first kick"
+  },
+  {
+   "name": "Deadlock / No Holds Barred",
+   "kind": "block",
+   "seconds": 25,
+   "count": 4,
+   "default": 1,
+   "patch": "9.0.0",
+   "count_means": "times this Generator is the one blocked"
+  },
+  {
+   "name": "Dead Man's Switch",
+   "kind": "block",
+   "seconds": 40,
+   "count": 8,
+   "default": 1,
+   "patch": "10.2.0",
+   "count_means": "times this Generator is blocked"
+  },
+  {
+   "name": "Grim Embrace",
+   "kind": "block",
+   "seconds": 10,
+   "count": 3,
+   "default": 1,
+   "patch": "8.0.0",
+   "count_means": "first hooks (1–3; the fourth blocks for 40 s)"
+  },
+  {
+   "name": "Corrupt Intervention",
+   "kind": "block",
+   "seconds": 120,
+   "count": 1,
+   "default": 1,
+   "patch": "6.1.0",
+   "count_means": "1 = this Generator is one of the three blocked at the start"
+  }
+ ],
+ "not_modelled": [
+  "Lay Waste",
+  "Stake Out",
+  "Potential Energy",
+  "Quick Gambit",
+  "Bound by Obsession",
+  "Repressed Alliance",
+  "Blast Mine",
+  "Corrective Action",
+  "Hex: Wretched Fate",
+  "Oppression",
+  "Merciless Storm",
+  "Thrilling Tremors",
+  "Hex: Hive Mind",
+  "Help Wanted",
+  "Hex: Huntress Lullaby"
+ ]
+}
