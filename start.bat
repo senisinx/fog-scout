@@ -9,18 +9,19 @@ rem Python 3.12 bis 3.14: fuer neuere gibt es noch nicht alle Pakete (onnxruntim
 rem "py" nimmt gezielt eine passende Version, auch wenn daneben eine neuere installiert ist (Eingabe aus
 rem nul: nie auf eine Rueckfrage des Python-Installationsmanagers warten).
 set "PY="
-for %%V in (3.14 3.13 3.12) do if not defined PY (py -%%V -c "pass" <nul >nul 2>nul && set "PY=py -%%V")
-if not defined PY (python -c "import sys; sys.exit(not (3, 12) <= sys.version_info[:2] <= (3, 14))" <nul >nul 2>nul && set "PY=python")
+for %%V in (3.14 3.13 3.12) do if not defined PY (py -%%V -I -c "pass" <nul >nul 2>nul && set "PY=py -%%V")
+if not defined PY (python -I -c "import sys; sys.exit(not (3, 12) <= sys.version_info[:2] <= (3, 14))" <nul >nul 2>nul && set "PY=python")
 if not defined PY goto nopython
 
 rem Nur fertige Pakete (Wheels), nie ein Quellpaket bauen: dessen setup.py liefe mit Administratorrechten.
 rem Nur von PyPI, ohne pip.ini/PIP_*-Variablen des Nutzers, und nur Dateien mit der Pruefsumme aus der Datei.
+rem Jedes Python hier mit -I bzw. -E: PYTHONPATH/PYTHONHOME des Nutzers liefen sonst als Administrator.
 rem Eine abgebrochene Ersteinrichtung (kein installed.ok) neu beginnen, z. B. mit einer anderen Python-Version
 if exist "%VENV%" rd /s /q "%VENV%"
-%PY% -m venv "%VENV%"
+%PY% -I -m venv "%VENV%"
 if errorlevel 1 goto nopython
-"%VENV%\Scripts\python.exe" -m pip install --isolated --index-url https://pypi.org/simple --only-binary=:all: --require-hashes -r requirements-pip.txt
-"%VENV%\Scripts\python.exe" -m pip install --isolated --index-url https://pypi.org/simple --only-binary=:all: --require-hashes -r requirements.txt
+"%VENV%\Scripts\python.exe" -I -m pip install --isolated --index-url https://pypi.org/simple --only-binary=:all: --require-hashes -r requirements-pip.txt
+"%VENV%\Scripts\python.exe" -I -m pip install --isolated --index-url https://pypi.org/simple --only-binary=:all: --require-hashes -r requirements.txt
 if errorlevel 1 goto piperror
 echo ok> "%VENV%\installed.ok"
 

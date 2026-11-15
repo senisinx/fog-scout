@@ -5481,6 +5481,12 @@ T = {
         '상하 반전',
     'Noch keine Runden – Claude hätte nichts zum Auswerten.':
         '아직 라운드가 없습니다 – Claude가 볼 것이 없습니다.',
+    'Zu wenige Runden – Claude bekommt die Statistik erst ab {n} Runden.':
+        '라운드가 너무 적습니다 – Claude에게는 {n}라운드부터 통계를 보냅니다.',
+    'Der Update-Ordner ist ein Link – Download abgelehnt.':
+        '업데이트 폴더가 링크입니다 – 다운로드를 거부했습니다.',
+    'YouTube: Anmeldung fehlgeschlagen ({error}) – Client-ID und Client-Secret prüfen und noch einmal „Mit YouTube verbinden“ klicken.':
+        'YouTube: 로그인 실패({error}) – 클라이언트 ID와 클라이언트 보안 비밀번호를 확인하고 ‘YouTube에 연결’을 한 번 더 클릭하세요.',
     'Schickt deine Bitte und das Bild, wie es hier zu sehen ist (bereits zensierte Bereiche bleiben zensiert), an Claude; nichts wird geändert, bevor du übernimmst.':
         '요청과 여기 보이는 이미지(이미 가린 영역은 가려진 채로)를 Claude에게 보냅니다. 적용하기 전에는 아무것도 바뀌지 않습니다.',
     'Schickt die Frage und Zähler/Quoten deiner Runden an Claude – keine einzelne Runde, keine Namen':

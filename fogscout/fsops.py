@@ -72,6 +72,21 @@ def rel_path(folder: str, name: str) -> str | None:
     return os.path.join(folder, *parts)
 
 
+def is_link(path: str) -> bool:
+    """1.56 (audit SEC-5): ``path`` itself is a symlink, a directory junction or any other reparse point (Windows) –
+    a folder the elevated program must not write through (the same test as ``takeover._linked``). A missing path is
+    no link (False); one that cannot be looked at counts as one (True)."""
+    try:
+        st = os.lstat(path)
+    except FileNotFoundError:
+        return False
+    except OSError:
+        return True
+    if os.path.islink(path) or (hasattr(os.path, "isjunction") and os.path.isjunction(path)):
+        return True
+    return bool(getattr(st, "st_file_attributes", 0) & 0x400)          # FILE_ATTRIBUTE_REPARSE_POINT
+
+
 def _unsupported(what: str, path: str, code: int = errno.ENOSYS) -> UnsupportedFS:
     return UnsupportedFS(code, f"{what} is not supported here", path)
 

@@ -25,6 +25,7 @@ import urllib.error
 import urllib.request
 from dataclasses import dataclass
 
+from . import fsops
 from .i18n import _
 
 REPO = "senisinx/fog-scout"
@@ -204,7 +205,11 @@ def download(rel: Release, data_dir: str, opener=None, progress=None, retried=No
     opener = opener or _opener()
     want = expected_sha(rel, opener, retried)
     folder = os.path.join(data_dir, UPDATE_DIR)
+    if _linked(folder):
+        raise ValueError(_("Der Update-Ordner ist ein Link – Download abgelehnt."))
     os.makedirs(folder, exist_ok=True)
+    if _linked(folder):                             # made just now: still checked before the first write
+        raise ValueError(_("Der Update-Ordner ist ein Link – Download abgelehnt."))
     final = os.path.join(folder, rel.setup_name)
     tmp = final + ".part"
     req = urllib.request.Request(rel.setup_url, headers={"User-Agent": USER_AGENT})
@@ -249,11 +254,19 @@ def download(rel: Release, data_dir: str, opener=None, progress=None, retried=No
     return final
 
 
+def _linked(folder: str) -> bool:
+    """1.56 (audit SEC-5): ``folder`` (``cache/update`` or the program's ``update``) or its parent is a symlink or a
+    junction – the elevated program would write and delete wherever it points (the data folder is the user's)."""
+    return fsops.is_link(folder) or fsops.is_link(os.path.dirname(os.path.abspath(folder)))
+
+
 def clean_update_folder(folder: str) -> int:
     """1.33.1 (audit M-3): at the start of the installed program – a setup in the update folder was either installed
     (this is the new version) or not wanted; only our own names go (setups and .part leftovers). Returns how many.
     1.34: ``folder`` is the folder itself – the download folder in data_dir and the program folder's "update"."""
     gone = 0
+    if _linked(folder):                             # 1.56 (audit SEC-5): never delete through a link
+        return 0
     try:
         names = os.listdir(folder)
     except OSError:

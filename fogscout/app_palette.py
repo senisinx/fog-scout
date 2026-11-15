@@ -237,6 +237,10 @@ class PaletteMixin:
         if not data.get("rounds"):
             self.qt.palette.show_error(_("Noch keine Runden – Claude hätte nichts zum Auswerten."))
             return
+        if not statsclaude.enough(data):      # 1.56 (audit SEC-4): never the values of a single round
+            self.qt.palette.show_error(_("Zu wenige Runden – Claude bekommt die Statistik erst ab {n} Runden.",
+                                         n=statsclaude.MIN_GROUP))
+            return
         self._asker().ask_stats(self._claude_key(), question, data)
 
     def _palette_ask_fixed(self, kind: str):
@@ -261,6 +265,10 @@ class PaletteMixin:
         rounds = (data["this_week"]["rounds"] + data["last_week"]["rounds"]) if kind == "week" else data["rounds"]
         if not rounds:
             q.palette.show_error(_("Noch keine Runden – Claude hätte nichts zum Auswerten."))
+            return
+        if not statsclaude.enough(data):      # 1.56 (audit SEC-4): never the values of a single round
+            q.palette.show_error(_("Zu wenige Runden – Claude bekommt die Statistik erst ab {n} Runden.",
+                                   n=statsclaude.MIN_GROUP))
             return
         q.palette.show_waiting()
         self._asker().ask_stats(self._claude_key(), question, data)
