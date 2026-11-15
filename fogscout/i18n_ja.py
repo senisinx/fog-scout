@@ -4031,8 +4031,8 @@ T = {
         '能力/アイテム',
     'ohne':
         'なし',
-    'Dein Loadout laut Stats-Seite (ab Userscript Version 3). „Ergebnis“ = als Killer Ø Kills, als Survivor Anteil entkommen; „ohne“ = dasselbe in deinen Runden derselben Rolle ohne diesen Eintrag. Builds ab {n} Runden. Embleme: Ø Stufe von keins (0) bis Iri (4); „voll“ = Kategorie mit {max} Punkten.':
-        '統計ページのロードアウト（ユーザースクリプト バージョン 3 以降）。「結果」= キラーでは平均キル数、サバイバーでは脱出率。「なし」= その役割のラウンドのうち、この項目がないものでの同じ値。ビルドは {n} ラウンド以上から。エンブレム：平均ティアはなし（0）から虹（4）まで。「満点」= カテゴリーが {max} ポイント。',
+    'Dein Loadout laut Stats-Seite (ab Userscript Version 3). „Ergebnis“ = als Killer Ø Kills, als Survivor Anteil entkommen; „ohne“ = dasselbe in deinen Runden derselben Rolle ohne diesen Eintrag. Builds ab {n} Runden. Embleme: Ø Stufe von keins (0) bis Iri (4); „voll“ = Kategorie mit {max} Punkten. Perk-Paare = je zwei Perks desselben Loadouts, ab {n} Runden; „Ø BP“/„BP ohne“ = Ø Bloodpoints mit und ohne den Eintrag.':
+        '統計ページのロードアウト（ユーザースクリプト バージョン 3 以降）。「結果」= キラーでは平均キル数、サバイバーでは脱出率。「なし」= その役割のラウンドのうち、この項目がないものでの同じ値。ビルドは {n} ラウンド以上から。エンブレム：平均ティアはなし（0）から虹（4）まで。「満点」= カテゴリーが {max} ポイント。パークのペア = 同じロードアウトの 2 つのパーク、{n} ラウンド以上から。「Ø BP」/「なしの BP」= その項目あり・なしの平均ブラッドポイント。',
     'Event-Modus':
         'イベントモード',
     'keins':
@@ -5931,4 +5931,72 @@ T = {
         'キラーのパーク {n}',
     'Ein Standbild hat keinen Anfang und kein Ende zum Schneiden – seine Länge stellst du unter „Standbild“ ein oder ziehst seinen Rand.':
         '静止画には切り取る開始点も終了点もありません – 長さは「静止画」で設定するか、端をドラッグしてください。',
+    '100 % entkommen · leer = weniger als {n} Runden':
+        '100 % 脱出 · 空欄 = {n} ラウンド未満',
+    '{row} · {column}: {value} ({n} Runden)':
+        '{row} · {column}：{value}（{n} ラウンド）',
+    'Verbindung und Ergebnis':
+        '接続と結果',
+    'Verbindung':
+        '接続',
+    'Killer-Runden':
+        'キラーのラウンド',
+    'Survivor-Runden':
+        'サバイバーのラウンド',
+    'Ping = Median zur Server-Region während der Runde, Aussetzer = Lücken im Empfang vom Spielserver – beides nur, wenn „Verbundener Spielserver“ lief. Ergebnis laut Stats-Seite.':
+        'Ping = ラウンド中のサーバー地域までの中央値、途切れ = ゲームサーバーからの受信の空白 — どちらも「接続中のゲームサーバー」がオンのときだけ。結果は統計ページから。',
+    'BP ohne':
+        'なしの BP',
+    'Perk-Paar':
+        'パークのペア',
+    'Form':
+        '調子',
+    'Runde der Sitzung':
+        'セッション内のラウンド',
+    'Ergebnis laut Stats-Seite nach Wochentag und Uhrzeit (Blöcke zu {h} Stunden) – ein Feld braucht mindestens {n} Runden. Darunter dasselbe nach der Stelle der Runde in ihrer Sitzung (eine Sitzung endet nach {m} Minuten ohne Runde): Lässt du nach ein paar Runden nach?':
+        '統計ページの結果を曜日と時間帯（{h} 時間ごと）で表示 — 1 マスに {n} ラウンド以上必要です。下はセッション内でのラウンドの順番ごと（ラウンドのない状態が {m} 分続くとセッション終了）：数ラウンド後に調子が落ちていませんか？',
+    'Überleben':
+        '生存',
+    'Ø überlebt':
+        '平均生存',
+    'Gegnerischer Killer':
+        '相手のキラー',
+    'Wie viel des Matches du als Survivor erlebt hast: deine Zeit im Match geteilt durch die Gesamtdauer laut Stats-Seite (ab Userscript Version 3). Nur Survivor-Matches, die beide Werte kennen.':
+        'サバイバーとしてマッチのどれだけを生き延びたか：マッチ内の自分の時間を統計ページのマッチ全体の長さで割った値（ユーザースクリプト バージョン 3 以降）。両方の値が分かるサバイバーのマッチのみ。',
+    'Noch keine Runden mit Ping oder Aussetzern und einem Ergebnis von der Stats-Seite in dieser Auswahl – dafür auf der Seite Server „Verbundener Spielserver“ einschalten.':
+        'この選択には、Ping または途切れの記録と統計ページの結果があるラウンドがまだありません — サーバーページで「接続中のゲームサーバー」をオンにしてください。',
+    'Ping unter {n} ms':
+        'Ping {n} ms 未満',
+    'Ping {lo}–{hi} ms':
+        'Ping {lo}–{hi} ms',
+    'Ping über {n} ms':
+        'Ping {n} ms 超',
+    'mit Aussetzern':
+        '途切れあり',
+    'ohne Aussetzer':
+        '途切れなし',
+    'Killer – Ø Kills nach Wochentag und Uhrzeit':
+        'キラー — 曜日と時間帯ごとの平均キル',
+    'Survivor – Anteil entkommen nach Wochentag und Uhrzeit':
+        'サバイバー — 曜日と時間帯ごとの脱出率',
+    'Noch keine Runden mit Ergebnis von der Stats-Seite in dieser Auswahl – Kills und Entkommen kommen von dort (Einstellungen → Match-Daten).':
+        'この選択には統計ページの結果があるラウンドがまだありません — キルと脱出はそこから来ます（設定 → マッチデータ）。',
+    '{n}. Runde':
+        '{n} ラウンド目',
+    'ab der {n}. Runde':
+        '{n} ラウンド目以降',
+    'Noch keine Survivor-Matches mit Gesamtdauer in dieser Auswahl – die Stats-Seite liefert sie ab Userscript Version 3 (Einstellungen → Match-Daten → Offizielle Match-Daten → „Userscript kopieren“).':
+        'この選択には全体の長さが分かるサバイバーのマッチがまだありません — 統計ページはユーザースクリプト バージョン 3 以降で提供します（設定 → マッチデータ → 公式マッチデータ → 「ユーザースクリプトをコピー」）。',
+    '{share} des Matches':
+        'マッチの {share}',
+    '{n} Survivor-Matches':
+        'サバイバーのマッチ {n} 件',
+    'Killer – Median Wartezeit {per}':
+        'キラー — 待ち時間の中央値 {per}',
+    'Survivor – Median Wartezeit {per}':
+        'サバイバー — 待ち時間の中央値 {per}',
+    '{when}: Median {time} · {n} Runden':
+        '{when}：中央値 {time} · {n} ラウンド',
+    'Keine Wartezeiten dieser Rolle in dieser Auswahl.':
+        'この選択にはこの役割の待ち時間がありません。',
 }

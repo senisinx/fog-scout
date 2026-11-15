@@ -6,6 +6,7 @@ userscript (version 3 or newer) saved with a loadout count.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from itertools import combinations
 
 from . import history, official
 from .dashboard import Tile
@@ -43,6 +44,10 @@ class Item:
     others_sum: float = 0.0      # 1.11.10: sum and count of the results of the same role's matches without it
     others_n: int = 0            # (a list of them per item cost 96 000 appends with 3000 matches)
     share: float = 0.0           # n / matches of the role with a loadout
+    bp_sum: int = 0              # bloodpoints of its matches with bloodpoints (Match.bp > 0) …
+    bp_n: int = 0
+    others_bp_sum: int = 0       # … and of the same role's matches without it, like others_sum / others_n
+    others_bp_n: int = 0
 
     @property
     def mean(self):
@@ -51,6 +56,14 @@ class Item:
     @property
     def mean_without(self):
         return self.others_sum / self.others_n if self.others_n else None
+
+    @property
+    def bp_mean(self):
+        return self.bp_sum / self.bp_n if self.bp_n else None
+
+    @property
+    def bp_without(self):
+        return self.others_bp_sum / self.others_bp_n if self.others_bp_n else None
 
 
 @dataclass
@@ -71,22 +84,47 @@ def _refs(m, kind) -> list:
     return [r for r in v if r]
 
 
-def items(pairs) -> list:
-    """Every perk, add-on, offering and power/item of the own loadouts in ``pairs`` with how its matches ended,
-    most used first."""
-    matches = [m for _r, m in pairs if m.role in ("killer", "survivor") and has_loadout(m)]
-    # 1.11.10: one pass over the matches – each result worked out once, each item collects only its own matches,
-    # "without it" = the role's totals minus its own. Before, every item went through every match of its role and
-    # worked out the result anew (3000 matches: 190 ms per click on the tab).
+def _loadout_matches(pairs):
+    """The own matches of ``pairs`` with a loadout, each with its result worked out once, and the role totals:
+    (matches [(match, result)], count {role: n}, results {role: [sum, n]}, bloodpoints {role: [sum, n]})."""
     count = {"killer": 0, "survivor": 0}
     total = {"killer": [0.0, 0], "survivor": [0.0, 0]}
-    found = {}
-    for m in matches:
+    bp_total = {"killer": [0, 0], "survivor": [0, 0]}
+    out = []
+    for _r, m in pairs:
+        if m.role not in ("killer", "survivor") or not has_loadout(m):
+            continue
         res = result(m)
         count[m.role] += 1
         if res is not None:
             total[m.role][0] += res
             total[m.role][1] += 1
+        if m.bp > 0:
+            bp_total[m.role][0] += m.bp
+            bp_total[m.role][1] += 1
+        out.append((m, res))
+    return out, count, total, bp_total
+
+
+def _finish(found: dict, count, total, bp_total) -> list:
+    """"Without it" = the role's totals minus the entry's own; the share of the role's matches with a loadout."""
+    for (_kind, role, _key), it in found.items():
+        it.others_sum, it.others_n = total[role][0] - sum(it.results), total[role][1] - len(it.results)
+        it.others_bp_sum, it.others_bp_n = bp_total[role][0] - it.bp_sum, bp_total[role][1] - it.bp_n
+        it.share = it.n / count[role] if count[role] else 0.0
+    return list(found.values())
+
+
+def items(pairs) -> list:
+    """Every perk, add-on, offering and power/item of the own loadouts in ``pairs`` with how its matches ended and
+    the bloodpoints they brought (with and without it), most used first."""
+    # 1.11.10: one pass over the matches – each result worked out once, each item collects only its own matches,
+    # "without it" = the role's totals minus its own. Before, every item went through every match of its role and
+    # worked out the result anew (3000 matches: 190 ms per click on the tab). The bloodpoints ride in the same pass.
+    matches, count, total, bp_total = _loadout_matches(pairs)
+    found = {}
+    for m, res in matches:
+        bp = m.bp
         for kind in KINDS:
             seen = set()
             for ref in _refs(m, kind):
@@ -101,10 +139,44 @@ def items(pairs) -> list:
                 it.n += 1
                 if res is not None:
                     it.results.append(res)
-    for (kind, role, key), it in found.items():
-        it.others_sum, it.others_n = total[role][0] - sum(it.results), total[role][1] - len(it.results)
-        it.share = it.n / count[role] if count[role] else 0.0
-    return sorted(found.values(), key=lambda i: (-i.n, KINDS.index(i.kind), i.name.lower()))
+                if bp > 0:
+                    it.bp_sum += bp
+                    it.bp_n += 1
+    return sorted(_finish(found, count, total, bp_total), key=lambda i: (-i.n, KINDS.index(i.kind), i.name.lower()))
+
+
+def perk_pairs(pairs, minimum=BUILD_MIN) -> list:
+    """The two-perk combinations of the own loadouts (up to six per match), per role, played at least ``minimum``
+    times – Items of kind "pair" (key "id1\tid2", name "A + B") with the same "without" comparison and bloodpoints
+    as ``items``, most played first. One pass over the matches."""
+    matches, count, total, bp_total = _loadout_matches(pairs)
+    acc = {}                                     # (role, id1, id2) -> [matches, results, bp sum, matches with bp]
+    latest = {}                                  # perk id -> the newest name the page gave
+    for m, res in matches:
+        keys = set()
+        for ref in m.perks:
+            if ref:
+                key = _key(ref)
+                keys.add(key)
+                latest[key] = ref[1] or latest.get(key) or ref[0]
+        bp = m.bp
+        for a, b in combinations(sorted(keys), 2):
+            g = acc.get((m.role, a, b))
+            if g is None:
+                g = acc[(m.role, a, b)] = [0, [], 0, 0]
+            g[0] += 1
+            if res is not None:
+                g[1].append(res)
+            if bp > 0:
+                g[2] += bp
+                g[3] += 1
+    found = {}
+    for (role, a, b), (n, results, bp_sum, bp_n) in acc.items():
+        if n >= minimum:
+            name = " + ".join(sorted((latest[a], latest[b]), key=str.lower))
+            found[("pair", role, a + "\t" + b)] = Item("pair", role, a + "\t" + b, name, n=n, results=results,
+                                                        bp_sum=bp_sum, bp_n=bp_n)
+    return sorted(_finish(found, count, total, bp_total), key=lambda i: (-i.n, i.role, i.name.lower()))
 
 
 def builds(pairs, minimum=BUILD_MIN) -> list:

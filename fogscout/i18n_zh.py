@@ -4031,8 +4031,8 @@ T = {
         '能力/道具',
     'ohne':
         '不带',
-    'Dein Loadout laut Stats-Seite (ab Userscript Version 3). „Ergebnis“ = als Killer Ø Kills, als Survivor Anteil entkommen; „ohne“ = dasselbe in deinen Runden derselben Rolle ohne diesen Eintrag. Builds ab {n} Runden. Embleme: Ø Stufe von keins (0) bis Iri (4); „voll“ = Kategorie mit {max} Punkten.':
-        '来自统计页面的你的配装（用户脚本版本 3 或更新）。“结果” = 作为杀手时为平均击杀，作为幸存者时为逃脱占比；“不带” = 你在该角色下不带此项的对局中的相同数据。配装至少需要 {n} 局。徽章：平均等级，从无（0）到虹彩（4）；“满” = 该类别达到 {max} 分。',
+    'Dein Loadout laut Stats-Seite (ab Userscript Version 3). „Ergebnis“ = als Killer Ø Kills, als Survivor Anteil entkommen; „ohne“ = dasselbe in deinen Runden derselben Rolle ohne diesen Eintrag. Builds ab {n} Runden. Embleme: Ø Stufe von keins (0) bis Iri (4); „voll“ = Kategorie mit {max} Punkten. Perk-Paare = je zwei Perks desselben Loadouts, ab {n} Runden; „Ø BP“/„BP ohne“ = Ø Bloodpoints mit und ohne den Eintrag.':
+        '来自统计页面的你的配装（用户脚本版本 3 或更新）。“结果” = 作为杀手时为平均击杀，作为幸存者时为逃脱占比；“不带” = 你在该角色下不带此项的对局中的相同数据。配装至少需要 {n} 局。徽章：平均等级，从无（0）到虹彩（4）；“满” = 该类别达到 {max} 分。技能组合 = 同一配置中的两个技能，{n} 局起；“Ø BP”/“不带时 BP” = 带与不带该项时的平均血点。',
     'Event-Modus':
         '活动模式',
     'keins':
@@ -5931,4 +5931,72 @@ T = {
         '杀手技能 {n}',
     'Ein Standbild hat keinen Anfang und kein Ende zum Schneiden – seine Länge stellst du unter „Standbild“ ein oder ziehst seinen Rand.':
         '静帧没有可剪切的开头和结尾——请在“静帧”中设置其时长，或拖动其边缘。',
+    '100 % entkommen · leer = weniger als {n} Runden':
+        '100 % 逃脱 · 空白 = 少于 {n} 局',
+    '{row} · {column}: {value} ({n} Runden)':
+        '{row} · {column}：{value}（{n} 局）',
+    'Verbindung und Ergebnis':
+        '连接与结果',
+    'Verbindung':
+        '连接',
+    'Killer-Runden':
+        '杀手对局',
+    'Survivor-Runden':
+        '逃生者对局',
+    'Ping = Median zur Server-Region während der Runde, Aussetzer = Lücken im Empfang vom Spielserver – beides nur, wenn „Verbundener Spielserver“ lief. Ergebnis laut Stats-Seite.':
+        'Ping = 本局中到服务器区域的中位数，中断 = 从游戏服务器接收的间隙——两者仅在“已连接的游戏服务器”开启时记录。结果来自统计页面。',
+    'BP ohne':
+        '不带时 BP',
+    'Perk-Paar':
+        '技能组合',
+    'Form':
+        '状态',
+    'Runde der Sitzung':
+        '本次游戏的第几局',
+    'Ergebnis laut Stats-Seite nach Wochentag und Uhrzeit (Blöcke zu {h} Stunden) – ein Feld braucht mindestens {n} Runden. Darunter dasselbe nach der Stelle der Runde in ihrer Sitzung (eine Sitzung endet nach {m} Minuten ohne Runde): Lässt du nach ein paar Runden nach?':
+        '按星期和时段（每 {h} 小时一块）统计的结果，来自统计页面——每格至少需要 {n} 局。下面按对局在本次游戏中的位置统计（{m} 分钟没有对局即结束一次游戏）：几局之后你会不会状态下滑？',
+    'Überleben':
+        '存活',
+    'Ø überlebt':
+        '平均存活',
+    'Gegnerischer Killer':
+        '对手杀手',
+    'Wie viel des Matches du als Survivor erlebt hast: deine Zeit im Match geteilt durch die Gesamtdauer laut Stats-Seite (ab Userscript Version 3). Nur Survivor-Matches, die beide Werte kennen.':
+        '你作为逃生者经历了比赛的多少：你在比赛中的时间除以统计页面上的比赛总时长（用户脚本版本 3 起）。仅统计两个值都已知的逃生者比赛。',
+    'Noch keine Runden mit Ping oder Aussetzern und einem Ergebnis von der Stats-Seite in dieser Auswahl – dafür auf der Seite Server „Verbundener Spielserver“ einschalten.':
+        '此筛选中还没有带 Ping 或中断记录且有统计页面结果的对局——请在“服务器”页面开启“已连接的游戏服务器”。',
+    'Ping unter {n} ms':
+        'Ping 低于 {n} ms',
+    'Ping {lo}–{hi} ms':
+        'Ping {lo}–{hi} ms',
+    'Ping über {n} ms':
+        'Ping 高于 {n} ms',
+    'mit Aussetzern':
+        '有中断',
+    'ohne Aussetzer':
+        '无中断',
+    'Killer – Ø Kills nach Wochentag und Uhrzeit':
+        '杀手——按星期和时段的平均击杀',
+    'Survivor – Anteil entkommen nach Wochentag und Uhrzeit':
+        '逃生者——按星期和时段的逃脱比例',
+    'Noch keine Runden mit Ergebnis von der Stats-Seite in dieser Auswahl – Kills und Entkommen kommen von dort (Einstellungen → Match-Daten).':
+        '此筛选中还没有带统计页面结果的对局——击杀和逃脱数据来自那里（设置 → 比赛数据）。',
+    '{n}. Runde':
+        '第 {n} 局',
+    'ab der {n}. Runde':
+        '第 {n} 局及以后',
+    'Noch keine Survivor-Matches mit Gesamtdauer in dieser Auswahl – die Stats-Seite liefert sie ab Userscript Version 3 (Einstellungen → Match-Daten → Offizielle Match-Daten → „Userscript kopieren“).':
+        '此筛选中还没有带总时长的逃生者比赛——统计页面从用户脚本版本 3 起提供（设置 → 比赛数据 → 官方比赛数据 → “复制用户脚本”）。',
+    '{share} des Matches':
+        '比赛的 {share}',
+    '{n} Survivor-Matches':
+        '{n} 场逃生者比赛',
+    'Killer – Median Wartezeit {per}':
+        '杀手——等待时间中位数{per}',
+    'Survivor – Median Wartezeit {per}':
+        '逃生者——等待时间中位数{per}',
+    '{when}: Median {time} · {n} Runden':
+        '{when}：中位数 {time} · {n} 局',
+    'Keine Wartezeiten dieser Rolle in dieser Auswahl.':
+        '此筛选中没有该角色的等待时间。',
 }

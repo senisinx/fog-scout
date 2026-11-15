@@ -4031,8 +4031,8 @@ T = {
         '능력/아이템',
     'ohne':
         '제외 시',
-    'Dein Loadout laut Stats-Seite (ab Userscript Version 3). „Ergebnis“ = als Killer Ø Kills, als Survivor Anteil entkommen; „ohne“ = dasselbe in deinen Runden derselben Rolle ohne diesen Eintrag. Builds ab {n} Runden. Embleme: Ø Stufe von keins (0) bis Iri (4); „voll“ = Kategorie mit {max} Punkten.':
-        '통계 페이지의 내 로드아웃(유저스크립트 버전 3 이상). ‘결과’ = 살인마일 때 Ø 처치, 생존자일 때 탈출 비율. ‘제외 시’ = 같은 역할의 라운드 중 이 항목이 없는 라운드의 같은 값. 빌드는 {n}라운드부터. 엠블럼: 없음(0)부터 무지개(4)까지 Ø 등급, ‘가득’ = 카테고리 {max}점.',
+    'Dein Loadout laut Stats-Seite (ab Userscript Version 3). „Ergebnis“ = als Killer Ø Kills, als Survivor Anteil entkommen; „ohne“ = dasselbe in deinen Runden derselben Rolle ohne diesen Eintrag. Builds ab {n} Runden. Embleme: Ø Stufe von keins (0) bis Iri (4); „voll“ = Kategorie mit {max} Punkten. Perk-Paare = je zwei Perks desselben Loadouts, ab {n} Runden; „Ø BP“/„BP ohne“ = Ø Bloodpoints mit und ohne den Eintrag.':
+        '통계 페이지의 내 로드아웃(유저스크립트 버전 3 이상). ‘결과’ = 살인마일 때 Ø 처치, 생존자일 때 탈출 비율. ‘제외 시’ = 같은 역할의 라운드 중 이 항목이 없는 라운드의 같은 값. 빌드는 {n}라운드부터. 엠블럼: 없음(0)부터 무지개(4)까지 Ø 등급, ‘가득’ = 카테고리 {max}점. 퍼크 조합 = 같은 로드아웃의 퍼크 두 개, {n}라운드부터; ‘Ø BP’/‘없을 때 BP’ = 그 항목이 있을 때와 없을 때의 평균 블러드포인트.',
     'Event-Modus':
         '이벤트 모드',
     'keins':
@@ -5931,4 +5931,72 @@ T = {
         '살인마 퍽 {n}',
     'Ein Standbild hat keinen Anfang und kein Ende zum Schneiden – seine Länge stellst du unter „Standbild“ ein oder ziehst seinen Rand.':
         '정지 화면에는 자를 시작과 끝이 없습니다 – 길이는 „정지 화면“에서 설정하거나 가장자리를 끌어 조정하세요.',
+    '100 % entkommen · leer = weniger als {n} Runden':
+        '100 % 탈출 · 빈칸 = {n}라운드 미만',
+    '{row} · {column}: {value} ({n} Runden)':
+        '{row} · {column}: {value} ({n}라운드)',
+    'Verbindung und Ergebnis':
+        '연결과 결과',
+    'Verbindung':
+        '연결',
+    'Killer-Runden':
+        '킬러 라운드',
+    'Survivor-Runden':
+        '생존자 라운드',
+    'Ping = Median zur Server-Region während der Runde, Aussetzer = Lücken im Empfang vom Spielserver – beides nur, wenn „Verbundener Spielserver“ lief. Ergebnis laut Stats-Seite.':
+        '핑 = 라운드 중 서버 지역까지의 중앙값, 끊김 = 게임 서버에서 받는 데이터의 공백 – 둘 다 ‘연결된 게임 서버’가 켜져 있을 때만. 결과는 통계 페이지 기준.',
+    'BP ohne':
+        '없을 때 BP',
+    'Perk-Paar':
+        '퍼크 조합',
+    'Form':
+        '컨디션',
+    'Runde der Sitzung':
+        '세션 내 라운드',
+    'Ergebnis laut Stats-Seite nach Wochentag und Uhrzeit (Blöcke zu {h} Stunden) – ein Feld braucht mindestens {n} Runden. Darunter dasselbe nach der Stelle der Runde in ihrer Sitzung (eine Sitzung endet nach {m} Minuten ohne Runde): Lässt du nach ein paar Runden nach?':
+        '통계 페이지의 결과를 요일과 시간대({h}시간 단위)별로 – 한 칸에 최소 {n}라운드가 필요합니다. 아래는 세션 안에서 라운드의 순서별 결과({m}분 동안 라운드가 없으면 세션 종료): 몇 라운드 뒤에 컨디션이 떨어지나요?',
+    'Überleben':
+        '생존',
+    'Ø überlebt':
+        '평균 생존',
+    'Gegnerischer Killer':
+        '상대 킬러',
+    'Wie viel des Matches du als Survivor erlebt hast: deine Zeit im Match geteilt durch die Gesamtdauer laut Stats-Seite (ab Userscript Version 3). Nur Survivor-Matches, die beide Werte kennen.':
+        '생존자로서 매치의 얼마를 버텼는지: 매치 안에서의 내 시간을 통계 페이지의 전체 매치 길이로 나눈 값(유저스크립트 버전 3 이상). 두 값이 모두 있는 생존자 매치만.',
+    'Noch keine Runden mit Ping oder Aussetzern und einem Ergebnis von der Stats-Seite in dieser Auswahl – dafür auf der Seite Server „Verbundener Spielserver“ einschalten.':
+        '이 선택에는 아직 핑이나 끊김 기록과 통계 페이지 결과가 있는 라운드가 없습니다 – 서버 페이지에서 ‘연결된 게임 서버’를 켜세요.',
+    'Ping unter {n} ms':
+        '핑 {n} ms 미만',
+    'Ping {lo}–{hi} ms':
+        '핑 {lo}–{hi} ms',
+    'Ping über {n} ms':
+        '핑 {n} ms 초과',
+    'mit Aussetzern':
+        '끊김 있음',
+    'ohne Aussetzer':
+        '끊김 없음',
+    'Killer – Ø Kills nach Wochentag und Uhrzeit':
+        '킬러 – 요일·시간대별 평균 킬',
+    'Survivor – Anteil entkommen nach Wochentag und Uhrzeit':
+        '생존자 – 요일·시간대별 탈출 비율',
+    'Noch keine Runden mit Ergebnis von der Stats-Seite in dieser Auswahl – Kills und Entkommen kommen von dort (Einstellungen → Match-Daten).':
+        '이 선택에는 아직 통계 페이지 결과가 있는 라운드가 없습니다 – 킬과 탈출은 거기서 옵니다(설정 → 매치 데이터).',
+    '{n}. Runde':
+        '{n}번째 라운드',
+    'ab der {n}. Runde':
+        '{n}번째 라운드부터',
+    'Noch keine Survivor-Matches mit Gesamtdauer in dieser Auswahl – die Stats-Seite liefert sie ab Userscript Version 3 (Einstellungen → Match-Daten → Offizielle Match-Daten → „Userscript kopieren“).':
+        '이 선택에는 아직 전체 길이가 있는 생존자 매치가 없습니다 – 통계 페이지는 유저스크립트 버전 3부터 제공합니다(설정 → 매치 데이터 → 공식 매치 데이터 → ‘유저스크립트 복사’).',
+    '{share} des Matches':
+        '매치의 {share}',
+    '{n} Survivor-Matches':
+        '생존자 매치 {n}개',
+    'Killer – Median Wartezeit {per}':
+        '킬러 – 대기 시간 중앙값 {per}',
+    'Survivor – Median Wartezeit {per}':
+        '생존자 – 대기 시간 중앙값 {per}',
+    '{when}: Median {time} · {n} Runden':
+        '{when}: 중앙값 {time} · {n}라운드',
+    'Keine Wartezeiten dieser Rolle in dieser Auswahl.':
+        '이 선택에는 이 역할의 대기 시간이 없습니다.',
 }

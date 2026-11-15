@@ -15,6 +15,7 @@ from .qt_layouts import FlowRow, TileGrid, WrapCheck
 from .i18n import N_, _
 from .qt_common import SLIDER_MAX, guard_wheel, on_zoom, pixmap_from_pil, steady_scroll, _label, _tip, _card, _set, _scroll_page, page_head, set_glyph
 from .qt_views import FactBox, Table, LogView, HotkeyButton, Chart, SwatchView, TilesView, DashboardView
+from .qt_views import HeatmapView
 from .qt_preview import PreviewView
 
 
@@ -720,6 +721,8 @@ def make_control(kind, key, post):
         w = Chart()
     elif kind == "dashboard":
         w = DashboardView(key, post)
+    elif kind == "heatmap":
+        w = HeatmapView()
     elif kind == "tiles":
         w = TilesView(post)                       # 1.38.54: clickable tiles (Tile.open)
     elif kind == "preview":
@@ -900,7 +903,7 @@ def show_control(kind, w, extra, st):
             s.setValue(round(st.get("value", 0)))
             s.blockSignals(False)
         s.set_cap(st.get("cap"))
-    elif kind in ("table", "chart", "log", "dashboard", "tiles", "preview", "swatches", "host", "elements", "anchors"):
+    elif kind in ("table", "chart", "log", "dashboard", "heatmap", "tiles", "preview", "swatches", "host", "elements", "anchors"):
         w.show_state(st)
     elif kind == "hotkey":
         w.show_text(st.get("text", ""))

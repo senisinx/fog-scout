@@ -2917,8 +2917,8 @@ EN = {
     'Opfergabe': 'Offering',
     'Kraft/Item': 'Power/item',
     'ohne': 'without',
-    'Dein Loadout laut Stats-Seite (ab Userscript Version 3). „Ergebnis“ = als Killer Ø Kills, als Survivor Anteil entkommen; „ohne“ = dasselbe in deinen Runden derselben Rolle ohne diesen Eintrag. Builds ab {n} Runden. Embleme: Ø Stufe von keins (0) bis Iri (4); „voll“ = Kategorie mit {max} Punkten.':
-        'Your loadout from the stats page (userscript version 3 or newer). "Result" = as killer Ø kills, as survivor the share escaped; "without" = the same in your rounds of that role without this entry. Builds from {n} rounds. Emblems: Ø tier from none (0) to iri (4); "full" = category at {max} points.',
+    'Dein Loadout laut Stats-Seite (ab Userscript Version 3). „Ergebnis“ = als Killer Ø Kills, als Survivor Anteil entkommen; „ohne“ = dasselbe in deinen Runden derselben Rolle ohne diesen Eintrag. Builds ab {n} Runden. Embleme: Ø Stufe von keins (0) bis Iri (4); „voll“ = Kategorie mit {max} Punkten. Perk-Paare = je zwei Perks desselben Loadouts, ab {n} Runden; „Ø BP“/„BP ohne“ = Ø Bloodpoints mit und ohne den Eintrag.':
+        'Your loadout from the stats page (userscript version 3 or newer). "Result" = as killer Ø kills, as survivor the share escaped; "without" = the same in your rounds of that role without this entry. Builds from {n} rounds. Emblems: Ø tier from none (0) to iri (4); "full" = category at {max} points. Perk pairs = two perks of the same loadout, from {n} rounds; "Ø BP"/"BP without" = Ø bloodpoints with and without the entry.',
     'Event-Modus': 'Event mode',
     'keins': 'none',
     'Bronze': 'Bronze',
@@ -4404,4 +4404,72 @@ EN = {
         'Killer perk {n}',
     'Ein Standbild hat keinen Anfang und kein Ende zum Schneiden – seine Länge stellst du unter „Standbild“ ein oder ziehst seinen Rand.':
         'A still has no start or end to cut – set its length under “Still” or drag its edge.',
+    '100 % entkommen · leer = weniger als {n} Runden':
+        '100 % escaped · empty = fewer than {n} rounds',
+    '{row} · {column}: {value} ({n} Runden)':
+        '{row} · {column}: {value} ({n} rounds)',
+    'Verbindung und Ergebnis':
+        'Connection and result',
+    'Verbindung':
+        'Connection',
+    'Killer-Runden':
+        'Killer rounds',
+    'Survivor-Runden':
+        'Survivor rounds',
+    'Ping = Median zur Server-Region während der Runde, Aussetzer = Lücken im Empfang vom Spielserver – beides nur, wenn „Verbundener Spielserver“ lief. Ergebnis laut Stats-Seite.':
+        'Ping = median to the server region during the round, stalls = gaps in what arrived from the game server – both only while "Connected game server" was on. Result from the stats page.',
+    'BP ohne':
+        'BP without',
+    'Perk-Paar':
+        'Perk pair',
+    'Form':
+        'Form',
+    'Runde der Sitzung':
+        'Round of the session',
+    'Ergebnis laut Stats-Seite nach Wochentag und Uhrzeit (Blöcke zu {h} Stunden) – ein Feld braucht mindestens {n} Runden. Darunter dasselbe nach der Stelle der Runde in ihrer Sitzung (eine Sitzung endet nach {m} Minuten ohne Runde): Lässt du nach ein paar Runden nach?':
+        "Result from the stats page by weekday and time of day (blocks of {h} hours) – a cell needs at least {n} rounds. Below, the same by the round's place in its session (a session ends after {m} minutes without a round): do you drop off after a few rounds?",
+    'Überleben':
+        'Survival',
+    'Ø überlebt':
+        'Ø survived',
+    'Gegnerischer Killer':
+        'Opposing killer',
+    'Wie viel des Matches du als Survivor erlebt hast: deine Zeit im Match geteilt durch die Gesamtdauer laut Stats-Seite (ab Userscript Version 3). Nur Survivor-Matches, die beide Werte kennen.':
+        'How much of the match you lived through as survivor: your time in the match divided by the whole match length from the stats page (userscript version 3 or newer). Only survivor matches that know both values.',
+    'Noch keine Runden mit Ping oder Aussetzern und einem Ergebnis von der Stats-Seite in dieser Auswahl – dafür auf der Seite Server „Verbundener Spielserver“ einschalten.':
+        'No rounds with a ping or stalls and a result from the stats page in this selection yet – switch on "Connected game server" on the Server page for that.',
+    'Ping unter {n} ms':
+        'Ping under {n} ms',
+    'Ping {lo}–{hi} ms':
+        'Ping {lo}–{hi} ms',
+    'Ping über {n} ms':
+        'Ping over {n} ms',
+    'mit Aussetzern':
+        'with stalls',
+    'ohne Aussetzer':
+        'without stalls',
+    'Killer – Ø Kills nach Wochentag und Uhrzeit':
+        'Killer – Ø kills by weekday and time of day',
+    'Survivor – Anteil entkommen nach Wochentag und Uhrzeit':
+        'Survivor – share escaped by weekday and time of day',
+    'Noch keine Runden mit Ergebnis von der Stats-Seite in dieser Auswahl – Kills und Entkommen kommen von dort (Einstellungen → Match-Daten).':
+        'No rounds with a result from the stats page in this selection yet – kills and escapes come from there (Settings → Match data).',
+    '{n}. Runde':
+        'Round {n}',
+    'ab der {n}. Runde':
+        'Round {n} and later',
+    'Noch keine Survivor-Matches mit Gesamtdauer in dieser Auswahl – die Stats-Seite liefert sie ab Userscript Version 3 (Einstellungen → Match-Daten → Offizielle Match-Daten → „Userscript kopieren“).':
+        'No survivor matches with a total length in this selection yet – the stats page gives it from userscript version 3 on (Settings → Match data → Official match data → "Copy userscript").',
+    '{share} des Matches':
+        '{share} of the match',
+    '{n} Survivor-Matches':
+        '{n} survivor matches',
+    'Killer – Median Wartezeit {per}':
+        'Killer – median waiting time {per}',
+    'Survivor – Median Wartezeit {per}':
+        'Survivor – median waiting time {per}',
+    '{when}: Median {time} · {n} Runden':
+        '{when}: median {time} · {n} rounds',
+    'Keine Wartezeiten dieser Rolle in dieser Auswahl.':
+        'No waiting times of this role in this selection.',
 }

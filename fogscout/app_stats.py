@@ -371,6 +371,19 @@ class StatsTab:
                   style="Dim.TLabel", wraplength=520).pack(anchor="w", pady=(4, 0))
         self.stats_regs_now = ui.StringVar(value="")       # 1.38.31 (F7): the fastest region at this time of day
         ui.Label(box_r, textvariable=self.stats_regs_now, wraplength=520).pack(anchor="w", pady=(6, 0))
+        # connection against the result: ping bands and receive gaps of the rounds (dashboard.connection)
+        conn = ui.LabelFrame(box_r, text=_("Verbindung und Ergebnis"), padding=8)
+        conn.pack(fill="both", expand=True, pady=(8, 0))
+        self.stats_conn_var = ui.StringVar(value="")       # only when there is nothing to show
+        ui.Label(conn, textvariable=self.stats_conn_var, wraplength=520).pack(anchor="w")
+        self.stats_conn = self._stats_tree(conn, (("grp", _("Verbindung"), 190, "w"),
+                                                  ("kn", _("Killer-Runden"), 95, "e"), ("kills", _("Ø Kills"), 65, "e"),
+                                                  ("sn", _("Survivor-Runden"), 110, "e"),
+                                                  ("esc", _("Entkommen"), 85, "e")), 5)
+        ui.folded(ui.Label(conn, text=_("Ping = Median zur Server-Region während der Runde, Aussetzer = Lücken im "
+                                          "Empfang vom Spielserver – beides nur, wenn „Verbundener Spielserver“ lief. "
+                                          "Ergebnis laut Stats-Seite."),
+                           style="Dim.TLabel", wraplength=520)).pack(anchor="w", pady=(4, 0))
         box_w = self._stats_page(_("Wartezeit"), "maps", "_stats_part_wait")
         self.stats_wait_tiles = ui.Tiles(box_w)          # 1.2.16: Ø / median / shortest / longest as tiles
         self.stats_wait_tiles.pack(fill="x", pady=(0, 6))
@@ -388,6 +401,8 @@ class StatsTab:
         self.stats_wait = self._stats_tree(box_w, (("grp", _("Wann/Wo"), 230, "w"), ("n", _("Runden"), 70, "e"),
                                                    ("avg", _("Ø Wartezeit"), 90, "e"), ("min", _("Kürzeste"), 80, "e")),
                                            7)
+        # the median waiting time per day / week, one panel per role (dashboard.wait_trend)
+        self.wait_trend = TrendChart(box_w, bool(self.settings.get("dark_mode", True)))
         ui.Label(box_w, text=_("Gemessen von „CANCEL“ (Suche läuft) bis zur gefundenen Lobby – nur wenn das Programm "
                                 "die Suche gesehen hat. Custom Games haben keine Wartezeit."),
                   style="Dim.TLabel", wraplength=520).pack(anchor="w", pady=(4, 0))
@@ -459,10 +474,16 @@ class StatsTab:
         self.stats_items = self._stats_tree(box_bu, (("name", _("Name"), 190, "w"), ("kind", _("Art"), 85, "w"),
                                                      ("role", _("Rolle"), 70, "w"), ("n", _("Runden"), 60, "e"),
                                                      ("share", _("Anteil"), 60, "e"), ("res", _("Ergebnis"), 75, "e"),
-                                                     ("without", _("ohne"), 65, "e")), 9)
+                                                     ("without", _("ohne"), 65, "e"), ("bp", _("Ø BP"), 65, "e"),
+                                                     ("bpw", _("BP ohne"), 70, "e")), 9)
         self.stats_builds = self._stats_tree(box_bu, (("build", _("Build (4 Perks)"), 360, "w"),
                                                       ("who", _("Killer"), 110, "w"), ("n", _("Runden"), 60, "e"),
                                                       ("res", _("Ergebnis"), 75, "e")), 5)
+        # the two-perk combinations of the own loadouts (builds.perk_pairs), compared like the single entries
+        self.stats_pairs = self._stats_tree(box_bu, (("name", _("Perk-Paar"), 300, "w"), ("role", _("Rolle"), 70, "w"),
+                                                     ("n", _("Runden"), 60, "e"), ("share", _("Anteil"), 60, "e"),
+                                                     ("res", _("Ergebnis"), 75, "e"), ("without", _("ohne"), 65, "e"),
+                                                     ("bp", _("Ø BP"), 65, "e"), ("bpw", _("BP ohne"), 70, "e")), 5)
         # 1.8.51: emblems, score categories and the killer's rating (user's pick: here, no tab of their own)
         self.stats_emblems = self._stats_tree(box_bu, (("name", _("Emblem"), 150, "w"), ("role", _("Rolle"), 70, "w"),
                                                        ("n", _("Runden"), 60, "e"), ("mean", _("Ø Stufe"), 90, "e"),
@@ -478,7 +499,9 @@ class StatsTab:
         ui.folded(ui.Label(box_bu, text=_("Dein Loadout laut Stats-Seite (ab Userscript Version 3). „Ergebnis“ = als Killer "
                                  "Ø Kills, als Survivor Anteil entkommen; „ohne“ = dasselbe in deinen Runden derselben "
                                  "Rolle ohne diesen Eintrag. Builds ab {n} Runden. Embleme: Ø Stufe von keins (0) bis "
-                                 "Iri (4); „voll“ = Kategorie mit {max} Punkten.", n=builds.BUILD_MIN,
+                                 "Iri (4); „voll“ = Kategorie mit {max} Punkten. Perk-Paare = je zwei Perks desselben "
+                                 "Loadouts, ab {n} Runden; „Ø BP“/„BP ohne“ = Ø Bloodpoints mit und ohne den Eintrag.",
+                                 n=builds.BUILD_MIN,
                                  max=f"{builds.SCORE_MAX:,}".replace(",", ".")),
                   style="Dim.TLabel", wraplength=520)).pack(anchor="w", pady=(4, 0))
         # 1.8.64 (user: "wir haben so viele Kategorien, warum keine für Farming"): the farming rounds on a tab of
@@ -521,6 +544,44 @@ class StatsTab:
                                            "Prognose sagt, was bisher geschah, keine Zusage. „Main“ = dein Charakter mit den "
                                            "meisten Matches je Rolle. „P100“ und „Höchster“ zählen nur Charaktere, die in deinen "
                                            "Match-Daten vorkommen.", days=builds.PACE_DAYS),
+                           style="Dim.TLabel", wraplength=520)).pack(anchor="w", pady=(4, 0))
+        # the result by weekday × time of day and by the round's place in its session; last tab of "Runden" –
+        # tab_order counts by position
+        box_fo = self._stats_page(_("Form"), "rounds", "_stats_part_form")
+        self.stats_form_var = ui.StringVar(value="")       # only when there is nothing to show
+        ui.Label(box_fo, textvariable=self.stats_form_var, wraplength=520).pack(anchor="w")
+        self.stats_heat_k_var = ui.StringVar(value="")
+        ui.Label(box_fo, textvariable=self.stats_heat_k_var).pack(anchor="w", pady=(0, 4))
+        self.stats_heat_k = ui.Heatmap(box_fo)
+        self.stats_heat_k.pack(fill="x")
+        self.stats_heat_s_var = ui.StringVar(value="")
+        ui.Label(box_fo, textvariable=self.stats_heat_s_var).pack(anchor="w", pady=(8, 4))
+        self.stats_heat_s = ui.Heatmap(box_fo)
+        self.stats_heat_s.pack(fill="x")
+        self.stats_form = self._stats_tree(box_fo, (("pos", _("Runde der Sitzung"), 150, "w"),
+                                                    ("kn", _("Killer-Runden"), 95, "e"), ("kills", _("Ø Kills"), 65, "e"),
+                                                    ("sn", _("Survivor-Runden"), 110, "e"),
+                                                    ("esc", _("Entkommen"), 85, "e"), ("bp", _("Ø BP"), 70, "e")), 4)
+        ui.folded(ui.Label(box_fo, text=_("Ergebnis laut Stats-Seite nach Wochentag und Uhrzeit (Blöcke zu {h} Stunden) – "
+                                           "ein Feld braucht mindestens {n} Runden. Darunter dasselbe nach der Stelle der "
+                                           "Runde in ihrer Sitzung (eine Sitzung endet nach {m} Minuten ohne Runde): "
+                                           "Lässt du nach ein paar Runden nach?", h=history.HOUR_BLOCK,
+                                           n=dashboard.MATRIX_MIN, m=records.SESSION_GAP // 60),
+                           style="Dim.TLabel", wraplength=520)).pack(anchor="w", pady=(6, 0))
+        # how much of the match a survivor lived through (dashboard.survival); last tab of "Gegner & Builds"
+        box_su = self._stats_page(_("Überleben"), "foes", "_stats_part_survival")
+        self.stats_surv_var = ui.StringVar(value="")       # only when there is nothing to show
+        ui.Label(box_su, textvariable=self.stats_surv_var, wraplength=520).pack(anchor="w")
+        self.stats_surv_tiles = ui.Tiles(box_su)
+        self.stats_surv_tiles.pack(fill="x", pady=(0, 6))
+        self.stats_surv_maps = self._stats_tree(box_su, (("map", _("Map"), 180, "w"), ("n", _("Matches"), 70, "e"),
+                                                         ("share", _("Ø überlebt"), 90, "e")), 6)
+        self.stats_surv_killers = self._stats_tree(box_su, (("killer", _("Gegnerischer Killer"), 180, "w"),
+                                                            ("n", _("Matches"), 70, "e"),
+                                                            ("share", _("Ø überlebt"), 90, "e")), 6)
+        ui.folded(ui.Label(box_su, text=_("Wie viel des Matches du als Survivor erlebt hast: deine Zeit im Match geteilt "
+                                           "durch die Gesamtdauer laut Stats-Seite (ab Userscript Version 3). Nur "
+                                           "Survivor-Matches, die beide Werte kennen."),
                            style="Dim.TLabel", wraplength=520)).pack(anchor="w", pady=(4, 0))
         self._stats_sort = ("n", True)
         return outer
@@ -1075,6 +1136,7 @@ class StatsTab:
         rows = self._builds_rows(c)
         self.stats_build_var.set(rows["hint"])
         for t, values in ((self.stats_items, rows["items"]), (self.stats_builds, rows["builds"]),
+                          (self.stats_pairs, rows["pairs"]),
                           (self.stats_emblems, rows["emblems"]), (self.stats_scores, rows["scores"])):
             t.delete(*t.get_children())
             for v in values:
@@ -1096,6 +1158,9 @@ class StatsTab:
                 return "–"
             return f"Ø {v:.2f}" if role == "killer" else f"{v:.0%}"
 
+        def bp(v):
+            return _bp(v) if v is not None else "–"
+
         n = builds.with_loadout(c.pairs)
         # 1.8.68 (user: "Statistik → Perk funktioniert nicht", screenshot: the hint with "All roles"): the hint said
         # "userscript 3" even when the saved matches have loadouts and only the selection leaves them out
@@ -1113,7 +1178,11 @@ class StatsTab:
         rows = {
             "hint": hint,
             "items": [(it.name, _(BUILD_KINDS[it.kind]), self._role_name(it.role), it.n, f"{it.share:.0%}",
-                       res(it.role, it.mean), res(it.role, it.mean_without)) for it in builds.items(c.pairs)],
+                       res(it.role, it.mean), res(it.role, it.mean_without), bp(it.bp_mean), bp(it.bp_without))
+                      for it in builds.items(c.pairs)],
+            "pairs": [(it.name, self._role_name(it.role), it.n, f"{it.share:.0%}", res(it.role, it.mean),
+                       res(it.role, it.mean_without), bp(it.bp_mean), bp(it.bp_without))
+                      for it in builds.perk_pairs(c.pairs)],
             "builds": [(" · ".join(b.perks),
                         killer_label(self._killer_of(b.character)) if b.character else self._role_name(b.role),
                         b.n, res(b.role, b.mean)) for b in builds.builds(c.pairs)],
@@ -1243,6 +1312,64 @@ class StatsTab:
             t.insert("", "end", values=(self._stats_region_name(code), n, fmt_duration(avg), f"{share:.0%}",
                                         f"{p:.0f} ms" if p is not None else "–"))
         self.stats_regs_now.set(self._regions_now_text(time.time()))
+        conn = dashboard.connection(c.pairs)
+        self.stats_conn_var.set("" if conn else _(
+            "Noch keine Runden mit Ping oder Aussetzern und einem Ergebnis von der Stats-Seite in dieser Auswahl – "
+            "dafür auf der Seite Server „Verbundener Spielserver“ einschalten."))
+        names = {"<40": _("Ping unter {n} ms", n=dashboard.PING_BANDS[0]),
+                 "40-80": _("Ping {lo}–{hi} ms", lo=dashboard.PING_BANDS[0], hi=dashboard.PING_BANDS[1]),
+                 ">80": _("Ping über {n} ms", n=dashboard.PING_BANDS[1]),
+                 "stalls": _("mit Aussetzern"), "no_stalls": _("ohne Aussetzer")}
+        t = self.stats_conn
+        t.delete(*t.get_children())
+        for key, res in conn:
+            t.insert("", "end", iid=key, values=self._result_cells(names[key], res))
+
+    @staticmethod
+    def _result_cells(label, res, bp=False) -> tuple:
+        """A row of a result table: label, killer rounds, Ø kills, survivor rounds, share escaped (, Ø BP)."""
+        cells = (label, res.kills_n or "–", f"{res.kills:.2f}" if res.kills is not None else "–",
+                 res.survivor_n or "–", f"{res.escape_share:.0%}" if res.escape_share is not None else "–")
+        return cells + ((_bp(res.bp) if res.bp is not None else "–",) if bp else ())
+
+    def _stats_part_form(self, c):
+        """The result by weekday × time of day (dashboard.time_grids) and by the round's place in its session
+        (records.session_form) – both from the rounds tied to a match of the stats page."""
+        grids = dashboard.time_grids(c.pairs)
+        dark = bool(self.settings.get("dark_mode", True))
+        for heat, var, role, title in ((self.stats_heat_k, self.stats_heat_k_var, "killer",
+                                        N_("Killer – Ø Kills nach Wochentag und Uhrzeit")),
+                                       (self.stats_heat_s, self.stats_heat_s_var, "survivor",
+                                        N_("Survivor – Anteil entkommen nach Wochentag und Uhrzeit"))):
+            g = grids[role]
+            heat.data, heat.dark = g, dark
+            var.set(_(title) if g.rows else "")
+        form = records.session_form(c.rounds, {id(r): m for r, m in c.pairs})
+        known = any(f.kills_n or f.survivor_n for f in form)
+        self.stats_form_var.set("" if known else _(
+            "Noch keine Runden mit Ergebnis von der Stats-Seite in dieser Auswahl – Kills und Entkommen kommen von "
+            "dort (Einstellungen → Match-Daten)."))
+        t = self.stats_form
+        t.delete(*t.get_children())
+        if known:
+            for i, f in enumerate(form):
+                label = _("{n}. Runde", n=i + 1) if i + 1 < records.FORM_SLOTS else \
+                    _("ab der {n}. Runde", n=records.FORM_SLOTS)
+                t.insert("", "end", iid=str(i), values=self._result_cells(label, f, bp=True))
+
+    def _stats_part_survival(self, c):
+        """How much of the match a survivor lived through (dashboard.survival), per map and per opposing killer."""
+        s = dashboard.survival(c.pairs, lambda k: killer_label(self._killer_of(k)))
+        n, mean = s["all"]
+        self.stats_surv_var.set("" if n else _(
+            "Noch keine Survivor-Matches mit Gesamtdauer in dieser Auswahl – die Stats-Seite liefert sie ab Userscript "
+            "Version 3 (Einstellungen → Match-Daten → Offizielle Match-Daten → „Userscript kopieren“)."))
+        self.stats_surv_tiles.data = [Tile(_("Ø überlebt"), _("{share} des Matches", share=f"{mean:.0%}"),
+                                           _("{n} Survivor-Matches", n=n), frac=mean)] if n else []
+        for t, rows, label in ((self.stats_surv_maps, s["maps"], shown), (self.stats_surv_killers, s["killers"], str)):
+            t.delete(*t.get_children())
+            for name, k, share in rows:
+                t.insert("", "end", values=(label(name), k, f"{share:.0%}"))
 
     def _regions_now_text(self, now) -> str:
         """1.38.31 (F7): "Um diese Tageszeit (18–21 Uhr) am schnellsten: Frankfurt – Wartezeit 1:12 (Median), 31 ms,
@@ -1285,6 +1412,31 @@ class StatsTab:
             else:
                 label = self._stats_region_name(key)
             t.insert("", "end", values=(label, n, fmt_duration(avg), fmt_duration(shortest)))
+        self._wait_trend_render(rounds, TREND_UNIT.get(c.period, "week"))
+
+    def _wait_trend_render(self, rounds, unit):
+        """The median waiting time per hour / day / week below the table – one panel per role."""
+        per = {"hour": _("pro Stunde"), "day": _("pro Tag"), "week": _("pro Woche")}[unit]
+        series = dashboard.wait_trend(rounds, unit)
+        data = {}
+        for role, title in (("killer", N_("Killer – Median Wartezeit {per}")),
+                            ("survivor", N_("Survivor – Median Wartezeit {per}"))):
+            bars = []
+            for b, g in series:
+                v, n = g.get(role, (None, 0))
+                when = _bucket_label(b, unit)
+                bars.append((v, when, _("{when}: Median {time} · {n} Runden", when=when, time=fmt_duration(v), n=n)
+                             if v is not None else ""))
+            values = [v for v, _l, _t in bars if v is not None]
+            top = max(values) if values else 0
+            step = 60 if top <= 300 else 120 if top <= 600 else 300 if top <= 1500 else 600
+            hi = max(step, (int(top) // step + 1) * step)
+            data[role] = {"title": _(title, per=per), "bars": bars if values else [], "max": hi,
+                          "ticks": [(v, fmt_duration(v)) for v in range(0, hi + 1, step)],
+                          "last": fmt_duration(values[-1]) if values else "",
+                          "empty": _("Keine Wartezeiten dieser Rolle in dieser Auswahl.")}
+        self.wait_trend.dark = bool(self.settings.get("dark_mode", True))
+        self.wait_trend.draw(data)
 
     def _stats_part_last(self, c):
         rounds, off = c.rounds, c.off
