@@ -61,6 +61,7 @@ class FakeObs(threading.Thread):
         self.replay_fails = False                   # 1.8.42: the encoder cannot start the replay buffer
         self.source_size = (3440, 1440)             # 1.8.89: what every source reports as its picture size
         self.paused = False                         # 1.15: PauseRecord / ResumeRecord
+        self.stop_fails = 0                         # 1.56: refuse this many StopRecord (OBS busy), recording on
         self.video = {"baseWidth": 2560, "baseHeight": 1440, "outputWidth": 2560, "outputHeight": 1440,
                       "fpsNumerator": 60, "fpsDenominator": 1}                    # 1.29: SetVideoSettings
         self.stats = {"activeFps": 60.0, "cpuUsage": 3.5, "availableDiskSpace": 2048.0,     # 1.15: GetStats
@@ -166,6 +167,9 @@ class FakeObs(threading.Thread):
                 self.recording = os.path.join(self.record_dir, f"obs {self.files}.mkv")
                 with open(self.recording, "wb") as f:
                     f.write(ROUND_BYTES)
+            elif kind == "StopRecord" and (self.stop_fails or self.recording is None):
+                ok, comment = False, "Output is busy." if self.stop_fails else "Output not running."
+                self.stop_fails = max(0, self.stop_fails - 1)
             elif kind == "StopRecord":
                 out, self.recording, self.paused = {"outputPath": self.recording}, None, False
             elif kind == "GetReplayBufferStatus":
@@ -2413,3 +2417,198 @@ def test_the_recorder_says_an_error_on_one_line():
     rec = obsrec.Recorder(lambda kind, **d: said.append((kind, d)))
     rec._say("OBS: x\r\nINFO forged", False, err=True)
     assert said[-1][1]["text"] == "OBS: x  INFO forged" and rec.status == "OBS: x  INFO forged"
+
+
+
+# ---- 1.56: audit R-1 / R-2 / R-3 / E-1
+def test_a_stop_obs_refuses_keeps_the_round_and_is_tried_again(obs, tmp_path):
+    """1.56 (audit R-1, reproduced): the round was forgotten before StopRecord – OBS busy for a moment, and OBS
+    recorded on, the file was never filed and every later round said "OBS nimmt schon auf"."""
+    folder = str(tmp_path)
+    r, posted = _recorder(obs, folder, pre=False, tail_s=0)
+    r._begin({"t": 1000.0, "label": "Coal Tower", "role": "killer", "killer": "Nurse"})
+    obs.stop_fails = 1
+    r._command("stop", {})                                     # the round end: OBS refuses once
+    assert r.active is not None and obs.recording and r._pending is not None
+    assert obsrec.load_index(folder) == []
+    status = [d for k, d in _drain(posted) if k == "status"]
+    assert status[-1].get("err") and "busy" in status[-1]["text"]
+    r._pending = (r._pending[0], time.time())                  # the retry is due (STOP_RETRY_S later)
+    r._idle_work()
+    assert r.active is None and not obs.recording and r._pending is None
+    recs = obsrec.load_index(folder)
+    assert len(recs) == 1 and recs[0].label == "Coal Tower" and os.path.exists(os.path.join(folder, recs[0].file))
+    r._begin({"t": 2000.0, "label": "Next map"})                # the next round starts
+    assert r.active is not None and r.active["label"] == "Next map" and obs.recording
+    assert [k for k, _d in obs.requests].count("StopRecord") == 2
+
+
+def test_a_new_round_first_files_the_one_obs_could_not_stop(obs, tmp_path):
+    """1.56 (audit R-1): OBS not reachable at the round end (connection refused) – the next banner stops and files
+    the old round before it starts the new one; while OBS stays away nothing is lost and nothing starts."""
+    folder = str(tmp_path)
+    r, posted = _recorder(obs, folder, pre=False, tail_s=0)
+    r._begin({"t": 1000.0, "label": "A"})
+    real = r._client
+
+    def away():
+        raise obsrec.ObsError("OBS nicht erreichbar")
+    r._client = away
+    r._command("stop", {})
+    r._command("start", {"t": 2000.0, "label": "B"})          # still away: the new round waits, A is kept
+    assert r.active["label"] == "A" and obs.recording
+    r._client = real
+    r._command("start", {"t": 3000.0, "label": "C"})
+    assert [x.label for x in obsrec.load_index(folder)] == ["A"]
+    assert r.active["label"] == "C" and obs.recording
+    texts = [d["text"] for k, d in _drain(posted) if k == "status"]
+    assert not any("schon auf" in t for t in texts)
+
+
+def test_a_recording_stopped_without_us_is_let_go(obs, tmp_path):
+    """1.56 (audit R-1): OBS refuses the stop because its output no longer runs (stopped in OBS, OBS restarted) –
+    the round is let go instead of being retried for ever."""
+    r, posted = _recorder(obs, str(tmp_path), pre=False, tail_s=0)
+    r._begin({"t": 1000.0, "label": "A"})
+    obs.recording = None
+    r._command("stop", {})
+    assert r.active is None and r._pending is None
+    assert any("keinen Dateinamen" in d["text"] for k, d in _drain(posted) if k == "status")
+
+
+def test_quitting_mid_round_indexes_both_files_and_joins_nothing(tmp_path, monkeypatch):
+    """1.56 (audit R-2, reproduced): quitting waits app.QUIT_RECORDER_S for the recorder; the entry was written only
+    after the join (ffmpeg, minutes for a big file) – a thread ended before left both files outside the index for
+    good. While quitting nothing is joined; the entry names the round and its pre-roll."""
+    from fogscout.app import QUIT_RECORDER_S
+    monkeypatch.setattr(obsrec, "ffmpeg_exe", lambda: "ffmpeg")
+    joins = []
+    monkeypatch.setattr(obsrec, "merge_files", lambda *a, **k: joins.append(a) or time.sleep(60))
+    obs = FakeObs(record_dir=str(tmp_path), replay=True)
+    obs.start()
+    try:
+        r, posted = _recorder(obs, str(tmp_path), pre=True, merge=True, tail_s=5)
+        r.start()
+        r.start_round(t=time.time(), label="Coal Tower", role="killer", killer="Nurse")
+        end = time.time() + 5
+        while not obs.recording and time.time() < end:
+            time.sleep(0.02)
+        assert obs.recording
+        r.quit()
+        r.join(timeout=QUIT_RECORDER_S)
+        assert not r.is_alive() and not obs.recording and joins == []
+        recs = obsrec.load_index(str(tmp_path))
+        assert len(recs) == 1 and recs[0].pre.endswith("(Vorlauf).mkv") and recs[0].pre_s == 0
+        assert recs[0].extra.get("merge_failed")
+        for n in (recs[0].file, recs[0].pre):
+            assert os.path.exists(os.path.join(str(tmp_path), n))
+    finally:
+        obs.stop()
+
+
+def test_the_entry_is_in_the_index_before_the_join_starts(tmp_path, monkeypatch):
+    """1.56 (audit R-2): a thread ended during the join still leaves an entry naming both files."""
+    run, _calls = _fake_ffmpeg()
+    monkeypatch.setattr(obsrec, "ffmpeg_exe", lambda: "ffmpeg")
+    monkeypatch.setattr(obsrec, "_run", run)
+    seen = []
+    real = obsrec.merge_files
+
+    def merge(parts, out, ffmpeg=None, run=None):
+        seen.extend(obsrec.load_index(str(tmp_path)))
+        return real(parts, out, ffmpeg, run)
+    monkeypatch.setattr(obsrec, "merge_files", merge)
+    obs = FakeObs(record_dir=str(tmp_path), replay=True)
+    obs.start()
+    try:
+        r, posted = _recorder(obs, str(tmp_path), pre=True, merge=True)
+        r._begin({"t": 1.0, "label": "A"})
+        r._finish({})
+        assert len(seen) == 1 and seen[0].pre.endswith("(Vorlauf).mkv") and seen[0].pre_s == 0
+        rec = obsrec.load_index(str(tmp_path))[0]
+        assert rec.file == seen[0].file and rec.pre == "" and rec.pre_s == 20.5 and not rec.extra
+        assert sorted(os.listdir(str(tmp_path))) == sorted([rec.file, obsrec.INDEX])
+    finally:
+        obs.stop()
+
+
+def _join_files(tmp_path):
+    pre, rnd = tmp_path / "a (Vorlauf).mkv", tmp_path / "a.mkv"
+    pre.write_bytes(PRE_BYTES)
+    rnd.write_bytes(ROUND_BYTES)
+    return str(pre), str(rnd)
+
+
+def test_a_failed_replace_after_the_join_keeps_the_pre_roll(tmp_path, monkeypatch):
+    """1.56 (audit R-3, reproduced): the pre-roll was removed before the joined file took the round's name – a
+    failed replace lost it although both files were promised to stay."""
+    run, _calls = _fake_ffmpeg()
+    monkeypatch.setattr(obsrec, "ffmpeg_exe", lambda: "ffmpeg")
+    monkeypatch.setattr(obsrec, "_run", run)
+    monkeypatch.setattr(obsrec, "RENAME_WAIT", 0)
+    pre, rnd = _join_files(tmp_path)
+    tries = []
+
+    def held(a, b):
+        tries.append(b)
+        raise PermissionError("held by a virus scanner")
+    monkeypatch.setattr(obsrec.os, "replace", held)
+    out = obsrec.Recorder._join(str(tmp_path), pre, rnd)
+    assert out == (rnd, os.path.basename(pre), 0.0, False) and len(tries) == obsrec.RENAME_TRIES
+    assert sorted(os.listdir(str(tmp_path))) == ["a (Vorlauf).mkv", "a.mkv"]          # both, no "(zusammen)"
+    assert open(pre, "rb").read() == PRE_BYTES and open(rnd, "rb").read() == ROUND_BYTES
+
+
+def test_a_replace_held_a_moment_is_retried_and_a_pre_roll_left_stays_named(tmp_path, monkeypatch):
+    """1.56 (audit R-3): the replace retries like _move; a pre-roll that cannot be removed afterwards stays in the
+    entry (pruned and deleted with the round) instead of becoming an orphan."""
+    run, _calls = _fake_ffmpeg()
+    monkeypatch.setattr(obsrec, "ffmpeg_exe", lambda: "ffmpeg")
+    monkeypatch.setattr(obsrec, "_run", run)
+    monkeypatch.setattr(obsrec, "RENAME_WAIT", 0)
+    pre, rnd = _join_files(tmp_path)
+    real_replace, real_remove = os.replace, os.remove
+    held = [2]
+
+    def replace(a, b):
+        if held[0]:
+            held[0] -= 1
+            raise PermissionError("busy")
+        real_replace(a, b)
+
+    def remove(p):
+        if p == pre:
+            raise PermissionError("open in a player")
+        real_remove(p)
+    monkeypatch.setattr(obsrec.os, "replace", replace)
+    monkeypatch.setattr(obsrec.os, "remove", remove)
+    out = obsrec.Recorder._join(str(tmp_path), pre, rnd)
+    assert out == (rnd, os.path.basename(pre), 20.5, True)
+    assert open(rnd, "rb").read() == PRE_BYTES + ROUND_BYTES
+
+
+def test_files_queued_for_upload_or_open_in_an_editor_are_never_pruned(obs, tmp_path):
+    """1.56 (audit E-1): pruning for room and the farming days deleted recordings the YouTube queue or an open
+    editor still used; the app tells the recorder those files (index names or absolute paths)."""
+    folder = str(tmp_path)
+    os.makedirs(os.path.join(folder, obsrec.FARMING_DIR))
+    old = time.time() - 30 * 86400
+    recs = []
+    for i, name in enumerate(("Farming/up.mkv", "Farming/ed.mkv", "Farming/free.mkv", "a.mkv", "b.mkv")):
+        with open(os.path.join(folder, *name.split("/")), "wb") as f:
+            f.write(b"\0" * 100)
+        recs.append(obsrec.Recording(t=old + i, file=name, farming=name.startswith("Farming")))
+    obsrec.save_index(folder, recs)
+    r, posted = _recorder(obs, folder, farming_days=7)
+    r.protect(["Farming/up.mkv", os.path.join(folder, "Farming", "ed.mkv"), "a.mkv"])
+    r._command(*r.cmds.get_nowait())                            # on the recorder's thread, as every command
+    r._expire_farming(force=True)
+    left = obsrec.load_index(folder)
+    assert {x.file for x in left} == {"Farming/up.mkv", "Farming/ed.mkv", "a.mkv", "b.mkv"}
+    left, deleted = obsrec.prune(folder, left, limit=150, reserve=0, free=10 ** 9, protect=r._protected)
+    assert deleted == ["b.mkv"] and {x.file for x in left} == {"Farming/up.mkv", "Farming/ed.mkv", "a.mkv"}
+    obsrec.save_index(folder, left)
+    r.protect([])                                             # the upload is done, the editor closed
+    r._command(*r.cmds.get_nowait())
+    r._expire_farming(force=True)
+    assert {x.file for x in obsrec.load_index(folder)} == {"a.mkv"}
