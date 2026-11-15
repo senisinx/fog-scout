@@ -6043,4 +6043,8 @@ T = {
         'В этой выборке пока нет раундов с ожиданием и EST.',
     'Noch keine Ladezeiten in dieser Auswahl.':
         'В этой выборке пока нет времени загрузки.',
+    'Hinweis, wenn nach dem Matchbeginn kein Map-Banner erkannt wurde':
+        'Сообщать, если после начала матча баннер карты не распознан',
+    'Kommt eine Minute nach dem Ladebildschirm kein Map-Banner, sagt Fog Scout einmal je Runde, wie du mit „Bildschirm scannen“ nachhilfst – mit Ton und Meldung, auch wenn DBD im Vordergrund ist; nie in Custom Games.':
+        'Если через минуту после экрана загрузки баннер карты не появился, Fog Scout один раз за раунд подскажет, как помочь кнопкой «Сканировать экран» — со звуком и уведомлением, даже когда DBD на переднем плане; никогда в своих играх.',
 }

@@ -6043,4 +6043,8 @@ T = {
         '此选择中还没有同时带有等待时间和 EST. 的对局。',
     'Noch keine Ladezeiten in dieser Auswahl.':
         '此选择中还没有加载时间。',
+    'Hinweis, wenn nach dem Matchbeginn kein Map-Banner erkannt wurde':
+        '对局开始后未识别到地图横幅时提醒',
+    'Kommt eine Minute nach dem Ladebildschirm kein Map-Banner, sagt Fog Scout einmal je Runde, wie du mit „Bildschirm scannen“ nachhilfst – mit Ton und Meldung, auch wenn DBD im Vordergrund ist; nie in Custom Games.':
+        '加载画面结束一分钟后仍没有地图横幅时，Fog Scout 每局提醒一次如何用“扫描屏幕”补救——带提示音和通知，即使 DBD 在前台；自定义对局中从不提醒。',
 }

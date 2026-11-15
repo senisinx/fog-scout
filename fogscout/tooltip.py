@@ -39,6 +39,8 @@ TIPS = {
     "Bilanz der Sitzung zeigen, wenn DBD beendet wurde":
         "Etwa 15 s nachdem DBD geschlossen wurde: eine Meldung mit den Runden der Sitzung, der Spielzeit und – mit "
         "Match-Daten – Ø Kills, Entkommen und Bloodpoints. Steht auch im Log.",
+    "Hinweis, wenn nach dem Matchbeginn kein Map-Banner erkannt wurde":
+        "Kommt eine Minute nach dem Ladebildschirm kein Map-Banner, sagt Fog Scout einmal je Runde, wie du mit „Bildschirm scannen“ nachhilfst – mit Ton und Meldung, auch wenn DBD im Vordergrund ist; nie in Custom Games.",
     "Melden, wenn eine Runde keine Blutpunkte gebracht hat (Cap erreicht)":
         "Fog Scout liest in der Lobby den Blutpunkte-Stand oben rechts. Ist er nach einer gezählten Runde derselbe "
         "wie davor, ist das Cap erreicht (normal 5 Millionen, nach Tome-Belohnungen auch mehr) – die Punkte der "

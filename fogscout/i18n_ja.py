@@ -6043,4 +6043,8 @@ T = {
         'この選択には、待ち時間と EST. の両方があるラウンドはまだありません。',
     'Noch keine Ladezeiten in dieser Auswahl.':
         'この選択にはまだロード時間がありません。',
+    'Hinweis, wenn nach dem Matchbeginn kein Map-Banner erkannt wurde':
+        '試合開始後にマップバナーが認識されなかったら知らせる',
+    'Kommt eine Minute nach dem Ladebildschirm kein Map-Banner, sagt Fog Scout einmal je Runde, wie du mit „Bildschirm scannen“ nachhilfst – mit Ton und Meldung, auch wenn DBD im Vordergrund ist; nie in Custom Games.':
+        'ロード画面の1分後にマップバナーが出ない場合、Fog Scout はラウンドごとに1回「画面をスキャン」での補い方を知らせます。DBD が前面でも音と通知あり。カスタムゲームでは知らせません。',
 }

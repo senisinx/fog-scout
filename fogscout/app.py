@@ -780,6 +780,8 @@ class App(ServerTab, StatsTab, ExportDialog, RecordingsTab, DiscordPresence, Spo
         notification window, also with DBD in front – that is where the player is). Nothing when a map is up."""
         if self._hist is not None or (self.overlay.has_map() and not self.hidden_after_match):
             return
+        if not self.settings.get("banner_missed_notify", True):    # the user switched the hint off
+            return
         keys = self.settings["hotkeys"].get("scan_now")
         text = (_("Seit dem Matchbeginn kein Map-Banner erkannt – „Bildschirm scannen“ ({keys}) sucht den Map-Namen "
                   "auf dem Bildschirm.", keys=pretty(keys)) if keys else

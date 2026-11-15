@@ -4516,4 +4516,8 @@ EN = {
         'No round with a waiting time and EST. in this selection yet.',
     'Noch keine Ladezeiten in dieser Auswahl.':
         'No loading times in this selection yet.',
+    'Hinweis, wenn nach dem Matchbeginn kein Map-Banner erkannt wurde':
+        'Notify when no map banner was recognised after the match began',
+    'Kommt eine Minute nach dem Ladebildschirm kein Map-Banner, sagt Fog Scout einmal je Runde, wie du mit „Bildschirm scannen“ nachhilfst – mit Ton und Meldung, auch wenn DBD im Vordergrund ist; nie in Custom Games.':
+        'If no map banner comes a minute after the loading screen, Fog Scout says once per round how to help with “Scan screen” – with sound and notification, even with DBD in front; never in custom games.',
 }

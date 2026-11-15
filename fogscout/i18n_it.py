@@ -6043,4 +6043,8 @@ T = {
         'Ancora nessuna partita con tempo di attesa ed EST. in questa selezione.',
     'Noch keine Ladezeiten in dieser Auswahl.':
         'Ancora nessun tempo di caricamento in questa selezione.',
+    'Hinweis, wenn nach dem Matchbeginn kein Map-Banner erkannt wurde':
+        "Avvisa se dopo l'inizio della partita non è stato riconosciuto alcun banner della mappa",
+    'Kommt eine Minute nach dem Ladebildschirm kein Map-Banner, sagt Fog Scout einmal je Runde, wie du mit „Bildschirm scannen“ nachhilfst – mit Ton und Meldung, auch wenn DBD im Vordergrund ist; nie in Custom Games.':
+        'Se un minuto dopo la schermata di caricamento non arriva il banner della mappa, Fog Scout ti dice una volta per round come aiutare con «Scansiona schermo» – con suono e notifica, anche con DBD in primo piano; mai nelle partite personalizzate.',
 }

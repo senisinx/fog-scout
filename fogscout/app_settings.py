@@ -88,6 +88,7 @@ class SettingsTab:
                            ("notify_background_only", N_("Nur wenn DBD nicht das aktive Fenster ist")),
                            ("bp_cap_notify", N_("Melden, wenn eine Runde keine Blutpunkte gebracht hat (Cap "
                                                 "erreicht)")),
+                           ("banner_missed_notify", N_("Hinweis, wenn nach dem Matchbeginn kein Map-Banner erkannt wurde")),
                            ("session_notify", N_("Bilanz der Sitzung zeigen, wenn DBD beendet wurde"))):
             v = self.notify_vars[key] = ui.BooleanVar(value=bool(self.settings.get(key, True)))
             self._reg(f"st.{key}", ui.Checkbutton(nt, text=_(label), variable=v,

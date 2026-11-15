@@ -299,6 +299,11 @@ def test_the_app_says_how_to_scan_once_and_keeps_the_round_facts(app_root):
         app.settings["hotkeys"]["scan_now"] = ""
         app._dispatch(Event("banner_missed", {"t": 2.0}))
         assert "„Scannen“ im Steuerfenster" in toasts[-1][1]
+        app.settings.set("banner_missed_notify", False)            # switched off: no sound, no window, no line
+        n, m = len(toasts), len(logs)
+        app._dispatch(Event("banner_missed", {"t": 2.5}))
+        assert (len(toasts), len(logs)) == (n, m)
+        app.settings.set("banner_missed_notify", True)
         # the match begins 95 s after the lobby was found, the banner opens the round: loading time, EST., decision
         now = time.time()
         app._queue = {"state": "lobby", "found": Found(now - 95.0, 40.0, "killer", est=256.0)}

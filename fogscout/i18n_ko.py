@@ -6043,4 +6043,8 @@ T = {
         '이 선택에는 아직 대기 시간과 EST.가 모두 있는 라운드가 없습니다.',
     'Noch keine Ladezeiten in dieser Auswahl.':
         '이 선택에는 아직 로딩 시간이 없습니다.',
+    'Hinweis, wenn nach dem Matchbeginn kein Map-Banner erkannt wurde':
+        '경기 시작 후 맵 배너가 인식되지 않으면 알림',
+    'Kommt eine Minute nach dem Ladebildschirm kein Map-Banner, sagt Fog Scout einmal je Runde, wie du mit „Bildschirm scannen“ nachhilfst – mit Ton und Meldung, auch wenn DBD im Vordergrund ist; nie in Custom Games.':
+        '로딩 화면 1분 뒤에도 맵 배너가 없으면 Fog Scout가 라운드마다 한 번 「화면 스캔」으로 돕는 방법을 알려 줍니다. DBD가 앞에 있어도 소리와 알림이 나오며, 사용자 지정 게임에서는 알리지 않습니다.',
 }
