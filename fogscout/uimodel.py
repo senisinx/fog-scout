@@ -225,10 +225,6 @@ class Widget:
     def focus_set(self):
         pass
 
-    focus_force = focus_set
-
-    def update_idletasks(self):
-        pass
 
 
 class Root(Widget):

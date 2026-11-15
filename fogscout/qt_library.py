@@ -279,7 +279,6 @@ class MediaLibrary(QFrame):
     """The panel: search, sort and import on top, the list below."""
     opened = Signal(object)              # a MediaItem the user wants on the timeline
     shown = Signal(object)               # … shown in Explorer
-    refresh_wanted = Signal()            # the list should be read again (after an import, when shown)
 
     def __init__(self, dark: bool, cache_dir: str | None, ffmpeg: str | None, ratio: float = 1.0):
         super().__init__()

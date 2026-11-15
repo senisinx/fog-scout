@@ -143,8 +143,10 @@ def test_the_summary_holds_only_counts_and_rates_per_group():
     assert data["by_time_of_day"]["evening"]["n"] == 6
     words = statsclaude.private_words(data)
     assert not any(":" in w and w.count(":") >= 1 and w[:2].isdigit() for w in words)   # no clock times
-    sent = statsclaude.content("Wo verliere ich am meisten?" + "x" * 1000, data)
-    assert sent.endswith("x" * (statsclaude.MAX_QUESTION - len("Wo verliere ich am meisten?")))
+    # 1.51.1: checked on what is really sent (blocks) – the unused twin ``content`` is gone
+    summary, sent = statsclaude.blocks("Wo verliere ich am meisten?" + "x" * 1000, data)
+    assert sent["text"].endswith("x" * (statsclaude.MAX_QUESTION - len("Wo verliere ich am meisten?")))
+    assert summary["text"].startswith("Statistics summary:") and "cache_control" in summary
 
 
 def test_a_statistics_question_comes_back_as_plain_text(monkeypatch):

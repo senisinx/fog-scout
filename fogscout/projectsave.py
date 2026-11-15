@@ -33,7 +33,6 @@ LOCAL_DIR = os.path.join("backup", "editor")
 SIDECAR_EXT = ".sha256"
 SIDECAR_FORMAT = "fogscout-backup 2"
 ROTATE_KEEP = {"sitzung": 10, "laufend": 10, "zwischen": 20, "ansicht": 0}
-PROTECTED = ("vor-uebergabe", "vor-zuordnung", "konflikt", "spaet-geaendert", "beschaedigt", "rest", "ohne-pruefsumme")
 LAUFEND_EVERY_S = 300.0
 BUSY_RETRY_S = (0.05, 0.15, 0.4)
 BUSY_AGAIN_S = 2.0

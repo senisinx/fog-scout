@@ -12,7 +12,6 @@ from .textnorm import fmt_duration, fold
 
 VIDEO_EXTS = (".mp4", ".mkv", ".mov", ".webm", ".flv", ".ts", ".m4v", ".avi")
 KINDS = ("round", "clip", "file", "montage")      # 1.22: a montage = a project file in Clips/Montagen
-KIND_LABELS = {"round": N_("Runde"), "clip": N_("Clip"), "file": N_("Datei"), "montage": N_("Montage")}
 SORTS = (("new", N_("Neueste zuerst")), ("old", N_("Älteste zuerst")), ("name", N_("Name A–Z")),
          ("long", N_("Längste zuerst")), ("short", N_("Kürzeste zuerst")))
 

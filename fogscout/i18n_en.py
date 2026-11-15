@@ -1566,6 +1566,54 @@ EN = {
         'Included: {what}.',
     'Kicks und die Anzahl je Killer-Perk gelten für jeden Generator einzeln.':
         'Kicks and the count per killer perk apply to each generator separately.',
+    '+{p} % Tempo':
+        '+{p} % speed',
+    '+{p} % Tempo, wenn mindestens ein weiterer Survivor mitrepariert':
+        '+{p} % speed while at least one other survivor repairs too',
+    '+{p} % Tempo je weiterem Survivor am Generator (höchstens {max} %), für alle dort':
+        '+{p} % speed per other survivor on the generator (at most {max} %), for everyone there',
+    '+{p} % Tempo für alle am Generator; er regressiert halb so schnell':
+        '+{p} % speed for everyone on the generator; it regresses half as fast',
+    '+{p} % Tempo für alle, {s} s lang nach einem gemeinsam fertigen Generator':
+        '+{p} % speed for everyone for {s} s after a generator finished together',
+    'jeder Great Skill Check in Folge bringt {p} % mehr Bonus (bis {n} Tokens)':
+        'every great skill check in a row gives {p} % more bonus (up to {n} tokens)',
+    'jeder Generator braucht {v} Ladungen weniger':
+        'every generator needs {v} charges less',
+    'ein Generator braucht {v} Ladungen weniger':
+        'one generator needs {v} charges less',
+    '−{p} % Tempo je Anzahl (höchstens {max} %)':
+        '−{p} % speed per count (at most {max} %)',
+    '−{first} % Tempo beim ersten, −{p} % je weiterem (höchstens {max} %)':
+        '−{first} % speed for the first, −{p} % for each further one (at most {max} %)',
+    'ein Kick nimmt {total} % statt {base} %':
+        'a kick takes {total} % instead of {base} %',
+    'ein Kick nimmt {p} % mehr; die Regression steigt in {s} s von {a} % auf {b} %':
+        'a kick takes {p} % more; the regression rises from {a} % to {b} % within {s} s',
+    'Regression mit {p} % für {s} s nach dem Kick':
+        'regression at {p} % for {s} s after the kick',
+    'Regression mit {p} %, solange niemand repariert':
+        'regression at {p} % while nobody repairs',
+    'nimmt dem Generator sofort {p} %':
+        'takes {p} % from the generator at once',
+    'der erste Kick nimmt {p} % mehr je Token und blockiert {s} s je Token':
+        'the first kick takes {p} % more per token and blocks for {s} s per token',
+    'blockiert den Generator {s} s':
+        'blocks the generator for {s} s',
+    '{p} % bei {n}':
+        '{p} % at {n}',
+    '+{p} % Tempo, bis {n} Ladungen übertragen sind':
+        '+{p} % speed until {n} charges are transferred',
+    'Noch kein Perk gewählt.':
+        'No perk chosen yet.',
+    'Was die gewählten Perks tun':
+        'What the chosen perks do',
+    'Rechner zurücksetzen':
+        'Reset calculator',
+    'Leert alle Builds und setzt die Annahmen auf die Startwerte.':
+        'Clears all builds and sets the assumptions back to their start values.',
+    'Runden vom Map-Banner bis zum Rundenende (ab 1 min), nur lokal gespeichert.':
+        'Rounds from the map banner to the end of the round (from 1 min), stored only locally.',
     'Claude hat unverständlich geantwortet.': 'Claude gave an answer that could not be read.',
     'Claude ist nicht erreichbar – keine Internetverbindung?': 'Claude cannot be reached – no internet connection?',
     'Claude: Zu viele Anfragen – gleich noch einmal versuchen.': 'Claude: too many requests – try again in a moment.',
@@ -3082,7 +3130,6 @@ EN = {
     "Projekt gespeichert: {file}": "Project saved: {file}",
     "Projekt speichern (Strg+S) – Schnitt, Ausschnitt, Zeichnungen, Zensur und Export-Einstellungen dieser Aufnahme, zum späteren Weiterarbeiten.":
         "Save the project (Ctrl+S) – cut, crop, drawings, censoring and export settings of this recording, to carry on later.",
-    "Runde": "Round",
     "Rückgängig (Strg+Z).": "Undo (Ctrl+Z).",
     "Rückgängig.": "Undone.",
     "Schreibt den Schnitt als Clip in den Ordner „Clips“ neben den Aufnahmen (Strg+E) – Format und Kodierung im Inspector unter Export.":
@@ -3567,8 +3614,6 @@ EN = {
         "At most {n} recordings in a montage.",
     "Jetzt eine Montage – sie wird unter Clips → Montagen gespeichert. Das Projekt der Runde bleibt, wie es zuletzt gespeichert war.":
         "Now a montage – it is saved under Clips → Montagen. The round's project stays as it was last saved.",
-    "Montage":
-        "Montage",
     "Montage aus {n} Aufnahmen":
         "Montage of {n} recordings",
     "Montage nicht zu öffnen – ihre erste Aufnahme fehlt: {file}":

@@ -180,6 +180,7 @@ TIPS = {
     "Diminishing Returns anwenden": "An (wie im Spiel seit Patch 9.6.0): von mehreren Tempo-Boni zählt der grösste "
                                     "voll, der zweite halb, der dritte zu einem Viertel, der vierte zu einem Achtel. "
                                     "Aus: alle Boni zählen voll – zum Vergleich.",                    # 1.51
+    "Rechner zurücksetzen": "Leert alle Builds und setzt die Annahmen auf die Startwerte.",          # 1.51.1
     "Farming ausblenden": "An: Farming-Runden (Crossplay aus, Farming-Region, Farming-Gegner) bleiben aus Statistik, "
                           "Aufnahmen und Clips draussen – ein Schalter für alle drei. Aus: sie zählen wie jede andere "
                           "Runde. Der Reiter Statistik → Farming zeigt sie immer.",

@@ -14,16 +14,12 @@ import cv2
 import numpy as np
 
 from .textnorm import MAIN
-from .ocr import LexiconScorer, Recognizer, best_path_logp
-
-try:
-    import onnxruntime as ort
-except ImportError:  # pragma: no cover
-    ort = None
+from .ocr import LexiconScorer, Recognizer, best_path_logp, runtime
 
 
 class TextDetector:
     def __init__(self, model_path: str, threads: int = 2, max_side: int = 1600):
+        ort = runtime()                           # 1.51.1: loaded here, at the first scan (ocr.runtime)
         so = ort.SessionOptions()
         so.intra_op_num_threads = max(1, int(threads))
         so.log_severity_level = 3

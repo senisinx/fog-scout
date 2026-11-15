@@ -2049,6 +2049,54 @@ T = {
         'Incluso: {what}.',
     'Kicks und die Anzahl je Killer-Perk gelten für jeden Generator einzeln.':
         'I calci e il numero per ogni perk del killer valgono per ciascun generatore.',
+    '+{p} % Tempo':
+        '+{p} % di velocità',
+    '+{p} % Tempo, wenn mindestens ein weiterer Survivor mitrepariert':
+        '+{p} % di velocità se almeno un altro sopravvissuto ripara insieme',
+    '+{p} % Tempo je weiterem Survivor am Generator (höchstens {max} %), für alle dort':
+        '+{p} % di velocità per ogni altro sopravvissuto al generatore (massimo {max} %), per tutti i presenti',
+    '+{p} % Tempo für alle am Generator; er regressiert halb so schnell':
+        '+{p} % di velocità per tutti al generatore; regredisce a metà velocità',
+    '+{p} % Tempo für alle, {s} s lang nach einem gemeinsam fertigen Generator':
+        '+{p} % di velocità per tutti per {s} s dopo un generatore completato insieme',
+    'jeder Great Skill Check in Folge bringt {p} % mehr Bonus (bis {n} Tokens)':
+        'ogni prova di abilità ottima consecutiva dà il {p} % di bonus in più (fino a {n} gettoni)',
+    'jeder Generator braucht {v} Ladungen weniger':
+        'ogni generatore richiede {v} cariche in meno',
+    'ein Generator braucht {v} Ladungen weniger':
+        'un generatore richiede {v} cariche in meno',
+    '−{p} % Tempo je Anzahl (höchstens {max} %)':
+        '−{p} % di velocità per unità (massimo {max} %)',
+    '−{first} % Tempo beim ersten, −{p} % je weiterem (höchstens {max} %)':
+        '−{first} % di velocità per il primo, −{p} % per ogni successivo (massimo {max} %)',
+    'ein Kick nimmt {total} % statt {base} %':
+        'un calcio toglie il {total} % invece del {base} %',
+    'ein Kick nimmt {p} % mehr; die Regression steigt in {s} s von {a} % auf {b} %':
+        'un calcio toglie il {p} % in più; la regressione sale dal {a} % al {b} % in {s} s',
+    'Regression mit {p} % für {s} s nach dem Kick':
+        'regressione al {p} % per {s} s dopo il calcio',
+    'Regression mit {p} %, solange niemand repariert':
+        'regressione al {p} % finché nessuno ripara',
+    'nimmt dem Generator sofort {p} %':
+        'toglie subito il {p} % al generatore',
+    'der erste Kick nimmt {p} % mehr je Token und blockiert {s} s je Token':
+        'il primo calcio toglie il {p} % in più per gettone e blocca per {s} s per gettone',
+    'blockiert den Generator {s} s':
+        'blocca il generatore per {s} s',
+    '{p} % bei {n}':
+        '{p} % con {n}',
+    '+{p} % Tempo, bis {n} Ladungen übertragen sind':
+        '+{p} % di velocità finché non sono trasferite {n} cariche',
+    'Noch kein Perk gewählt.':
+        'Nessun perk scelto.',
+    'Was die gewählten Perks tun':
+        'Cosa fanno i perk scelti',
+    'Rechner zurücksetzen':
+        'Reimposta calcolatore',
+    'Leert alle Builds und setzt die Annahmen auf die Startwerte.':
+        'Svuota tutte le build e riporta le ipotesi ai valori iniziali.',
+    'Runden vom Map-Banner bis zum Rundenende (ab 1 min), nur lokal gespeichert.':
+        'Partite dal banner della mappa alla fine (da 1 min), salvate solo in locale.',
     'Claude hat unverständlich geantwortet.':
         'Claude ha dato una risposta illeggibile.',
     'Claude ist nicht erreichbar – keine Internetverbindung?':
@@ -4279,8 +4327,6 @@ T = {
         'Progetto salvato: {file}',
     'Projekt speichern (Strg+S) – Schnitt, Ausschnitt, Zeichnungen, Zensur und Export-Einstellungen dieser Aufnahme, zum späteren Weiterarbeiten.':
         'Salva il progetto (Ctrl+S) – taglio, ritaglio, disegni, censura e impostazioni di esportazione di questa registrazione, per continuare più tardi.',
-    'Runde':
-        'Round',
     'Rückgängig (Strg+Z).':
         'Annulla (Ctrl+Z).',
     'Rückgängig.':
@@ -4885,8 +4931,6 @@ T = {
         'Al massimo {n} registrazioni in un montaggio.',
     'Jetzt eine Montage – sie wird unter Clips → Montagen gespeichert. Das Projekt der Runde bleibt, wie es zuletzt gespeichert war.':
         "Ora è un montaggio – viene salvato in Clips → Montagen. Il progetto del round resta com'era all'ultimo salvataggio.",
-    'Montage':
-        'Montaggio',
     'Montage aus {n} Aufnahmen':
         'Montaggio di {n} registrazioni',
     'Montage nicht zu öffnen – ihre erste Aufnahme fehlt: {file}':

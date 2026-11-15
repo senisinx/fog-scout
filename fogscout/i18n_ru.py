@@ -2049,6 +2049,54 @@ T = {
         'Учтено: {what}.',
     'Kicks und die Anzahl je Killer-Perk gelten für jeden Generator einzeln.':
         'Удары и количество для каждого перка убийцы считаются для каждого генератора отдельно.',
+    '+{p} % Tempo':
+        '+{p} % к скорости',
+    '+{p} % Tempo, wenn mindestens ein weiterer Survivor mitrepariert':
+        '+{p} % к скорости, если чинит ещё хотя бы один выживший',
+    '+{p} % Tempo je weiterem Survivor am Generator (höchstens {max} %), für alle dort':
+        '+{p} % к скорости за каждого другого выжившего у генератора (не более {max} %), для всех там',
+    '+{p} % Tempo für alle am Generator; er regressiert halb so schnell':
+        '+{p} % к скорости для всех у генератора; он регрессирует вдвое медленнее',
+    '+{p} % Tempo für alle, {s} s lang nach einem gemeinsam fertigen Generator':
+        '+{p} % к скорости для всех на {s} с после совместно починенного генератора',
+    'jeder Great Skill Check in Folge bringt {p} % mehr Bonus (bis {n} Tokens)':
+        'каждая отличная проверка реакции подряд даёт на {p} % больше бонуса (до {n} жетонов)',
+    'jeder Generator braucht {v} Ladungen weniger':
+        'каждому генератору нужно на {v} зарядов меньше',
+    'ein Generator braucht {v} Ladungen weniger':
+        'одному генератору нужно на {v} зарядов меньше',
+    '−{p} % Tempo je Anzahl (höchstens {max} %)':
+        '−{p} % к скорости за каждую единицу (не более {max} %)',
+    '−{first} % Tempo beim ersten, −{p} % je weiterem (höchstens {max} %)':
+        '−{first} % к скорости за первый, −{p} % за каждый следующий (не более {max} %)',
+    'ein Kick nimmt {total} % statt {base} %':
+        'удар отнимает {total} % вместо {base} %',
+    'ein Kick nimmt {p} % mehr; die Regression steigt in {s} s von {a} % auf {b} %':
+        'удар отнимает на {p} % больше; регрессия за {s} с растёт с {a} % до {b} %',
+    'Regression mit {p} % für {s} s nach dem Kick':
+        'регрессия {p} % в течение {s} с после удара',
+    'Regression mit {p} %, solange niemand repariert':
+        'регрессия {p} %, пока никто не чинит',
+    'nimmt dem Generator sofort {p} %':
+        'сразу отнимает у генератора {p} %',
+    'der erste Kick nimmt {p} % mehr je Token und blockiert {s} s je Token':
+        'первый удар отнимает на {p} % больше за жетон и блокирует на {s} с за жетон',
+    'blockiert den Generator {s} s':
+        'блокирует генератор на {s} с',
+    '{p} % bei {n}':
+        '{p} % при {n}',
+    '+{p} % Tempo, bis {n} Ladungen übertragen sind':
+        '+{p} % к скорости, пока не передано {n} зарядов',
+    'Noch kein Perk gewählt.':
+        'Перки ещё не выбраны.',
+    'Was die gewählten Perks tun':
+        'Что делают выбранные перки',
+    'Rechner zurücksetzen':
+        'Сбросить калькулятор',
+    'Leert alle Builds und setzt die Annahmen auf die Startwerte.':
+        'Очищает все билды и возвращает допущения к исходным значениям.',
+    'Runden vom Map-Banner bis zum Rundenende (ab 1 min), nur lokal gespeichert.':
+        'Раунды от баннера карты до конца раунда (от 1 мин), хранятся только локально.',
     'Claude hat unverständlich geantwortet.':
         'Ответ Claude не удалось прочитать.',
     'Claude ist nicht erreichbar – keine Internetverbindung?':
@@ -4279,8 +4327,6 @@ T = {
         'Проект сохранён: {file}',
     'Projekt speichern (Strg+S) – Schnitt, Ausschnitt, Zeichnungen, Zensur und Export-Einstellungen dieser Aufnahme, zum späteren Weiterarbeiten.':
         'Сохранить проект (Ctrl+S) — монтаж, обрезку, рисунки, цензуру и настройки экспорта этой записи, чтобы продолжить позже.',
-    'Runde':
-        'Раунд',
     'Rückgängig (Strg+Z).':
         'Отменить (Ctrl+Z).',
     'Rückgängig.':
@@ -4885,8 +4931,6 @@ T = {
         'Не более {n} записей в монтаже.',
     'Jetzt eine Montage – sie wird unter Clips → Montagen gespeichert. Das Projekt der Runde bleibt, wie es zuletzt gespeichert war.':
         'Теперь это монтаж — он сохраняется в Clips → Montagen. Проект раунда остаётся таким, каким был сохранён последний раз.',
-    'Montage':
-        'Монтаж',
     'Montage aus {n} Aufnahmen':
         'Монтаж из записей: {n}',
     'Montage nicht zu öffnen – ihre erste Aufnahme fehlt: {file}':

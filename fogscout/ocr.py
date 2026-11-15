@@ -22,14 +22,35 @@ import numpy as np
 
 from .textnorm import ALPHABET, MAIN, MODEL_FILES, fold, fold_any
 
-try:
-    import onnxruntime as ort
+_RUNTIME = []
+
+
+def runtime():
+    """onnxruntime, loaded at the first use (None when it is not installed). 1.51.1 (measured, Linux: 17 MB and
+    23 ms): the module was imported with the program although the first session is only built once DBD is found
+    (LazyRecognizer) – from the tray, without the game, it was loaded for nothing."""
+    if not _RUNTIME:
+        try:
+            import onnxruntime as ort
+            try:
+                ort.disable_telemetry_events()      # no usage events (Windows ETW)
+            except Exception:
+                pass
+        except ImportError:  # pragma: no cover - reported to the user by the app
+            ort = None
+        _RUNTIME.append(ort)
+    return _RUNTIME[0]
+
+
+def installed() -> bool:
+    """onnxruntime can be loaded – asked without loading it (LazyRecognizer reports a missing one at once)."""
+    if _RUNTIME:
+        return _RUNTIME[0] is not None
+    import importlib.util
     try:
-        ort.disable_telemetry_events()      # no usage events (Windows ETW)
-    except Exception:
-        pass
-except ImportError:  # pragma: no cover - reported to the user by the app
-    ort = None
+        return importlib.util.find_spec("onnxruntime") is not None
+    except (ImportError, ValueError):
+        return False
 
 REC_HEIGHT = 48
 N_GROUPS = len(ALPHABET) + 2          # 0 = blank/ignorable, 1..36 = A-Z0-9, 37 = other
@@ -75,6 +96,7 @@ class Recognizer:
     """Thin wrapper around a PP-OCR recognition model (v4, or v5 with its character list beside it)."""
 
     def __init__(self, model_path: str, threads: int = 2):
+        ort = runtime()
         if ort is None:
             raise RuntimeError("onnxruntime ist nicht installiert")
         so = ort.SessionOptions()
@@ -177,7 +199,7 @@ class LazyRecognizer:
     file is still reported at once, as before."""
 
     def __init__(self, model_path: str, threads: int = 2):
-        if ort is None:
+        if not installed():
             raise RuntimeError("onnxruntime ist nicht installiert")
         if not os.path.isfile(model_path):
             raise FileNotFoundError(model_path)
