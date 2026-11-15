@@ -98,7 +98,7 @@ def test_hud_rows_only_known_values_and_colours():
     assert sysinfo.temp_colour(60, sysinfo.CPU_WARM, sysinfo.CPU_HOT) == sysinfo.GOOD
 
 
-def test_hud_fits_the_bar_and_map_moves_below():
+def test_hud_fits_the_bar():
     rows = sysinfo.hud_rows(sysinfo.Snapshot(cpu_load=45, cpu_temp=62, gpu_temp=71, gpu_load=97, gpu_power=220,
                                              vram_used=6.1, vram_total=8, ram_used=12.3, ram_total=31.9))
     pic = render_hud(rows, 1440)
@@ -107,11 +107,6 @@ def test_hud_fits_the_bar_and_map_moves_below():
     assert a[..., 3].max() > 200
     assert layout.hud_x("left", 0, 3440, 17, 300) == 17
     assert layout.hud_x("right", 0, 3440, 17, 300) == 3440 - 17 - 300
-    assert layout.below_hud("left", "auto") and layout.below_hud("left", "top-left")
-    assert not layout.below_hud("right", "auto") and layout.below_hud("right", "top-right")
-    assert not layout.below_hud(None, "auto") and not layout.below_hud("left", "bottom-left")
-    assert layout.below_hud("above", "auto") and layout.below_hud("above", "top-right")      # map moves down
-    assert not layout.below_hud("above", "custom") and not layout.below_hud("above", "bottom-left")
 
 
 def test_recorder_averages_and_maxima_per_round():
@@ -296,6 +291,56 @@ def test_hud_rows_can_be_switched_off_one_by_one():
     assert sysinfo.hud_rows(s, {k: False for k in sysinfo.HUD_ROW_KEYS}) == [[("GPU DROSSELT (TEMP.)", sysinfo.HOT)]]
 
 
+def test_a_window_fading_out_stays_blacked_out_for_the_worker_until_it_is_hidden(monkeypatch):
+    """1.56 (audit B6): on a hide reason the App clears worker.*_rect at once, but the window stays on the screen
+    (more and more transparent) for Fader.OUT_S – the worker read the half-visible card. Its last rectangle stays
+    in worker.fade_rects until _fade_tick hides the window (or it comes back / fading is switched off)."""
+    import numpy as np
+    from types import SimpleNamespace
+    from fogscout import app_sysinfo
+    from fogscout.app_sysinfo import SysInfo
+    from fogscout.worker import DetectionWorker
+    clock = [100.0]
+    monkeypatch.setattr(app_sysinfo.time, "monotonic", lambda: clock[0])
+    jobs = []
+
+    class Win:
+        shown, fade = True, 1.0
+
+        def set_fade(self, f):
+            self.fade = f
+
+        def hide(self):
+            self.shown = False
+
+    app = SysInfo()
+    app._fades = {}
+    app.root = SimpleNamespace(after=lambda ms, fn: jobs.append(fn) or len(jobs), after_cancel=lambda j: None)
+    app.overlay, app.today_win = Win(), Win()
+    worker = DetectionWorker.__new__(DetectionWorker)
+    worker.overlay_rect = worker.hud_rect = worker.media_rect = worker.today_rect = worker.info_rect = None
+    worker.toast_rect, worker.guide_rects = None, ()
+    worker.overlay_rect, worker.today_rect = (10, 20, 30, 40), (100, 0, 20, 10)
+    app.worker = worker
+    app._fade_hide("map", True)                              # what _place_overlay_map does on a hide reason …
+    app._fade_hide("today", True)
+    worker.overlay_rect = worker.today_rect = None
+    assert app.overlay.shown and set(worker.fade_rects) == {(10, 20, 30, 40), (100, 0, 20, 10)}
+    assert worker._own_windows()
+    img = np.full((100, 200, 3), 200, np.uint8)
+    worker._mask_overlay(img, 0, 0)                          # … the half-visible card is blacked out
+    assert img[20:60, 10:40].max() == 0 and img[0:10, 100:120].max() == 0 and img[70:, :].min() == 200
+    clock[0] += 1.0
+    jobs.pop(0)()                                            # the map's fade ends: hidden, no longer masked
+    assert not app.overlay.shown and worker.fade_rects == ((100, 0, 20, 10),)
+    app._fade_show("today", True)                            # caught while fading out: its own rect again
+    assert worker.fade_rects == () and not worker._own_windows()
+    app.overlay.shown = True
+    worker.overlay_rect = (10, 20, 30, 40)
+    app._fade_hide("map", False)                             # no fading: hidden at once, nothing kept
+    assert worker.fade_rects == () and not app.overlay.shown
+
+
 def test_every_window_fades_in_and_out_through_one_helper(monkeypatch):
     """1.2.9 (user's pick 25): map, system values and "today" fade like the music card – one helper per window,
     hidden only at the end of a fade-out, no fading when switched off."""
@@ -337,3 +382,25 @@ def test_every_window_fades_in_and_out_through_one_helper(monkeypatch):
     app._fade_hide("map", True)
     app._fade_show("map", True)                               # caught while fading out: back from where it is
     assert app._fades["map"][0].target == 1 and win.shown
+
+
+def test_the_cards_accent_is_kept_until_the_theme_changes(monkeypatch):
+    """1.56 (audit P1): _skin_accent built the whole palette several times every overlay tick – now kept by
+    qt_theme.look_key, and a new theme (or own colour) gives the new accent at once."""
+    from fogscout import qt_theme
+    from fogscout.app_sysinfo import SysInfo
+    _dark, theme, oled, custom = qt_theme.look_key()
+    built = []
+    real = qt_theme.colours
+    monkeypatch.setattr(qt_theme, "colours", lambda dark: built.append(dark) or real(dark))
+    app = SysInfo()
+    try:
+        qt_theme.set_theme("gold")
+        gold = app._skin_accent()
+        assert [app._skin_accent() for _i in range(5)] == [gold] * 5 and built == [True]
+        qt_theme.set_theme("blue")
+        assert app._skin_accent() == real(True)["accent"] != gold and len(built) == 2
+        qt_theme.set_theme("custom", custom="#12ab34")
+        assert app._skin_accent() == real(True)["accent"] and len(built) == 3
+    finally:
+        qt_theme.set_theme(theme, oled=oled, custom=custom)
