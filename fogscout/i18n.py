@@ -28,6 +28,7 @@ NAMES = {"de": "German", "en": "English", "it": "Italian", "ru": "Russian", "zh"
 _lang = "de"
 _table: dict = {}
 _reverse: dict = {}
+_sources: dict = {}                 # 1.56: translation -> every German key that has it (in table order)
 
 
 def system_language() -> str:
@@ -65,10 +66,13 @@ def table(code: str) -> dict:
 
 def set_language(code: str) -> str:
     """Activate a language of ``CODES`` ('auto'/None: from the system). Returns the active code."""
-    global _lang, _table, _reverse
+    global _lang, _table, _reverse, _sources
     _lang = resolve(code)
     _table = table(_lang)
     _reverse = {v: k for k, v in _table.items()}
+    _sources = {}
+    for k, v in _table.items():
+        _sources.setdefault(v, []).append(k)
     return _lang
 
 
@@ -102,8 +106,14 @@ def _(msg: str, /, **kw) -> str:
     return out
 
 
-def source(text: str) -> str:
-    """German original of a (translated) text – for lookups keyed by the German label."""
+def source(text: str, among=None) -> str:
+    """German original of a (translated) text – for lookups keyed by the German label. ``among`` (1.56): the keys
+    the caller looks up (tooltips, log categories) – two German texts can share one translation (it „Annulla“,
+    zh „系统“), and the one of them in ``among`` is meant; without it the last one wins."""
+    if among is not None:
+        for k in _sources.get(text, ()):
+            if k in among:
+                return k
     return _reverse.get(text, text)
 
 

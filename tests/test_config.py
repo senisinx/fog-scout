@@ -64,6 +64,31 @@ def test_the_backup_leaves_out_this_pcs_own_values_and_an_old_backup_still_impor
     assert back["sysinfo"] == "left"
 
 
+def test_an_old_backup_is_migrated_like_an_old_settings_file(tmp_path):
+    """1.56 (audit S-1): read_backup merged over the defaults and stamped the current version without running the
+    migrations – a backup of version 8 brought back the old statistics tab order, the page "detect" in the
+    navigation, the old clip sources and the record row the later versions removed."""
+    old = dict(config.DEFAULTS, settings_version=8, setup_root="C:/Example/Old",
+               tab_order={"stats": [3, 1, 2], "settings": [1, 0]}, nav_order=["overview", "detect", "maps"],
+               card_order={"detect": [1, 0]}, rec_clip_sources=["dbd", "mic"],
+               overlay=dict(config.DEFAULTS["overlay"], show_record=True))
+    path = tmp_path / "backup.json"
+    path.write_text(json.dumps(old), encoding="utf-8")
+    back = config.read_backup(str(path), {"setup_root": "D:/Example/Here"})
+    assert back["settings_version"] == config.SETTINGS_VERSION
+    assert back["tab_order"] == {"settings": [1, 0]} and back["nav_order"] == ["overview", "maps"]
+    assert "detect" not in back["card_order"]
+    assert back["rec_clip_sources"] == config.DEFAULTS["rec_clip_sources"]
+    assert back["overlay"]["show_record"] is False
+    assert back["setup_root"] == "D:/Example/Here"                          # this PC's value, as before
+    # the same file as settings.json: the same result (one migration path)
+    loaded = config.Settings(str(path)).data
+    assert {k: v for k, v in back.items() if k != "setup_root"} == {k: v for k, v in loaded.items() if k != "setup_root"}
+    # a current backup is taken as it is
+    path.write_text(json.dumps(dict(old, settings_version=config.SETTINGS_VERSION)), encoding="utf-8")
+    assert config.read_backup(str(path), {})["nav_order"] == ["overview", "detect", "maps"]
+
+
 def test_reset_data_keeps_only_the_pc_specific_values():
     """1.2.19: "Alle Einstellungen zurücksetzen" – defaults, the PC-specific keys and welcome_seen stay."""
     current = {"overlay": {"anchor": "custom", "height": 0.7}, "sysinfo": "left", "qt_geometry": "AAAA",

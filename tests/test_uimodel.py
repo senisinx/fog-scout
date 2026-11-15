@@ -341,6 +341,25 @@ def test_the_program_starts_shows_every_page_and_quits(app_root):
     assert not [e for e in app._log_entries if e[1] == "Fehler"], list(app._log_entries)
 
 
+@pytest.mark.parametrize("code", ["en", "it", "ru", "zh", "ja", "ko"])
+def test_every_button_has_its_info_text_in_every_language(app_root, code):
+    """1.56 (audit U-1): two German labels with one translation (it „Annulla“, ru „Удалить все“, zh/ja/ko „系统“ …)
+    resolved to the wrong German key – a wrong tip or none. Built in each language, nothing lacks one."""
+    import json
+    from fogscout import i18n, tooltip
+    from fogscout.app import App
+    (app_root / "settings.json").write_text(json.dumps({"ui_language": code, "welcome_seen": True}), encoding="utf-8")
+    try:
+        app = App(str(app_root), simulate=str(app_root / "sim"))
+        try:
+            assert i18n.current() == code
+            assert tooltip.missing(app.ui_root) == []
+        finally:
+            app.quit()
+    finally:
+        i18n.set_language("de")
+
+
 def test_events_reach_the_app_in_order():
     """Clicks from the window are queued like the detection's events (one place handles both)."""
     q = queue.Queue()
@@ -1294,6 +1313,10 @@ def test_the_discord_state_follows_round_and_lobby_and_the_records_tab_draws(app
         f = Found(200.0, 12.0, "survivor")
         app._queue = {"state": "lobby", "role": "survivor", "found": f}
         assert app._discord_state().since == 200.0
+        app.current = ("coal-tower", 2)                       # 1.56 (audit B1): a map shown by hand, round running
+        app.round.start(250.0)
+        st = app._discord_state()
+        assert (st.phase, st.map, st.realm, st.since) == ("match", "Coal Tower II", "The MacMillan Estate", 250.0)
         app._hist = {"t": 300.0, "map_id": "coal-tower", "map": "Coal Tower", "role": "killer", "killer": "The Nurse"}
         st = app._discord_state()
         assert (st.phase, st.map, st.realm, st.killer, st.since) == ("match", "Coal Tower", "The MacMillan Estate",
@@ -1313,6 +1336,33 @@ def test_the_discord_state_follows_round_and_lobby_and_the_records_tab_draws(app
         app._stats_render_tab()
         titles = [t.title for t in app.stats_records.data]
         assert titles[:2] == ["4K-Serie", "Entkommen-Serie"] and "Längste Runde" in titles
+    finally:
+        app.quit()
+
+
+def test_a_redraw_of_the_killer_table_keeps_the_marked_killer_and_the_note_being_typed(app_root):
+    """1.56 (audit S-2): _stats_part_killers emptied the table before reading the selection – every redraw lost
+    the marked killer, and _stats_alias_buttons then cleared the killer note the user was typing."""
+    import json
+    from fogscout import history
+    from fogscout.app import App
+    t0 = time.time() - 3600
+    history.append(str(app_root / history.FILE), history.Round(t=t0, seconds=600, map_id="coal-tower",
+                                                               map="Coal Tower", role="killer", killer="The Nurse"))
+    (app_root / "settings.json").write_text(json.dumps({"welcome_seen": True}), encoding="utf-8")
+    app = App(str(app_root), simulate=str(app_root / "sim"))
+    try:
+        app._stats_render()
+        app._stats_select("Killer")
+        app._stats_render_tab()
+        t = app.stats_kill
+        assert t.get_children() == ("The Nurse",)
+        t.selection_set("The Nurse")
+        app._stats_alias_buttons()
+        app.stats_knote_var.set("bleibt")                      # typing, not saved yet
+        app._stats_render()
+        app._stats_render_tab()
+        assert t.selection() == ("The Nurse",) and app.stats_knote_var.get() == "bleibt"
     finally:
         app.quit()
 
