@@ -239,3 +239,58 @@ def test_every_entry_of_the_calculator_has_a_kept_state(tool):
     assert len(kept["perks"]) > 300 and len(kept["addons"]) > 900
     text = json.dumps(kept)
     assert "desc =" not in text and "Grants" not in text                         # fingerprints, numbers, names
+
+
+def test_every_perk_whose_tags_touch_the_calculator_is_decided_on(tool, tmp_path, capsys):
+    """1.56 (audit: Bardic Inspiration, Deadline, Technician … were missing, because the tool only named perks new
+    since the last --accept): a perk whose wiki tags touch a speed, a Skill Check or a Generator's progress must be
+    calculated or named in not_modelled / not_modelled_areas / not_relevant – made-up pages first."""
+    loadout = LOADOUT.replace('p.perks = {', 'p.perks = {\n    ["Fresh Perk"] = {id = 902, values = {1, 2, 3}, '
+                                             'tags = {"Auras", "SkillChecks"}},\n    ["Aura Perk"] = {id = 903, '
+                                             'tags = {"Auras", "Generators"}},')
+    wiki = tool.entries(pages(loadout))
+    kept = tool.state(DATA, wiki)
+    assert kept["tags"] == {"Aura Perk": ["Auras", "Generators"], "Fresh Perk": ["Auras", "SkillChecks"]}
+    assert tool.unclassified(DATA, kept) == [("Fresh Perk", ["SkillChecks"])]       # "Generators" alone: no
+    for key in ("not_modelled", "not_modelled_areas"):
+        assert tool.unclassified({**DATA, key: ["Fresh Perk"]}, kept) == []
+    judged = {**DATA, "not_relevant": {"Fresh Perk": "only an aura"}}
+    assert tool.unclassified(judged, kept) == []
+    assert tool.used(judged)["perk:Fresh Perk"] is False                           # watched like "not calculated"
+    # a calculated perk under its wiki names (two perks in one entry of the calculator)
+    culled = tool.state(DATA, tool.entries(pages(LOADOUT.replace("values = {2, 2.5, 3}",
+                                                                  'values = {2, 2.5, 3}, tags = {"Regression"}'))))
+    assert culled["tags"] == {"Cull the Weak": ["Regression"]} and tool.unclassified(DATA, culled) == []
+    # the tool says so and does not end with 0, not even with --accept
+    folder = tmp_path / "pages"
+    folder.mkdir()
+    for name, text in pages(loadout).items():
+        (folder / name).write_text(text, encoding="utf-8")
+    data, snap = tmp_path / "perkdata.json", tmp_path / "kept.json"
+    data.write_text(json.dumps(DATA), encoding="utf-8")
+    args = ["--from", str(folder), "--data", str(data), "--snapshot", str(snap)]
+    assert tool.main(args + ["--accept"]) == 1
+    assert "nicht eingeordnet  perk:Fresh Perk  (Tags SkillChecks:" in capsys.readouterr().out
+    data.write_text(json.dumps(judged), encoding="utf-8")
+    assert tool.main(args + ["--accept"]) == 0
+
+
+def test_the_kept_state_has_every_relevant_perk_decided_on(tool):
+    """The guard on the real files (no network): every perk of the kept wiki state whose tags touch the calculator
+    is calculated, not calculated by name, or judged irrelevant – a new one that nobody looked at fails here."""
+    with open(os.path.join(ROOT, "fogscout", "perkdata.json"), encoding="utf-8") as fh:
+        data = json.load(fh)
+    with open(os.path.join(ROOT, "tools", "perkdata_wiki.json"), encoding="utf-8") as fh:
+        kept = json.load(fh)
+    assert len(kept["tags"]) > 300 and set(kept["tags"]) <= set(kept["perks"])
+    assert tool.unclassified(data, kept) == [], "decide on them in fogscout/perkdata.json"
+    relevant = [n for n, t in kept["tags"].items() if set(t) & tool.RELEVANT_TAGS]
+    assert len(relevant) > 100
+    # each name decided once: a perk judged irrelevant is neither calculated nor "not calculated"
+    calculated = {e["name"] for k in ("perks", "survivor", "killer") for e in data[k]}
+    judged = set(data["not_relevant"])
+    assert judged <= set(kept["perks"]) and all(data["not_relevant"][n] for n in judged)
+    assert not judged & (calculated | set(data["not_modelled"]) | set(data["not_modelled_areas"]))
+    # the guard works on this state: a relevant perk added to it is reported
+    more = {**kept, "tags": {**kept["tags"], "Tomorrow's Perk": ["RepairSpeed"]}}
+    assert tool.unclassified(data, more) == [("Tomorrow's Perk", ["RepairSpeed"])]

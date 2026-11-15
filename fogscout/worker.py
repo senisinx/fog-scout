@@ -32,6 +32,7 @@ END_CHECK_INTERVAL = 0.5          # seconds between two looks for result screen 
 END_IDLE_INTERVAL = 1.0           # … and while nothing points to the end yet (whole-screen grab: ~14 MB each)
 IN_MATCH_RATE = 1.0               # scans per second while a detected map is being played (banner only at the start)
 VBAR_STRIP_S = 1.0                # 1.8.65: without a map, a look at the bars above/below at most this often
+BLACK_WARN_S = 8.0                # a black banner strip this long (DBD found) = "Aufnahme ist schwarz"
 VBAR_LOOKS = 5                    # looks (1/s) whose smallest black bar above/below counts (dark scenes at the edge)
 MID_MATCH_AFTER = 30.0            # s after the map appeared: a "banner" now is in the game world -> strict reading
 MID_MATCH_SPAN = 2.0              # … and it must stay on screen this long (a real banner stands still for ~5 s,
@@ -289,6 +290,7 @@ class DetectionWorker(threading.Thread):
         last_hist = 0.0
         last_status = None
         black_since = None
+        capture_warn = None               # 1.56: black/failed capture – overrides "DBD gefunden" until a good look
         fails, failed = 0, False          # 1.8.38: ticks in a row that raised, did the last one
 
         while self.running:
@@ -346,7 +348,8 @@ class DetectionWorker(threading.Thread):
                             wcap.stop()                # capture went on copying its pictures (the stop below is
                             wcap = None                # never reached from here)
                             self.capture_info = describe(None, False)
-                        self._status(_("DBD ist minimiert"), last_status)
+                        capture_warn = None
+                        self._status(_("DBD ist minimiert"), last_status, problem=True)
                         last_status = _("DBD ist minimiert")
                         self._nap(0.5)
                         continue
@@ -419,9 +422,14 @@ class DetectionWorker(threading.Thread):
 
                 if not self.settings.get("auto_detect", True):
                     status = _("Automatische Erkennung ist aus")
-                if status != last_status:
-                    self._status(status, last_status)
-                    last_status = status
+                if not (self.settings.get("auto_detect", True) and (source is not None or window is not None)):
+                    capture_warn = None          # no banner look this tick: nothing left to warn about
+                # 1.56: one status per tick – a black or failed capture stays the status until a good look (it
+                # alternated with "DBD gefunden" every tick before: two log lines a second)
+                shown = capture_warn or status
+                if shown != last_status:
+                    self._status(shown, last_status, problem=bool(capture_warn))
+                    last_status = shown
                 sep = None
                 start_due = (not self.map_on_screen and not session and tick - last_start_look >= START_LOOK_INTERVAL
                              and (source is not None or window is not None))
@@ -457,19 +465,22 @@ class DetectionWorker(threading.Thread):
                     try:
                         img = grab(box)
                     except Exception as e:           # e.g. window moved off-screen
-                        warn = _("Bildschirmaufnahme fehlgeschlagen: {error}", error=e)
-                        self._status(warn, last_status)
-                        last_status = warn
+                        capture_warn = _("Bildschirmaufnahme fehlgeschlagen: {error}", error=e)
+                        self._status(capture_warn, last_status, problem=True)
+                        last_status = capture_warn
                         self._nap(1.0)
                         continue
                     if img is not None and img.size and sum(cv2.mean(img)[:3]) < 3.0 and window is not None:
                         black_since = black_since or tick
-                        if tick - black_since > 8:
-                            warn = _("Aufnahme ist schwarz – DBD im Modus „Fenster-Vollbild“ betreiben")
-                            self._status(warn, last_status)
-                            last_status = warn
+                        capture_warn = (_("Aufnahme ist schwarz – DBD im Modus „Fenster-Vollbild“ betreiben")
+                                        if tick - black_since > BLACK_WARN_S else None)
                     else:
                         black_since = None
+                        capture_warn = None
+                    shown = capture_warn or status        # 1.56: the grab worked – a failure warning ends here
+                    if shown != last_status:
+                        self._status(shown, last_status, problem=bool(capture_warn))
+                        last_status = shown
 
                     if img is None:
                         sep = res = None                # covered by another window: nothing of DBD to read
@@ -760,9 +771,11 @@ class DetectionWorker(threading.Thread):
         elif ev[0] == "remind":
             self.post("queue", what="remind", seconds=ev[1])
 
-    def _status(self, text, last):
+    def _status(self, text, last, problem=False):
+        """1.56: ``problem`` = needs the player's action (minimised, black or failed capture) – a flag, since
+        the text is translated and the app cannot tell it from the words."""
         if text != last:
-            self.post("status", text=text)
+            self.post("status", text=text, problem=problem)
 
     def _bp_due(self, tick) -> bool:
         """1.16.2 (A7): read the counter every lobby look until CONFIRM_LOOKS readings agree (what the app needs

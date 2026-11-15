@@ -910,8 +910,8 @@ class StatsTab:
         rounds, pairs = c.rounds, c.pairs
         res = official.results([(r, m) for r, m in pairs if r.role == "killer"], lambda r: r.killer)
         t = self.stats_kill
+        keep = t.selection()          # 1.56 (audit S-2): read before the rows go – the note being typed stayed
         t.delete(*t.get_children())
-        keep = t.selection()
         for name, n, avg, top in history.per_killer(rounds):
             ks = res.get(name, {}).get("kills") or []
             t.insert("", "end", iid=name, values=(killer_label(name), n, f"{sum(ks) / len(ks):.2f}" if ks else "–",

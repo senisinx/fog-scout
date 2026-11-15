@@ -2051,6 +2051,20 @@ T = {
         '共同修好一台发电机后 {s} 秒内所有人速度 +{p} %',
     'jeder Great Skill Check in Folge bringt {p} % mehr Bonus (bis {n} Tokens)':
         '每次连续的完美技能检定使奖励增加 {p} %（最多 {n} 个标记）',
+    'Skill Checks kommen öfter: +{p} Prozentpunkte Chance je Sekunde':
+        '技能检定更频繁：每秒触发几率 +{p} 个百分点',
+    'Skill Checks kommen für alle am Generator öfter: +{p} Prozentpunkte Chance je Sekunde':
+        '发电机旁所有人的技能检定更频繁：每秒触发几率 +{p} 个百分点',
+    'Skill Checks der Survivor kommen öfter: +{p} Prozentpunkte Chance je Sekunde':
+        '幸存者的技能检定更频繁：每秒触发几率 +{p} 个百分点',
+    'ein verfehlter Skill Check kostet {p} % Fortschritt mehr':
+        '技能检定失败多损失 {p} % 进度',
+    'jeder erfolgreiche Skill Check der anderen bringt im Mittel +{p} % Fortschritt (W20)':
+        '其他人每次成功的技能检定平均增加 +{p} % 进度（d20）',
+    'ein verfehlter Skill Check kostet {p} % weniger Fortschritt':
+        '技能检定失败少损失 {p} % 进度',
+    '+{p} Prozentpunkte Skill-Check-Chance je Token':
+        '每个标记技能检定几率 +{p} 个百分点',
     'jeder Generator braucht {v} Ladungen weniger':
         '每台发电机所需充能减少 {v}',
     'ein Generator braucht {v} Ladungen weniger':
@@ -5481,6 +5495,12 @@ T = {
         '垂直翻转',
     'Noch keine Runden – Claude hätte nichts zum Auswerten.':
         '还没有对局，Claude 没有可查看的内容。',
+    'Zu wenige Runden – Claude bekommt die Statistik erst ab {n} Runden.':
+        '对局太少，至少 {n} 局后才会把统计发送给 Claude。',
+    'Der Update-Ordner ist ein Link – Download abgelehnt.':
+        '更新文件夹是一个链接，已拒绝下载。',
+    'YouTube: Anmeldung fehlgeschlagen ({error}) – Client-ID und Client-Secret prüfen und noch einmal „Mit YouTube verbinden“ klicken.':
+        'YouTube：登录失败（{error}），请检查客户端 ID 和客户端密钥，然后再次点击“连接 YouTube”。',
     'Schickt deine Bitte und das Bild, wie es hier zu sehen ist (bereits zensierte Bereiche bleiben zensiert), an Claude; nichts wird geändert, bevor du übernimmst.':
         '将你的要求和此处显示的图片（已打码的区域保持打码）发送给 Claude；在你应用之前不会有任何更改。',
     'Schickt die Frage und Zähler/Quoten deiner Runden an Claude – keine einzelne Runde, keine Namen':

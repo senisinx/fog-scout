@@ -2051,6 +2051,20 @@ T = {
         '발전기를 함께 완료한 뒤 {s}초 동안 모두의 속도 +{p} %',
     'jeder Great Skill Check in Folge bringt {p} % mehr Bonus (bis {n} Tokens)':
         '대성공 기술 검사가 연속될 때마다 보너스 {p} % 증가(최대 {n} 토큰)',
+    'Skill Checks kommen öfter: +{p} Prozentpunkte Chance je Sekunde':
+        '기술 검사가 더 자주 발생: 초당 확률 +{p} 퍼센트포인트',
+    'Skill Checks kommen für alle am Generator öfter: +{p} Prozentpunkte Chance je Sekunde':
+        '발전기에 있는 모두의 기술 검사가 더 자주 발생: 초당 확률 +{p} 퍼센트포인트',
+    'Skill Checks der Survivor kommen öfter: +{p} Prozentpunkte Chance je Sekunde':
+        '생존자의 기술 검사가 더 자주 발생: 초당 확률 +{p} 퍼센트포인트',
+    'ein verfehlter Skill Check kostet {p} % Fortschritt mehr':
+        '기술 검사 실패 시 진행도를 {p} % 더 잃음',
+    'jeder erfolgreiche Skill Check der anderen bringt im Mittel +{p} % Fortschritt (W20)':
+        '다른 생존자의 기술 검사 성공마다 평균 +{p} % 진행도(d20)',
+    'ein verfehlter Skill Check kostet {p} % weniger Fortschritt':
+        '기술 검사 실패 시 진행도를 {p} % 덜 잃음',
+    '+{p} Prozentpunkte Skill-Check-Chance je Token':
+        '토큰당 기술 검사 확률 +{p}%p',
     'jeder Generator braucht {v} Ladungen weniger':
         '모든 발전기의 필요 충전량 {v} 감소',
     'ein Generator braucht {v} Ladungen weniger':
@@ -5481,6 +5495,12 @@ T = {
         '상하 반전',
     'Noch keine Runden – Claude hätte nichts zum Auswerten.':
         '아직 라운드가 없습니다 – Claude가 볼 것이 없습니다.',
+    'Zu wenige Runden – Claude bekommt die Statistik erst ab {n} Runden.':
+        '라운드가 너무 적습니다 – Claude에게는 {n}라운드부터 통계를 보냅니다.',
+    'Der Update-Ordner ist ein Link – Download abgelehnt.':
+        '업데이트 폴더가 링크입니다 – 다운로드를 거부했습니다.',
+    'YouTube: Anmeldung fehlgeschlagen ({error}) – Client-ID und Client-Secret prüfen und noch einmal „Mit YouTube verbinden“ klicken.':
+        'YouTube: 로그인 실패({error}) – 클라이언트 ID와 클라이언트 보안 비밀번호를 확인하고 ‘YouTube에 연결’을 한 번 더 클릭하세요.',
     'Schickt deine Bitte und das Bild, wie es hier zu sehen ist (bereits zensierte Bereiche bleiben zensiert), an Claude; nichts wird geändert, bevor du übernimmst.':
         '요청과 여기 보이는 이미지(이미 가린 영역은 가려진 채로)를 Claude에게 보냅니다. 적용하기 전에는 아무것도 바뀌지 않습니다.',
     'Schickt die Frage und Zähler/Quoten deiner Runden an Claude – keine einzelne Runde, keine Namen':
