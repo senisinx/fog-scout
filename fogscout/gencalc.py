@@ -1,8 +1,10 @@
-"""Generator calculator (pure, 1.51): how long Survivors with chosen perks need for a Generator, and what a Killer
-build does to that – for the page "Rechner".
+"""Calculator (pure; generators 1.51, every other area 1.52): how long Survivors with chosen perks need for a
+Generator and what a Killer build does to that – and, for healing, movement, vaults, totems, chests, gates, hooks
+and the Killer's own actions, the speed after diminishing returns with every modifier listed (``area_lines``), the
+best next perk (``suggest``) – for the page "Rechner".
 
 The numbers come from ``perkdata.json`` (Dead by Daylight Wiki, see THIRD_PARTY.md); nothing is read from the game.
-A Generator is simulated in small time steps instead of one formula, because the effects depend on the moment:
+A Generator is simulated from event to event instead of one formula, because the effects depend on the moment:
 a toolbox runs empty, a kick sends the Survivors away while the Generator regresses, a block freezes it.
 
 Rules used (all from the wiki, retrieved 2026-11-15):
@@ -24,10 +26,12 @@ import os
 from dataclasses import dataclass, field
 
 FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "perkdata.json")
-DT = 0.05                     # s per simulation step
+DT = 0.05                     # s per step while a kicked Generator regresses (its rate changes with the time)
 LIMIT_S = 3600.0              # a Generator that is not done after this is reported as never done
 MIN_CHARGES = 10.0            # the requirement never goes below this (stacked reductions)
 MAX_SURVIVORS = 4
+WEIGHTS = (1.0, 0.5, 0.25, 0.125)     # diminishing returns: the largest modifier, the 2nd, 3rd, 4th …
+LAST_WEIGHT = 0.05                    # … and every further one
 
 
 @dataclass
@@ -40,6 +44,10 @@ class Data:
     not_modelled: list
     retrieved: str = ""
     source_state: str = ""
+    areas: dict = field(default_factory=dict)        # id -> {"id", "side", "kind", "rows"}
+    perks: dict = field(default_factory=dict)        # name -> entry with "effects" (every area but repair)
+    medkits: dict = field(default_factory=dict)
+    not_modelled_areas: list = field(default_factory=list)
 
 
 def load(path: str = FILE) -> Data:
@@ -47,14 +55,17 @@ def load(path: str = FILE) -> Data:
         raw = json.load(fh)
     return Data(raw["mechanics"], {e["name"]: e for e in raw["survivor"]}, {e["name"]: e for e in raw["killer"]},
                 {e["name"]: e for e in raw["toolboxes"]}, {e["name"]: e for e in raw.get("addons", [])},
-                list(raw.get("not_modelled", [])), raw.get("retrieved", ""), raw.get("source_state", ""))
+                list(raw.get("not_modelled", [])), raw.get("retrieved", ""), raw.get("source_state", ""),
+                {a["id"]: a for a in raw.get("areas", [])}, {e["name"]: e for e in raw.get("perks", [])},
+                {e["name"]: e for e in raw.get("medkits", [])}, list(raw.get("not_modelled_areas", [])))
 
 
 @dataclass
 class Survivor:
-    perks: tuple = ()                 # perk names from Data.survivor (unknown names are ignored)
+    perks: tuple = ()                 # perk names from Data.survivor / Data.perks (unknown names are ignored)
     toolbox: str = ""                 # a name from Data.toolboxes, "" = none
     part: bool = False                # Brand New Part on the toolbox (used on the Generator)
+    medkit: str = ""                  # a name from Data.medkits, "" = none (healing others)
 
 
 @dataclass
@@ -72,6 +83,7 @@ class Scenario:
     kick_at: float = 0.5              # the Killer comes when the Generator has this share of its progress
     away: float = 20.0                # s the Survivors stay away after a kick
     walk: float = 0.0                 # s between two Generators (five Generators)
+    stacks: float = 1.0               # share of a Survivor perk's Tokens/stacks that count (at least one)
 
 
 @dataclass
@@ -88,8 +100,17 @@ def ranked(values, diminishing: bool = True) -> list:
     vals = sorted((v for v in values if v > 0), reverse=True)
     if not diminishing:
         return vals
-    weights = [1.0, 0.5, 0.25, 0.125]
-    return [v * (weights[i] if i < len(weights) else 0.05) for i, v in enumerate(vals)]
+    return [v * (WEIGHTS[i] if i < len(WEIGHTS) else LAST_WEIGHT) for i, v in enumerate(vals)]
+
+
+def weights(values, diminishing: bool = True) -> list:
+    """For each value (same order as given, sign ignored) the share of it that counts: the largest fully, …"""
+    order = sorted(range(len(values)), key=lambda i: -abs(values[i]))
+    out = [1.0] * len(values)
+    if diminishing:
+        for rank, i in enumerate(order):
+            out[i] = WEIGHTS[rank] if rank < len(WEIGHTS) else LAST_WEIGHT
+    return out
 
 
 def _count(data: Data, killer: Killer, name: str) -> int:
@@ -117,8 +138,8 @@ def _known(data: Data, perks, table) -> list:
     return out
 
 
-def slowdowns(data: Data, killer: Killer) -> list:
-    """The Killer's repair-speed penalties (as positive shares), before diminishing returns."""
+def slowdown_parts(data: Data, killer: Killer) -> list:
+    """[(perk name, share)]: the Killer's repair-speed penalties (as positive shares), before diminishing returns."""
     out = []
     for e in _known(data, killer.perks, data.killer):
         n = _count(data, killer, e["name"])
@@ -126,10 +147,15 @@ def slowdowns(data: Data, killer: Killer) -> list:
             v = min(e["per"] * n, e["max"])
             if e.get("full_at") and n >= e["full_at"]:
                 v = e["full"]
-            out.append(v)
+            out.append((e["name"], v))
         elif e["kind"] == "slow_first" and n:
-            out.append(min(e["first"] + e["per"] * (n - 1), e["max"]))
+            out.append((e["name"], min(e["first"] + e["per"] * (n - 1), e["max"])))
     return out
+
+
+def slowdowns(data: Data, killer: Killer) -> list:
+    """The Killer's repair-speed penalties (as positive shares), before diminishing returns."""
+    return [v for _name, v in slowdown_parts(data, killer)]
 
 
 def requirement(data: Data, team, first: bool = True) -> tuple:
@@ -169,31 +195,35 @@ def _hyper(data: Data, team, great: float) -> list:
     return out
 
 
-def _bonuses(data: Data, s: Survivor, team, toolbox_on: bool, buff: bool) -> list:
-    """The positive repair-speed modifiers of Survivor ``s`` while ``team`` repairs the Generator."""
+def bonus_parts(data: Data, s: Survivor, team, toolbox_on: bool = True, buff: bool = False) -> list:
+    """[(name, share)]: the positive repair-speed modifiers of Survivor ``s`` while ``team`` repairs the Generator."""
     k = len(team)
     own = _known(data, s.perks, data.survivor)
     out = []
     for e in own:
         kind = e["kind"]
         if kind == "self":
-            out.append(e["value"])
+            out.append((e["name"], e["value"]))
         elif kind == "self_with_others" and k >= 2:
-            out.append(e["value"])
+            out.append((e["name"], e["value"]))
     team_perks = [e for m in team for e in _known(data, m.perks, data.survivor)]
     for kind in ("team_per_other", "team", "team_timed"):          # one instance each, for everyone there
         e = next((x for x in team_perks if x["kind"] == kind), None)
         if not e:
             continue
         if kind == "team_per_other" and k >= 2:
-            out.append(min(e["value"] * (k - 1), e["max"]))
+            out.append((e["name"], min(e["value"] * (k - 1), e["max"])))
         elif kind == "team":
-            out.append(e["value"])
+            out.append((e["name"], e["value"]))
         elif kind == "team_timed" and buff:
-            out.append(e["value"])
+            out.append((e["name"], e["value"]))
     if toolbox_on and s.toolbox in data.toolboxes:
-        out.append(data.toolboxes[s.toolbox]["bonus"])
+        out.append((s.toolbox, data.toolboxes[s.toolbox]["bonus"]))
     return out
+
+
+def _bonuses(data: Data, s: Survivor, team, toolbox_on: bool, buff: bool) -> list:
+    return [v for _name, v in bonus_parts(data, s, team, toolbox_on, buff)]
 
 
 def speed(data: Data, s: Survivor, team, killer: Killer, scen: Scenario, toolbox_on: bool = True,
@@ -333,16 +363,32 @@ def one_generator(data: Data, team, killer: Killer | None = None, scen: Scenario
             t += wait
             buff_s = max(0.0, buff_s - wait)
             continue
+        # 1.52: repairing runs at one rate until something changes – the Generator is done, the Killer comes, a
+        # toolbox is empty, a timed bonus ends – so the time jumps to the nearest of these instead of taking
+        # thousands of DT steps (measured: a render of the page 4–5 times faster, the same seconds)
         gain, drain = rates(buff_s > 0)
-        if gain > 0 and prog + gain * DT >= need:      # the last step: only the time it really takes
-            t += (need - prog) / gain
+        ahead = []                                     # (seconds until it happens, what, which toolbox)
+        if gain > 0:
+            ahead.append(((need - prog) / gain, "done", 0))
+            goal = scen.kick_at * need
+            if kicks_done < scen.kicks and events < m["regression_events"] and prog < goal:
+                ahead.append(((goal - prog) / gain, "kick", 0))
+        for i, d in enumerate(drain):
+            if tool[i] > 0 and d > 0:
+                ahead.append((tool[i] / d, "tool", i))
+        if buff_s > 0:
+            ahead.append((buff_s, "buff", 0))
+        if not ahead:                                  # no progress and nothing that would change that
+            return Result(None, start_rates, events, lost, notes)
+        dt, what, which = min(ahead)
+        t += dt
+        if what == "done":
             break
-        prog += gain * DT
+        prog = scen.kick_at * need if what == "kick" else max(0.0, prog + gain * dt)
         for i, d in enumerate(drain):
             if tool[i] > 0:
-                tool[i] = max(0.0, tool[i] - d * DT)
-        buff_s = max(0.0, buff_s - DT)
-        t += DT
+                tool[i] = 0.0 if what == "tool" and i == which else max(0.0, tool[i] - d * dt)
+        buff_s = 0.0 if what == "buff" else max(0.0, buff_s - dt)
     return Result(round(t, 2), start_rates, events, round(lost, 2), notes)
 
 
@@ -401,3 +447,297 @@ def fmt(seconds) -> str:
         return "–"
     s = int(round(seconds))
     return f"{s // 60}:{s % 60:02d}"
+
+
+# ---------------------------------------------------------------------------------------------------------------
+# Every other area (1.52): healing, movement, vaults, totems, chests, gates, hooks, the Killer's own actions.
+# One rule for all of them (wiki "Dead by Daylight Maths", patch notes 9.6.0): speed = (1 + Σ bonus) · Π(1 − malus),
+# each sign after diminishing returns – status effects (Haste, Hindered) included, negative modifiers ranked only
+# among those of one role. For Haste together with Hindered the wiki gives no formula of its own; the action-speed
+# rule is used (assumption, the page says so).
+# ---------------------------------------------------------------------------------------------------------------
+KILLER = -1                          # the subject "the Killer" (Survivors are 0 … 3)
+REPAIR = "repair"
+
+
+@dataclass
+class Part:
+    """One modifier of a line: where it comes from, what it says and what of it counts."""
+    source: str                       # perk or item name
+    value: float                      # nominal share, signed (+0.5, −0.2); 0 for a cap
+    weight: float = 1.0               # share that counts after diminishing returns
+    when: str = ""                    # condition code ("" = always): injured, gates, boon, hex, trigger, tokens …
+    seconds: float = 0.0              # lasts this long (0 = as long as the condition holds)
+    stacks: int = 0                   # Tokens/stacks counted in ``value`` (0 = none)
+    side: str = "S"                   # whose perk it is
+    cap: float | None = None          # the sum of all bonuses is limited to this (Hex: Under Your Thumb)
+
+    @property
+    def counted(self) -> float:
+        return self.value * self.weight
+
+
+@dataclass
+class Line:
+    """One row of an area for one subject: the base value, the speed factor and the result."""
+    area: str
+    row: str
+    subject: int                      # Survivor index or KILLER
+    kind: str                         # "time" (s, lower is faster) or "speed" (m/s)
+    base: float | None                # None: only the factor is known
+    mult: float
+    result: float | None
+    parts: list = field(default_factory=list)
+
+
+def acts_in(data: Data, entry: dict, area_id: str) -> bool:
+    """The perk has an effect on at least one row of the area."""
+    tags = {t for r in data.areas.get(area_id, {}).get("rows", ()) for t in r["tags"]}
+    return any(tags & set(f["tags"]) for f in entry.get("effects", ()))
+
+
+def perk_names(data: Data, side: str, area_id: str) -> list:
+    """The perks of a side ("S"/"K") that do something in the area, sorted (repair: the generator lists)."""
+    if area_id == REPAIR:
+        names = data.survivor if side == "S" else data.killer
+    else:
+        names = [n for n, e in data.perks.items() if e["side"] == side and acts_in(data, e, area_id)]
+    return sorted(names, key=str.lower)
+
+
+def max_stacks(data: Data, name: str) -> int:
+    """The most Tokens a perk's effects count (0 = it has none)."""
+    return max((int(f.get("max_n", 0)) for f in data.perks.get(name, {}).get("effects", ())), default=0)
+
+
+def _effect_value(f: dict, n: int) -> float:
+    if "per" not in f:
+        return float(f.get("value", 0.0))
+    n = max(0, min(int(n), int(f.get("max_n", n))))
+    if f.get("full_at") and n >= f["full_at"]:
+        return float(f["full"])
+    if "first" in f:                                   # the first Token counts differently (Hex: Pentimento)
+        return float(f["first"] + f["per"] * (n - 1)) if n >= 1 else 0.0
+    v = float(f.get("value", 0.0)) + f["per"] * n
+    return max(v, -f["max"]) if "max" in f and v < 0 else min(v, f["max"]) if "max" in f else v
+
+
+def _stack_count(data: Data, name: str, f: dict, side: str, killer: Killer, scen: Scenario) -> int:
+    top = int(f.get("max_n", 0))
+    if not top:
+        return 0
+    if side == "K":
+        try:
+            return max(0, min(int(killer.counts.get(name, top)), top))
+        except (TypeError, ValueError):
+            return top
+    return max(1, min(top, int(round(top * scen.stacks))))
+
+
+def modifiers(data: Data, area_id: str, row: dict, subject: int, team, killer: Killer | None = None,
+              scen: Scenario | None = None) -> list:
+    """The Parts acting on ``row`` for ``subject`` (a Survivor index or KILLER), weighted by diminishing returns."""
+    killer, scen = killer or Killer(), scen or Scenario()
+    tags = set(row["tags"])
+    found = []                                            # (Part, group)
+
+    def take(name: str, wanted: tuple, holder: Survivor | None = None):
+        e = data.perks.get(name)
+        if not e:
+            return
+        for f in e["effects"]:
+            if f["to"] not in wanted or not tags & set(f["tags"]):
+                continue
+            if f.get("no_item") and holder is not None and holder.medkit in data.medkits:
+                continue
+            n = _stack_count(data, name, f, e["side"], killer, scen)
+            v = _effect_value(f, n)
+            if not v and "cap" not in f:
+                continue
+            found.append((Part(name, v, 1.0, f.get("when", ""), float(f.get("seconds", 0.0)), n, e["side"],
+                               f.get("cap")), f.get("group", "")))
+
+    if subject == KILLER:
+        for name in dict.fromkeys(killer.perks):
+            take(name, ("self",))
+        for name in dict.fromkeys(p for s in team for p in s.perks):          # a perk of two Survivors: once
+            take(name, ("enemy",))
+    else:
+        me = team[subject]
+        for name in dict.fromkeys(me.perks):
+            take(name, ("self", "team"), me)
+        mine = set(me.perks)
+        others = dict.fromkeys(p for i, s in enumerate(team) if i != subject for p in s.perks)
+        for name in others:
+            take(name, ("others",) if name in mine else ("others", "team"), me)
+        for name in dict.fromkeys(killer.perks):
+            take(name, ("enemy",))
+        if "altruistic" in tags and me.medkit in data.medkits:
+            found.append((Part(me.medkit, data.medkits[me.medkit]["bonus"]), ""))
+    parts, groups = [], {}
+    for part, group in found:                             # of one group (Exhaustion perks) only the strongest
+        if group:
+            best = groups.get(group)
+            if best is None or abs(part.value) > abs(best.value):
+                groups[group] = part
+        else:
+            parts.append(part)
+    parts += list(groups.values())
+    for sign, side in ((1, None), (-1, "S"), (-1, "K")):  # negative modifiers: ranked within their role
+        same = [p for p in parts if p.cap is None and (p.value > 0 if sign > 0 else p.value < 0 and p.side == side)]
+        for p, w in zip(same, weights([p.value for p in same], scen.diminishing)):
+            p.weight = w
+    parts.sort(key=lambda p: (p.value < 0, -abs(p.value)))
+    return parts
+
+
+def factor(parts) -> float:
+    """The speed factor of a list of Parts: (1 + Σ bonus, capped) · Π(1 − malus)."""
+    pos = sum(p.counted for p in parts if p.value > 0)
+    caps = [p.cap for p in parts if p.cap is not None]
+    if caps:
+        pos = min(pos, min(caps))
+    out = 1.0 + pos
+    for p in parts:
+        if p.value < 0:
+            out *= max(0.0, 1.0 + p.counted)
+    return out
+
+
+def area_lines(data: Data, area_id: str, team, killer: Killer | None = None, scen: Scenario | None = None) -> list:
+    """Every row of the area for every subject (each Survivor of ``team``, or the Killer)."""
+    area = data.areas.get(area_id)
+    if not area or area.get("kind") == REPAIR:
+        return []
+    team = [s for s in team if isinstance(s, Survivor)][:MAX_SURVIVORS]
+    subjects = [KILLER] if area["side"] == "K" else list(range(len(team)))
+    out = []
+    for subject in subjects:
+        for row in area["rows"]:
+            parts = modifiers(data, area_id, row, subject, team, killer, scen)
+            mult = factor(parts)
+            base = row.get("base")
+            if base is None or mult <= 0:
+                result = None
+            else:
+                result = base * mult if area["kind"] == "speed" else base / mult
+            out.append(Line(area_id, row["id"], subject, area["kind"], base, mult, result, parts))
+    return out
+
+
+def repair_parts(data: Data, team, index: int, killer: Killer | None = None, scen: Scenario | None = None) -> list:
+    """The repair-speed modifiers of Survivor ``index`` while ``team`` repairs together, as Parts (toolbox on,
+    no timed bonus) – the same numbers ``speed`` multiplies."""
+    killer, scen = killer or Killer(), scen or Scenario()
+    pos = [Part(n, v) for n, v in bonus_parts(data, team[index], team)]
+    neg = [Part(n, -v, side="K") for n, v in slowdown_parts(data, killer)]
+    for group in (pos, neg):
+        for p, w in zip(group, weights([p.value for p in group], scen.diminishing)):
+            p.weight = w
+        group.sort(key=lambda p: -abs(p.value))
+    return pos + neg
+
+
+@dataclass
+class Tip:
+    """A perk worth adding: who would take it, and what it changes."""
+    name: str
+    side: str                         # "S" or "K"
+    who: int                          # the Survivor index it was tried on (KILLER for a Killer perk)
+    gain: float                       # relative change of the metric (0.12 = 12 %)
+    row: str                          # the row it changes most ("" = the Generator)
+    before: float | None
+    after: float | None
+    subject: int = KILLER             # whose row ``row`` is (the taker's own when the perk changes one of theirs)
+
+
+def _with_perk(team, i: int, name: str) -> list:
+    out = list(team)
+    s = team[i]
+    out[i] = Survivor(tuple(s.perks) + (name,), s.toolbox, s.part, s.medkit)
+    return out
+
+
+def _line_change(old: Line, new: Line) -> float:
+    return new.mult / old.mult - 1.0 if old.mult > 0 else 0.0
+
+
+def suggest(data: Data, area_id: str, team, killer: Killer | None = None, scen: Scenario | None = None,
+            slots: int = 4, top: int = 3) -> dict:
+    """{"S": [Tip], "K": [Tip]}: for each side the perks (not chosen yet, a free slot given) that help it most in
+    this area – Survivors: faster, the Killer: slower Survivors (or a faster Killer in the Killer's own areas)."""
+    killer, scen = killer or Killer(), scen or Scenario()
+    team = [s for s in team if isinstance(s, Survivor)][:MAX_SURVIVORS]
+    out = {"S": [], "K": []}
+    if not team or area_id not in data.areas:
+        return out
+    killer_area = data.areas[area_id]["side"] == "K"
+    free, seen = [], set()
+    for i, s in enumerate(team):                          # equal builds: the perk is tried on the first only
+        build = (tuple(s.perks), s.toolbox, s.part, s.medkit)
+        if len(s.perks) < slots and build not in seen:
+            seen.add(build)
+            free.append(i)
+    kill_free = len(killer.perks) < slots
+
+    if area_id == REPAIR:
+        base = one_generator(data, team, killer, scen).seconds
+        if base is None:
+            return out
+        best = {}
+        for name in data.survivor:
+            group = data.survivor[name].get("group", name)
+            for i in free:
+                if any(data.survivor.get(p, {}).get("group", p) == group for p in team[i].perks):
+                    continue
+                t = one_generator(data, _with_perk(team, i, name), killer, scen).seconds
+                if t is not None and t < base - 0.05 and (name not in best or t < best[name].after):
+                    best[name] = Tip(name, "S", i, (base - t) / base, "", base, t, i)
+        out["S"] = sorted(best.values(), key=lambda x: -x.gain)[:top]
+        if kill_free:
+            tips = []
+            for name in data.killer:
+                if name in killer.perks:
+                    continue
+                t = one_generator(data, team, Killer(tuple(killer.perks) + (name,), dict(killer.counts)),
+                                  scen).seconds
+                if t is not None and t > base + 0.05:
+                    tips.append(Tip(name, "K", KILLER, (t - base) / base, "", base, t))
+            out["K"] = sorted(tips, key=lambda x: -x.gain)[:top]
+        return out
+
+    lines = area_lines(data, area_id, team, killer, scen)
+
+    def tip(name: str, side: str, who: int, new_lines, want_more: bool):
+        changes = [(_line_change(a, b), a, b) for a, b in zip(lines, new_lines)]
+        total = sum(c for c, _a, _b in changes)
+        if (total if want_more else -total) < 1e-6:
+            return None
+        sign = 1 if want_more else -1
+        own = [x for x in changes if x[1].subject == who and sign * x[0] > 1e-9]       # the taker's own rows first
+        c, a, b = max(own or changes, key=lambda x: sign * x[0])
+        return Tip(name, side, who, abs(total) / max(1, len({ln.subject for ln in lines})), a.row, a.result, b.result,
+                   a.subject)
+
+    best = {}
+    for name in perk_names(data, "S", area_id):
+        for i in free:
+            if name in team[i].perks:
+                continue
+            t = tip(name, "S", i, area_lines(data, area_id, _with_perk(team, i, name), killer, scen),
+                    want_more=not killer_area)
+            if t and (name not in best or t.gain > best[name].gain):
+                best[name] = t
+    out["S"] = sorted(best.values(), key=lambda x: -x.gain)[:top]
+    if kill_free:
+        tips = []
+        for name in perk_names(data, "K", area_id):
+            if name in killer.perks:
+                continue
+            t = tip(name, "K", KILLER,
+                    area_lines(data, area_id, team, Killer(tuple(killer.perks) + (name,), dict(killer.counts)), scen),
+                    want_more=killer_area)
+            if t:
+                tips.append(t)
+        out["K"] = sorted(tips, key=lambda x: -x.gain)[:top]
+    return out

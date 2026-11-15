@@ -1,7 +1,7 @@
 {
- "about": "Numbers for the generator calculator (fogscout/gencalc.py). Facts only, taken from the Dead by Daylight Wiki (deadbydaylight.wiki.gg, text licence CC BY-NC-SA 4.0 – no text was copied) – see THIRD_PARTY.md. Check after every game patch.",
+ "about": "Numbers for the calculator (fogscout/gencalc.py): generator repair (mechanics, toolboxes, survivor, killer) and every other action or movement speed (areas, medkits, perks). Facts only, taken from the Dead by Daylight Wiki (deadbydaylight.wiki.gg, text licence CC BY-NC-SA 4.0 – no text was copied) – see THIRD_PARTY.md. Check after every game patch.",
  "retrieved": "2026-11-15",
- "source_state": "Module:Datatable/Loadout as of 2026-11-05, Generators 2026-08-31, Dead by Daylight Maths 2026-04-12, Toolboxes 2025-06-16, Skill Checks 2026-06-17",
+ "source_state": "Module:Datatable/Loadout as of 2026-11-05, Generators 2026-08-31, Dead by Daylight Maths 2026-04-12, Toolboxes 2025-06-16, Skill Checks 2026-06-17; areas: Health States, Med-Kits, Movement Speeds, Vaulting, Pallets, Totems, Chests, Exit Gates, Hooks, Breakable Walls, Lockers and Patch Notes 9.6.X as read on 2026-11-15, Module:Datatable/Loadout/Descriptions as of 2026-11-06",
  "mechanics": {
   "charges": 90,
   "repair_rate": 1.0,
@@ -345,5 +345,1750 @@
   "Hex: Hive Mind",
   "Help Wanted",
   "Hex: Huntress Lullaby"
+ ],
+ "not_modelled_areas": [
+  "Self-Care",
+  "Strength in Shadows",
+  "Road Life",
+  "Solidarity",
+  "Appraisal",
+  "Fruits of Your Labor",
+  "Vigil",
+  "Haywire",
+  "Borrowed Time"
+ ],
+ "areas": [
+  {
+   "id": "repair",
+   "side": "S",
+   "kind": "repair"
+  },
+  {
+   "id": "heal",
+   "side": "S",
+   "kind": "time",
+   "rows": [
+    {
+     "id": "heal_other",
+     "base": 16.0,
+     "tags": [
+      "heal",
+      "altruistic"
+     ]
+    },
+    {
+     "id": "heal_dying",
+     "base": 16.0,
+     "tags": [
+      "heal",
+      "altruistic",
+      "heal_dying"
+     ]
+    },
+    {
+     "id": "heal_self",
+     "base": 24.0,
+     "tags": [
+      "heal",
+      "self_heal"
+     ]
+    },
+    {
+     "id": "recover",
+     "base": 30.4,
+     "tags": [
+      "recover"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "move",
+   "side": "S",
+   "kind": "speed",
+   "rows": [
+    {
+     "id": "run",
+     "base": 4.0,
+     "tags": [
+      "move",
+      "run"
+     ]
+    },
+    {
+     "id": "walk",
+     "base": 2.26,
+     "tags": [
+      "move",
+      "walk"
+     ]
+    },
+    {
+     "id": "crouch",
+     "base": 1.13,
+     "tags": [
+      "move",
+      "crouch"
+     ]
+    },
+    {
+     "id": "crawl",
+     "base": 0.7,
+     "tags": [
+      "move",
+      "crawl"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "vault",
+   "side": "S",
+   "kind": "time",
+   "rows": [
+    {
+     "id": "window_fast",
+     "base": 0.5,
+     "tags": [
+      "vault",
+      "vault_window",
+      "vault_fast"
+     ]
+    },
+    {
+     "id": "window_medium",
+     "base": 0.9,
+     "tags": [
+      "vault",
+      "vault_window"
+     ]
+    },
+    {
+     "id": "window_slow",
+     "base": 1.5,
+     "tags": [
+      "vault",
+      "vault_window"
+     ]
+    },
+    {
+     "id": "pallet_fast",
+     "base": 1.1,
+     "tags": [
+      "vault",
+      "vault_pallet",
+      "vault_fast"
+     ]
+    },
+    {
+     "id": "pallet_slow",
+     "base": 2.0,
+     "tags": [
+      "vault",
+      "vault_pallet"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "objects",
+   "side": "S",
+   "kind": "time",
+   "rows": [
+    {
+     "id": "cleanse",
+     "base": 14.0,
+     "tags": [
+      "cleanse"
+     ]
+    },
+    {
+     "id": "bless",
+     "base": 14.0,
+     "tags": [
+      "bless"
+     ]
+    },
+    {
+     "id": "bless_hex",
+     "base": 28.0,
+     "tags": [
+      "bless"
+     ]
+    },
+    {
+     "id": "chest",
+     "base": 8.0,
+     "tags": [
+      "unlock"
+     ]
+    },
+    {
+     "id": "gate",
+     "base": 20.0,
+     "tags": [
+      "gate"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "hook",
+   "side": "S",
+   "kind": "time",
+   "rows": [
+    {
+     "id": "unhook",
+     "base": 1.0,
+     "tags": [
+      "unhook"
+     ]
+    },
+    {
+     "id": "sabotage",
+     "base": 3.0,
+     "tags": [
+      "sabotage"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "k_move",
+   "side": "K",
+   "kind": "speed",
+   "rows": [
+    {
+     "id": "k460",
+     "base": 4.6,
+     "tags": [
+      "kmove"
+     ]
+    },
+    {
+     "id": "k440",
+     "base": 4.4,
+     "tags": [
+      "kmove"
+     ]
+    },
+    {
+     "id": "k385",
+     "base": 3.85,
+     "tags": [
+      "kmove"
+     ]
+    },
+    {
+     "id": "carry",
+     "base": 3.68,
+     "tags": [
+      "kmove",
+      "carry"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "k_action",
+   "side": "K",
+   "kind": "time",
+   "rows": [
+    {
+     "id": "kvault",
+     "base": 1.7,
+     "tags": [
+      "kvault"
+     ]
+    },
+    {
+     "id": "break",
+     "base": 2.34,
+     "tags": [
+      "break"
+     ]
+    },
+    {
+     "id": "damage",
+     "base": 1.8,
+     "tags": [
+      "damage"
+     ]
+    },
+    {
+     "id": "locker",
+     "base": 2.333,
+     "tags": [
+      "locker"
+     ]
+    },
+    {
+     "id": "pickup",
+     "base": null,
+     "tags": [
+      "pickup"
+     ]
+    },
+    {
+     "id": "hooking",
+     "base": null,
+     "tags": [
+      "hooking"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "k_attack",
+   "side": "K",
+   "kind": "time",
+   "rows": [
+    {
+     "id": "hit",
+     "base": 2.7,
+     "tags": [
+      "recover_hit"
+     ]
+    },
+    {
+     "id": "miss",
+     "base": 1.5,
+     "tags": [
+      "recover_miss"
+     ]
+    }
+   ]
+  }
+ ],
+ "area_sources": {
+  "heal": "https://deadbydaylight.wiki.gg/wiki/Health_States (16 Charges per Health State, recovery 30.4 s to 95 %), https://deadbydaylight.wiki.gg/wiki/Med-Kits (self-heal 0.667 c/s = 24 s, altruistic +35 … +50 %)",
+  "move": "https://deadbydaylight.wiki.gg/wiki/Movement_Speeds",
+  "vault": "https://deadbydaylight.wiki.gg/wiki/Vaulting (windows 0.5 / 0.9 / 1.5 s, Killer 1.7 s), https://deadbydaylight.wiki.gg/wiki/Pallets (1.1 / 2 s, breaking 2.34 s)",
+  "objects": "https://deadbydaylight.wiki.gg/wiki/Totems (14 s, blessing a Hex 28 s), /Chests (8 s), /Exit_Gates (20 s)",
+  "hook": "https://deadbydaylight.wiki.gg/wiki/Hooks (unhook 1 s, sabotage 3 s)",
+  "k_action": "https://deadbydaylight.wiki.gg/wiki/Generators (damage 1.8 s), /Breakable_Walls (2.34 s), /Lockers (search 2.333 s); picking up and hooking: speed only, no base time taken over",
+  "k_attack": "https://deadbydaylight.wiki.gg/wiki/Movement_Speeds (cool-down 2.7 s after a hit, 1.5 s after a miss)",
+  "diminishing": "https://deadbydaylight.wiki.gg/wiki/Patch_Notes_9.6.X (status effects included; negative action speed modifiers only within their role; add-ons exempt)"
+ },
+ "medkits": [
+  {
+   "name": "Camping Aid Kit",
+   "bonus": 0.35
+  },
+  {
+   "name": "First Aid Kit",
+   "bonus": 0.4
+  },
+  {
+   "name": "Emergency Med-Kit",
+   "bonus": 0.45
+  },
+  {
+   "name": "Ranger Med-Kit",
+   "bonus": 0.5
+  }
+ ],
+ "perks": [
+  {
+   "name": "Adrenaline",
+   "side": "S",
+   "patch": "10.1.0",
+   "effects": [
+    {
+     "tags": [
+      "move"
+     ],
+     "value": 0.5,
+     "to": "self",
+     "seconds": 4,
+     "group": "exhaustion",
+     "when": "gates"
+    }
+   ]
+  },
+  {
+   "name": "Background Player",
+   "side": "S",
+   "patch": "8.0.0",
+   "effects": [
+    {
+     "tags": [
+      "move"
+     ],
+     "value": 0.5,
+     "to": "self",
+     "seconds": 5,
+     "group": "exhaustion",
+     "when": "trigger"
+    }
+   ]
+  },
+  {
+   "name": "Balanced Landing",
+   "side": "S",
+   "patch": "3.4.0",
+   "effects": [
+    {
+     "tags": [
+      "move"
+     ],
+     "value": 0.5,
+     "to": "self",
+     "seconds": 3,
+     "group": "exhaustion",
+     "when": "trigger"
+    }
+   ]
+  },
+  {
+   "name": "Lithe",
+   "side": "S",
+   "patch": "2.6.0",
+   "effects": [
+    {
+     "tags": [
+      "move"
+     ],
+     "value": 0.5,
+     "to": "self",
+     "seconds": 3,
+     "group": "exhaustion",
+     "when": "trigger"
+    }
+   ]
+  },
+  {
+   "name": "Smash Hit",
+   "side": "S",
+   "patch": "7.1.0",
+   "effects": [
+    {
+     "tags": [
+      "move"
+     ],
+     "value": 0.5,
+     "to": "self",
+     "seconds": 4,
+     "group": "exhaustion",
+     "when": "trigger"
+    }
+   ]
+  },
+  {
+   "name": "Sprint Burst",
+   "side": "S",
+   "patch": "10.1.0",
+   "effects": [
+    {
+     "tags": [
+      "move"
+     ],
+     "value": 0.5,
+     "to": "self",
+     "seconds": 2,
+     "group": "exhaustion",
+     "when": "trigger"
+    }
+   ]
+  },
+  {
+   "name": "Dramaturgy",
+   "side": "S",
+   "patch": "7.1.0",
+   "effects": [
+    {
+     "tags": [
+      "move"
+     ],
+     "value": 0.25,
+     "to": "self",
+     "seconds": 2,
+     "when": "healthy",
+     "group": "exhaustion"
+    }
+   ]
+  },
+  {
+   "name": "Buckle Up",
+   "side": "S",
+   "patch": "8.0.0",
+   "effects": [
+    {
+     "tags": [
+      "move"
+     ],
+     "value": 0.5,
+     "to": "others",
+     "seconds": 5,
+     "when": "trigger"
+    }
+   ]
+  },
+  {
+   "name": "Duty of Care",
+   "side": "S",
+   "patch": "8.7.0",
+   "effects": [
+    {
+     "tags": [
+      "move"
+     ],
+     "value": 0.25,
+     "to": "others",
+     "seconds": 6,
+     "when": "trigger"
+    }
+   ]
+  },
+  {
+   "name": "Wide Open Throttle",
+   "side": "S",
+   "patch": "",
+   "effects": [
+    {
+     "tags": [
+      "move"
+     ],
+     "value": 0.15,
+     "to": "self",
+     "seconds": 3,
+     "when": "trigger"
+    }
+   ]
+  },
+  {
+   "name": "Babysitter",
+   "side": "S",
+   "patch": "9.0.0",
+   "effects": [
+    {
+     "tags": [
+      "move"
+     ],
+     "value": 0.1,
+     "to": "others",
+     "when": "unhook"
+    }
+   ]
+  },
+  {
+   "name": "Blood Pact",
+   "side": "S",
+   "patch": "10.2.0",
+   "effects": [
+    {
+     "tags": [
+      "move"
+     ],
+     "value": 0.07,
+     "to": "self",
+     "when": "obsession"
+    }
+   ]
+  },
+  {
+   "name": "Boon: Dark Theory",
+   "side": "S",
+   "patch": "8.7.0",
+   "effects": [
+    {
+     "tags": [
+      "move"
+     ],
+     "value": 0.03,
+     "to": "team",
+     "when": "boon"
+    }
+   ]
+  },
+  {
+   "name": "Breakout",
+   "side": "S",
+   "patch": "8.7.0",
+   "effects": [
+    {
+     "tags": [
+      "move"
+     ],
+     "value": 0.1,
+     "to": "self",
+     "when": "near"
+    }
+   ]
+  },
+  {
+   "name": "Hope",
+   "side": "S",
+   "patch": "9.2.0",
+   "effects": [
+    {
+     "tags": [
+      "move"
+     ],
+     "value": 0.05,
+     "to": "self",
+     "when": "gates"
+    }
+   ]
+  },
+  {
+   "name": "Made for This",
+   "side": "S",
+   "patch": "7.4.0",
+   "effects": [
+    {
+     "tags": [
+      "move"
+     ],
+     "value": 0.03,
+     "to": "self",
+     "when": "injured"
+    }
+   ]
+  },
+  {
+   "name": "Teamwork: Power of Two",
+   "side": "S",
+   "patch": "8.3.0",
+   "effects": [
+    {
+     "tags": [
+      "move"
+     ],
+     "value": 0.05,
+     "to": "team",
+     "when": "near"
+    }
+   ]
+  },
+  {
+   "name": "Fixated",
+   "side": "S",
+   "patch": "7.3.3",
+   "effects": [
+    {
+     "tags": [
+      "walk"
+     ],
+     "value": 0.2,
+     "to": "self"
+    }
+   ]
+  },
+  {
+   "name": "Urban Evasion",
+   "side": "S",
+   "patch": "",
+   "effects": [
+    {
+     "tags": [
+      "crouch"
+     ],
+     "value": 1.0,
+     "to": "self"
+    }
+   ]
+  },
+  {
+   "name": "Tenacity",
+   "side": "S",
+   "patch": "9.3.0",
+   "effects": [
+    {
+     "tags": [
+      "crawl"
+     ],
+     "value": 0.5,
+     "to": "self"
+    }
+   ]
+  },
+  {
+   "name": "Champion of Light",
+   "side": "S",
+   "patch": "9.0.0",
+   "effects": [
+    {
+     "tags": [
+      "move"
+     ],
+     "value": 0.5,
+     "to": "self",
+     "when": "trigger"
+    },
+    {
+     "tags": [
+      "kmove"
+     ],
+     "value": -0.2,
+     "to": "enemy",
+     "seconds": 6,
+     "when": "trigger"
+    }
+   ]
+  },
+  {
+   "name": "Chemical Trap",
+   "side": "S",
+   "patch": "8.2.0",
+   "effects": [
+    {
+     "tags": [
+      "kmove"
+     ],
+     "value": -0.5,
+     "to": "enemy",
+     "seconds": 4,
+     "when": "trigger"
+    }
+   ]
+  },
+  {
+   "name": "Bada Bada Boom",
+   "side": "S",
+   "patch": "9.4.0",
+   "effects": [
+    {
+     "tags": [
+      "kmove"
+     ],
+     "value": -0.5,
+     "to": "enemy",
+     "seconds": 6,
+     "when": "trigger"
+    }
+   ]
+  },
+  {
+   "name": "Botany Knowledge",
+   "side": "S",
+   "patch": "9.0.0",
+   "effects": [
+    {
+     "tags": [
+      "heal"
+     ],
+     "value": 0.5,
+     "to": "self"
+    }
+   ]
+  },
+  {
+   "name": "Empathic Connection",
+   "side": "S",
+   "patch": "10.2.0",
+   "effects": [
+    {
+     "tags": [
+      "altruistic"
+     ],
+     "value": 0.4,
+     "to": "self"
+    }
+   ]
+  },
+  {
+   "name": "We'll Make It",
+   "side": "S",
+   "patch": "10.2.0",
+   "effects": [
+    {
+     "tags": [
+      "altruistic"
+     ],
+     "value": 1.0,
+     "to": "self",
+     "seconds": 90,
+     "when": "unhook"
+    }
+   ]
+  },
+  {
+   "name": "Boon: Circle of Healing",
+   "side": "S",
+   "patch": "6.7.0",
+   "effects": [
+    {
+     "tags": [
+      "altruistic"
+     ],
+     "value": 1.0,
+     "to": "team",
+     "when": "boon",
+     "no_item": true
+    }
+   ]
+  },
+  {
+   "name": "Desperate Measures",
+   "side": "S",
+   "patch": "9.0.0",
+   "effects": [
+    {
+     "tags": [
+      "heal",
+      "unhook"
+     ],
+     "value": 0.0,
+     "to": "self",
+     "per": 0.2,
+     "max_n": 4,
+     "when": "hurt"
+    }
+   ]
+  },
+  {
+   "name": "Do No Harm",
+   "side": "S",
+   "patch": "10.2.0",
+   "effects": [
+    {
+     "tags": [
+      "altruistic"
+     ],
+     "value": 0.0,
+     "to": "self",
+     "per": 0.4,
+     "max_n": 2,
+     "when": "hooks"
+    }
+   ]
+  },
+  {
+   "name": "We're Gonna Live Forever",
+   "side": "S",
+   "patch": "8.3.2",
+   "effects": [
+    {
+     "tags": [
+      "heal_dying"
+     ],
+     "value": 1.0,
+     "to": "self"
+    }
+   ]
+  },
+  {
+   "name": "No One Left Behind",
+   "side": "S",
+   "patch": "10.2.0",
+   "effects": [
+    {
+     "tags": [
+      "heal",
+      "unhook"
+     ],
+     "value": 1.0,
+     "to": "self",
+     "when": "gates"
+    }
+   ]
+  },
+  {
+   "name": "Leader",
+   "side": "S",
+   "patch": "2.5.0",
+   "effects": [
+    {
+     "tags": [
+      "cleanse",
+      "gate",
+      "heal",
+      "sabotage",
+      "unhook",
+      "unlock"
+     ],
+     "value": 0.3,
+     "to": "others",
+     "when": "near"
+    }
+   ]
+  },
+  {
+   "name": "Better than New",
+   "side": "S",
+   "patch": "10.2.0",
+   "effects": [
+    {
+     "tags": [
+      "bless",
+      "cleanse",
+      "heal",
+      "unlock"
+     ],
+     "value": 0.5,
+     "to": "others",
+     "when": "trigger"
+    }
+   ]
+  },
+  {
+   "name": "Flow State",
+   "side": "S",
+   "patch": "10.2.0",
+   "effects": [
+    {
+     "tags": [
+      "bless",
+      "cleanse",
+      "heal",
+      "unhook"
+     ],
+     "value": 0.0,
+     "to": "self",
+     "per": 0.15,
+     "max_n": 5,
+     "when": "tokens"
+    }
+   ]
+  },
+  {
+   "name": "Resilience",
+   "side": "S",
+   "patch": "10.2.0",
+   "effects": [
+    {
+     "tags": [
+      "bless",
+      "cleanse",
+      "heal",
+      "gate",
+      "sabotage",
+      "unlock",
+      "unhook",
+      "vault_window"
+     ],
+     "value": 0.09,
+     "to": "self",
+     "when": "injured"
+    }
+   ]
+  },
+  {
+   "name": "Bound by Obsession",
+   "side": "S",
+   "patch": "10.2.0",
+   "effects": [
+    {
+     "tags": [
+      "cleanse",
+      "heal"
+     ],
+     "value": 0.1,
+     "to": "self",
+     "when": "trigger"
+    }
+   ]
+  },
+  {
+   "name": "Unbreakable",
+   "side": "S",
+   "patch": "1.4.2",
+   "effects": [
+    {
+     "tags": [
+      "recover"
+     ],
+     "value": 0.35,
+     "to": "self"
+    }
+   ]
+  },
+  {
+   "name": "No Mither",
+   "side": "S",
+   "patch": "9.2.0",
+   "effects": [
+    {
+     "tags": [
+      "recover"
+     ],
+     "value": 0.25,
+     "to": "self"
+    }
+   ]
+  },
+  {
+   "name": "Plot Twist",
+   "side": "S",
+   "patch": "9.2.0",
+   "effects": [
+    {
+     "tags": [
+      "recover"
+     ],
+     "value": 0.25,
+     "to": "self",
+     "when": "trigger"
+    }
+   ]
+  },
+  {
+   "name": "Boon: Exponential",
+   "side": "S",
+   "patch": "5.4.0",
+   "effects": [
+    {
+     "tags": [
+      "recover"
+     ],
+     "value": 1.0,
+     "to": "team",
+     "when": "boon"
+    }
+   ]
+  },
+  {
+   "name": "Finesse",
+   "side": "S",
+   "patch": "8.1.0",
+   "effects": [
+    {
+     "tags": [
+      "vault_fast"
+     ],
+     "value": 0.2,
+     "to": "self",
+     "when": "healthy"
+    }
+   ]
+  },
+  {
+   "name": "Spine Chill",
+   "side": "S",
+   "patch": "10.2.0",
+   "effects": [
+    {
+     "tags": [
+      "vault"
+     ],
+     "value": 0.1,
+     "to": "self",
+     "seconds": 12,
+     "when": "trigger"
+    }
+   ]
+  },
+  {
+   "name": "Windows of Opportunity",
+   "side": "S",
+   "patch": "",
+   "effects": [
+    {
+     "tags": [
+      "vault_window"
+     ],
+     "value": 0.1,
+     "to": "self"
+    }
+   ]
+  },
+  {
+   "name": "Counterforce",
+   "side": "S",
+   "patch": "9.0.0",
+   "effects": [
+    {
+     "tags": [
+      "cleanse"
+     ],
+     "value": 1.25,
+     "to": "self",
+     "per": 0.25,
+     "max_n": 4,
+     "when": "tokens"
+    }
+   ]
+  },
+  {
+   "name": "Calm Spirit",
+   "side": "S",
+   "patch": "10.2.0",
+   "effects": [
+    {
+     "tags": [
+      "bless",
+      "cleanse",
+      "unlock"
+     ],
+     "value": 0.1,
+     "to": "self"
+    }
+   ]
+  },
+  {
+   "name": "Boon: Illumination",
+   "side": "S",
+   "patch": "10.2.0",
+   "effects": [
+    {
+     "tags": [
+      "bless"
+     ],
+     "value": 2.0,
+     "to": "self",
+     "when": "boon"
+    }
+   ]
+  },
+  {
+   "name": "Pharmacy",
+   "side": "S",
+   "patch": "10.2.0",
+   "effects": [
+    {
+     "tags": [
+      "unlock"
+     ],
+     "value": 1.25,
+     "to": "self"
+    }
+   ]
+  },
+  {
+   "name": "Plunderer's Instinct",
+   "side": "S",
+   "patch": "10.2.0",
+   "effects": [
+    {
+     "tags": [
+      "unlock"
+     ],
+     "value": 2.0,
+     "to": "self"
+    }
+   ]
+  },
+  {
+   "name": "Wake Up!",
+   "side": "S",
+   "patch": "8.5.0",
+   "effects": [
+    {
+     "tags": [
+      "gate"
+     ],
+     "value": 0.1,
+     "to": "self",
+     "per": 0.15,
+     "max_n": 4,
+     "when": "alive"
+    }
+   ]
+  },
+  {
+   "name": "Down to the Last",
+   "side": "S",
+   "patch": "10.2.0",
+   "effects": [
+    {
+     "tags": [
+      "gate"
+     ],
+     "value": 0.0,
+     "to": "others",
+     "per": 0.1,
+     "max_n": 6,
+     "when": "tokens"
+    }
+   ]
+  },
+  {
+   "name": "Saboteur",
+   "side": "S",
+   "patch": "7.1.0",
+   "effects": [
+    {
+     "tags": [
+      "sabotage"
+     ],
+     "value": 0.3,
+     "to": "self"
+    }
+   ]
+  },
+  {
+   "name": "Slippery Meat",
+   "side": "S",
+   "patch": "10.2.0",
+   "effects": [
+    {
+     "tags": [
+      "unhook"
+     ],
+     "value": 1.0,
+     "to": "others"
+    }
+   ]
+  },
+  {
+   "name": "Agitation",
+   "side": "K",
+   "patch": "10.2.0",
+   "effects": [
+    {
+     "tags": [
+      "carry"
+     ],
+     "value": 0.18,
+     "to": "self"
+    }
+   ]
+  },
+  {
+   "name": "Bamboozle",
+   "side": "K",
+   "patch": "2.5.0",
+   "effects": [
+    {
+     "tags": [
+      "kvault"
+     ],
+     "value": 0.15,
+     "to": "self"
+    }
+   ]
+  },
+  {
+   "name": "Dark Arrogance",
+   "side": "K",
+   "patch": "10.2.2",
+   "effects": [
+    {
+     "tags": [
+      "kvault"
+     ],
+     "value": 0.25,
+     "to": "self"
+    },
+    {
+     "tags": [
+      "recover_hit",
+      "recover_miss"
+     ],
+     "value": 0.1,
+     "to": "self"
+    }
+   ]
+  },
+  {
+   "name": "Superior Anatomy",
+   "side": "K",
+   "patch": "10.2.0",
+   "effects": [
+    {
+     "tags": [
+      "kvault"
+     ],
+     "value": 0.4,
+     "to": "self",
+     "seconds": 10,
+     "when": "trigger"
+    }
+   ]
+  },
+  {
+   "name": "Hex: Crowd Control",
+   "side": "K",
+   "patch": "9.5.0",
+   "effects": [
+    {
+     "tags": [
+      "kvault"
+     ],
+     "value": 0.15,
+     "to": "self",
+     "when": "hex"
+    }
+   ]
+  },
+  {
+   "name": "Fire Up",
+   "side": "K",
+   "patch": "10.2.0",
+   "effects": [
+    {
+     "tags": [
+      "pickup",
+      "break",
+      "damage",
+      "kvault"
+     ],
+     "value": 0.0,
+     "to": "self",
+     "per": 0.08,
+     "max_n": 5,
+     "when": "tokens"
+    }
+   ]
+  },
+  {
+   "name": "Brutal Strength",
+   "side": "K",
+   "patch": "",
+   "effects": [
+    {
+     "tags": [
+      "break",
+      "damage"
+     ],
+     "value": 0.2,
+     "to": "self"
+    }
+   ]
+  },
+  {
+   "name": "Forever Entwined",
+   "side": "K",
+   "patch": "8.6.0",
+   "effects": [
+    {
+     "tags": [
+      "pickup",
+      "hooking"
+     ],
+     "value": 0.0,
+     "to": "self",
+     "per": 0.04,
+     "max_n": 8,
+     "when": "tokens"
+    }
+   ]
+  },
+  {
+   "name": "Iron Maiden",
+   "side": "K",
+   "patch": "4.5.0",
+   "effects": [
+    {
+     "tags": [
+      "locker"
+     ],
+     "value": 0.5,
+     "to": "self"
+    }
+   ]
+  },
+  {
+   "name": "Unrelenting",
+   "side": "K",
+   "patch": "10.2.0",
+   "effects": [
+    {
+     "tags": [
+      "recover_miss"
+     ],
+     "value": 0.4,
+     "to": "self"
+    },
+    {
+     "tags": [
+      "recover_hit"
+     ],
+     "value": 0.1,
+     "to": "self"
+    }
+   ]
+  },
+  {
+   "name": "Help Wanted",
+   "side": "K",
+   "patch": "10.2.0",
+   "effects": [
+    {
+     "tags": [
+      "recover_hit"
+     ],
+     "value": 0.25,
+     "to": "self",
+     "seconds": 90,
+     "when": "trigger"
+    }
+   ]
+  },
+  {
+   "name": "Batteries Included",
+   "side": "K",
+   "patch": "9.0.0",
+   "effects": [
+    {
+     "tags": [
+      "kmove"
+     ],
+     "value": 0.05,
+     "to": "self",
+     "when": "near"
+    }
+   ]
+  },
+  {
+   "name": "Furtive Chase",
+   "side": "K",
+   "patch": "8.7.0",
+   "effects": [
+    {
+     "tags": [
+      "kmove"
+     ],
+     "value": 0.1,
+     "to": "self",
+     "seconds": 18,
+     "when": "trigger"
+    }
+   ]
+  },
+  {
+   "name": "Game Afoot",
+   "side": "K",
+   "patch": "10.2.0",
+   "effects": [
+    {
+     "tags": [
+      "kmove"
+     ],
+     "value": 0.1,
+     "to": "self",
+     "seconds": 10,
+     "when": "trigger"
+    }
+   ]
+  },
+  {
+   "name": "Machine Learning",
+   "side": "K",
+   "patch": "10.2.0",
+   "effects": [
+    {
+     "tags": [
+      "kmove"
+     ],
+     "value": 0.08,
+     "to": "self",
+     "seconds": 60,
+     "when": "trigger"
+    }
+   ]
+  },
+  {
+   "name": "Hex: No One Escapes Death",
+   "side": "K",
+   "patch": "6.1.0",
+   "effects": [
+    {
+     "tags": [
+      "kmove"
+     ],
+     "value": 0.04,
+     "to": "self",
+     "when": "gates"
+    }
+   ]
+  },
+  {
+   "name": "Hex: Devour Hope",
+   "side": "K",
+   "patch": "2.6.0",
+   "effects": [
+    {
+     "tags": [
+      "kmove"
+     ],
+     "value": 0.05,
+     "to": "self",
+     "seconds": 10,
+     "when": "hex"
+    }
+   ]
+  },
+  {
+   "name": "Rapid Brutality",
+   "side": "K",
+   "patch": "7.2.0",
+   "effects": [
+    {
+     "tags": [
+      "kmove"
+     ],
+     "value": 0.05,
+     "to": "self",
+     "seconds": 10,
+     "when": "trigger"
+    }
+   ]
+  },
+  {
+   "name": "See How They Run",
+   "side": "K",
+   "patch": "3.7.0",
+   "effects": [
+    {
+     "tags": [
+      "kmove"
+     ],
+     "value": 0.0,
+     "to": "self",
+     "per": 0.05,
+     "max_n": 3,
+     "when": "tokens"
+    }
+   ]
+  },
+  {
+   "name": "Shadowborn",
+   "side": "K",
+   "patch": "7.5.0",
+   "effects": [
+    {
+     "tags": [
+      "kmove"
+     ],
+     "value": 0.1,
+     "to": "self",
+     "seconds": 10,
+     "when": "trigger"
+    }
+   ]
+  },
+  {
+   "name": "Unbound",
+   "side": "K",
+   "patch": "10.2.0",
+   "effects": [
+    {
+     "tags": [
+      "kmove"
+     ],
+     "value": 0.05,
+     "to": "self",
+     "seconds": 25,
+     "when": "trigger"
+    }
+   ]
+  },
+  {
+   "name": "Funny Business",
+   "side": "K",
+   "patch": "",
+   "effects": [
+    {
+     "tags": [
+      "kmove"
+     ],
+     "value": 0.1,
+     "to": "self",
+     "seconds": 10,
+     "when": "trigger"
+    }
+   ]
+  },
+  {
+   "name": "Rampage",
+   "side": "K",
+   "patch": "",
+   "effects": [
+    {
+     "tags": [
+      "kmove"
+     ],
+     "value": 0.0,
+     "to": "self",
+     "per": 0.01,
+     "max_n": 13,
+     "seconds": 13,
+     "when": "tokens"
+    }
+   ]
+  },
+  {
+   "name": "Forced Hesitation",
+   "side": "K",
+   "patch": "7.0.0",
+   "effects": [
+    {
+     "tags": [
+      "move"
+     ],
+     "value": -0.2,
+     "to": "enemy",
+     "seconds": 10,
+     "when": "trigger"
+    }
+   ]
+  },
+  {
+   "name": "Knock Out",
+   "side": "K",
+   "patch": "10.2.0",
+   "effects": [
+    {
+     "tags": [
+      "move"
+     ],
+     "value": -0.2,
+     "to": "enemy",
+     "seconds": 4,
+     "when": "trigger"
+    }
+   ]
+  },
+  {
+   "name": "Hex: Nothing but Misery",
+   "side": "K",
+   "patch": "8.6.0",
+   "effects": [
+    {
+     "tags": [
+      "move"
+     ],
+     "value": -0.05,
+     "to": "enemy",
+     "seconds": 15,
+     "when": "hex"
+    },
+    {
+     "tags": [
+      "vault"
+     ],
+     "value": -0.1,
+     "to": "enemy",
+     "seconds": 15,
+     "when": "hex"
+    }
+   ]
+  },
+  {
+   "name": "Hex: Scared to Death",
+   "side": "K",
+   "patch": "",
+   "effects": [
+    {
+     "tags": [
+      "move"
+     ],
+     "value": -0.13,
+     "to": "enemy",
+     "seconds": 3,
+     "when": "hex"
+    }
+   ]
+  },
+  {
+   "name": "Hex: Under Your Thumb",
+   "side": "K",
+   "patch": "",
+   "effects": [
+    {
+     "tags": [
+      "run"
+     ],
+     "value": 0.0,
+     "to": "enemy",
+     "cap": 0.15,
+     "when": "hex"
+    }
+   ]
+  },
+  {
+   "name": "Coulrophobia",
+   "side": "K",
+   "patch": "10.1.0",
+   "effects": [
+    {
+     "tags": [
+      "heal"
+     ],
+     "value": -0.3,
+     "to": "enemy",
+     "when": "terror"
+    }
+   ]
+  },
+  {
+   "name": "Leverage",
+   "side": "K",
+   "patch": "9.2.0",
+   "effects": [
+    {
+     "tags": [
+      "heal"
+     ],
+     "value": -0.3,
+     "to": "enemy",
+     "seconds": 60,
+     "when": "unhook"
+    }
+   ]
+  },
+  {
+   "name": "Scourge Hook: Weeping Wounds",
+   "side": "K",
+   "patch": "9.0.0",
+   "effects": [
+    {
+     "tags": [
+      "heal"
+     ],
+     "value": -0.16,
+     "to": "enemy",
+     "when": "trigger"
+    }
+   ]
+  },
+  {
+   "name": "Dying Light / Cull the Weak",
+   "side": "K",
+   "patch": "",
+   "effects": [
+    {
+     "tags": [
+      "heal",
+      "sabotage"
+     ],
+     "value": 0.0,
+     "to": "enemy",
+     "per": -0.03,
+     "max_n": 11,
+     "when": "tokens"
+    }
+   ]
+  },
+  {
+   "name": "Hex: Pentimento",
+   "side": "K",
+   "patch": "8.7.0",
+   "effects": [
+    {
+     "tags": [
+      "heal"
+     ],
+     "value": 0.0,
+     "to": "enemy",
+     "per": -0.03,
+     "max_n": 5,
+     "when": "tokens",
+     "first": -0.2
+    }
+   ]
+  },
+  {
+   "name": "Thanatophobia",
+   "side": "K",
+   "patch": "6.1.2 / 6.1.3",
+   "effects": [
+    {
+     "tags": [
+      "cleanse",
+      "sabotage"
+     ],
+     "value": 0.0,
+     "to": "enemy",
+     "per": -0.02,
+     "max_n": 4,
+     "full_at": 4,
+     "full": -0.2,
+     "when": "hurt"
+    }
+   ]
+  }
  ]
 }

@@ -4,7 +4,7 @@ a tab's structure (AutoPage), dialogs and the setup assistant.
 from __future__ import annotations
 
 from PySide6.QtCore import QEvent, QRectF, QSize, Qt, QTimer
-from PySide6.QtGui import QColor, QGuiApplication, QPainter, QPen
+from PySide6.QtGui import QColor, QGuiApplication, QIcon, QPainter, QPen
 from PySide6.QtWidgets import (QBoxLayout, QComboBox, QDialog, QFrame, QGridLayout, QHBoxLayout, QLabel, QLineEdit, QProgressBar,
                                QPushButton, QRadioButton, QScrollArea, QSizePolicy, QSlider, QStackedWidget,
                                QStyle, QStyleOptionSlider, QTabWidget, QVBoxLayout, QWidget)
@@ -746,6 +746,18 @@ INDENT_W = 28                       # 1.29.1: options under the one they depend 
 OVERVIEW_GLYPHS = {"rotate": "rotate", "layout": "chevron_right", "floor": "chevron_right", "scan": "search"}
 
 
+ICON_PX = 20                        # 1.52: a picture before a choice's entry (the calculator's perks)
+_FILE_ICONS = {}
+
+
+def _file_icon(path: str) -> QIcon:
+    """The QIcon of a picture file, made once (many choices list the same perks)."""
+    icon = _FILE_ICONS.get(path)
+    if icon is None:
+        icon = _FILE_ICONS[path] = QIcon(path)
+    return icon
+
+
 def show_control(kind, w, extra, st):
     """Put a model widget's state (app_qt.ui_state) into its Qt control – never sends anything back."""
     if kind == "tab":                    # a tab of a hand-made page: hidden with its frame (extra = its body widget)
@@ -819,6 +831,14 @@ def show_control(kind, w, extra, st):
             w.clear()
             w.addItems(values)
             w.blockSignals(False)
+            w.__dict__.pop("_icons", None)
+        icons = st.get("icons")
+        if icons and w.__dict__.get("_icons") != icons:           # 1.52: a picture per entry (the calculator's perks)
+            w._icons = list(icons)
+            side = round(ICON_PX * qt_theme.current_zoom())
+            w.setIconSize(QSize(side, side))
+            for i, path in enumerate(icons[:w.count()]):
+                w.setItemIcon(i, _file_icon(path) if path else QIcon())
         if w.currentText() != st.get("value") and not (w.isEditable() and w.hasFocus()):
             w.blockSignals(True)
             i = w.findText(st.get("value", ""))
@@ -1687,6 +1707,8 @@ class AutoPage(QWidget, _Arranged):
             w.setFixedWidth(round(n["px"] * qt_theme.current_zoom()))                   # of it: view at its own width)
             w.view().setTextElideMode(Qt.ElideNone)
             w.view().setMinimumWidth(round(260 * qt_theme.current_zoom()))
+        if kind == "label" and n.get("px"):               # 1.52: names of one width – the choices beside them line up
+            w.setFixedWidth(round(n["px"] * qt_theme.current_zoom()))
         if n.get("note"):                                 # 1.23: a warning line of the model ("Note.TLabel")
             w.setProperty("class", "note")
         if kind == "table" and n.get("fit"):

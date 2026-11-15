@@ -1963,8 +1963,6 @@ T = {
         'Количество',
     'Anzahl = {what}':
         'Количество = {what}',
-    'Bedingte Perks zählen als aktiv (z. B. Resilience = verletzt, Déjà Vu = auf einem der drei nahen Generatoren).':
-        'Условные перки считаются активными (например, Resilience = ранен, Déjà Vu = на одном из трёх близких генераторов).',
     'Der Killer nimmt dem Generator {lost} Ladungen (Regressions-Ereignisse: {events}).':
         'Убийца отнимает у генератора {lost} зарядов (событий регрессии: {events}).',
     'Diminishing Returns anwenden':
@@ -1989,14 +1987,10 @@ T = {
         'Путь между генераторами',
     'Mit Diminishing Returns: {on} · ohne: {off} (ein Generator, alle, ohne Killer).':
         'С убывающей отдачей: {on} · без неё: {off} (один генератор, все, без убийцы).',
-    'Perks kombinieren und ausrechnen, wie lange ein Generator dauert':
-        'Сочетайте перки и считайте, сколько займёт генератор',
     'Rechner':
         'Калькулятор',
     'Situation':
         'Ситуация',
-    'Survivor am Generator':
-        'Выживших у генератора',
     'Survivor {n}':
         'Выживший {n}',
     'Survivor-Builds':
@@ -2043,8 +2037,6 @@ T = {
         '1 = этот генератор заблокирован в начале',
     'An (wie im Spiel seit Patch 9.6.0): von mehreren Tempo-Boni zählt der grösste voll, der zweite halb, der dritte zu einem Viertel, der vierte zu einem Achtel. Aus: alle Boni zählen voll – zum Vergleich.':
         'Вкл. (как в игре с патча 9.6.0): из нескольких бонусов скорости наибольший учитывается полностью, второй — наполовину, третий — на четверть, четвёртый — на одну восьмую. Выкл.: все бонусы учитываются полностью — для сравнения.',
-    'Werkzeugkasten':
-        'Ящик с инструментами',
     'Eingerechnet: {what}.':
         'Учтено: {what}.',
     'Kicks und die Anzahl je Killer-Perk gelten für jeden Generator einzeln.':
@@ -2097,6 +2089,200 @@ T = {
         'Очищает все билды и возвращает допущения к исходным значениям.',
     'Runden vom Map-Banner bis zum Rundenende (ab 1 min), nur lokal gespeichert.':
         'Раунды от баннера карты до конца раунда (от 1 мин), хранятся только локально.',
+    ' für Survivor {n}':
+        ' для выжившего {n}',
+    'Als Build A merken':
+        'Запомнить как билд A',
+    'Andere heilen':
+        'Лечение других',
+    'Aufheben und Ablegen':
+        'Поднять и бросить',
+    'Aufhängen':
+        'Повесить на крюк',
+    'Aufschlüsselung':
+        'Разбор по источникам',
+    'Ausgangstor öffnen':
+        'Открыть ворота',
+    'Bedingte Perks zählen als aktiv (z. B. Resilience = verletzt, Hope = Tore mit Strom); die Bedingung steht in der Aufschlüsselung. Ein Werkzeugkasten wirkt beim Reparieren, ein Med-Kit beim Heilen anderer.':
+        'Условные перки считаются активными (например, Resilience = ранен, Hope = ворота запитаны); условие указано в разборе. Ящик с инструментами действует при починке, аптечка – при лечении других.',
+    'Bedingung':
+        'Условие',
+    'Befreien':
+        'Снять с крюка',
+    'Bereich':
+        'Область',
+    'Bester nächster Perk':
+        'Лучший следующий перк',
+    'Bewegung (Haste, Hindered)':
+        'Передвижение (Haste, Hindered)',
+    'Build A':
+        'Билд A',
+    'Build A ist gemerkt: die Spalten „Build A“ und „Unterschied“ zeigen ihn neben dem, was jetzt gewählt ist (− = jetzt schneller bzw. kürzer).':
+        'Билд A запомнен: столбцы «Билд A» и «Разница» показывают его рядом с текущим выбором (− = сейчас быстрее или короче).',
+    'Ducken':
+        'Вприсядку',
+    'Ein Generator braucht 90 Ladungen, ein Survivor schafft 1 pro Sekunde; jeder weitere am selben Generator kostet alle 15 % Tempo.':
+        'Генератору нужно 90 зарядов, выживший даёт 1 в секунду; каждый следующий у того же генератора стоит всем 15 % скорости.',
+    'Erholen am Boden (bis 95 %)':
+        'Восстановление на земле (до 95 %)',
+    'Fenster, langsam':
+        'Окно, медленно',
+    'Fenster, mittel':
+        'Окно, средне',
+    'Fenster, schnell':
+        'Окно, быстро',
+    'Fenster-Vault':
+        'Перелезть через окно',
+    'Gehen':
+        'Шагом',
+    'Generator beschädigen':
+        'Повредить генератор',
+    'Geschwindigkeit in m/s. Für Haste zusammen mit Hindered nennt das Wiki keine eigene Formel – gerechnet wird wie bei Aktionen (Annahme).':
+        'Скорость в м/с. Для Haste вместе с Hindered вики не даёт отдельной формулы – считается как для действий (допущение).',
+    'Grundwert':
+        'Базовое значение',
+    'Haken (Befreien, Sabotieren)':
+        'Крюки (снятие, саботаж)',
+    'Haken sabotieren':
+        'Саботировать крюк',
+    'Heilen und Erholen':
+        'Лечение и восстановление',
+    'Hex-Totem segnen':
+        'Благословить Hex-тотем',
+    'Hält die jetzige Auswahl (Builds und Annahmen) als Build A fest. Die Ergebnistabelle zeigt ihn danach neben allem, was Sie ändern – so lassen sich zwei Builds vergleichen.':
+        'Запоминает текущий выбор (билды и допущения) как билд A. Таблица результатов затем показывает его рядом со всем, что вы меняете, – так можно сравнить два билда.',
+    'Item':
+        'Предмет',
+    'Killer mit 3,85 m/s':
+        'Убийца с 3,85 м/с',
+    'Killer mit 4,4 m/s':
+        'Убийца с 4,4 м/с',
+    'Killer mit 4,6 m/s':
+        'Убийца с 4,6 м/с',
+    'Killer: Aktionen':
+        'Убийца: действия',
+    'Killer: Bewegung':
+        'Убийца: передвижение',
+    'Killer: Erholung nach Angriffen':
+        'Убийца: восстановление после атак',
+    'Kriechen':
+        'Ползком',
+    'Tokens der Survivor-Perks':
+        'Жетоны перков выживших',
+    'Tokens des Perks':
+        'жетоны перка',
+    'Mit Diminishing Returns: {on} · ohne: {off} ({what}).':
+        'С убывающей отдачей: {on} · без неё: {off} ({what}).',
+    'Nach einem Fehlschlag':
+        'После промаха',
+    'Nach einem Treffer':
+        'После попадания',
+    'Nennwert':
+        'Номинал',
+    'Noch kein Perk gewählt, der in diesem Bereich wirkt.':
+        'Ещё не выбран перк, действующий в этой области.',
+    'Palette oder Wand zerstören':
+        'Сломать доску или стену',
+    'Palette, langsam':
+        'Доска, медленно',
+    'Palette, schnell':
+        'Доска, быстро',
+    'Perk-Bilder: eigene Bilder (PNG oder WebP, benannt wie der Perk) im Ordner „{folder}“ des Datenordners erscheinen nach dem nächsten Start in den Auswahllisten.':
+        'Изображения перков: свои изображения (PNG или WebP, названные как перк) в папке «{folder}» папки данных появятся в списках после следующего запуска.',
+    'Perks kombinieren und ausrechnen, was sie nach Diminishing Returns bringen':
+        'Комбинируйте перки и считайте, что они дают с убывающей отдачей',
+    'Quelle':
+        'Источник',
+    'Rennen':
+        'Бегом',
+    'Reparieren (Generatoren)':
+        'Починка (генераторы)',
+    'Sich selbst heilen (Med-Kit)':
+        'Самолечение (аптечка)',
+    'Spind durchsuchen':
+        'Обыскать шкафчик',
+    'Sterbende aufheben':
+        'Поднять умирающего',
+    'Survivor im Team':
+        'Выживших в команде',
+    'Tempo {p} %':
+        'скорость {p} %',
+    'Tore mit Strom':
+        'ворота запитаны',
+    'Totem reinigen':
+        'Очистить тотем',
+    'Totem segnen':
+        'Благословить тотем',
+    'Totems, Truhen, Tore':
+        'Тотемы, сундуки, ворота',
+    'Tragen':
+        'С ношей',
+    'Truhe öffnen':
+        'Открыть сундук',
+    'Unterschied':
+        'Разница',
+    'Vaults (Fenster, Paletten)':
+        'Перелезание (окна, доски)',
+    'Vergisst Build A; die Tabelle zeigt wieder nur die jetzige Auswahl.':
+        'Забывает билд A; таблица снова показывает только текущий выбор.',
+    'Vergleich beenden':
+        'Закончить сравнение',
+    'Von mehreren Boni (oder Mali) auf dasselbe zählt der größte voll, der zweite zur Hälfte, der dritte zu 25 %, der vierte zu 12,5 %, jeder weitere zu 5 % (seit Patch 9.6.0). Boni werden addiert, Mali multipliziert.':
+        'Из нескольких бонусов (или штрафов) к одному и тому же наибольший считается полностью, второй – наполовину, третий – на 25 %, четвёртый – на 12,5 %, каждый следующий – на 5 % (с патча 9.6.0). Бонусы складываются, штрафы перемножаются.',
+    'Zeit je Aktion; ohne Grundwert im Wiki steht nur das Tempo da.':
+        'Время на действие; без базового значения в вики показана только скорость.',
+    'alle':
+        'все',
+    'die Hälfte':
+        'половина',
+    'ein Generator, alle zusammen: {a} → {b}':
+        'один генератор, все вместе: {a} → {b}',
+    'eine':
+        'один',
+    'gesund':
+        'здоров',
+    'höchstens {p}':
+        'не более {p}',
+    'im Boon-Bereich':
+        'в зоне Boon',
+    'im Terrorradius':
+        'в радиусе террора',
+    'in Reichweite':
+        'в радиусе действия',
+    'mit der Obsession':
+        'с одержимостью',
+    'nach Auslösung':
+        'после срабатывания',
+    'nach einer Befreiung':
+        'после снятия с крюка',
+    'solange das Hex-Totem steht':
+        'пока стоит Hex-тотем',
+    'verletzt':
+        'ранен',
+    'wirkt mit':
+        'действует',
+    'zu {k}. am Generator: ×{c}':
+        '{k} у генератора: ×{c}',
+    'zählt zu':
+        'учитывается',
+    '{n} Hakenstufen':
+        'стадий крюка: {n}',
+    '{n} Survivor am Leben':
+        'живых выживших: {n}',
+    '{n} verletzt, sterbend oder am Haken':
+        'ранены, умирают или на крюке: {n}',
+    '{n} Tokens':
+        'жетонов: {n}',
+    '{side}: kein freier Platz im Build.':
+        '{side}: в билде нет свободного места.',
+    '{side}: kein weiterer Perk ändert hier etwas.':
+        '{side}: ни один другой перк здесь ничего не меняет.',
+    '{s} s lang':
+        'на {s} с',
+    '„Als Build A merken“ hält die jetzige Auswahl fest; danach zeigt die Tabelle jede Änderung daneben.':
+        '«Запомнить как билд A» фиксирует текущий выбор; затем таблица показывает каждое изменение рядом.',
+    'Tempo (relativ)':
+        'Относительная скорость',
     'Claude hat unverständlich geantwortet.':
         'Ответ Claude не удалось прочитать.',
     'Claude ist nicht erreichbar – keine Internetverbindung?':

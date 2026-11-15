@@ -1963,8 +1963,6 @@ T = {
         '回数',
     'Anzahl = {what}':
         '回数 = {what}',
-    'Bedingte Perks zählen als aktiv (z. B. Resilience = verletzt, Déjà Vu = auf einem der drei nahen Generatoren).':
-        '条件付きのパークは発動中として計算します（例：Resilience = 負傷、Déjà Vu = 近い3台の発電機のいずれか）。',
     'Der Killer nimmt dem Generator {lost} Ladungen (Regressions-Ereignisse: {events}).':
         'キラーにより発電機は {lost} チャージを失います（後退イベント：{events}）。',
     'Diminishing Returns anwenden':
@@ -1989,14 +1987,10 @@ T = {
         '発電機間の移動',
     'Mit Diminishing Returns: {on} · ohne: {off} (ein Generator, alle, ohne Killer).':
         '効果逓減あり：{on} · なし：{off}（発電機1台、全員、キラーなし）。',
-    'Perks kombinieren und ausrechnen, wie lange ein Generator dauert':
-        'パークを組み合わせて発電機にかかる時間を計算',
     'Rechner':
         '計算機',
     'Situation':
         '状況',
-    'Survivor am Generator':
-        '発電機を修理するサバイバー',
     'Survivor {n}':
         'サバイバー{n}',
     'Survivor-Builds':
@@ -2043,8 +2037,6 @@ T = {
         '1 = この発電機は開始時にブロックされる',
     'An (wie im Spiel seit Patch 9.6.0): von mehreren Tempo-Boni zählt der grösste voll, der zweite halb, der dritte zu einem Viertel, der vierte zu einem Achtel. Aus: alle Boni zählen voll – zum Vergleich.':
         'オン（パッチ 9.6.0 以降のゲームと同じ）：複数の速度ボーナスのうち最大のものは全額、2番目は半分、3番目は4分の1、4番目は8分の1で計算します。オフ：すべて全額で計算（比較用）。',
-    'Werkzeugkasten':
-        '工具箱',
     'Eingerechnet: {what}.':
         '計算に含む：{what}。',
     'Kicks und die Anzahl je Killer-Perk gelten für jeden Generator einzeln.':
@@ -2097,6 +2089,200 @@ T = {
         'すべてのビルドを消去し、前提を初期値に戻します。',
     'Runden vom Map-Banner bis zum Rundenende (ab 1 min), nur lokal gespeichert.':
         'マップバナーからラウンド終了まで（1分以上）のラウンド。保存はこのPCのみ。',
+    ' für Survivor {n}':
+        '（サバイバー{n}）',
+    'Als Build A merken':
+        'ビルドAとして記憶',
+    'Andere heilen':
+        '他者を治療',
+    'Aufheben und Ablegen':
+        '担ぐ・降ろす',
+    'Aufhängen':
+        'フックに吊るす',
+    'Aufschlüsselung':
+        '内訳',
+    'Ausgangstor öffnen':
+        '脱出ゲートを開ける',
+    'Bedingte Perks zählen als aktiv (z. B. Resilience = verletzt, Hope = Tore mit Strom); die Bedingung steht in der Aufschlüsselung. Ein Werkzeugkasten wirkt beim Reparieren, ein Med-Kit beim Heilen anderer.':
+        '条件付きパークは発動中として計算します（例：Resilience = 負傷、Hope = ゲート通電）。条件は内訳に表示されます。工具箱は修理時、医療キットは他者の治療時に効きます。',
+    'Bedingung':
+        '条件',
+    'Befreien':
+        'フックから救助',
+    'Bereich':
+        '分野',
+    'Bester nächster Perk':
+        '次に最適なパーク',
+    'Bewegung (Haste, Hindered)':
+        '移動（Haste、Hindered）',
+    'Build A':
+        'ビルドA',
+    'Build A ist gemerkt: die Spalten „Build A“ und „Unterschied“ zeigen ihn neben dem, was jetzt gewählt ist (− = jetzt schneller bzw. kürzer).':
+        'ビルドAを記憶しました。「ビルドA」と「差」の列が現在の選択と並べて表示します（− = 現在のほうが速い／短い）。',
+    'Ducken':
+        'しゃがみ',
+    'Ein Generator braucht 90 Ladungen, ein Survivor schafft 1 pro Sekunde; jeder weitere am selben Generator kostet alle 15 % Tempo.':
+        '発電機には90チャージが必要で、サバイバー1人は毎秒1チャージ進めます。同じ発電機に1人増えるごとに全員の速度が15 %下がります。',
+    'Erholen am Boden (bis 95 %)':
+        '這いずり中の回復（95 %まで）',
+    'Fenster, langsam':
+        '窓、低速',
+    'Fenster, mittel':
+        '窓、中速',
+    'Fenster, schnell':
+        '窓、高速',
+    'Fenster-Vault':
+        '窓の乗り越え',
+    'Gehen':
+        '歩き',
+    'Generator beschädigen':
+        '発電機を破壊',
+    'Geschwindigkeit in m/s. Für Haste zusammen mit Hindered nennt das Wiki keine eigene Formel – gerechnet wird wie bei Aktionen (Annahme).':
+        '速度はm/s。HasteとHinderedが同時にある場合の式はWikiにないため、アクションと同じ規則で計算します（仮定）。',
+    'Grundwert':
+        '基本値',
+    'Haken (Befreien, Sabotieren)':
+        'フック（救助、破壊）',
+    'Haken sabotieren':
+        'フックを破壊',
+    'Heilen und Erholen':
+        '治療と回復',
+    'Hex-Totem segnen':
+        'Hexトーテムを祝福',
+    'Hält die jetzige Auswahl (Builds und Annahmen) als Build A fest. Die Ergebnistabelle zeigt ihn danach neben allem, was Sie ändern – so lassen sich zwei Builds vergleichen.':
+        '現在の選択（ビルドと前提）をビルドAとして記憶します。以後、結果の表が変更内容と並べて表示するので、2つのビルドを比較できます。',
+    'Item':
+        'アイテム',
+    'Killer mit 3,85 m/s':
+        '3.85 m/sのキラー',
+    'Killer mit 4,4 m/s':
+        '4.4 m/sのキラー',
+    'Killer mit 4,6 m/s':
+        '4.6 m/sのキラー',
+    'Killer: Aktionen':
+        'キラー：アクション',
+    'Killer: Bewegung':
+        'キラー：移動',
+    'Killer: Erholung nach Angriffen':
+        'キラー：攻撃後の硬直',
+    'Kriechen':
+        '這いずり',
+    'Tokens der Survivor-Perks':
+        'サバイバーのパークのトークン',
+    'Tokens des Perks':
+        'パークのトークン',
+    'Mit Diminishing Returns: {on} · ohne: {off} ({what}).':
+        '効果逓減あり：{on} · なし：{off}（{what}）。',
+    'Nach einem Fehlschlag':
+        '攻撃を外した後',
+    'Nach einem Treffer':
+        '攻撃を当てた後',
+    'Nennwert':
+        '表記値',
+    'Noch kein Perk gewählt, der in diesem Bereich wirkt.':
+        'この分野で効くパークがまだ選ばれていません。',
+    'Palette oder Wand zerstören':
+        'パレット・壁を破壊',
+    'Palette, langsam':
+        'パレット、低速',
+    'Palette, schnell':
+        'パレット、高速',
+    'Perk-Bilder: eigene Bilder (PNG oder WebP, benannt wie der Perk) im Ordner „{folder}“ des Datenordners erscheinen nach dem nächsten Start in den Auswahllisten.':
+        'パーク画像：データフォルダーの「{folder}」フォルダーに置いた自分の画像（PNGまたはWebP、パーク名のファイル名）は、次回起動後に選択リストに表示されます。',
+    'Perks kombinieren und ausrechnen, was sie nach Diminishing Returns bringen':
+        'パークを組み合わせ、効果逓減後の効果を計算',
+    'Quelle':
+        '由来',
+    'Rennen':
+        '走り',
+    'Reparieren (Generatoren)':
+        '修理（発電機）',
+    'Sich selbst heilen (Med-Kit)':
+        '自己治療（医療キット）',
+    'Spind durchsuchen':
+        'ロッカーを調べる',
+    'Sterbende aufheben':
+        '瀕死のサバイバーを治療',
+    'Survivor im Team':
+        'チームのサバイバー',
+    'Tempo {p} %':
+        '速度 {p} %',
+    'Tore mit Strom':
+        'ゲート通電',
+    'Totem reinigen':
+        'トーテムを浄化',
+    'Totem segnen':
+        'トーテムを祝福',
+    'Totems, Truhen, Tore':
+        'トーテム、チェスト、ゲート',
+    'Tragen':
+        '担ぎ中',
+    'Truhe öffnen':
+        'チェストを開ける',
+    'Unterschied':
+        '差',
+    'Vaults (Fenster, Paletten)':
+        '乗り越え（窓、パレット）',
+    'Vergisst Build A; die Tabelle zeigt wieder nur die jetzige Auswahl.':
+        'ビルドAを消去し、表は現在の選択だけを表示します。',
+    'Vergleich beenden':
+        '比較を終了',
+    'Von mehreren Boni (oder Mali) auf dasselbe zählt der größte voll, der zweite zur Hälfte, der dritte zu 25 %, der vierte zu 12,5 %, jeder weitere zu 5 % (seit Patch 9.6.0). Boni werden addiert, Mali multipliziert.':
+        '同じ対象への複数のボーナス（またはペナルティ）は、最大のものが全額、2番目が半分、3番目が25 %、4番目が12.5 %、それ以降は5 %で計算されます（パッチ9.6.0以降）。ボーナスは加算、ペナルティは乗算です。',
+    'Zeit je Aktion; ohne Grundwert im Wiki steht nur das Tempo da.':
+        'アクションごとの時間。Wikiに基本値がないものは速度だけを表示します。',
+    'alle':
+        'すべて',
+    'die Hälfte':
+        '半分',
+    'ein Generator, alle zusammen: {a} → {b}':
+        '発電機1台、全員で：{a} → {b}',
+    'eine':
+        '1個',
+    'gesund':
+        '健康',
+    'höchstens {p}':
+        '最大 {p}',
+    'im Boon-Bereich':
+        'Boonの範囲内',
+    'im Terrorradius':
+        '脅威範囲内',
+    'in Reichweite':
+        '範囲内',
+    'mit der Obsession':
+        'オブセッションと',
+    'nach Auslösung':
+        '発動後',
+    'nach einer Befreiung':
+        '救助後',
+    'solange das Hex-Totem steht':
+        'Hexトーテムがある間',
+    'verletzt':
+        '負傷',
+    'wirkt mit':
+        '実効',
+    'zu {k}. am Generator: ×{c}':
+        '発電機に{k}人：×{c}',
+    'zählt zu':
+        '計上',
+    '{n} Hakenstufen':
+        'フック段階 {n}',
+    '{n} Survivor am Leben':
+        '生存サバイバー {n}人',
+    '{n} verletzt, sterbend oder am Haken':
+        '負傷・瀕死・フック {n}人',
+    '{n} Tokens':
+        'トークン {n}',
+    '{side}: kein freier Platz im Build.':
+        '{side}：ビルドに空きがありません。',
+    '{side}: kein weiterer Perk ändert hier etwas.':
+        '{side}：ここで効果のあるパークは他にありません。',
+    '{s} s lang':
+        '{s}秒間',
+    '„Als Build A merken“ hält die jetzige Auswahl fest; danach zeigt die Tabelle jede Änderung daneben.':
+        '「ビルドAとして記憶」で現在の選択を保存すると、以後の変更が表に並べて表示されます。',
+    'Tempo (relativ)':
+        '相対速度',
     'Claude hat unverständlich geantwortet.':
         'Claude の回答を読み取れませんでした。',
     'Claude ist nicht erreichbar – keine Internetverbindung?':
