@@ -7,6 +7,7 @@ import logging
 import time
 
 from . import dashboard, history, layout, layoutmem, media, official, qt_theme, selfload, skin, spotify, sysinfo
+from . import records
 from .capture import IS_WIN
 from .i18n import _
 from .textnorm import fmt_duration
@@ -37,11 +38,13 @@ def today_mode(hist, queue: dict, last, farm_on: bool) -> str:
     return "farming" if last is not None and last.farming and not last.custom else "normal"
 
 
-def today_rows(j, now: float, mode: str | None = None) -> list:
+def today_rows(j, now: float, mode: str | None = None, streak: bool = False) -> list:
     """HUD rows of today (pure apart from the clock): [[(text, colour), ...], ...]. 1.8.56 (user: tell normal and
     farming rounds apart): normal rounds with their escape rate (and Ø kills), farming rounds with their Ø
     bloodpoints. ``mode`` (1.8.57, today_mode): only that kind, its row even with no round yet; None = each kind
-    played today."""
+    played today. ``streak`` (setting overlay.today_streak): with the normal rounds a row "SERIE" – the 4Ks / escapes
+    in a row of the running session (records.session_streak), "–" without one; the row stays while it is on, so
+    the card never grows or shrinks between rounds."""
     d = history.today(j.rounds, now)
     day = history.period_start("day", now)
     mine = [r for r in j.rounds if r.t >= day and id(r) in j.off]
@@ -55,6 +58,11 @@ def today_rows(j, now: float, mode: str | None = None) -> list:
         if s["killer"]:
             res += [(" · ", sysinfo.DIM), (_("Ø KILLS "), sysinfo.DIM), (f"{s['kills']:.1f}", sysinfo.WHITE)]
         rows.append(res)
+        if streak:
+            run = records.session_streak([r for r in j.rounds if history.normal(r)], j.off, now)
+            text = "–" if run is None else (f"{run[1]} × 4K" if run[0] == "killer"
+                                            else _("{n} × ENTKOMMEN", n=run[1]))
+            rows.append([(_("SERIE "), sysinfo.DIM), (text, sysinfo.WHITE)])
     if mode == "farming" or (mode is None and d["farming"]):
         b = dashboard.bp_rate([(r, j.off[id(r)]) for r in mine if r.farming and not r.custom])   # 1.8.87: BP/h
         res = [(_("FARMING "), sysinfo.DIM), (str(d["farming"]), sysinfo.WHITE)]
@@ -276,8 +284,9 @@ class SysInfo:
         if last is None or last[0] is not j:              # the latest round, once per joined history
             self._today_last = last = (j, max(j.rounds, key=lambda r: r.t, default=None))
         mode = today_mode(self._hist, self._queue, last[1], bool(self.settings.get("farming_crossplay", True)))
-        if cache is None or cache[0] is not j or cache[1] != int(now // 60) or cache[3] != mode:
-            self._today_cache = cache = (j, int(now // 60), today_rows(j, now, mode), mode)
+        streak = bool(self.settings["overlay"].get("today_streak", False))
+        if cache is None or cache[0] is not j or cache[1] != int(now // 60) or cache[3] != (mode, streak):
+            self._today_cache = cache = (j, int(now // 60), today_rows(j, now, mode, streak), (mode, streak))
         return cache[2] + [[(_("UHR "), sysinfo.DIM), (time.strftime("%H:%M", time.localtime(now)), sysinfo.WHITE)]]
 
     def _cards_measure(self) -> dict:

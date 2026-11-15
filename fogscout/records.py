@@ -104,6 +104,30 @@ def sessions(rounds, gap=SESSION_GAP) -> list:
     return out
 
 
+def session_streak(rounds, off: dict, now: float, gap=SESSION_GAP):
+    """The streak the running session is on, for the card "Heute": ("killer", n) = n 4Ks in a row, ("survivor", n)
+    = n escapes in a row, counted over the session's rounds with an official result (``off``: id(round) -> match)
+    in the role of the latest of them; ``rounds`` = the normal rounds. The session runs while its last round ended
+    at most ``gap`` before ``now`` (as ``sessions``). None without a running session or without a result in it."""
+    ss = sessions([r for r in rounds if r.t <= now], gap)
+    if not ss or now - ss[-1][1] > gap:
+        return None
+    start = ss[-1][0]
+
+    def hit(m):                                  # a 4K / an escape; None = no result in the official data
+        if m.role == "killer":
+            k = official.kills(m)
+            return None if k is None else k == 4
+        return official.escaped(m) if m.role == "survivor" else None
+    rated = sorted(((r.t, off[id(r)].role, hit(off[id(r)])) for r in rounds
+                    if start <= r.t <= now and id(r) in off), key=lambda x: x[0])
+    rated = [x for x in rated if x[2] is not None]
+    if not rated:
+        return None
+    role = rated[-1][1]
+    return role, streak([(t, h) for t, ro, h in rated if ro == role]).current
+
+
 @dataclass
 class Session:
     """1.38.47: one session of the sub-tab "Sitzungen" – its rounds and their sums (official numbers from the

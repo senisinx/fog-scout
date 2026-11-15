@@ -5999,4 +5999,24 @@ T = {
         '{when}: 중앙값 {time} · {n}라운드',
     'Keine Wartezeiten dieser Rolle in dieser Auswahl.':
         '이 선택에는 이 역할의 대기 시간이 없습니다.',
+    'Zeile FPS (HWiNFO)':
+        'FPS 행 (HWiNFO)',
+    'Zuletzt auf dieser Map (Datum, Ergebnis)':
+        '이 맵에서 마지막 (날짜, 결과)',
+    'Serie der laufenden Sitzung (4K / Entkommen)':
+        '현재 세션의 연속 기록 (4K / 탈출)',
+    'Zuletzt hier: {date} · {result}':
+        '마지막으로 여기: {date} · {result}',
+    'Zuletzt hier: {date}':
+        '마지막으로 여기: {date}',
+    '{n} × ENTKOMMEN':
+        '{n} × 탈출',
+    'SERIE ':
+        '연속 ',
+    'Zeile in den Systemwerten an/aus: die Bilder pro Sekunde, nur wenn HWiNFO sie misst (gelesen aus HWiNFOs Shared Memory, nie aus dem Spiel). Standard aus.':
+        '시스템 값의 이 행 켜기/끄기: 초당 프레임 수, HWiNFO가 측정할 때만 (HWiNFO 공유 메모리에서 읽으며 게임에서는 절대 읽지 않음). 기본값은 꺼짐.',
+    'Zeigt unter der Bilanz, wann du zuletzt auf dieser Map warst – mit dem Ergebnis, wenn die Runde mit Daten der Stats-Seite verknüpft ist (Kills bzw. entkommen), sonst nur das Datum.':
+        '전적 아래에 이 맵을 마지막으로 플레이한 날짜를 표시합니다. 해당 라운드가 통계 페이지 데이터와 연결되어 있으면 결과(킬 수 또는 탈출)도, 아니면 날짜만 표시합니다.',
+    'Eine Zeile „Serie“ in „Heute“: wie viele 4K (Killer) bzw. Escapes (Survivor) in Folge in der laufenden Sitzung – laut Stats-Seite, Farming zählt nicht.':
+        "'오늘'에 '연속' 행: 현재 세션에서 연속된 4K(킬러) 또는 탈출(생존자) 횟수 – 통계 페이지 기준, 파밍은 포함되지 않습니다.",
 }

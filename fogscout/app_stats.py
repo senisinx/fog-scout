@@ -2216,6 +2216,32 @@ class StatsTab:
             except Exception:
                 log.exception("record")
         self.overlay.set_record(text)
+        last = ()
+        if self.current and self.settings["overlay"].get("show_last_round", False):
+            try:
+                last = self._last_round_texts(self.current[0], hist.get("t"))
+            except Exception:
+                log.exception("last round")
+        self.overlay.set_last(last)
+
+    def _last_round_texts(self, map_id, before=None) -> tuple:
+        """The line "Zuletzt hier" for the map on display (setting overlay.show_last_round): the date of the own
+        latest stored round on ``map_id`` (started before ``before``, the open round's start) and, when it is
+        linked to an official match, its result (3K / entkommen …). Returned with every other text the line may
+        become – the overlay sizes it for the widest, so the next round on this map moves nothing. () = none."""
+        j = self._joined()
+        rounds = [r for r in j.rounds if r.map_id == map_id and (before is None or r.t < before)]
+        if not rounds:
+            return ()
+        r = max(rounds, key=lambda r: r.t)
+        date = time.strftime("%d.%m.%y", time.localtime(r.t))
+        result = self._official_result(j.off.get(id(r)))
+
+        def line(res):
+            return (_("Zuletzt hier: {date} · {result}", date=date, result=res) if res not in ("–", "?")
+                    else _("Zuletzt hier: {date}", date=date))
+        others = ["–", "4K"] + [_(t) for t in RESULTS.values()]
+        return (line(result),) + tuple(line(o) for o in others)
 
     def _round_killer(self) -> str:
         """1.38.30: the killer of the round on display – own as killer, the lobby's as survivor; "" when unknown."""

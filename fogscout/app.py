@@ -1424,6 +1424,7 @@ class App(ServerTab, StatsTab, ExportDialog, RecordingsTab, DiscordPresence, Spo
                 "server": _("Frankfurt") if o.get("show_server", True) and self.settings.get("show_connection") else "",
                 "ping": 31.0,
                 "record": _("Bilanz: Ø 2,8 Kills · 12 Runden") if o.get("show_record", False) else "",
+                "last": self._preview_last() if o.get("show_last_round", False) else (),
                 "memo": mapnotes.lines(mapnotes.get(self.settings.get(mapnotes.KEY), self.current[0]))
                 if self.current and o.get("show_notes", True) else (),          # 1.8.54: the own note
                 "name": name if pic is not None else "",             # 1.3.1: the styled card's header
@@ -1476,6 +1477,15 @@ class App(ServerTab, StatsTab, ExportDialog, RecordingsTab, DiscordPresence, Spo
                 "locked": sorted(self._locked_names()),                  # 1.46: the editor's locks
                 "layout_key": self.settings.get("layout_key") if self.settings.get("layout_per_size", True) else "",
                 "limits_same": bool(o.get("bar_limits_same", False))}
+
+    def _preview_last(self) -> tuple:
+        """The line "Zuletzt hier" for the preview: the one on display, else a sample of the same shape."""
+        shown = getattr(self.overlay, "_last", ())
+        if shown:
+            return shown
+        date = time.strftime("%d.%m.%y", time.localtime(time.time() - 2 * 86400))
+        return (_("Zuletzt hier: {date} · {result}", date=date, result="3K"),
+                _("Zuletzt hier: {date} · {result}", date=date, result=_("aufgegeben")))
 
     def _preview_sample(self):
         """A map picture for the preview while none is on display (the first one of the catalog), loaded once –

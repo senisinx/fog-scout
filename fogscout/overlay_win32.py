@@ -24,13 +24,14 @@ from .overlay_render import (  # 1.38.34: the drawing lives there; every name st
     BORDER, CARD_BACKDROP, CARD_EDGE, GRAB_SURFACE, DIM_LABEL, FALLBACK_FONTS, FIT_MIN, GLYPHS_KEPT, INFO_DOT, INFO_MEMO,
     INFO_SERVER, INFO_TIMER, INFO_WARN, PING_COLOURS, REC_DOT, TIMER_GAP, TITLE_SCALE, UPNEXT_SCALE, _ascent, _below,
     _beside, _char_len, _content_bottom, _draw_run, _fallback_font, _font, _font_key, _glyph, _has_glyph, _line_cap,
-    _paste, _run_len, _stack, _tracked_width, _upnext_draw, _upnext_still, add_border, add_info, backdrop, backdrop_pad, blend_cards, body_cols,
+    FIXED_DIGITS, _paste, _run_len, _stack, _steady_value, _tracked_width, _upnext_draw, _upnext_still, add_border, add_info, backdrop, backdrop_pad, blend_cards, body_cols,
     compose, cover_radius, fira, fit_lines, font_for, guide_line, info_card, lines_above, map_backdrop, map_body,
     music_body, music_card, music_fit_height, music_full_width, music_picture, pad_to, ping_colour, premultiplied_bgra, premultiplied_bgra_numpy,
-    progress_strip, rec_dot, rec_phase, render_hud, render_music, render_music_compact, upnext_block, upnext_rows)
+    progress_strip, rec_dot, rec_phase, render_hud, render_music, render_music_compact, upnext_block, upnext_rows,
+    wrap_status)
 from .overlay_render import (  # 1.39: the input card
     INPUT_BG, INPUT_CAP, INPUT_CAP_DOWN, INPUT_EDGE, INPUT_EDGE_PX, INPUT_GAP, INPUT_H, INPUT_IDLE, INPUT_KEPT, INPUT_PAD, INPUT_PATCHES_KEPT, INPUT_RATIO, INPUT_SS, INPUT_W, PAD_FACE, _INPUT_MEMO, _INPUT_PATCHES, _cap_font, _centred_text, _draw_gamepad, _draw_keyboard, _input_box, _input_controls, _input_full, _input_keys, input_card, input_size)
-_RENDER_NAMES = (FIRA, BACKDROP, _HAS, _GLYPHS, _CHAR_LEN, BORDER, CARD_BACKDROP, CARD_EDGE, GRAB_SURFACE, DIM_LABEL, FALLBACK_FONTS, FIT_MIN, GLYPHS_KEPT, INFO_DOT, INFO_MEMO, INFO_SERVER, INFO_TIMER, INFO_WARN, PING_COLOURS, REC_DOT, TIMER_GAP, TITLE_SCALE, UPNEXT_SCALE, _ascent, _below, _beside, _char_len, _content_bottom, _draw_run, _fallback_font, _font, _font_key, _glyph, _has_glyph, _line_cap, _paste, _run_len, _stack, _tracked_width, _upnext_draw, _upnext_still, add_border, add_info, backdrop, backdrop_pad, blend_cards, body_cols, compose, cover_radius, fira, fit_lines, font_for, guide_line, info_card, lines_above, map_backdrop, map_body, music_body, music_card, music_fit_height, music_full_width, music_picture, pad_to, ping_colour, premultiplied_bgra, premultiplied_bgra_numpy, progress_strip, rec_dot, rec_phase, render_hud, render_music, render_music_compact, upnext_block, upnext_rows, INPUT_BG, INPUT_CAP, INPUT_CAP_DOWN, INPUT_EDGE, INPUT_EDGE_PX, INPUT_GAP, INPUT_H, INPUT_IDLE, INPUT_KEPT, INPUT_PAD, INPUT_PATCHES_KEPT, INPUT_RATIO, INPUT_SS, INPUT_W, PAD_FACE, _INPUT_MEMO, _INPUT_PATCHES, _cap_font, _centred_text, _draw_gamepad, _draw_keyboard, _input_box, _input_controls, _input_full, _input_keys, input_card, input_size)   # re-exported (keeps pyflakes from calling them unused)
+_RENDER_NAMES = (FIRA, BACKDROP, _HAS, _GLYPHS, _CHAR_LEN, BORDER, CARD_BACKDROP, CARD_EDGE, GRAB_SURFACE, DIM_LABEL, FALLBACK_FONTS, FIT_MIN, GLYPHS_KEPT, INFO_DOT, INFO_MEMO, INFO_SERVER, INFO_TIMER, INFO_WARN, PING_COLOURS, REC_DOT, TIMER_GAP, TITLE_SCALE, UPNEXT_SCALE, _ascent, _below, _beside, _char_len, _content_bottom, _draw_run, _fallback_font, _font, _font_key, _glyph, _has_glyph, _line_cap, FIXED_DIGITS, _paste, _run_len, _stack, _steady_value, _tracked_width, _upnext_draw, _upnext_still, add_border, add_info, backdrop, backdrop_pad, blend_cards, body_cols, compose, cover_radius, fira, fit_lines, font_for, guide_line, info_card, lines_above, map_backdrop, map_body, music_body, music_card, music_fit_height, music_full_width, music_picture, pad_to, ping_colour, premultiplied_bgra, premultiplied_bgra_numpy, progress_strip, rec_dot, rec_phase, render_hud, render_music, render_music_compact, upnext_block, upnext_rows, wrap_status, INPUT_BG, INPUT_CAP, INPUT_CAP_DOWN, INPUT_EDGE, INPUT_EDGE_PX, INPUT_GAP, INPUT_H, INPUT_IDLE, INPUT_KEPT, INPUT_PAD, INPUT_PATCHES_KEPT, INPUT_RATIO, INPUT_SS, INPUT_W, PAD_FACE, _INPUT_MEMO, _INPUT_PATCHES, _cap_font, _centred_text, _draw_gamepad, _draw_keyboard, _input_box, _input_controls, _input_full, _input_keys, input_card, input_size)   # re-exported (keeps pyflakes from calling them unused)
 
 IS_WIN = sys.platform == "win32"
 
@@ -493,9 +494,12 @@ class PictureOverlay:
         self._server = ""               # connected server region below the timer ("" = none)
         self._ping = None               # ping to that region in ms, below the region
         self._waiting = ()              # lines of the waiting card: shown instead of everything else
+        self._waiting_memo = ()         # the own note on the lobby's killer below them (mapnotes.memo_lines)
+        self._wait_wrap = False         # the lobby line in two lines: too wide for the bar even at the smallest text
         self._note = ""                 # warning below the timer ("" = none)
         self._record = ""               # own results on this map below the timer ("" = none)
         self._memo = ()                 # 1.8.54: lines of the own note on this map (mapnotes.lines)
+        self._last = ()                 # the own last round on this map: (text, other texts it may become …)
         self._rec = False               # 1.4.1: OBS records the round – blinking red dot right of the timer
         self._base = []                 # [(PIL RGBA, duration)] scaled map (+ caption), cached per size
         self._base_key = None
@@ -553,9 +557,13 @@ class PictureOverlay:
         self._server = text or ""
         self._ping = round(ping) if ping is not None and self._server else None
 
-    def set_waiting(self, lines):
-        """No map on screen: show only these lines ("Warte auf Map", lobby state); () = off."""
+    def set_waiting(self, lines, memo=()):
+        """No map on screen: show only these lines ("Warte auf Map", lobby state); () = off. ``memo``: lines of the
+        own note on the lobby's killer below them (the killer is read before the map is known). The lobby line goes
+        back to one line until fit_width says it does not fit the bar (each tick sets the lines, then fits)."""
         self._waiting = tuple(lines or ())
+        self._waiting_memo = tuple(memo or ()) if self._waiting else ()
+        self._wait_wrap = False
 
     def set_note(self, text: str):
         """Warning in amber below the timer, e.g. a doubtful detection; "" = none."""
@@ -568,6 +576,11 @@ class PictureOverlay:
     def set_memo(self, lines):
         """1.8.54: the own note on the map on display as lines (mapnotes.lines); () = none."""
         self._memo = tuple(lines or ())
+
+    def set_last(self, texts):
+        """The own last round on the map on display ("Zuletzt hier: 12.11.26 · 3K") below the record: (text shown,
+        every other text it may become …) – the line is sized for the widest of them; () = none."""
+        self._last = tuple(texts or ())
 
     def set_rec(self, on: bool):   # 1.4.1 / 1.5.2: blinking red dot right of the round timer
         """1.4.1: a red dot top right while OBS records the round."""
@@ -629,7 +642,7 @@ class PictureOverlay:
         return self._view_frames()[0][0][0].size if self._frames and self.show_map and not self._waiting else (0, 0)
 
     def has_info(self) -> bool:
-        return bool(self._timer or self._server or self._note or self._record or self._memo)
+        return bool(self._timer or self._server or self._note or self._record or self._memo or self._last)
 
     def set_lines_top(self, on: bool):
         """1.8.34 (user: "mit der Map kombinieren, oben oder unten"): the lines drawn with the map go above it."""
@@ -654,11 +667,11 @@ class PictureOverlay:
         """The lines as a card of their own (1.8.24), None when there are none; ``placeholder``: a timer text to
         show without any lines (moving mode – something to drag)."""
         timer = self._timer or ("" if self.has_info() else placeholder)
-        if not (timer or self._server or self._note or self._record or self._memo):
+        if not (timer or self._server or self._note or self._record or self._memo or self._last):
             return None
         rec = rec_phase() if self._rec else None
         key = (int(text_h), timer, self._server, self._ping, self._note, self._record, self._memo, rec, self.skin,
-               self.accent, self.transparent, self.backdrop)
+               self.accent, self.transparent, self.backdrop, self._last)
         if getattr(self, "_info_key", None) != key:
             # 1.46.4: the App measures at the full text size and then draws a smaller one when the card is wider
             # than the bar – a few cards are kept, so the pair is not drawn again on every tick
@@ -666,7 +679,7 @@ class PictureOverlay:
             pic = memo.pop(key, None)
             if pic is None:
                 pic = info_card(timer, self._server, self._ping, self._note, self._record, int(text_h),
-                                self.skin, self.accent, self.transparent, self.backdrop, rec, self._memo)
+                                self.skin, self.accent, self.transparent, self.backdrop, rec, self._memo, self._last)
             memo[key] = pic
             while len(memo) > self.INFO_KEPT:
                 memo.pop(next(iter(memo)))
@@ -729,11 +742,12 @@ class PictureOverlay:
         new_base = base_key != self._base_key
         here = self._lines_here()                    # 1.8.24: the lines apart – the map alone
         rec = rec_phase() if self._rec and here else None     # 1.5.2: the dot blinks with the seconds
-        timer, server, ping, note, record, memo = (self._timer, self._server, self._ping, self._note, self._record,
-                                                   self._memo) if here else ("", "", None, "", "", ())
+        timer, server, ping, note, record, memo, last = (
+            (self._timer, self._server, self._ping, self._note, self._record, self._memo, self._last) if here
+            else ("", "", None, "", "", (), ()))
         top = self.lines_top and not self.info_beside
         key = (base_key, self._editing, timer, server, ping, note, record, memo,
-               self.info_beside, self.backdrop, self.skin, self.accent, self.realm, rec, top)
+               self.info_beside, self.backdrop, self.skin, self.accent, self.realm, rec, top, last)
         size_key = (self._gen, key, self.edit_label if self._editing else "")
         if not push and key != self._key and size_key in self._sizes:
             return self._sizes[size_key]          # measured before: the picture on hand stays as it is
@@ -764,17 +778,18 @@ class PictureOverlay:
                 for pic, dur in self._base:
                     pics.append(map_card(pic if self.show_map else None, self._caption, self.realm, timer,
                                          note, record, server, ping, (), text_h, self.skin,
-                                         self.accent, rec=rec, lines_top=top, memo=memo))
+                                         self.accent, rec=rec, lines_top=top, memo=memo, last=last))
             for pic, dur in ([] if modern else self._base):
                 if here and self.has_info() and top and self.show_map:      # 1.8.34: the lines above the map
                     pic = lines_above(pic, add_info(Image.new("RGBA", (1, 1), (0, 0, 0, 0)), self._timer,
                                                     self._server, text_h, backdrop=not self.transparent,
                                                     ping=self._ping, note=self._note, record=self._record,
-                                                    rec=rec, memo=self._memo), text_h)
+                                                    rec=rec, memo=self._memo, last=self._last), text_h)
                 elif here and self.has_info():
                     pic = add_info(pic, self._timer, self._server, text_h, backdrop=not self.transparent,
                                    ping=self._ping, note=self._note, record=self._record,
-                                   beside=self.info_beside and self.show_map, rec=rec, memo=self._memo)
+                                   beside=self.info_beside and self.show_map, rec=rec, memo=self._memo,
+                                   last=self._last)
                 pics.append(pic)
             if self.backdrop and not modern:
                 pics = map_backdrop(pics, text_h)
@@ -809,6 +824,7 @@ class PictureOverlay:
         if self._fit is None or self._fit[0] != key:
             timer, self._timer = self._timer, key[3]
             waiting, self._waiting = self._waiting, key[-1]      # 1.56: measured with the widest digits too
+            self._wait_wrap = False
             try:
                 self.text_height = text_h
                 if self._waiting:
@@ -817,8 +833,8 @@ class PictureOverlay:
                     height = self._fit_map(height, avail)
             finally:
                 self._timer, self._waiting = timer, waiting
-            self._fit = (key, self.text_height, height)
-        self.text_height = self._fit[1]
+            self._fit = (key, self.text_height, height, self._wait_wrap)
+        self.text_height, self._wait_wrap = self._fit[1], self._fit[3]
         return self._fit[2]
 
     def _fit_map(self, height: int, avail: float) -> int:
@@ -855,6 +871,14 @@ class PictureOverlay:
         full = width(text_h)
         if text_h <= 40 or full <= avail:
             return text_h
+        if len(self._waiting) > 1 and width(40) > avail:
+            # the lobby line ("Suche läuft: 00:05 · Farming · Krankenschwester": 494 px in the 406 px bar of
+            # 3440×1440, classic) is too wide even at the smallest text: two lines – only then; a line that fits
+            # at some text height stays one line
+            self._wait_wrap = True
+            full = width(text_h)
+            if full <= avail:
+                return text_h
         goal = max(avail, width(40))
         if full <= goal:                # already as narrow as the smallest text
             return text_h
@@ -874,7 +898,7 @@ class PictureOverlay:
                 self.info_apart, self.lines_top,
                 self._editing, self.show_map, self.show_caption, self._caption, self.transparent, self.backdrop,
                 self._floor, id(self._frames[0][0]) if self._frames else None, self.skin, self.accent, self.realm,
-                self._rec,
+                self._rec, self._last, self._waiting_memo,
                 # 1.56: the waiting card (its lobby line counts seconds: measured with the widest digits) – last
                 tuple(re.sub(r"\d", "0", line) for line in self._waiting))
 
@@ -897,18 +921,27 @@ class PictureOverlay:
             self._fit_room = (key, height)
         return self._fit_room[1]
 
+    def _waiting_shown(self) -> tuple:
+        """The waiting card's lines as drawn: each lobby line in two (wrap_status) while fit_width found it too
+        wide for the bar (``_wait_wrap``), else as set."""
+        if not self._wait_wrap:
+            return self._waiting
+        return self._waiting[:1] + tuple(part for line in self._waiting[1:] for part in wrap_status(line))
+
     def _render_waiting(self, height: int, push: bool = True):
-        key = ("waiting", height, self.transparent, self._editing, self._waiting, self._server, self._ping,
-               self.backdrop, self.skin, self.accent)
+        shown = self._waiting_shown()
+        key = ("waiting", height, self.transparent, self._editing, shown, self._server, self._ping,
+               self.backdrop, self.skin, self.accent, self._waiting_memo)
         if key != self._key:
             self._stop_anim()
             if self.skin != "classic":                           # 1.3.1: the waiting card in the overlay style
                 from .skin import map_card
-                pic = map_card(None, "", "", "", "", "", self._server, self._ping, self._waiting, height, self.skin,
-                               self.accent)
+                pic = map_card(None, "", "", "", "", "", self._server, self._ping, shown, height, self.skin,
+                               self.accent, memo=self._waiting_memo)
             else:
                 pic = add_info(Image.new("RGBA", (1, 1), (0, 0, 0, 0)), "", self._server, height,
-                               backdrop=not self.transparent, ping=self._ping, status=self._waiting)
+                               backdrop=not self.transparent, ping=self._ping, status=shown,
+                               memo=self._waiting_memo)
                 if self.backdrop:
                     pic = map_backdrop([pic], height)[0]
             if self._editing:

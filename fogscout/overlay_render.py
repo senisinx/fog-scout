@@ -286,23 +286,39 @@ def _tracked_width(d, text, font, track):
     return sum(d.textlength(c, font=font) for c in text) + track * max(0, len(text) - 1)
 
 
+def wrap_status(line: str) -> tuple:
+    """A lobby line of the waiting card in two lines, split at the " · " that leaves the halves closest in length
+    ("Suche läuft: 00:05" / "Farming · Krankenschwester"); a line without " · " stays one line. Used only when the
+    line is wider than the bar even at the smallest text (PictureOverlay._fit_waiting)."""
+    parts = line.split(" · ")
+    if len(parts) < 2:
+        return (line,)
+    k = min(range(1, len(parts)),
+            key=lambda i: abs(len(" · ".join(parts[:i])) - len(" · ".join(parts[i:]))))
+    return " · ".join(parts[:k]), " · ".join(parts[k:])
+
+
 def add_info(pic: Image.Image, timer: str, server: str, height: int, backdrop: bool = False,
              ping: float | None = None, status=(), note: str = "", record: str = "",
-             beside: bool = False, rec=None, memo=()) -> Image.Image:
+             beside: bool = False, rec=None, memo=(), last=()) -> Image.Image:
     """Round timer, connected server and its ping below the map, styled like the map title: white heavy
     digits with a soft shadow (no box); below them a green "connected" dot with the region in small
     caps, and the ping coloured by quality. The ping is only shown together with a server.
     ``status``: lines of the waiting card (no map on screen) – first one white, the others dimmer.
     ``note``: a warning in amber right below the timer (doubtful detection).
     ``record``: own results on this map (stats page), dimmer, below the timer/note.
-    ``memo``: lines of the own note on this map (1.8.54, mapnotes), white, below the record – as written.
+    ``memo``: lines of the own note on this map (1.8.54, mapnotes), white, below the record – as written; on the
+    waiting card (with ``status``) below the status lines (the note on the lobby's killer).
+    ``last``: the own last round on this map, below the record – (text shown, other texts it may become …): the
+    row is as wide as the widest of them with every digit a "0", so a later round never resizes the card.
     ``backdrop``: the map sits on a dark rectangle (transparent edge off) – extend it behind the info.
     ``beside``: the block goes right of the map, centred in height (low wide bar above/below the picture).
     ``rec``: OBS records – True = the red dot right of the timer is on, False = off phase of the blink (1.5.2,
     user: "rechts von der Rundenzeit blinkend"), None = not recording."""
     if not server:
         ping = None
-    if not timer and not server and not status and not note and not record and not memo:
+    last = tuple(last or ())
+    if not timer and not server and not status and not note and not record and not memo and not last:
         return pic
     d0 = ImageDraw.Draw(pic)
     tfont, sfont = _font(max(22, height // 11), heavy=True), _font(max(14, height // 24))
@@ -317,15 +333,20 @@ def add_info(pic: Image.Image, timer: str, server: str, height: int, backdrop: b
         rows.append(("note", [(note.upper(), INFO_WARN)], sfont))
     if record:
         rows.append(("record", [(record.upper(), INFO_SERVER)], sfont))
-    for line in memo:                          # 1.8.54: as written – no caps, no tracking
-        rows.append(("memo", [(line, INFO_MEMO)], sfont))
+    if last:
+        rows.append(("last", [(last[0].upper(), INFO_SERVER)], sfont))
+    memo_rows = [("memo", [(line, INFO_MEMO)], sfont) for line in memo]    # 1.8.54: as written – no caps, no tracking
+    if not status:
+        rows += memo_rows
     for i, line in enumerate(status):          # waiting card: above the server, like the timer on the map
         rows.append(("status", [(line.upper(), INFO_TIMER if i == 0 else INFO_SERVER)], sfont))
+    if status:                                 # the waiting card's note (the lobby's killer) below its lines
+        rows += memo_rows
     if server:
         rows.append(("server", [(server.upper(), INFO_SERVER)], sfont))
     if ping is not None:
         rows.append(("ping", [("PING ", INFO_SERVER), (f"{ping:.0f} MS", ping_colour(ping))], sfont))
-    boxes, widths = [], []
+    boxes, widths, drawn = [], [], {}
     for kind, segs, font in rows:
         text = "".join(t for t, _ in segs)
         if kind == "timer":                      # 1.5.4 (user: "wird immer grösser und kleiner"): the digits are
@@ -337,6 +358,13 @@ def add_info(pic: Image.Image, timer: str, server: str, height: int, backdrop: b
             widths.append(boxes[-1][2] - boxes[-1][0])
         elif kind == "memo":
             widths.append(int(d0.textlength(text, font=font)))
+        elif kind == "status":                   # the lobby line counts seconds: the widest digits set the room
+            drawn[len(widths)] = int(_tracked_width(d0, text, font, track))
+            widths.append(max(drawn[len(widths)], int(_tracked_width(d0, re.sub(r"\d", "0", text), font, track))))
+        elif kind == "last":                     # the widest text this row may show: the next round moves nothing
+            drawn[len(widths)] = int(_tracked_width(d0, text, font, track))
+            widths.append(max(int(_tracked_width(d0, v, font, track))
+                              for t in last for v in (t.upper(), re.sub(r"\d", "0", t.upper()))))
         else:
             widths.append(int(_tracked_width(d0, text, font, track)) + (2 * dot if kind == "server" else 0))
     heights = [b[3] - b[1] for b in boxes]
@@ -369,7 +397,8 @@ def add_info(pic: Image.Image, timer: str, server: str, height: int, backdrop: b
     def draw(im, shadow):
         d = ImageDraw.Draw(im)
         y = pad
-        for (kind, segs, font), (x0, y0, x1, y1), w, h in zip(rows, boxes, widths, heights):
+        for i, ((kind, segs, font), (x0, y0, x1, y1), w, h) in enumerate(zip(rows, boxes, widths, heights)):
+            w = drawn.get(i, w)                  # centred by what it shows, the room stays the widest
             if kind == "timer":
                 d.text(((layer_w - w) // 2 - x0, y - y0), segs[0][0], font=font,
                        fill=dark if shadow else segs[0][1],
@@ -419,6 +448,17 @@ def premultiplied_bgra_numpy(img: Image.Image) -> bytes:
     return out.tobytes()
 
 
+FIXED_DIGITS = {"FPS ": 3}     # rows (by label) whose value is measured as this many widest digits: 9 → 144 FPS
+                               # moves nothing (sysinfo.hud_rows)
+
+
+def _steady_value(label: str, text: str) -> str:
+    """What a row's value is measured as: the widest digits, at least FIXED_DIGITS of them, for the rows named
+    there; any other row as written (its width already follows the values: steady_width keeps the widest)."""
+    n = FIXED_DIGITS.get(label)
+    return re.sub(r"\d", "0", text).rjust(n, "0") if n else text
+
+
 def render_hud(rows, height: int) -> Image.Image:
     """System values (sysinfo.hud_rows) in Fira Sans ExtraBold like the map titles (user's choice of five
     variants, 1.49: labels grey, values bright, same font and size, no letter spacing) with the soft shadow of
@@ -432,7 +472,8 @@ def render_hud(rows, height: int) -> Image.Image:
     # 1.64.7 (user: "alles schön untereinander"): rows of label + values start their values in one column
     labelled = [len(row) >= 2 and row[0][1] == DIM_LABEL and row[0][0].strip() for row in rows]
     col = max((int(_run_len(font, row[0][0])) for row, lab in zip(rows, labelled) if lab), default=0)
-    texts = ["".join(t for t, _ in (row[1:] if lab else row)) for row, lab in zip(rows, labelled)]
+    texts = [_steady_value(row[0][0] if lab else "", "".join(t for t, _ in (row[1:] if lab else row)))
+             for row, lab in zip(rows, labelled)]
     widths = [int(_run_len(font, t)) + (col if lab else 0) for t, lab in zip(texts, labelled)]
     asc, desc = font.getmetrics()
     line_h = asc + desc
@@ -930,16 +971,17 @@ def rec_phase(now: float | None = None) -> bool:
 
 
 def info_card(timer: str, server: str, ping, note: str, record: str, text_h: int, style: str = "classic",
-              accent=None, transparent: bool = True, dark_area: bool = False, rec=None, memo=()) -> Image.Image:
+              accent=None, transparent: bool = True, dark_area: bool = False, rec=None, memo=(),
+              last=()) -> Image.Image:
     """1.8.24 (user: "Zeit etc. nicht mehr mit der Map verbunden, eigene Elemente – ich will ab und zu nur die
     eigentliche Map-Grösse ändern"): timer, note, record, server and ping as a card of their own – the same lines
     as below the map, without the map; shared by the overlay (App.info_win) and the preview."""
     if style != "classic":
         from .skin import map_card
         return map_card(None, "", "", timer, note, record, server, ping, (), text_h, style, accent, rec=rec,
-                        memo=memo)
+                        memo=memo, last=last)
     pic = add_info(Image.new("RGBA", (1, 1), (0, 0, 0, 0)), timer, server, text_h, backdrop=not transparent,
-                   ping=ping, note=note, record=record, rec=rec, memo=memo)
+                   ping=ping, note=note, record=record, rec=rec, memo=memo, last=last)
     return map_backdrop([pic], text_h)[0] if dark_area else pic
 
 

@@ -179,18 +179,18 @@ SPECS = {
                   ("check", "ov.show_map"), ("check", "ov.caption"), ("check", "ov.floors"),
                   ("check", "ov.transparent"), ("check", "ov.map_backdrop"),
                   ("sub", N_("Infos (Timer, Bilanz, Server)")), ("check", "ov.timer"), ("check", "ov.server"),
-                  ("check", "ov.record"), ("check", "ov.notes"),
+                  ("check", "ov.record"), ("check", "ov.last_round"), ("check", "ov.notes"),
                   ("sub", N_("Wann zeigen")), ("check", "ov.focus"), ("check", "ov.waiting"))),
               ("ov.sys", N_("Systemwerte"), (
                   ("row", (("label", "ov.sysinfo.label"), ("combo", "ov.sysinfo"), ("stretch",))),
                   ("hint", "ov.sys_text"), ("hint", "ov.sys_hint"), ("check", "ov.hud_backdrop"),
                   ("sub", N_("Zeilen")),
                   ("check", "ov.hud_row_cpu"), ("check", "ov.hud_row_gpu"), ("check", "ov.hud_row_spot"),
-                  ("check", "ov.hud_row_vram"), ("check", "ov.hud_row_ram"))),
+                  ("check", "ov.hud_row_vram"), ("check", "ov.hud_row_ram"), ("check", "ov.hud_row_fps"))),
               ("ov.today_f", N_("Heute"), (
                   ("check", "ov.today"),
                   ("row", (("label", "ov.today_pos.label"), ("combo", "ov.today_pos"), ("stretch",))),
-                  ("check", "ov.today_backdrop"))),
+                  ("check", "ov.today_backdrop"), ("check", "ov.today_streak"))),
               ("ov.music_f", N_("Musik"), (
                   ("check", "ov.media"), ("row", (("label", "ov.media_pos.label"), ("combo", "ov.media_pos"), ("stretch",))),
                   ("row", (("label", "ov.media_style.label"), ("combo", "ov.media_style"), ("stretch",))),

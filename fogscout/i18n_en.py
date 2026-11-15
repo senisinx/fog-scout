@@ -4472,4 +4472,24 @@ EN = {
         '{when}: median {time} · {n} rounds',
     'Keine Wartezeiten dieser Rolle in dieser Auswahl.':
         'No waiting times of this role in this selection.',
+    'Zeile FPS (HWiNFO)':
+        'Row FPS (HWiNFO)',
+    'Zuletzt auf dieser Map (Datum, Ergebnis)':
+        'Last time on this map (date, result)',
+    'Serie der laufenden Sitzung (4K / Entkommen)':
+        'Streak of the current session (4K / escaped)',
+    'Zuletzt hier: {date} · {result}':
+        'Last here: {date} · {result}',
+    'Zuletzt hier: {date}':
+        'Last here: {date}',
+    '{n} × ENTKOMMEN':
+        '{n} × ESCAPED',
+    'SERIE ':
+        'STREAK ',
+    'Zeile in den Systemwerten an/aus: die Bilder pro Sekunde, nur wenn HWiNFO sie misst (gelesen aus HWiNFOs Shared Memory, nie aus dem Spiel). Standard aus.':
+        "Row in the system values on/off: frames per second, only when HWiNFO measures them (read from HWiNFO's shared memory, never from the game). Off by default.",
+    'Zeigt unter der Bilanz, wann du zuletzt auf dieser Map warst – mit dem Ergebnis, wenn die Runde mit Daten der Stats-Seite verknüpft ist (Kills bzw. entkommen), sonst nur das Datum.':
+        'Shows below the record when you last played this map – with the result if the round is linked to data from the stats page (kills or escaped), otherwise only the date.',
+    'Eine Zeile „Serie“ in „Heute“: wie viele 4K (Killer) bzw. Escapes (Survivor) in Folge in der laufenden Sitzung – laut Stats-Seite, Farming zählt nicht.':
+        'A row “Streak” in “Today”: how many 4Ks (killer) or escapes (survivor) in a row in the current session – from the stats page; farming does not count.',
 }

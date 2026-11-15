@@ -333,13 +333,17 @@ def temp_colour(t: float, warm: float, hot: float):
     return GOOD if t <= warm else WARM if t <= hot else HOT
 
 
-HUD_ROW_KEYS = ("cpu", "gpu", "spot", "vram", "ram")     # rows the user may switch off (1.2.8)
+HUD_ROW_KEYS = ("cpu", "gpu", "spot", "vram", "ram", "fps")     # rows the user may switch off (1.2.8)
+HUD_ROWS_OFF = ("fps",)      # rows shown only when switched on (the FPS: an extra wish, HWiNFO only)
+FPS_LABEL = "FPS "           # its label – overlay_render.FIXED_DIGITS measures its value as three digits
 
 
 def hud_rows(s: Snapshot, shown=None) -> list:
     """Rows for the HUD: [[(text, colour), ...], ...]; only values that were read. The GPU's power is not in the
     overlay (1.65.2, user's wish) – it is still recorded for the statistics. ``shown`` (1.2.8): {row key: bool}
-    – rows switched off are left out; the throttling warnings always show."""
+    – rows switched off are left out (those in HUD_ROWS_OFF unless switched on); the throttling warnings always
+    show. The FPS row (last) only when HWiNFO delivers frames per second (``s.fps``), as a whole number – the
+    card keeps the width of three digits (overlay_render.FIXED_DIGITS)."""
     shown = shown or {}
     rows = []
     for key, name, temp, load, warm, hot in (
@@ -373,6 +377,8 @@ def hud_rows(s: Snapshot, shown=None) -> list:
                                    ("ram", "RAM", s.ram_used, s.ram_total)):
         if used is not None and total and shown.get(key, True):
             rows.append([(name + " ", DIM), (f"{used:.1f} / {total:.0f} GB", WHITE)])
+    if s.fps is not None and shown.get("fps", "fps" not in HUD_ROWS_OFF):
+        rows.append([(FPS_LABEL, DIM), (f"{max(0.0, s.fps):.0f}", WHITE)])
     return rows
 
 
