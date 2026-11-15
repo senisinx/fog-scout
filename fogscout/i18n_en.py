@@ -4492,4 +4492,32 @@ EN = {
         'Shows below the record when you last played this map – with the result if the round is linked to data from the stats page (kills or escaped), otherwise only the date.',
     'Eine Zeile „Serie“ in „Heute“: wie viele 4K (Killer) bzw. Escapes (Survivor) in Folge in der laufenden Sitzung – laut Stats-Seite, Farming zählt nicht.':
         'A row “Streak” in “Today”: how many 4Ks (killer) or escapes (survivor) in a row in the current session – from the stats page; farming does not count.',
+    'Seit dem Matchbeginn kein Map-Banner erkannt – „Bildschirm scannen“ ({keys}) sucht den Map-Namen auf dem Bildschirm.':
+        'No map banner detected since the match began – “Scan screen” ({keys}) looks for the map name on the screen.',
+    'Seit dem Matchbeginn kein Map-Banner erkannt – „Scannen“ im Steuerfenster sucht den Map-Namen auf dem Bildschirm.':
+        'No map banner detected since the match began – “Scan” in the control window looks for the map name on the screen.',
+    'Map nicht erkannt':
+        'Map not detected',
+    'Wartezeit gegen EST.':
+        'Wait vs. EST.',
+    'Median Abweichung':
+        'Median difference',
+    'Innerhalb ±1 min':
+        'Within ±1 min',
+    'Echte Wartezeit minus die Schätzung „EST.“, die DBD beim Start der Suche zeigt: + = länger gewartet als geschätzt. Nur Runden, deren Suche das Programm gesehen hat.':
+        'Real wait minus the estimate “EST.” DBD shows when the search starts: + = waited longer than estimated. Only rounds whose search the program saw.',
+    'Ladezeit':
+        'Loading time',
+    'Ø Ladezeit':
+        'Avg. loading',
+    'Von der gefundenen Lobby bis zum Ende des Ladebildschirms (mit dem Warten in der Lobby) – nur wenn das Programm beides gesehen hat. Custom Games haben keine Ladezeit.':
+        'From the lobby found to the end of the loading screen (including the wait in the lobby) – only when the program saw both. Custom games have no loading time.',
+    'Noch keine Runde mit Wartezeit und EST. in dieser Auswahl.':
+        'No round with a waiting time and EST. in this selection yet.',
+    'Noch keine Ladezeiten in dieser Auswahl.':
+        'No loading times in this selection yet.',
+    'Hinweis, wenn nach dem Matchbeginn kein Map-Banner erkannt wurde':
+        'Notify when no map banner was recognised after the match began',
+    'Kommt eine Minute nach dem Ladebildschirm kein Map-Banner, sagt Fog Scout einmal je Runde, wie du mit „Bildschirm scannen“ nachhilfst – mit Ton und Meldung, auch wenn DBD im Vordergrund ist; nie in Custom Games.':
+        'If no map banner comes a minute after the loading screen, Fog Scout says once per round how to help with “Scan screen” – with sound and notification, even with DBD in front; never in custom games.',
 }

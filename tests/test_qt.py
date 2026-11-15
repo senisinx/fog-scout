@@ -189,6 +189,7 @@ def _registered_keys():
                     pattern = "".join(v.value if isinstance(v, ast.Constant) else "{}" for v in a.values)
                     names = [k for k, _l in HOTKEY_LABELS] + ["lobby_notify", "lobby_remind", "notify_background_only",
                                                               "bp_cap_notify", "session_notify",    # 1.13, 1.38.27
+                                                              "banner_missed_notify",
                                                               "show_map", "focus", "caption", "timer", "server",
                                                               "waiting", "floors", "record", "notes", "transparent",
                                                               "last_round"] + \

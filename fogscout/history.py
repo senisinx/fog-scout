@@ -44,6 +44,14 @@ class Round:
     stalls: int | None = None   # 1.11.9: receive gaps ≥ netwatch.STALL_S from the game server (None: not measured)
     stall_max: float | None = None   # … the longest one in seconds
     balance: int | None = None  # 1.13: bloodpoint balance read in the lobby after the round (bloodpoints.py), None: not read
+    # how the banner decision that opened the round went (detector.Decision), None: not detected automatically –
+    # the diagnosis follows the detection's health over the rounds (diagnose.detection_health)
+    fit: float | None = None        # name fit of the decision (≈ 0 = a clean banner, below -3 unsure)
+    frames: int | None = None       # pictures of the banner that were read up to the decision
+    unsure: bool | None = None      # the decision was unsure (Accumulator.unsure_fit)
+    latency: float | None = None    # seconds from the first sight of the banner to the decision
+    load: float | None = None       # seconds from the lobby found to the end of the loading screen (None: not seen)
+    est: float | None = None        # DBD's queue estimate ("EST.") when the search began, seconds (None: not read)
 
 
 _FIELDS = tuple(f.name for f in fields(Round))
@@ -178,7 +186,8 @@ def _rewrite(path: str, rounds, lost) -> None:
     _LINES.prime(path, data, sorted(rounds, key=lambda r: r.t))
 
 
-LOST_KEYS = ("map_id", "region", "source", "wait", "role", "custom", "farming", "killer", "ping", "sys")   # since 1.35/1.43
+LOST_KEYS = ("map_id", "region", "source", "wait", "role", "custom", "farming", "killer", "ping", "sys",   # since 1.35/1.43
+             "fit", "frames", "unsure", "latency", "load", "est")    # the optional facts of a round, kept for a rescue
 
 
 def append_lost(path: str, t: float, map_label: str, reason: str, **known) -> None:
@@ -231,8 +240,26 @@ def load_lost_rounds(path: str) -> list:
                          role=str(d.get("role") or "") if d.get("role") in ROLES else "",
                          custom=bool(d.get("custom")), farming=bool(d.get("farming")),
                          ping=float(ping) if isinstance(ping, (int, float)) and ping >= 0 else None,
-                         killer=str(d.get("killer") or ""), sys=_sys(d.get("sys")), **_stalls(d)))
+                         killer=str(d.get("killer") or ""), sys=_sys(d.get("sys")), **_stalls(d), **_extra(d)))
     return out
+
+
+def _num(v, low: float = 0.0, high: float = math.inf):
+    """A stored optional number: a finite int/float within [low, high] as float, else None (bool is no number)."""
+    if isinstance(v, bool) or not isinstance(v, (int, float)) or not math.isfinite(v) or not low <= v <= high:
+        return None
+    return float(v)
+
+
+def _extra(d: dict) -> dict:
+    """The optional facts of a stored line (decision quality, loading time, EST) – None when missing or not
+    plausible, so lines from before these fields, and a hand-edited or broken value, load as "not known"."""
+    frames = d.get("frames")
+    unsure = d.get("unsure")
+    return {"fit": _num(d.get("fit"), -1e6, 1e6),
+            "frames": frames if isinstance(frames, int) and not isinstance(frames, bool) and frames >= 0 else None,
+            "unsure": unsure if isinstance(unsure, bool) else None,
+            "latency": _num(d.get("latency")), "load": _num(d.get("load")), "est": _num(d.get("est"))}
 
 
 def _stalls(d: dict) -> dict:
@@ -260,7 +287,7 @@ def _round_line(line: str):
                  custom=bool(d.get("custom")), farming=bool(d.get("farming")),
                  ping=float(d["ping"]) if isinstance(d.get("ping"), (int, float)) and d["ping"] >= 0 else None,
                  killer=str(d.get("killer") or ""), sys=_sys(d.get("sys")), **_stalls(d),
-                 balance=_balance(d.get("balance")))
+                 balance=_balance(d.get("balance")), **_extra(d))
 
 
 def _balance(v) -> int | None:
@@ -469,6 +496,38 @@ def wait_by(rounds, by: str) -> list:
     if by == "region":
         return sorted(rows, key=lambda row: (row[0] == NO_REGION, row[2]))
     return sorted(rows)
+
+
+def load_by(rounds, by: str) -> list:
+    """Time from the lobby found to the end of the loading screen (``Round.load``), grouped ``by`` "map" (the map
+    label) or "region" (code, NO_REGION without one): [(key, rounds, average s, median s)], longest average first –
+    NO_REGION last. Every round with a loading time counts (custom games have none); the page's filters decide
+    which rounds come in."""
+    groups = {}
+    for r in rounds:
+        if r.load is not None:
+            key = r.map if by == "map" else (r.region or NO_REGION)
+            groups.setdefault(key, []).append(r.load)
+    rows = [(k, len(v), sum(v) / len(v), median(v)) for k, v in groups.items()]
+    return sorted(rows, key=lambda row: (row[0] == NO_REGION, -row[2], str(row[0])))
+
+
+EST_NEAR_S = 60.0           # a real wait within this of DBD's estimate counts as "met" (±1 min)
+
+
+def est_accuracy(rounds) -> list:
+    """How far the real wait (``Round.wait``) was from DBD's estimate (``Round.est``) per role: [(role, rounds,
+    median of wait − estimate in s (positive: longer than estimated), share within ±EST_NEAR_S 0..1)] for "killer",
+    "survivor" (only those with rounds) and "" = all of them. Only public rounds with both values (``normal``)."""
+    groups = {}
+    for r in rounds:
+        if r.wait is not None and r.est is not None and normal(r):
+            diff = r.wait - r.est
+            groups.setdefault("", []).append(diff)
+            if r.role in ROLES:
+                groups.setdefault(r.role, []).append(diff)
+    return [(k, len(groups[k]), median(groups[k]), sum(1 for d in groups[k] if abs(d) <= EST_NEAR_S) / len(groups[k]))
+            for k in ROLES + ("",) if k in groups]
 
 
 def regions_at(rounds, now: float, min_rounds: int = 3) -> tuple:
