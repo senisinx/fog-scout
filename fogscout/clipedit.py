@@ -9,6 +9,8 @@ playback; the sound of the clip is played by Windows (winsound) from a temporary
 from __future__ import annotations
 
 import copy
+import hashlib
+import json
 import math
 import os
 import re
@@ -19,6 +21,7 @@ import time
 from collections import OrderedDict
 from dataclasses import dataclass, field, replace
 
+from . import fsops
 from .encoders import Encoding
 from .i18n import _
 from .obsrec import (AUDIO_STREAM_RE, CLIPS_DIR as _CLIPS_DIR, NAME_CHARS, PART_EXT, PARTS_WRITING, audio_graph,
@@ -181,19 +184,95 @@ def _run_cancellable(cmd, timeout: float, cancel=None, stdout: bool = False, std
                 pass
 
 
-def track_levels(path: str, n_tracks: int, ffmpeg: str | None = None, timeout: float = 180, cancel=None) -> dict:
+ANALYSIS_DIR = os.path.join("cache", "analysis")   # 1.56: waveform/track_levels kept below the data folder
+ANALYSIS_VERSION = 1             # raise when either computes something else (old entries are then never read again)
+_ANALYSIS_PRUNED = set()         # cache folders pruned in this session (thumbs.prune, once)
+_ANALYSIS_LOCK = threading.Lock()
+
+
+def _analysis_file(cache_dir, path: str, kind: str, params) -> str | None:
+    """1.56: the cache file of analysis ``kind`` of ``path`` – named by the file's quick fingerprint (size, first and
+    last MiB: filehash.qfp), its mtime and ``params``: a changed recording never finds an old entry. None without a
+    folder or when the file cannot be read."""
+    if not cache_dir:
+        return None
+    from . import filehash
+    try:
+        st = os.stat(path)
+        quick = filehash.qfp(path)
+    except OSError:
+        return None
+    key = f"{kind}|{ANALYSIS_VERSION}|{quick}|{st.st_size}|{st.st_mtime_ns}|{params}"
+    return os.path.join(cache_dir, f"{kind}-{hashlib.sha256(key.encode('utf-8')).hexdigest()[:32]}.json")
+
+
+def _analysis_read(cache_dir, file: str | None, valid):
+    """The cached value (its mtime refreshed – prune keeps what is used), None when there is none; a broken one
+    (unreadable JSON, ``valid(data)`` false) is removed, so the analysis made anew takes its place."""
+    if not file:
+        return None
+    try:
+        with open(file, encoding="utf-8") as fh:
+            data = json.load(fh)
+        ok = valid(data)
+    except FileNotFoundError:
+        return None
+    except (OSError, ValueError, TypeError):
+        data, ok = None, False
+    if not ok:
+        try:
+            fsops.delete_inside(cache_dir, file)
+        except OSError:
+            pass
+        return None
+    try:
+        os.utime(file)
+    except OSError:
+        pass
+    return data
+
+
+def _analysis_write(cache_dir: str, file: str | None, data):
+    """Keep ``data`` in ``file`` (a new file, never over another – the name already says what is in it); the folder
+    is pruned once per session like the thumbnails (unused for thumbs.PRUNE_AFTER_S)."""
+    if not file:
+        return
+    with _ANALYSIS_LOCK:
+        first = cache_dir not in _ANALYSIS_PRUNED
+        _ANALYSIS_PRUNED.add(cache_dir)
+    try:
+        os.makedirs(cache_dir, exist_ok=True)
+        if first:
+            from .thumbs import prune
+            prune(cache_dir, exts=(".json",))
+        fsops.write_new(file, json.dumps(data, separators=(",", ":")).encode("utf-8"))
+    except (OSError, ValueError):                       # exists already (another window), disk full: no cache
+        pass
+
+
+def track_levels(path: str, n_tracks: int, ffmpeg: str | None = None, timeout: float = 180, cancel=None,
+                 cache_dir: str | None = None) -> dict:
     """1.8.18 (user: Discord never heard in the clips): the loudest moment of each audio track in dB {index:
     dB}, from one ffmpeg run over the sound only (seconds even for a long round) – which source OBS really
-    recorded. {} without ffmpeg, with fewer than two tracks or on failure."""
+    recorded. {} without ffmpeg, with fewer than two tracks or on failure. 1.56: ``cache_dir`` = kept there
+    (_analysis_file) – a recording opened again does not decode its sound once more."""
     ffmpeg = ffmpeg or ffmpeg_exe()
     if not ffmpeg or n_tracks < 2:
         return {}
+    file = _analysis_file(cache_dir, path, "levels", n_tracks)
+    got = _analysis_read(cache_dir, file, lambda d: isinstance(d, dict) and len(d) == n_tracks
+                         and all(isinstance(v, (int, float)) and int(k) >= 0 for k, v in d.items()))
+    if got is not None:
+        return {int(i): float(db) for i, db in got.items()}
     graph = ";".join(f"[0:a:{i}]volumedetect@t{i}" for i in range(n_tracks))
     got = _run_cancellable([ffmpeg, "-hide_banner", "-nostats", "-i", path, "-vn", "-filter_complex", graph,
                             "-f", "null", "-"], timeout, cancel, stderr=True)
     if got is None:
         return {}
-    return {int(i): float(db) for i, db in LEVEL_RE.findall(got[1] or b"")}
+    levels = {int(i): float(db) for i, db in LEVEL_RE.findall(got[1] or b"")}
+    if len(levels) == n_tracks:                         # every track measured (-inf = digital silence: JSON keeps it)
+        _analysis_write(cache_dir, file, {str(i): db for i, db in levels.items()})
+    return levels
 
 
 def frame_at(path: str, t: float, height: int = PREVIEW_H, info: Info | None = None, ffmpeg: str | None = None,
@@ -401,14 +480,27 @@ WAVE_RATE = 4000                 # samples per second ffmpeg decodes for it (200
 
 
 def waveform(path: str, duration: float, ffmpeg: str | None = None, per_s: int = WAVE_PER_S,
-             timeout: float = 300, cancel=None) -> list:
+             timeout: float = 300, cancel=None, cache_dir: str | None = None) -> list:
     """1.16: the loudness along the recording for the timeline's audio track – the peak of each 1/``per_s`` s
     as 0…1 (the first audio track = OBS's full mix), [] when there is no sound or ffmpeg fails. One ffmpeg run that
-    decodes the sound to mono at WAVE_RATE Hz (a 20-min round: 9.6 MB through the pipe, ~2 s)."""
-    import numpy as np
+    decodes the sound to mono at WAVE_RATE Hz (a 20-min round: 9.6 MB through the pipe, ~2 s). 1.56: ``cache_dir``
+    = kept there (_analysis_file)."""
     ffmpeg = ffmpeg or ffmpeg_exe()
     if not ffmpeg or duration <= 0:
         return []
+    file = _analysis_file(cache_dir, path, "wave", f"{per_s}|{WAVE_RATE}")
+    got = _analysis_read(cache_dir, file, lambda d: isinstance(d, list) and d
+                         and all(isinstance(v, (int, float)) and 0 <= v <= 1 for v in d))
+    if got is not None:
+        return [float(v) for v in got]
+    bins = _waveform(path, ffmpeg, per_s, timeout, cancel)
+    if bins and not (cancel is not None and cancel.is_set()):
+        _analysis_write(cache_dir, file, bins)
+    return bins
+
+
+def _waveform(path: str, ffmpeg: str, per_s: int, timeout: float, cancel) -> list:
+    import numpy as np
     got = _run_cancellable([ffmpeg, "-hide_banner", "-loglevel", "error", "-i", path, "-map", "0:a:0", "-vn", "-ac", "1",
                             "-ar", str(WAVE_RATE), "-f", "s16le", "-"], timeout, cancel, stdout=True)
     data = got[0] if got is not None else b""
@@ -719,6 +811,36 @@ def sound_wav(path: str, start: float, end: float, ffmpeg: str | None = None, mi
     except OSError:
         pass
     return None
+
+
+SOUND_FIRST_S = 15.0             # 1.56: output seconds of the first sound piece of a playback (the picture waits for it)
+SOUND_CHUNK_S = 60.0             # … of each further piece, made while the one before plays
+SOUND_TAIL_S = 5.0               # a last piece shorter than this goes with the one before
+
+
+def sound_chunks(start: float, end: float, speed: float = 1.0, reverse: bool = False, first: float | None = None,
+                 rest: float | None = None, tail: float | None = None) -> list:
+    """1.56 (P-1): the pieces the preview's sound of source ``start``..``end`` is made in – [(source from, source to,
+    output seconds after the stretch's start)], one after the other without gap or overlap (edges on the
+    millisecond sound_wav seeks to). Until 1.55 one WAV of the whole stretch came before the picture: an uncut
+    round of 20 min waited 2–9 s and wrote up to 423 MB to %TEMP%. Backwards: one piece (ffmpeg's areverse needs
+    the whole stretch; such clips are short). Pure."""
+    if end <= start:
+        return []
+    if reverse:
+        return [(start, end, 0.0)]
+    first = SOUND_FIRST_S if first is None else first
+    rest = SOUND_CHUNK_S if rest is None else rest
+    tail = SOUND_TAIL_S if tail is None else tail
+    speed = max(0.01, float(speed or 1.0))
+    out, a, size = [], start, first
+    while a < end - 1e-6:
+        b = round(min(end, a + size * speed), 3)
+        if end - b < tail * speed:
+            b = end
+        out.append((a, b, (a - start) / speed))
+        a, size = b, rest
+    return out
 
 
 def _sound_with_music(path, start, end, ffmpeg, mix, n_tracks, speed, volume, reverse, music):

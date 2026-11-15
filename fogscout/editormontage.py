@@ -262,7 +262,7 @@ class MontageMixin:
             self._montage_hash_request(s)
 
     def _source_threads(self, s, path, info):
-        ffmpeg, b, cancel = self.ffmpeg, self.bridge, self._cancel
+        ffmpeg, b, cancel, cache = self.ffmpeg, self.bridge, self._cancel, self._analysis_dir
 
         def strip():
             times = clipedit.thumb_times(info.duration, THUMBS_PER_SOURCE)
@@ -272,7 +272,7 @@ class MontageMixin:
 
         def wave():
             if info.audio_tracks > 0:
-                bins = clipedit.waveform(path, info.duration, ffmpeg, cancel=cancel)
+                bins = clipedit.waveform(path, info.duration, ffmpeg, cancel=cancel, cache_dir=cache)
                 if not cancel.is_set():
                     b.montage.emit("wave", s, bins)
         threading.Thread(target=strip, name="montage-strip", daemon=True).start()

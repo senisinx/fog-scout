@@ -1522,9 +1522,10 @@ class EditorWindow(ClaudeMixin, InputMixin, MomentsMixin, MontageMixin, MusicMix
         self.bridge.textfind.connect(self._text_arrived)
         if self.info.audio_tracks > 0:
             path, duration, ffmpeg, b, cancel = self.path, self.info.duration, self.ffmpeg, self.bridge, self._cancel
+            cache = self._analysis_dir
 
             def wave():                         # 1.16.2: ends with the window (cancel), emits nothing after it
-                bins = clipedit.waveform(path, duration, ffmpeg, cancel=cancel)
+                bins = clipedit.waveform(path, duration, ffmpeg, cancel=cancel, cache_dir=cache)
                 if not cancel.is_set():
                     b.wave.emit(bins)
             threading.Thread(target=wave, name="clip-wave", daemon=True).start()
