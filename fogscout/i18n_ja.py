@@ -1152,7 +1152,7 @@ T = {
     'Zeile RAM':
         'RAM の行',
     'Zeile in den Systemwerten an/aus. Die Warnungen „CPU/GPU DROSSELT“ erscheinen immer.':
-        'システム値の行のオン/オフ。「CPU/GPU THROTTLED」の警告は常に表示されます。',
+        'システム値の行のオン/オフ。「CPU/GPU スロットリング」の警告は常に表示されます。',
     'Zeile in den Systemwerten an/aus – Hotspot und Memory Junction kommen nur mit HWiNFO.':
         'システム値の行のオン/オフ – ホットスポットとメモリジャンクションは HWiNFO 使用時のみ表示されます。',
     'Zeile in den Systemwerten an/aus.':
@@ -1816,9 +1816,9 @@ T = {
     'Noch keine Systemwerte in dieser Auswahl (Tab Overlay → Systemwerte einschalten).':
         'この選択範囲にはまだシステム値がありません（「オーバーレイ」タブ → システム値をオン）。',
     'GPU DROSSELT (TEMP.)':
-        'GPU THROTTLED（温度）',
+        'GPU スロットリング（温度）',
     'GPU DROSSELT (HW)':
-        'GPU THROTTLED（HW）',
+        'GPU スロットリング（HW）',
     'Hotspot max {v} °C':
         'ホットスポット最大 {v} °C',
     'Hotspot max':
@@ -2830,7 +2830,7 @@ T = {
     'Zu Einstellungen → Match-Daten → Offizielle Match-Daten: einmal das Userscript in den Browser, danach zählen Kills, Entkommen und Bloodpoints in der Statistik.':
         '「設定」→「マッチデータ」→「公式マッチデータ」へ：ユーザースクリプトを一度ブラウザーに入れると、キル、脱出、ブラッドポイントが統計に反映されます。',
     'CPU DROSSELT (TEMP.)':
-        'CPU THROTTLED（温度）',
+        'CPU スロットリング（温度）',
     'CPU gedr.':
         'CPU 制限',
     'GPU gedr.':
@@ -5414,7 +5414,7 @@ T = {
     'Frequenzsteuerung: CQP, QP-Werte 18 (HEVC 20)':
         'レート制御：CQP、QP 値 18（HEVC は 20）',
     'Voreinstellung: Qualität':
-        'プリセット：Quality',
+        'プリセット：品質',
     'Video-Encoder: QuickSync H.264 oder HEVC (nicht „Stream-Encoder verwenden“)':
         '映像エンコーダー：QuickSync H.264 または HEVC（「配信エンコーダーを使用」ではなく）',
     'Frequenzsteuerung: ICQ (oder CQP), Wert 18':
@@ -5495,6 +5495,12 @@ T = {
         '上下反転',
     'Noch keine Runden – Claude hätte nichts zum Auswerten.':
         'まだラウンドがありません – Claude が確認するものがありません。',
+    'Zu wenige Runden – Claude bekommt die Statistik erst ab {n} Runden.':
+        'ラウンドが少なすぎます – Claude に統計を送るのは {n} ラウンド以上からです。',
+    'Der Update-Ordner ist ein Link – Download abgelehnt.':
+        '更新フォルダーがリンクです – ダウンロードを拒否しました。',
+    'YouTube: Anmeldung fehlgeschlagen ({error}) – Client-ID und Client-Secret prüfen und noch einmal „Mit YouTube verbinden“ klicken.':
+        'YouTube：ログインに失敗しました（{error}） – クライアント ID とクライアントシークレットを確認し、もう一度「YouTube に接続」をクリックしてください。',
     'Schickt deine Bitte und das Bild, wie es hier zu sehen ist (bereits zensierte Bereiche bleiben zensiert), an Claude; nichts wird geändert, bevor du übernimmst.':
         '要望と、ここに表示されているとおりの画像（既に検閲した領域は検閲されたまま）を Claude に送信します。適用するまで何も変わりません。',
     'Schickt die Frage und Zähler/Quoten deiner Runden an Claude – keine einzelne Runde, keine Namen':
@@ -5917,6 +5923,12 @@ T = {
         '日本語',
     'Koreanisch':
         '韓国語',
+    'Zuordnen zu':
+        '割り当て先',
+    'Gruppieren nach':
+        'グループ化',
+    'Killer-Perk {n}':
+        'キラーのパーク {n}',
     'Ein Standbild hat keinen Anfang und kein Ende zum Schneiden – seine Länge stellst du unter „Standbild“ ein oder ziehst seinen Rand.':
         '静止画には切り取る開始点も終了点もありません – 長さは「静止画」で設定するか、端をドラッグしてください。',
 }

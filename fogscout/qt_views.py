@@ -6,7 +6,7 @@ from __future__ import annotations
 import html
 import sys
 
-from PySide6.QtCore import QSize, Qt
+from PySide6.QtCore import QEvent, QSize, Qt
 from PySide6.QtGui import QColor, QContextMenuEvent
 from PySide6.QtWidgets import (QAbstractItemView, QAbstractScrollArea, QPlainTextEdit, QProgressBar, QPushButton, QSizePolicy, QTreeWidget, QTreeWidgetItem,
                                QVBoxLayout, QWidget, QStyle, QStyledItemDelegate, QStyleOptionViewItem, QToolTip)
@@ -210,7 +210,7 @@ class SignsDelegate(QStyledItemDelegate):
         widget.style().drawControl(QStyle.CE_ItemViewItem, o, p, widget)
         c = qt_theme.colours(qt_theme.current_dark())
         colour = c["on_select"] if o.state & QStyle.State_Selected else c["fg"]
-        size = qt_theme.ICON["s"]
+        size = qt_theme.icon_px(qt_theme.ICON["s"])       # 1.56: with the text zoom
         ratio = widget.devicePixelRatioF() if widget is not None else 1.0
         x, mid = o.rect.x() + 6, o.rect.center().y()
         p.save()
@@ -235,6 +235,9 @@ class SignsDelegate(QStyledItemDelegate):
             QToolTip.showText(event.globalPos(), words, view)
             return True
         return super().helpEvent(event, view, opt, index)
+
+
+CHECK_SLACK = 36                 # px: tick box (16) + its gap + the item padding (2 × 6) of the style sheet
 
 
 class Table(QTreeWidget):
@@ -324,6 +327,33 @@ class Table(QTreeWidget):
     def resizeEvent(self, e):
         super().resizeEvent(e)
         self._fit_stretch()
+
+    def _size_columns(self):
+        """Each column as wide as its contents and heading (at least the model's width – room for "…"); the name
+        column takes the rest (not always the first: "Wann" stays readable). 1.56 (audit V-3: at 150 % the server
+        regions were cut although the hosts column had room): the tick boxes counted in, measured in the font the
+        table shows (polished first) and again when that font changes (text zoom while the window runs)."""
+        self.ensurePolished()
+        fm = self.header().fontMetrics()
+        widths, stretch = self.__dict__.get("_widths", []), self._stretch
+        # Qt leaves the style sheet's tick box and item padding out of a column's size hint (seen at 150 %: the
+        # server regions came out ~30 px short and ended in "…")
+        ticks = any(it.data(0, Qt.CheckStateRole) is not None for it in self._items())
+        for i, c in enumerate(self._titles):
+            self.header().setSectionResizeMode(i, self.header().ResizeMode.Interactive)
+            self.resizeColumnToContents(i)
+            least = widths[i] if i < len(widths) and i != stretch else 0
+            fit = self.columnWidth(i) + (CHECK_SLACK if i == 0 and ticks else 0)
+            self.setColumnWidth(i, max(fit, fm.horizontalAdvance(c) + 24, least))
+        self._natural = [self.columnWidth(i) for i in range(self.columnCount())]
+        if self.columnCount():
+            self.header().setSectionResizeMode(stretch, self.header().ResizeMode.Stretch)
+        self._apply_hidden()
+
+    def changeEvent(self, e):
+        super().changeEvent(e)
+        if e.type() == QEvent.FontChange and self._cols and self.topLevelItemCount():
+            self._size_columns()
 
     def _column_menu(self, pos):
         """Right-click on the heading: tick the columns to show (one stays), or show all again. popup, not exec."""
@@ -424,19 +454,9 @@ class Table(QTreeWidget):
                     self.addTopLevelItem(item)
                 parents[depth] = item
                 item.setExpanded(True)
-            fm = self.header().fontMetrics()
-            widths = st.get("widths") or []
-            stretch = st.get("stretch", 0) if 0 <= st.get("stretch", 0) < len(cols) else 0
-            for i, c in enumerate(cols):
-                self.header().setSectionResizeMode(i, self.header().ResizeMode.Interactive)
-                self.resizeColumnToContents(i)
-                least = widths[i] if i < len(widths) and i != stretch else 0    # the model's width: room for "…"
-                self.setColumnWidth(i, max(self.columnWidth(i), fm.horizontalAdvance(c[1]) + 24, least))
-            self._natural = [self.columnWidth(i) for i in range(len(cols))]
-            if cols:                  # the name column takes the rest (not always the first: "Wann" stays readable)
-                self.header().setSectionResizeMode(stretch, self.header().ResizeMode.Stretch)
-            self._stretch = stretch
-            self._apply_hidden()
+            self._widths = st.get("widths") or []
+            self._stretch = st.get("stretch", 0) if 0 <= st.get("stretch", 0) < len(cols) else 0
+            self._size_columns()
             self._fit_height()
         self._select(st)
         see = st.get("see")

@@ -266,6 +266,7 @@ class CalcTab:
         labels = [_(AREAS[a]) for a in self.calc_area_ids]
         self.calc_area_var = ui.StringVar(value=_(AREAS[st["area"]]))
         cb = self._calc_choice(row, self.calc_area_var, labels, width=30, px=PERK_PX + 90)
+        cb._dbdms_name = _("Bereich")                      # 1.56: its accessible name (no label)
         cb.pack(side="left")
         ui.Label(row, text=_("Survivor im Team")).pack(side="left", padx=(16, 0))
         self.calc_n_var = ui.StringVar(value=str(st["n"]))
@@ -340,8 +341,10 @@ class CalcTab:
         r = ui.Frame(kf)                                     # 1.53: which Killer, and the power's add-ons
         r.pack(fill="x", pady=(0, 6))
         self.calc_killer_var = ui.StringVar(value=st["killer_name"] if st["killer_name"] in d.killers else NONE)
-        self._calc_choice(r, self.calc_killer_var, [NONE] + sorted(d.killers, key=str.lower), width=26,
-                          px=PERK_PX + 40).pack(side="left")
+        kc = self._calc_choice(r, self.calc_killer_var, [NONE] + sorted(d.killers, key=str.lower), width=26,
+                               px=PERK_PX + 40)
+        kc._dbdms_name = _("Killer")
+        kc.pack(side="left")
         ui.Label(r, text=_("Add-ons")).pack(side="left", padx=(12, 0))
         self.calc_killer_addons = []
         had = list(st["killer_addons"]) if isinstance(st["killer_addons"], list) else []
@@ -363,6 +366,7 @@ class CalcTab:
             v = ui.StringVar(value=name)
             c = ui.Combobox(r, textvariable=v, values=[NONE], state="readonly", width=26)
             c._dbdms_px = PERK_MAX                        # 1.55: this row has the room – the whole name
+            c._dbdms_name = _("Killer-Perk {n}", n=slot + 1)
             c._dbdms_tip = lambda v=v: "" if v.get() in ("", NONE) else v.get()
             if self._calc_icons().any():
                 c._dbdms_icons = self._calc_icons().finder("perks")

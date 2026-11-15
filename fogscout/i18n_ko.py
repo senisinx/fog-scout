@@ -1152,7 +1152,7 @@ T = {
     'Zeile RAM':
         'RAM 행',
     'Zeile in den Systemwerten an/aus. Die Warnungen „CPU/GPU DROSSELT“ erscheinen immer.':
-        '시스템 값의 행 켜기/끄기. ‘CPU/GPU THROTTLED’ 경고는 항상 표시됩니다.',
+        '시스템 값의 행 켜기/끄기. ‘CPU/GPU 스로틀링’ 경고는 항상 표시됩니다.',
     'Zeile in den Systemwerten an/aus – Hotspot und Memory Junction kommen nur mit HWiNFO.':
         '시스템 값의 행 켜기/끄기 – 핫스팟과 메모리 정션은 HWiNFO가 있을 때만 표시됩니다.',
     'Zeile in den Systemwerten an/aus.':
@@ -4620,7 +4620,7 @@ T = {
     'Werkzeuge':
         '도구',
     'Leertaste':
-        'Space',
+        '스페이스',
     'Abspielen / Anhalten':
         '재생 / 일시 정지',
     '1 Sekunde zurück / vor':
@@ -5414,7 +5414,7 @@ T = {
     'Frequenzsteuerung: CQP, QP-Werte 18 (HEVC 20)':
         '속도 제어: CQP, QP 값 18(HEVC 20)',
     'Voreinstellung: Qualität':
-        '프리셋: Quality',
+        '프리셋: 품질',
     'Video-Encoder: QuickSync H.264 oder HEVC (nicht „Stream-Encoder verwenden“)':
         '비디오 인코더: QuickSync H.264 또는 HEVC(‘방송 인코더 사용’ 아님)',
     'Frequenzsteuerung: ICQ (oder CQP), Wert 18':
@@ -5495,6 +5495,12 @@ T = {
         '상하 반전',
     'Noch keine Runden – Claude hätte nichts zum Auswerten.':
         '아직 라운드가 없습니다 – Claude가 볼 것이 없습니다.',
+    'Zu wenige Runden – Claude bekommt die Statistik erst ab {n} Runden.':
+        '라운드가 너무 적습니다 – Claude에게는 {n}라운드부터 통계를 보냅니다.',
+    'Der Update-Ordner ist ein Link – Download abgelehnt.':
+        '업데이트 폴더가 링크입니다 – 다운로드를 거부했습니다.',
+    'YouTube: Anmeldung fehlgeschlagen ({error}) – Client-ID und Client-Secret prüfen und noch einmal „Mit YouTube verbinden“ klicken.':
+        'YouTube: 로그인 실패({error}) – 클라이언트 ID와 클라이언트 보안 비밀번호를 확인하고 ‘YouTube에 연결’을 한 번 더 클릭하세요.',
     'Schickt deine Bitte und das Bild, wie es hier zu sehen ist (bereits zensierte Bereiche bleiben zensiert), an Claude; nichts wird geändert, bevor du übernimmst.':
         '요청과 여기 보이는 이미지(이미 가린 영역은 가려진 채로)를 Claude에게 보냅니다. 적용하기 전에는 아무것도 바뀌지 않습니다.',
     'Schickt die Frage und Zähler/Quoten deiner Runden an Claude – keine einzelne Runde, keine Namen':
@@ -5917,6 +5923,12 @@ T = {
         '일본어',
     'Koreanisch':
         '한국어',
+    'Zuordnen zu':
+        '지정 대상',
+    'Gruppieren nach':
+        '그룹 기준',
+    'Killer-Perk {n}':
+        '살인마 퍽 {n}',
     'Ein Standbild hat keinen Anfang und kein Ende zum Schneiden – seine Länge stellst du unter „Standbild“ ein oder ziehst seinen Rand.':
         '정지 화면에는 자를 시작과 끝이 없습니다 – 길이는 „정지 화면“에서 설정하거나 가장자리를 끌어 조정하세요.',
 }

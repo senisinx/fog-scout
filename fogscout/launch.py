@@ -62,8 +62,11 @@ def child_env(environ=None, bundle: str | None = None) -> dict:
 # or its children when it runs as administrator – which certificates TLS trusts (the update check), what Python
 # imports (PYTHONPATH/PYTHONHOME for the helpers started with sys.executable), what git does (hooks, fsmonitor,
 # sslCAInfo), where Qt loads plugins from. Proxies stay: a proxy alone cannot break TLS, and some PCs need one.
-UNSAFE_PREFIXES = ("SSL_CERT_", "PYTHON", "GIT_")
-UNSAFE_NAMES = ("REQUESTS_CA_BUNDLE", "CURL_CA_BUNDLE", "QT_QPA_PLATFORM_PLUGIN_PATH")
+# 1.56 (audit SEC-1): also OPENSSL_* – OPENSSL_CONF can make OpenSSL load a provider/engine DLL into the elevated
+# process (read when hashlib or ssl is first imported), OPENSSL_MODULES/OPENSSL_ENGINES name where it loads them
+# from – and SSLKEYLOGFILE, with which every TLS context appends its session keys to a file the user chose.
+UNSAFE_PREFIXES = ("SSL_CERT_", "PYTHON", "GIT_", "OPENSSL_")
+UNSAFE_NAMES = ("REQUESTS_CA_BUNDLE", "CURL_CA_BUNDLE", "QT_QPA_PLATFORM_PLUGIN_PATH", "SSLKEYLOGFILE")
 
 
 def clean_elevated_environment(environ, bundle: str = "") -> dict:
@@ -82,20 +85,26 @@ def clean_elevated_environment(environ, bundle: str = "") -> dict:
 
 def harden_start_environment() -> list:
     """At the very start of the elevated program: drop those variables from the process (its own TLS context is
-    built later and reads SSL_CERT_*; children inherit the rest). Returns the names dropped; [] when not elevated."""
+    built later and reads SSL_CERT_*/SSLKEYLOGFILE; OpenSSL reads OPENSSL_CONF once, when hashlib or ssl is first
+    imported – so this runs before either; children inherit the rest). Returns the names dropped; [] when not
+    elevated."""
     if not elevated():
         return []
-    from . import paths                       # (paths only needs the standard library at import)
     with _LOCK:
         clean = clean_elevated_environment(os.environ, bundle_dir())
+        gone = [k for k in os.environ if k not in clean]
+        for key in gone:
+            del os.environ[key]
+        # 1.56 (audit SEC-1): paths only after the cleaning – it imports secrets → hashlib, and OpenSSL reads
+        # OPENSSL_CONF at that very moment (measured: the config was loaded with the old order)
+        from . import paths                   # (paths only needs the standard library at import)
         if paths.installed():
             # 1.38.57 (security review): a user-level DBDMS_DATA_DIR would redirect where the elevated, installed
             # program writes. Only installed: CI runs the bare FogScout.exe --selftest elevated with it set.
-            clean = {k: v for k, v in clean.items() if k.upper() != paths.ENV}
-        gone = sorted(k for k in os.environ if k not in clean)
-        for key in gone:
-            del os.environ[key]
-    return gone
+            for key in [k for k in os.environ if k.upper() == paths.ENV]:
+                del os.environ[key]
+                gone.append(key)
+    return sorted(gone)
 
 
 def _kernel32():

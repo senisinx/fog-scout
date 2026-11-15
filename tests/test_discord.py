@@ -275,3 +275,38 @@ def test_a_message_from_the_pipe_reaches_the_status_clipped_and_on_one_line():
     with pytest.raises(dc.IpcError) as e:                    # a malformed answer is an error, not a crash
         dc.set_activity(Ipc((dc.OP_FRAME, {"evt": "ERROR", "data": "nope"})), None)
     assert e.value.args[0] == "error"
+
+
+@pytest.mark.parametrize("answer", [(dc.OP_FRAME, [1]), (dc.OP_FRAME, 7), (dc.OP_FRAME, {"evt": "ERROR", "data": "x"})])
+def test_a_malformed_handshake_answer_is_an_error_and_the_pipe_is_closed(tmp_path, monkeypatch, answer):
+    """1.56 (audit SEC-6): anything local can serve discord-ipc-N. A JSON list or number as the answer crashed
+    connect with AttributeError (d.get) – the presence thread caught it, but the connection was never closed, one
+    more leaked pipe handle on each retry. Now: IpcError, and the pipe is closed on every way out but READY."""
+    if sys.platform == "win32":
+        pytest.skip("the fake peer is a unix socket; Windows talks over the named pipe")
+    monkeypatch.setenv("XDG_RUNTIME_DIR", str(tmp_path))
+    srv = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+    srv.bind(str(tmp_path / "discord-ipc-0"))
+    srv.listen(1)
+    srv.settimeout(5)
+    closed = []
+
+    def serve():
+        conn, _a = srv.accept()
+        conn.settimeout(5)
+        FakeDiscord._recv(conn)
+        FakeDiscord._send(conn, *answer)
+        try:
+            closed.append(conn.recv(1) == b"")          # EOF: the client closed its end
+        except OSError:
+            closed.append(False)
+        conn.close()
+    t = threading.Thread(target=serve, daemon=True)
+    t.start()
+    try:
+        with pytest.raises(dc.IpcError):
+            dc.connect(GOOD_ID)
+        t.join(timeout=5)
+        assert closed == [True]
+    finally:
+        srv.close()

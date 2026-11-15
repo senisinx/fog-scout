@@ -13,7 +13,7 @@ from PySide6.QtWidgets import (QBoxLayout, QComboBox, QDialog, QFrame, QGridLayo
 from . import qt_theme
 from .qt_layouts import FlowRow, TileGrid, WrapCheck
 from .i18n import N_, _
-from .qt_common import SLIDER_MAX, guard_wheel, pixmap_from_pil, steady_scroll, _label, _tip, _card, _set, _scroll_page, page_head, set_glyph
+from .qt_common import SLIDER_MAX, guard_wheel, on_zoom, pixmap_from_pil, steady_scroll, _label, _tip, _card, _set, _scroll_page, page_head, set_glyph
 from .qt_views import FactBox, Table, LogView, HotkeyButton, Chart, SwatchView, TilesView, DashboardView
 from .qt_preview import PreviewView
 
@@ -839,6 +839,7 @@ def show_control(kind, w, extra, st):
         w.setToolTip(st["tip"])
     if kind in ("check", "radio"):
         _set(w, st.get("text", ""))
+        _name_from(w, st.get("text", ""))                         # 1.56: a choice right after a tick box
         if w.isChecked() != bool(st.get("value")):
             w.setChecked(bool(st.get("value")))                 # setChecked does not emit clicked
     elif kind == "entry":
@@ -846,6 +847,8 @@ def show_control(kind, w, extra, st):
             w.setText(st.get("value", ""))
         if st.get("placeholder", "") != w.placeholderText():
             w.setPlaceholderText(st.get("placeholder", ""))
+        if not w.accessibleName() and w.placeholderText():           # 1.56: no label – its placeholder names it
+            w.setAccessibleName(_accessible(w.placeholderText().rstrip("… .")))
         if st.get("secret") and w.echoMode() != QLineEdit.Password:   # 1.4: the OBS password
             w.setEchoMode(QLineEdit.Password)
     elif kind == "image":
@@ -869,10 +872,12 @@ def show_control(kind, w, extra, st):
         icons = st.get("icons")
         if icons and w.__dict__.get("_icons") != icons:           # 1.52: a picture per entry (the calculator's perks)
             w._icons = list(icons)
-            side = round(ICON_PX * qt_theme.current_zoom())
-            w.setIconSize(QSize(side, side))
             for i, path in enumerate(icons[:w.count()]):
                 w.setItemIcon(i, _file_icon(path) if path else QIcon())
+        if icons:                                                 # 1.56: at the zoom of now (a switch while running)
+            side = round(ICON_PX * qt_theme.current_zoom())
+            if w.iconSize().width() != side:
+                w.setIconSize(QSize(side, side))
         if w.currentText() != st.get("value") and not (w.isEditable() and w.hasFocus()):
             w.blockSignals(True)
             i = w.findText(st.get("value", ""))
@@ -886,6 +891,8 @@ def show_control(kind, w, extra, st):
     elif kind == "slider":
         name, s, value = extra
         _set(name, st.get("label", ""))
+        if s.accessibleName() != _accessible(name.text()):          # 1.56 (a11y): the slider is named by its label
+            s.setAccessibleName(_accessible(name.text()))
         _set(value, st.get("text", ""))
         if not s.isSliderDown():                                  # the user is dragging: no pull back
             s.blockSignals(True)
@@ -903,6 +910,7 @@ def show_control(kind, w, extra, st):
     else:                                                         # button, label, hint, value, title, big
         text = st.get("text", "")
         _set(w, text.upper() if kind == "title" else text)
+        _name_from(w, text)                                       # 1.56: the choices/entries this label names
 
 
 class Grip(QWidget):
@@ -1163,6 +1171,53 @@ SPLIT_FROM = 840                  # px (logical): from this page width a "split"
                                   # 1.24.2 (phase 2): was 1080 – a 1280-px window (page ~1036) had the tabs below the fold
 
 
+NAMED_BY_LABEL = ("combo", "entry", "hotkey")
+
+
+def _link_names(controls: dict, keys):
+    """1.56 (a11y audit: 86 of 100 choices and 17 of 18 entries had no accessible name): choices, entries and
+    hotkeys after a label (or a tick box) in the same row (or grid line) are named by it – show_control keeps the
+    names in step with its text (``_dbdms_names``)."""
+    run = None                                    # the label and the controls after it, up to the next label
+    for key in keys:
+        c = controls.get(key)
+        if c is None:
+            continue
+        if c[0] in ("label", "check"):
+            run = (c[1], [])
+            c[1]._dbdms_names = run[1]
+        elif c[0] in NAMED_BY_LABEL and run is not None:
+            run[1].append(c[1])                   # several (the calculator's perks): "Survivor 1 (2)"
+        elif c[0] not in ("hint", "plain", "value"):
+            run = None
+
+
+def _name_from(w, text: str):
+    """The controls a label (or tick box) names: its text, numbered when it names several (show_control)."""
+    named = w.__dict__.get("_dbdms_names")
+    base = _accessible(text) if named else ""
+    if base:                                      # an empty label (a line the App fills later) names nothing
+        named = [c for c in named if not c.__dict__.get("_dbdms_fixed")]     # the model's own name stays
+        for i, c in enumerate(named):
+            name = f"{base} ({i + 1})" if len(named) > 1 else base
+            if c.accessibleName() != name:
+                c.setAccessibleName(name)
+
+
+def _accessible(text: str) -> str:
+    return " ".join(text.split()).rstrip(":").strip()
+
+
+def _combo_px(w, zoom: float, px: int, top: int):
+    """A model choice ``px`` wide at 100 % (1.51), up to ``top`` where the row has room (1.55: FlowRow); 1.56: again
+    on every zoom change (qt_common.on_zoom)."""
+    w.setFixedWidth(round(px * zoom))
+    if top > px:                                  # a long name is cut less often
+        w.setMaximumWidth(round(top * zoom))
+        w._grow_to = w.maximumWidth()
+    w.view().setMinimumWidth(round(260 * zoom))
+
+
 class SideBySide(QWidget):
     """1.8.2: two cards next to each other while the page is wide enough (the overlay preview and the tools of the
     picked element), one below the other on a narrow page. The first card takes the larger share."""
@@ -1186,6 +1241,15 @@ class SideBySide(QWidget):
 
     def beside(self) -> bool:
         return self.box.direction() == QBoxLayout.LeftToRight
+
+    def set_limits(self, beside_from: int, side_max: int):
+        """1.56: new limits (the text zoom changed while the window runs) – laid out again at once."""
+        self.BESIDE_FROM, self.side_max = beside_from, side_max
+        for i, card in enumerate(self.cards):
+            if i and side_max:
+                card.setMaximumWidth(side_max if self.beside() else 16777215)
+        if self.width() > 0:
+            self.arrange(self.width())
 
     def resizeEvent(self, e):
         self.arrange(self.width())
@@ -1244,6 +1308,14 @@ class FitTabs(QTabWidget):
             bar.style().unpolish(bar)
             bar.style().polish(bar)
             bar.updateGeometry()
+        # 1.56 (audit V-2, 150 % in a 1100-px window): even dense the settings' six tabs were wider than the page and
+        # the last one sat cut behind scroll arrows – then the titles end in "…" instead (Qt shares the width out)
+        squeeze = dense and not bar.isHidden() and need - bar.count() * self.DENSE_SAVES > self.width()
+        if squeeze == bar.usesScrollButtons():
+            bar.setUsesScrollButtons(not squeeze)
+            bar.setElideMode(Qt.ElideRight if squeeze else Qt.ElideNone)
+            for i in range(bar.count()):           # the whole title on hover while it may be cut
+                bar.setTabToolTip(i, bar.tabText(i).replace("&&", "&") if squeeze else "")
 
     def _fit(self):
         """1.8.8: the parent kept the height of the tab shown before (an empty band below a short tab, e.g.
@@ -1416,7 +1488,8 @@ class FormPage(QWidget, _Arranged):
 
     def _align_group(self, entry):
         group, done = entry
-        key = tuple((lbl.text(), w.count() if isinstance(w, QComboBox) else 0) for lbl, w in group)
+        key = (qt_theme.current_zoom(),          # 1.56: measured again after a zoom change while running
+               tuple((lbl.text(), w.count() if isinstance(w, QComboBox) else 0) for lbl, w in group))
         if key == done:
             return
         entry[1] = key
@@ -1432,6 +1505,7 @@ class FormPage(QWidget, _Arranged):
                 c.setMinimumWidth(width)
 
     def _add(self, item, lay):
+        note, self._note = self.__dict__.get("_note"), None       # 1.56: a fixed text right above (setup)
         kind = item[0]
         if kind == "row":
             kids = item[1]
@@ -1448,6 +1522,9 @@ class FormPage(QWidget, _Arranged):
                     if c[0] != "stretch":
                         self._add(c, row)
             parts = [c for c in kids if c[0] != "stretch"]
+            _link_names(self.controls, [c[1] for c in parts if len(c) > 1])
+            if note and parts and parts[0][0] in NAMED_BY_LABEL:   # "Sprache dieses Programms:" + its choice
+                self.controls[parts[0][1]][1].setAccessibleName(_accessible(note))
             if len(parts) >= 2 and parts[0][0] == "label" and hasattr(self, "_group"):
                 self._group.append((self.controls[parts[0][1]][1], self.controls[parts[1][1]][1]))
             lay.addLayout(row)
@@ -1490,6 +1567,7 @@ class FormPage(QWidget, _Arranged):
             return
         if kind == "note":                          # a fixed text of the page itself (setup assistant)
             lay.addWidget(_label(_(item[1]), wrap=True))
+            self._note = _(item[1])
             return
         w, extra = make_control(kind, item[1], self._post)
         if isinstance(lay, FlowRow):
@@ -1634,6 +1712,7 @@ class AutoPage(QWidget, _Arranged):
                             if w is not None:
                                 w.setSizePolicy(QSizePolicy.Expanding, w.sizePolicy().verticalPolicy())
                                 cell.setAlignment(w, Qt.Alignment())     # a choice box sits left otherwise
+                _link_names(self.controls, [c["key"] for c in sorted(kids, key=lambda c: tuple(c.get("cell", (0, 0))))])
                 for col in wide:
                     g.setColumnStretch(col, 1)
                 if not wide:
@@ -1650,8 +1729,7 @@ class AutoPage(QWidget, _Arranged):
                 # width on (times the text zoom – the choices grow with it), below each other on a narrower page
                 # the first column as wide as its rows are in one line, the second takes the rest up to
                 # BESIDE_MAX; what is left after that goes to the first (its choices grow, FlowRow)
-                zoom = qt_theme.current_zoom()
-                sb = SideBySide(round(n["beside"] * zoom), weights=(0, 1), side_max=round(BESIDE_MAX * zoom))
+                sb = SideBySide(weights=(0, 1))
                 sb.setObjectName("beside")
                 for c in kids:
                     wrap = QWidget()
@@ -1660,6 +1738,7 @@ class AutoPage(QWidget, _Arranged):
                     self._build(c, wl, keys, top=True)
                     wl.addStretch()
                     sb.add(wrap)
+                on_zoom(sb, lambda z, sb=sb, at=n["beside"]: sb.set_limits(round(at * z), round(BESIDE_MAX * z)))
                 v.addWidget(sb)
                 lay.addWidget(holder, 0)
                 self.controls[key] = (kind, holder, None)
@@ -1709,6 +1788,8 @@ class AutoPage(QWidget, _Arranged):
                 inner.addStretch()
             for c in last:
                 self._build(c, inner, keys, top=top and inner is v)
+            if n.get("row"):
+                _link_names(self.controls, [c["key"] for c in first + last])
             if inner is v and top and _grows(n):
                 v.addStretch()     # 1.11.14: the growing child hidden (empty statistics) – the rest stays on top
             if column is not None:
@@ -1762,14 +1843,13 @@ class AutoPage(QWidget, _Arranged):
         w, extra = make_control(kind, key, self._post)
         if kind == "combo" and n.get("px"):               # 1.51: as wide as the model says, whatever its longest
             w.setSizeAdjustPolicy(QComboBox.AdjustToMinimumContentsLengthWithIcon)     # entry (the list shows all
-            w.setFixedWidth(round(n["px"] * qt_theme.current_zoom()))                   # of it: view at its own width)
-            if n.get("px_max", 0) > n["px"]:              # 1.55: wider where the row has room (FlowRow) – a long
-                w.setMaximumWidth(round(n["px_max"] * qt_theme.current_zoom()))          # name is cut less often
-                w._grow_to = w.maximumWidth()
-            w.view().setTextElideMode(Qt.ElideNone)
-            w.view().setMinimumWidth(round(260 * qt_theme.current_zoom()))
+            w.view().setTextElideMode(Qt.ElideNone)                                     # of it: view at its own width)
+            on_zoom(w, lambda z, w=w, px=n["px"], top=n.get("px_max", 0): _combo_px(w, z, px, top))
         if kind == "label" and n.get("px"):               # 1.52: names of one width – the choices beside them line up
-            w.setFixedWidth(round(n["px"] * qt_theme.current_zoom()))
+            on_zoom(w, lambda z, w=w, px=n["px"]: w.setFixedWidth(round(px * z)))     # 1.56: and with the zoom
+        if n.get("name"):                                 # 1.56: a choice without a label is named by the model
+            w.setAccessibleName(n["name"])
+            w._dbdms_fixed = True
         if n.get("note"):                                 # 1.23: a warning line of the model ("Note.TLabel")
             w.setProperty("class", "note")
         if kind == "table" and n.get("fit"):

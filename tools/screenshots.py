@@ -3,6 +3,7 @@
     python tools/screenshots.py                          # every page, dark, 1100×760, zoom 1.0 → a temp folder
     python tools/screenshots.py --out shots --light --zoom 1.5 --size 1100x760 --pages settings,overlay
     python tools/screenshots.py --pages stats --rounds 300   # the statistics with synthetic rounds (tools/bench.py)
+    python tools/screenshots.py --lang ru                    # the window in another language (setting ui_language)
 
 Like tools/bench.py the program runs on a throw-away root (symlinked maps/models/maps.json, own settings.json,
 DBDMS_DATA_DIR, HOME) – the real program folder and the user's data are never touched. Per page one PNG of the window
@@ -23,11 +24,13 @@ sys.path.insert(0, TOOLS)
 sys.path.insert(0, ROOT)
 
 
-def _settings(root: str, light: bool, zoom: float):
+def _settings(root: str, light: bool, zoom: float, lang: str = ""):
     path = os.path.join(root, "settings.json")
     with open(path, encoding="utf-8") as fh:
         data = json.load(fh)
     data.update(dark_mode=not light, ui_zoom=float(zoom))
+    if lang:
+        data["ui_language"] = lang
     with open(path, "w", encoding="utf-8") as fh:
         json.dump(data, fh)
 
@@ -36,8 +39,19 @@ UMLAUTS = str.maketrans({"ä": "ae", "ö": "oe", "ü": "ue", "Ä": "Ae", "Ö": "
 
 
 def _name(*parts) -> str:
-    return "-".join(re.sub(r"[^A-Za-z0-9]+", "_", str(p).translate(UMLAUTS)).strip("_")
+    """A file name from page key and tab titles. 1.56: letters of any script are kept (\\w) – a Russian, Chinese,
+    Japanese or Korean tab title lost all its characters and the tabs of one page overwrote each other."""
+    return "-".join(re.sub(r"\W+", "_", str(p).translate(UMLAUTS)).strip("_")
                     for p in parts if p) + ".png"
+
+
+def _unique(path: str, taken: set) -> str:
+    """``path`` or, when this run wrote it already (two tabs of one title), ``…-2.png``, ``…-3.png``."""
+    stem, n = path[:-4], 2
+    while path in taken:
+        path, n = f"{stem}-{n}.png", n + 1
+    taken.add(path)
+    return path
 
 
 def _open_folds(page):
@@ -72,9 +86,10 @@ def shoot(app, out: str, pages=None, settle=None) -> list:
     q.build_all()
     _settle()
     written = []
+    taken = set()
 
     def grab(widget, *parts):
-        path = os.path.join(out, _name(*parts))
+        path = _unique(os.path.join(out, _name(*parts)), taken)
         if widget.grab().save(path):
             written.append(path)
 
@@ -125,6 +140,7 @@ def main():
     ap.add_argument("--size", default="1100x760", help="window size WxH (default 1100x760)")
     ap.add_argument("--zoom", type=float, default=1.0, help="ui_zoom (0.9 … 1.5)")
     ap.add_argument("--light", action="store_true", help="light theme instead of dark")
+    ap.add_argument("--lang", default="", help="UI language (de, en, it, ru, zh, ja, ko); default: German")
     ap.add_argument("--pages", default="", help="comma list of page keys (+ setup); default: all")
     ap.add_argument("--rounds", type=int, default=0, help="synthetic rounds (tools/bench.py) – e.g. 300 for a filled "
                                                           "statistics page; default 0 = empty""")
@@ -135,7 +151,7 @@ def main():
     os.environ.setdefault("DBDMS_LANG", "de")
     import bench                                  # the throw-away root of the measurements
     root = bench._root(rounds=max(0, args.rounds))
-    _settings(root, args.light, args.zoom)
+    _settings(root, args.light, args.zoom, args.lang)
     from fogscout.app import App
     app = App(root, simulate=os.path.join(root, "sim"))
     app.qt.resize(w, h)

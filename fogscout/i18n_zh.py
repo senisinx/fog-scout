@@ -4620,7 +4620,7 @@ T = {
     'Werkzeuge':
         '工具',
     'Leertaste':
-        'Space',
+        '空格',
     'Abspielen / Anhalten':
         '播放/暂停',
     '1 Sekunde zurück / vor':
@@ -5414,7 +5414,7 @@ T = {
     'Frequenzsteuerung: CQP, QP-Werte 18 (HEVC 20)':
         '码率控制：CQP，QP 值 18（HEVC 20）',
     'Voreinstellung: Qualität':
-        '预设：Quality',
+        '预设：质量',
     'Video-Encoder: QuickSync H.264 oder HEVC (nicht „Stream-Encoder verwenden“)':
         '视频编码器：QuickSync H.264 或 HEVC（不要选“使用串流编码器”）',
     'Frequenzsteuerung: ICQ (oder CQP), Wert 18':
@@ -5495,6 +5495,12 @@ T = {
         '垂直翻转',
     'Noch keine Runden – Claude hätte nichts zum Auswerten.':
         '还没有对局，Claude 没有可查看的内容。',
+    'Zu wenige Runden – Claude bekommt die Statistik erst ab {n} Runden.':
+        '对局太少，至少 {n} 局后才会把统计发送给 Claude。',
+    'Der Update-Ordner ist ein Link – Download abgelehnt.':
+        '更新文件夹是一个链接，已拒绝下载。',
+    'YouTube: Anmeldung fehlgeschlagen ({error}) – Client-ID und Client-Secret prüfen und noch einmal „Mit YouTube verbinden“ klicken.':
+        'YouTube：登录失败（{error}），请检查客户端 ID 和客户端密钥，然后再次点击“连接 YouTube”。',
     'Schickt deine Bitte und das Bild, wie es hier zu sehen ist (bereits zensierte Bereiche bleiben zensiert), an Claude; nichts wird geändert, bevor du übernimmst.':
         '将你的要求和此处显示的图片（已打码的区域保持打码）发送给 Claude；在你应用之前不会有任何更改。',
     'Schickt die Frage und Zähler/Quoten deiner Runden an Claude – keine einzelne Runde, keine Namen':
@@ -5917,6 +5923,12 @@ T = {
         '日语',
     'Koreanisch':
         '韩语',
+    'Zuordnen zu':
+        '归类到',
+    'Gruppieren nach':
+        '分组依据',
+    'Killer-Perk {n}':
+        '杀手技能 {n}',
     'Ein Standbild hat keinen Anfang und kein Ende zum Schneiden – seine Länge stellst du unter „Standbild“ ein oder ziehst seinen Rand.':
         '静帧没有可剪切的开头和结尾——请在“静帧”中设置其时长，或拖动其边缘。',
 }

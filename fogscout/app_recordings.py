@@ -237,18 +237,21 @@ class RecordingsTab:
         self.rec_period_var = ui.StringVar(value=self._rec_periods[0][1])
         cb = ui.Combobox(fr, textvariable=self.rec_period_var, values=[lbl for _k, lbl in self._rec_periods],
                          state="readonly", width=16)
+        cb._dbdms_name = _("Zeitraum")  # 1.56: its accessible name (no label)
         cb.pack(side="left")
         cb.bind("<<ComboboxSelected>>", lambda e: self._rec_render(force=True))
         self._rec_maps = [(None, _("Alle Maps"))]
         self.rec_map_var = ui.StringVar(value=self._rec_maps[0][1])
         self.rec_map_cb = ui.Combobox(fr, textvariable=self.rec_map_var, state="readonly", width=20,
                                       values=[lbl for _m, lbl in self._rec_maps])
+        self.rec_map_cb._dbdms_name = _("Map")
         self.rec_map_cb.pack(side="left", padx=(8, 0))
         self.rec_map_cb.bind("<<ComboboxSelected>>", lambda e: self._rec_render(force=True))
         self._rec_roles = [(k, _(label)) for k, label in REC_ROLES]
         self.rec_role_var = ui.StringVar(value=self._rec_roles[0][1])
         cb = ui.Combobox(fr, textvariable=self.rec_role_var, values=[lbl for _k, lbl in self._rec_roles],
                          state="readonly", width=13)
+        cb._dbdms_name = _("Rolle")
         cb.pack(side="left", padx=(8, 0))
         cb.bind("<<ComboboxSelected>>", lambda e: self._rec_render(force=True))
         self._farming_box(fr).pack(side="left", padx=(8, 0))                                    # 1.11.5
@@ -256,6 +259,7 @@ class RecordingsTab:
         self.rec_only_var = ui.StringVar(value=self._rec_onlys[0][1])
         cb = ui.Combobox(fr, textvariable=self.rec_only_var, values=[lbl for _k, lbl in self._rec_onlys],
                          state="readonly", width=15)
+        cb._dbdms_name = _("Art")
         cb.pack(side="left", padx=(8, 0))
         cb.bind("<<ComboboxSelected>>", lambda e: self._rec_render(force=True))
 
@@ -329,6 +333,9 @@ class RecordingsTab:
         ui.Button(row, text=_("Anderen Ordner …"), command=self._shot_pick_folder).pack(side="left")
         # an own folder that is gone (drive unplugged, renamed) leaves the page empty: back to Steam's from here too
         self.rec_empty_steam_btn = ui.Button(row, text=_("Steam-Ordner verwenden"), command=self._shot_steam_folder)
+        # 1.56 (audit V-5): the card as it is now from the start – built showing "Warte auf OBS …" it flashed while
+        # recordings were off, until the first tick of the shown page hid it
+        self._rec_card_render()
         return outer
 
     def _tab_clips(self, f):
@@ -340,11 +347,13 @@ class RecordingsTab:
         self.clip_period_var = ui.StringVar(value=self._rec_periods[0][1])
         cb = ui.Combobox(fr, textvariable=self.clip_period_var, values=[lbl for _k, lbl in self._rec_periods],
                          state="readonly", width=16)
+        cb._dbdms_name = _("Zeitraum")  # 1.56: its accessible name (no label)
         cb.pack(side="left")
         cb.bind("<<ComboboxSelected>>", lambda e: self._clips_render())
         self.clip_role_var = ui.StringVar(value=self._rec_roles[0][1])
         cb = ui.Combobox(fr, textvariable=self.clip_role_var, values=[lbl for _k, lbl in self._rec_roles],
                          state="readonly", width=13)
+        cb._dbdms_name = _("Rolle")
         cb.pack(side="left", padx=(8, 0))
         cb.bind("<<ComboboxSelected>>", lambda e: self._clips_render())
         self._farming_box(fr).pack(side="left", padx=(8, 0))                                    # 1.11.5
@@ -352,12 +361,14 @@ class RecordingsTab:
         self.clip_killer_var = ui.StringVar(value=self._clip_killers[0][1])
         self.clip_killer_cb = ui.Combobox(fr, textvariable=self.clip_killer_var, state="readonly", width=16,
                                           values=[lbl for _k, lbl in self._clip_killers])
+        self.clip_killer_cb._dbdms_name = _("Killer")
         self.clip_killer_cb.pack(side="left", padx=(8, 0))
         self.clip_killer_cb.bind("<<ComboboxSelected>>", lambda e: self._clips_render())
         self._clip_kinds = [(k, _(label)) for k, label in CLIP_KINDS]
         self.clip_kind_var = ui.StringVar(value=self._clip_kinds[0][1])
         cb = ui.Combobox(fr, textvariable=self.clip_kind_var, values=[lbl for _k, lbl in self._clip_kinds],
                          state="readonly", width=17)
+        cb._dbdms_name = _("Art")
         cb.pack(side="left", padx=(8, 0))
         cb.bind("<<ComboboxSelected>>", lambda e: self._clips_render())
 
@@ -423,6 +434,7 @@ class RecordingsTab:
         self.shot_kind_var = ui.StringVar(value=self._shot_kinds[0][1])
         cb = ui.Combobox(fr, textvariable=self.shot_kind_var, values=[lbl for _k, lbl in self._shot_kinds],
                          state="readonly", width=18)
+        cb._dbdms_name = _("Art")  # 1.56: its accessible name (no label)
         cb.pack(side="left")
         cb.bind("<<ComboboxSelected>>", lambda e: self._shots_render())
         self.shot_src_var = ui.StringVar(value="")

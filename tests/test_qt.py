@@ -367,6 +367,53 @@ def test_filling_tabs_take_the_page_and_tick_boxes_show(qapp, keep):
     assert regions.columnWidth(1) >= 78                       # the model's width: room for "31 ms"
 
 
+def test_a_table_with_tick_boxes_is_wide_enough_for_its_names_and_follows_its_font(qapp, keep):
+    """1.56 (audit V-3, 150 % in a small window): the server regions ended in "…" while the hosts column had room –
+    Qt's size hint leaves the style sheet's tick box out, and the widths were measured before the style sheet's
+    font. The name column has room for name, indent and tick box; a bigger font (zoom) widens it again."""
+    from fogscout.qt_views import CHECK_SLACK, Table
+    t = keep(Table(".srv", lambda *a: None))
+    t.setStyleSheet("QTreeWidget { font-size: 13px; }")
+    name = "USA West (N. Kalifornien) und noch etwas länger"
+    t.show_state({"visible": True, "selectable": True, "selection": [], "colours": {}, "stretch": 1,
+                  "columns": [("#0", "Region", "w"), ("state", "hosts-Datei", "w")], "widths": [100, 120],
+                  "rows": [("g:us", 0, "Amerika", [""], ["group", "check:part"], True),
+                           ("r:usw", 1, name, ["–"], ["check:on"], False)]})
+    small = t.columnWidth(0)
+    assert small >= t.fontMetrics().horizontalAdvance(name) + t.indentation() + CHECK_SLACK
+    t.setStyleSheet("QTreeWidget { font-size: 20px; }")       # the text zoom changed while the window runs
+    qapp.processEvents()
+    assert t.columnWidth(0) >= t.fontMetrics().horizontalAdvance(name) + t.indentation() + CHECK_SLACK > small
+
+
+def test_a_tab_row_too_wide_even_when_dense_shortens_its_titles(qapp, keep):
+    """1.56 (audit V-2, settings at 150 % in a 1100-px window): the six tabs did not fit even with the dense
+    padding and the last one sat cut behind scroll arrows. Then the titles end in "…" (whole title on hover);
+    with room again the row is as before."""
+    from PySide6.QtCore import Qt
+    from PySide6.QtWidgets import QWidget
+    from fogscout.qt_pages import FitTabs
+    tabs = keep(FitTabs())
+    titles = ["Allgemein", "Erkennung", "Hotkeys", "Match-Daten", "Aufnahmen", "Verbindungen"]
+    for t in titles:
+        tabs.addTab(QWidget(), t)
+    natural = tabs.tabBar().sizeHint().width()
+    tabs.resize(natural + 50, 200)
+    tabs._dense_fit()
+    assert tabs.tabBar().usesScrollButtons() and not tabs.tabBar().property("dense")
+    tabs.resize(natural - tabs.tabBar().count() * FitTabs.DENSE_SAVES + 10, 200)     # dense is enough
+    tabs._dense_fit()
+    assert tabs.tabBar().property("dense") and tabs.tabBar().usesScrollButtons()
+    tabs.resize(natural // 2, 200)                                                    # not even dense
+    tabs._dense_fit()
+    bar = tabs.tabBar()
+    assert not bar.usesScrollButtons() and bar.elideMode() == Qt.ElideRight
+    assert [bar.tabToolTip(i) for i in range(bar.count())] == titles
+    tabs.resize(natural + bar.count() * FitTabs.DENSE_SAVES + 50, 200)   # (no style sheet here: dense saves nothing)
+    tabs._dense_fit()
+    assert bar.usesScrollButtons() and not bar.property("dense") and not bar.tabToolTip(0)
+
+
 def test_cards_can_be_put_in_own_order(qapp, keep):
     """Drag a card at its grip: the others make room, the new order is posted and comes back after a restart;
     an order that does not fit (other version) shows the built-in one."""
@@ -751,6 +798,54 @@ def test_dialog_window_mirrors_and_closes_both_ways(qapp, keep):
     assert posted.get_nowait() == ("dlg_close", ".d")
 
 
+def test_icons_grow_with_the_text_zoom_and_stay_on_their_column(qapp, keep):
+    """1.56 (audit V-4, no decision against it in HISTORY): the navigation's icons and the drawn signs kept their
+    100 % size at 150 % text – small beside the words. They grow with the zoom (rounded); the compass and the state
+    dot stay centred on the icons' column (1.24.7)."""
+    from PySide6.QtWidgets import QPushButton
+    from fogscout import qt_window
+    from fogscout.qt_common import set_glyph
+    win = keep(qt_window.MainWindow(lambda a, arg=None: None))
+    win.resize(1200, 800)
+    win.show()
+    button = keep(QPushButton("Knopf"))
+    try:
+        for zoom in (1.0, 1.5):
+            win.apply_theme(True, zoom)
+            qapp.processEvents()
+            side = round(qt_window.NAV_ICON * zoom)
+            assert win.nav.iconSize().width() == side == qt_window.nav_icon_px()
+            img = qt_window.nav_icon("maps", "#c9a227", 2.0).toImage()
+            assert img.width() == 2 * side
+            set_glyph(button, "search")
+            assert button.iconSize().width() == round(qt_theme.ICON["m"] * zoom)
+            for sign in (win.brand_icon, win.status_btn.dot):
+                assert abs(sign.mapTo(win, sign.rect().center()).x() - qt_window.nav_sign_x()) <= 1, zoom
+    finally:
+        win.apply_theme(True, 1.0)
+
+
+def test_the_element_list_ends_long_texts_in_an_ellipsis(qapp, keep):
+    """1.56 (audit V-1, 150 % in a small window): the overlay element list cut its texts in the middle of a word.
+    A text that does not fit is drawn ending in "…" (the whole text stays the label's and the row's name), and the
+    chips of the narrow list share the width equally."""
+    from fogscout import qt_overlay
+    label = keep(qt_overlay._ElideLabel("automatisch · 100 % und noch viel mehr Text"))
+    full = label.fontMetrics().horizontalAdvance(label.text())
+    assert label.minimumSizeHint().width() < full / 4
+    label.resize(full // 3, 30)
+    assert not label.grab().isNull() and label.text().endswith("Text")
+    rail = keep(qt_overlay.ElementRail(".ov.rail", lambda *a: None))
+    rail.show_state({"visible": True, "data": {"order": ("map", "text", "hud", "today"), "rows": {}}})
+    rail.set_compact(True)
+    row = rail._rows["map"]
+    assert row.accessibleName() == row.title.text() and row.eye.accessibleName().startswith(row.title.text() + ": ")
+    assert row.sizePolicy().horizontalPolicy() == qt_overlay.QSizePolicy.Ignored
+    assert {rail.grid.columnStretch(c) for c in range(rail.COMPACT_COLS)} == {1}
+    rail.set_compact(False)
+    assert row.sizePolicy().horizontalPolicy() == qt_overlay.QSizePolicy.Preferred
+
+
 def test_navigation_icons_are_drawn_alike(qapp, keep):
     """Own line icons (not font characters, which came out in different sizes): every page one, same box, and the
     log's gets an amber dot while there is an unseen error."""
@@ -966,6 +1061,54 @@ def test_narrow_window_wraps_instead_of_cutting_off(qapp, keep):
     finally:
         win.apply_theme(True, 1.0)
     assert win.nav.maximumWidth() == qt_window.NAV_W
+
+
+ZOOM_NODE = {"kind": "box", "key": ".c", "side": "top", "row": False, "children": [
+    {"kind": "box", "key": ".c.cols", "side": "top", "row": False, "beside": 900, "children": [
+        {"kind": "box", "key": ".c.cols.a", "side": "top", "row": True, "children": [
+            {"kind": "label", "key": ".c.cols.a.name", "side": "left", "px": 120},
+            {"kind": "combo", "key": ".c.cols.a.perk", "side": "left", "px": 174, "px_max": 260}]},
+        {"kind": "box", "key": ".c.cols.b", "side": "top", "row": False, "children": [
+            {"kind": "label", "key": ".c.cols.b.out", "side": "top"}]}]}]}
+
+
+def _zoom_sizes(page):
+    from PySide6.QtWidgets import QComboBox
+    from fogscout.qt_pages import SideBySide
+    combo = page.controls[".c.cols.a.perk"][1]
+    assert isinstance(combo, QComboBox)
+    sb = page.findChild(SideBySide, "beside")
+    return (page.controls[".c.cols.a.name"][1].width(), combo.minimumWidth(), combo.maximumWidth(),
+            combo.__dict__.get("_grow_to"), combo.view().minimumWidth(), sb.BESIDE_FROM, sb.side_max)
+
+
+def test_a_zoom_change_while_running_sizes_the_pages_like_a_fresh_start(qapp, keep):
+    """1.56 (audit U-2): widths the model gives in px (the calculator's names and choices, its two columns) were
+    set once at build with the zoom of that moment – after a switch to 150 % they stayed at 100 % and cut the texts.
+    A runtime switch gives the same widths as a window started at 150 %; and an open dialog takes the new style
+    sheet (U-3: it kept the old theme until it was closed)."""
+    from fogscout import qt_window
+    win = keep(qt_window.MainWindow(lambda a, arg=None: None, layouts={"calc": ZOOM_NODE}))
+    try:
+        win.apply_theme(True, 1.0)
+        page = win.forms["calc"]
+        small = _zoom_sizes(page)
+        dlg_node = {"kind": "box", "key": ".d", "side": "top", "row": False, "children": [
+            {"kind": "label", "key": ".d.text", "side": "top"}]}
+        win.open_dialog("dlg", "Dialog", dlg_node)
+        dark_qss = win.dialogs["dlg"].styleSheet()
+        win.apply_theme(False, 1.5)
+        switched = _zoom_sizes(page)
+        assert win.dialogs["dlg"].styleSheet() == win._qss != dark_qss
+        fresh_win = keep(qt_window.MainWindow(lambda a, arg=None: None, layouts={"calc": ZOOM_NODE}))
+        fresh_win.apply_theme(False, 1.5)
+        fresh = _zoom_sizes(fresh_win.forms["calc"])
+        assert switched == fresh != small
+        assert fresh[:2] == (round(120 * 1.5), round(174 * 1.5)) and fresh[5] == round(900 * 1.5)
+        win.close_dialog("dlg")
+    finally:
+        win.apply_theme(True, 1.0)
+    assert _zoom_sizes(page) == small
 
 
 def test_setup_assistant_goes_through_its_steps(qapp, keep):

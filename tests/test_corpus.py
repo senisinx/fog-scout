@@ -129,3 +129,42 @@ def test_every_banner_of_the_real_corpus_is_read_as_its_map_again():
     original size – any change to the separator search, the crop or the scoring that loses one of them fails here."""
     rep = corpus.check(REAL, _reader())
     assert rep.broken == 0 and rep.misses == [] and rep.hits == rep.total >= 9
+
+
+def test_every_real_banner_is_read_in_a_window_far_wider_than_16_9():
+    """1.56 (audit D-3): the line's start was limited to 0.30 of the window width – in a window wider than about
+    2.2 × 16:9 (5760×1080, 7680×1440) the 16:9 picture starts right of that and every banner line was thrown away.
+    Each real banner, its 16:9 picture centred in a black 32:9 and 48:9 window, is read as its map again."""
+    import numpy as np
+    reader = _reader()
+    entries = corpus.entries(REAL)
+    assert len(entries) >= 9
+    for e in entries:
+        m = e.meta
+        crop = cv2.imread(e.picture)
+        (fw, fh), (rw, rh), (ox, oy) = m["frame"], m["roi"], m["offset"]
+        frame = np.zeros((fh, fw, 3), np.uint8)                    # the strip back where it was in the window
+        y0 = int(detector.ROI[1] * fh)
+        h, w = crop.shape[:2]
+        frame[y0 + oy:y0 + oy + h, ox:ox + w] = crop[:rh - oy, :rw - ox]
+        vx, vw = detector.viewport(fw, fh)
+        picture = frame[:, int(vx):int(vx + vw)]
+        for aspect in (32, 48):
+            W = int(round(fh * aspect / 9))
+            wide = np.zeros((fh, W, 3), np.uint8)
+            x = (W - picture.shape[1]) // 2
+            wide[:, x:x + picture.shape[1]] = picture
+            roi = np.ascontiguousarray(wide[int(detector.ROI[1] * fh):int(detector.ROI[3] * fh),
+                                            :int(detector.ROI[2] * W)])
+            sep, res = reader.read(roi, W, fh)
+            assert sep is not None and res is not None and res.best[0] == m["map_id"], (m["map_id"], W, fh)
+
+
+def test_the_anchored_line_sits_in_the_16_9_picture():
+    """1.56 (audit D-3): anchored_separator measured from the window's left edge – the same in a picture narrower
+    than 16:9 (the only case it runs for), inside the picture when the window is wider."""
+    narrow = detector.anchored_separator(*RPD_FRAME, RPD_BARS)
+    assert narrow is not None and narrow.x0 == int(detector.ANCHOR[0] * RPD_FRAME[0])
+    wide = detector.anchored_separator(1600, 700, (100, 100))
+    vx, vw = detector.viewport(1600, 700)
+    assert wide is not None and wide.x0 == int(vx + detector.ANCHOR[0] * vw)

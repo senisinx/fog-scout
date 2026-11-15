@@ -111,12 +111,14 @@ class StatsTab:
         self.stats_period_var = ui.StringVar(value=self._stats_periods[0][1])
         cb = ui.Combobox(fr, textvariable=self.stats_period_var, values=[lbl for _k, lbl in self._stats_periods],
                           state="readonly", width=16)
+        cb._dbdms_name = _("Zeitraum")  # 1.56: its accessible name (no label)
         cb.pack(side="left")
         cb.bind("<<ComboboxSelected>>", lambda e: self._stats_render())
         self._stats_roles = [(k, _(label)) for k, label in STATS_ROLES]
         self.stats_role_var = ui.StringVar(value=self._stats_roles[0][1])
         cb = ui.Combobox(fr, textvariable=self.stats_role_var, values=[lbl for _k, lbl in self._stats_roles],
                           state="readonly", width=13)
+        cb._dbdms_name = _("Rolle")
         cb.pack(side="left", padx=(8, 0))
         cb.bind("<<ComboboxSelected>>", lambda e: self._stats_render())
         self.stats_filter_btn = ui.glyph(ui.Button(fr, text=_("Filter{count}", count=""),    # 1.24: drawn chevron
@@ -129,12 +131,14 @@ class StatsTab:
         self.stats_region_var = ui.StringVar(value=self._stats_regions[0][1])
         self.stats_region_cb = ui.Combobox(more, textvariable=self.stats_region_var, state="readonly", width=20,
                                             values=[lbl for _c, lbl in self._stats_regions])
+        self.stats_region_cb._dbdms_name = _("Region")
         self.stats_region_cb.pack(side="left")
         self.stats_region_cb.bind("<<ComboboxSelected>>", lambda e: self._stats_render())
         self._stats_killers = [(None, _("Alle Killer"))]
         self.stats_killer_var = ui.StringVar(value=self._stats_killers[0][1])
         self.stats_killer_cb = ui.Combobox(more, textvariable=self.stats_killer_var, state="readonly", width=14,
                                             values=[lbl for _k, lbl in self._stats_killers])
+        self.stats_killer_cb._dbdms_name = _("Killer")
         self.stats_killer_cb.pack(side="left", padx=(8, 0))
         self.stats_killer_cb.bind("<<ComboboxSelected>>", lambda e: self._stats_render())
         # 1.2.16: map filter – set by hand or by a click on the dashboard (map bar, heatmap cell)
@@ -142,6 +146,7 @@ class StatsTab:
         self.stats_map_var = ui.StringVar(value=self._stats_maps_f[0][1])
         self.stats_map_cb = ui.Combobox(more, textvariable=self.stats_map_var, state="readonly", width=18,
                                          values=[lbl for _k, lbl in self._stats_maps_f])
+        self.stats_map_cb._dbdms_name = _("Map")
         self.stats_map_cb.pack(side="left", padx=(8, 0))
         self.stats_map_cb.bind("<<ComboboxSelected>>", lambda e: self._stats_render())
         # 1.8.49: game mode as the stats page names it (userscript 3) – only shown once a mode is known
@@ -149,6 +154,7 @@ class StatsTab:
         self.stats_mode_var = ui.StringVar(value=self._stats_modes[0][1])
         self.stats_mode_cb = ui.Combobox(more, textvariable=self.stats_mode_var, state="readonly", width=16,
                                           values=[lbl for _k, lbl in self._stats_modes])
+        self.stats_mode_cb._dbdms_name = _("Spielmodus")
         self.stats_mode_cb.bind("<<ComboboxSelected>>", lambda e: self._stats_mode_pick())
         self._stats_mode_want = self.settings.get("stats_mode") or None      # 1.8.51: the pick is remembered
         self.stats_farming_box = self._farming_box(more)                                         # 1.11.5
@@ -294,6 +300,7 @@ class StatsTab:
         self.stats_alias_var = ui.StringVar(value="")
         self.stats_alias_cb = ui.Combobox(ar, textvariable=self.stats_alias_var, state="disabled", width=16,
                                            values=[killer_label(k) for k in self._stats_alias_choices])
+        self.stats_alias_cb._dbdms_name = _("Zuordnen zu")  # 1.56: its accessible name (no label)
         self.stats_alias_cb.pack(side="left")
         self.stats_alias_btn = ui.Button(ar, text=_("Zuordnen"), command=self._stats_alias_set, state="disabled")
         self.stats_alias_btn.pack(side="left", padx=(6, 0))
@@ -375,6 +382,7 @@ class StatsTab:
         self.stats_wait_by_var = ui.StringVar(value=self._stats_wait_groups[0][1])
         cb = ui.Combobox(wr, textvariable=self.stats_wait_by_var, values=[lbl for _k, lbl in self._stats_wait_groups],
                           state="readonly", width=16)
+        cb._dbdms_name = _("Gruppieren nach")  # 1.56: its accessible name (no label)
         cb.pack(side="right")
         cb.bind("<<ComboboxSelected>>", lambda e: self._stats_render())
         self.stats_wait = self._stats_tree(box_w, (("grp", _("Wann/Wo"), 230, "w"), ("n", _("Runden"), 70, "e"),
@@ -404,6 +412,7 @@ class StatsTab:
         self.stats_sys_by_var = ui.StringVar(value=self._stats_sys_groups[0][1])
         cb = ui.Combobox(sr, textvariable=self.stats_sys_by_var, values=[lbl for _k, lbl in self._stats_sys_groups],
                           state="readonly", width=16)
+        cb._dbdms_name = _("Gruppieren nach")
         cb.pack(side="left")
         cb.bind("<<ComboboxSelected>>", lambda e: self._stats_render())
         self.stats_sys = self._stats_tree(grp, (("grp", _("Wann/Wo"), 125, "w"), ("n", _("Runden"), 52, "e"),
@@ -1640,12 +1649,8 @@ class StatsTab:
         ts = self._stats_selected_ts()
         if not ts:
             return
-        done = []
         try:
-            for t in ts:
-                r = history.set_role(self._hist_path(), t, role)
-                if r is not None:
-                    done.append(r)
+            done = history.set_role_many(self._hist_path(), ts, role)     # 1.56 (F2): one rewrite for all
         except OSError as e:
             self._log(_("Rolle konnte nicht gespeichert werden: {error}", error=e), "Fehler")
             return
@@ -1670,16 +1675,13 @@ class StatsTab:
         if not picked:
             return
         on = not all(r.farming for r in picked)
-        done = []
         try:
-            for r0 in picked:
-                r = history.set_farming(self._hist_path(), r0.t, on)
-                if r is not None:
-                    done.append(r)
-                    self.recorder.set_farming(r0.t, on)          # the recording moves into/out of "Farming"
+            done = history.set_farming_many(self._hist_path(), [r0.t for r0 in picked], on)   # 1.56 (F2): one rewrite
         except OSError as e:
             self._log(_("Rolle konnte nicht gespeichert werden: {error}", error=e), "Fehler")
             return
+        for r in done:
+            self.recorder.set_farming(r.t, on)                   # the recording moves into/out of "Farming"
         if len(done) == 1:
             r = done[0]
             when = time.strftime("%d.%m.%y %H:%M", time.localtime(r.t))
@@ -1759,10 +1761,9 @@ class StatsTab:
         if farming:
             done = 0
             try:
-                for r in rounds:
-                    if history.set_farming(self._hist_path(), r.t, True) is not None:
-                        self.recorder.set_farming(r.t, True)
-                        done += 1
+                for r in history.set_farming_many(self._hist_path(), [r.t for r in rounds], True):   # 1.56 (F2)
+                    self.recorder.set_farming(r.t, True)
+                    done += 1
             except OSError as e:
                 self._log(_("Runden nicht geändert: {error}", error=e), "Fehler")
             self._log(_("{n} Runden als Farming markiert.", n=done), "System")
@@ -1783,10 +1784,9 @@ class StatsTab:
             return
         done = 0
         try:
-            for r in found:
-                if history.set_farming(self._hist_path(), r.t, True) is not None:
-                    self.recorder.set_farming(r.t, True)
-                    done += 1
+            for r in history.set_farming_many(self._hist_path(), [r.t for r in found], True):   # 1.56 (F2)
+                self.recorder.set_farming(r.t, True)
+                done += 1
         except OSError as e:
             self._log(_("Runden nicht geändert: {error}", error=e), "Fehler")
         self._log(_("{n} Runden als Farming markiert.", n=done), "System")
@@ -1813,12 +1813,8 @@ class StatsTab:
         if not self._ask(_("Runde löschen"), question, self._stats_delete_round,
                          ok_text=_("Löschen"), danger=True):
             return
-        gone = []
         try:
-            for t in self._stats_selected_ts():
-                r = history.delete(self._hist_path(), t)
-                if r is not None:
-                    gone.append(r)
+            gone = history.delete_many(self._hist_path(), self._stats_selected_ts())   # 1.56 (F2): one rewrite
         except OSError as e:
             self._log(_("Runde konnte nicht gelöscht werden: {error}", error=e), "Fehler")
             return
@@ -1837,9 +1833,8 @@ class StatsTab:
         if not ts or target is None:
             return
         try:
-            r = None
-            for t in ts:
-                r = history.set_killer(self._hist_path(), t, target) or r
+            changed = history.set_killer_many(self._hist_path(), ts, target)       # 1.56 (F2): one rewrite
+            r = changed[-1] if changed else None
         except OSError as e:
             self._log(_("Killer konnte nicht gespeichert werden: {error}", error=e), "Fehler")
             return
@@ -1858,11 +1853,7 @@ class StatsTab:
         if not ts or target is None:
             return
         try:
-            changed = []
-            for t in ts:
-                r = history.set_map(self._hist_path(), t, target.id, target.name)
-                if r is not None:
-                    changed.append(r)
+            changed = history.set_map_many(self._hist_path(), ts, target.id, target.name)   # 1.56 (F2): one rewrite
         except OSError as e:
             self._log(_("Map konnte nicht gespeichert werden: {error}", error=e), "Fehler")
             return
@@ -2049,7 +2040,7 @@ class StatsTab:
         if getattr(self, "_record_key", None) != key:
             j = self._joined()
             pairs = [(r, j.off[id(r)]) for r in j.rounds if id(r) in j.off and history.normal(r)]
-            # 1.38.28 (F2): by map and by map × killer (own killer, or the lobby's as survivor), in time order
+            # 1.38.28 (F2): by map and by map × own killer (survivor rounds have none: ""), in time order
             self._record_cache = (records.record_groups(pairs, lambda r: r.map_id),
                                   records.record_groups(pairs, lambda r: (r.map_id, r.killer)))
             self._record_key = key

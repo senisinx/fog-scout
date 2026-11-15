@@ -3530,7 +3530,7 @@ T = {
     'Spielstatus in Discord anzeigen (Rich Presence)':
         'Показывать статус игры в Discord (Rich Presence)',
     'Application-ID':
-        'Application ID',
+        'ID приложения',
     'Discord testen':
         'Проверить Discord',
     'Developer-Portal öffnen':
@@ -3638,7 +3638,7 @@ T = {
     '„Als nächstes“ aus Spotify in der Musikkarte zeigen':
         'Показывать «Далее» из Spotify на музыкальной карточке',
     'Client-ID':
-        'Client ID',
+        'Идентификатор клиента',
     'Developer-Dashboard öffnen':
         'Открыть панель разработчика',
     'Mit Spotify verbinden':
@@ -3656,7 +3656,7 @@ T = {
     'Öffentlich':
         'Открытый',
     'Client-Secret':
-        'Client secret',
+        'Секрет клиента',
     'Sichtbarkeit':
         'Доступ',
     'Clips automatisch auf YouTube hochladen':
@@ -5172,7 +5172,7 @@ T = {
     '{file}: {n} Clip(s) angehängt.':
         '{file}: добавлено клипов: {n}.',
     'Audiomediathek':
-        'Audio Library',
+        'Аудиотека',
     'Audiomediathek im Browser geöffnet – heruntergeladene Titel erscheinen im Abschnitt Ton, sobald du zurück im Editor bist.':
         'Audio Library открыта в браузере — скачанные треки появятся в разделе «Звук», когда вы вернётесь в редактор.',
     'Neu im Download-Ordner – Klick legt sie am Abspielkopf auf A2:':
@@ -5414,7 +5414,7 @@ T = {
     'Frequenzsteuerung: CQP, QP-Werte 18 (HEVC 20)':
         'Управление битрейтом: CQP, значения QP 18 (HEVC 20)',
     'Voreinstellung: Qualität':
-        'Предустановка: Quality',
+        'Предустановка: качество',
     'Video-Encoder: QuickSync H.264 oder HEVC (nicht „Stream-Encoder verwenden“)':
         'Видеокодировщик: QuickSync H.264 или HEVC (не «Использовать кодировщик потока»)',
     'Frequenzsteuerung: ICQ (oder CQP), Wert 18':
@@ -5495,6 +5495,12 @@ T = {
         'Отразить по вертикали',
     'Noch keine Runden – Claude hätte nichts zum Auswerten.':
         'Раундов пока нет — Claude не на что смотреть.',
+    'Zu wenige Runden – Claude bekommt die Statistik erst ab {n} Runden.':
+        'Слишком мало раундов — Claude получает статистику только начиная с {n} раундов.',
+    'Der Update-Ordner ist ein Link – Download abgelehnt.':
+        'Папка обновлений является ссылкой — загрузка отклонена.',
+    'YouTube: Anmeldung fehlgeschlagen ({error}) – Client-ID und Client-Secret prüfen und noch einmal „Mit YouTube verbinden“ klicken.':
+        'YouTube: ошибка входа ({error}) — проверьте Client ID и Client Secret и нажмите «Подключить YouTube» ещё раз.',
     'Schickt deine Bitte und das Bild, wie es hier zu sehen ist (bereits zensierte Bereiche bleiben zensiert), an Claude; nichts wird geändert, bevor du übernimmst.':
         'Отправляет Claude ваше пожелание и изображение в показанном здесь виде (уже зацензуренные области остаются зацензуренными); ничего не меняется, пока вы не примените.',
     'Schickt die Frage und Zähler/Quoten deiner Runden an Claude – keine einzelne Runde, keine Namen':
@@ -5917,6 +5923,12 @@ T = {
         'Японский',
     'Koreanisch':
         'Корейский',
+    'Zuordnen zu':
+        'Назначить',
+    'Gruppieren nach':
+        'Группировать по',
+    'Killer-Perk {n}':
+        'Перк убийцы {n}',
     'Ein Standbild hat keinen Anfang und kein Ende zum Schneiden – seine Länge stellst du unter „Standbild“ ein oder ziehst seinen Rand.':
         'У стоп-кадра нет начала и конца для обрезки — задайте его длину в «Кадр» или потяните за край.',
 }
