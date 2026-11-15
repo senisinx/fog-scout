@@ -15,7 +15,11 @@ Rules used (all from the wiki, retrieved 2026-11-15):
   the 3rd a quarter, the 4th an eighth, every further 5 %. The wiki exempts only add-ons; the toolbox is counted
   (assumption, can be switched off together with the rule: ``Scenario.diminishing``).
 - Skill Checks: 8 % chance per second (40 % with a toolbox), Great +1 % progress, a miss −10 % and 3 s without
-  progress. Results use the expected value for the chosen share of Great/missed checks.
+  progress. Results use the expected value for the chosen share of Great/missed checks. 1.56: perks that change
+  the odds (Deadline, One-Two-Three-Four!, Unnerving Presence: "+10 %") add percentage points to the chance per
+  second – the wiki gives the odds as a chance per second (8 %, 40 % with a toolbox) and the perks' "+x %" in the
+  same unit (assumption: added, not multiplied; relative, +10 % of 8 % would be 0.8 points and hardly a change).
+  Technician adds to a miss's loss, Deadline halves it, Bardic Inspiration adds to every successful check.
 - Kick: −5 %, then −0.25 Charges/s until Survivors repaired +5 % again; at most 8 regression events (instant losses
   of ≥ 2.5 %) per Generator.
 """
@@ -293,13 +297,14 @@ def speed(data: Data, s: Survivor, team, killer: Killer, scen: Scenario, toolbox
 
 def _killer_effects(data: Data, killer: Killer) -> dict:
     perks = {e["name"]: e for e in _known(data, killer.perks, data.killer)}
-    fx = {"pop": 0, "instant": [], "undone": 0, "blocks": 0.0, "start_block": 0.0, "brine": None,
+    fx = {"pop": 0, "pop_value": 0.0, "instant": [], "undone": 0, "blocks": 0.0, "start_block": 0.0, "brine": None,
           "overcharge": None, "ruin": 1.0}
     for name, e in perks.items():
         n = _count(data, killer, name)
         kind = e["kind"]
         if kind == "kick_loss":
             fx["pop"] = n
+            fx["pop_value"] = e["value"]            # 1.56: from perkdata.json, no longer typed in here
         elif kind == "instant":
             fx["instant"] += [e["value"]] * n
         elif kind == "undone":
@@ -319,6 +324,26 @@ def _killer_effects(data: Data, killer: Killer) -> dict:
     return fx
 
 
+def skill_checks(data: Data, team, killer: Killer | None = None) -> list:
+    """1.56: per Survivor of ``team`` (all at one Generator) what the perks change about Skill Checks: (added
+    chance per second, share of the Generator a missed check costs, extra share every successful check grants).
+    One-Two-Three-Four! and Bardic Inspiration count once (the stronger of two copies), Bardic only for the others."""
+    killer = killer or Killer()
+    own = [_known(data, s.perks, data.survivor) for s in team]
+    shared = max((e["value"] for es in own for e in es if e["kind"] == "team_check_chance"), default=0.0)
+    enemy = sum(e["value"] for e in _known(data, killer.perks, data.killer) if e["kind"] == "enemy_check_chance")
+    out = []
+    for i, es in enumerate(own):
+        chance = shared + enemy + sum(e["value"] for e in es if e["kind"] == "check_chance")
+        fail = data.mech["fail_loss"] + sum(e["value"] for e in es if e["kind"] == "check_fail")
+        for e in es:
+            fail *= e.get("fail_mult", 1.0)
+        bonus = max((e["value"] for j, x in enumerate(own) if j != i for e in x
+                     if e["kind"] == "others_check_bonus"), default=0.0)
+        out.append((chance, fail, bonus))
+    return out
+
+
 def one_generator(data: Data, team, killer: Killer | None = None, scen: Scenario | None = None,
                   first: bool = True, buff_s: float = 0.0) -> Result:
     """One Generator repaired by everyone in ``team`` together; the Killer kicks ``scen.kicks`` times when it reaches
@@ -331,10 +356,11 @@ def one_generator(data: Data, team, killer: Killer | None = None, scen: Scenario
     m = data.mech
     need, notes = requirement(data, team, first)
     fx = _killer_effects(data, killer)
-    steadfast = any(e["kind"] == "team" and e.get("regression") for s in team
-                    for e in _known(data, s.perks, data.survivor))
+    steadfast = max((e["regression"] for s in team for e in _known(data, s.perks, data.survivor)
+                     if e["kind"] == "team" and e.get("regression")), default=0.0)     # 1.56: from perkdata.json
     hyper = _hyper(data, team, scen.great)
-    great_c, fail_c = m["great_bonus"] * need, m["fail_loss"] * need
+    great_c = m["great_bonus"] * need
+    checks = skill_checks(data, team, killer)
     tool = [tool_charges(data, s) for s in team]
     quiet = [any(a.get("no_checks") for a in item_addons(data, s)) for s in team]     # Instructions: no checks
 
@@ -355,7 +381,11 @@ def one_generator(data: Data, team, killer: Killer | None = None, scen: Scenario
             chance = m["skill_check_chance_toolbox"] if tool[i] > 0 else m["skill_check_chance"]
             if tool[i] > 0 and quiet[i]:                   # with the toolbox in use no regular Skill Check comes
                 chance = 0.0
-            total += v + chance * (scen.great * great_c * hyper[i] - scen.miss * fail_c)
+            else:
+                chance = min(1.0, chance + checks[i][0])
+            fail_c, extra_c = checks[i][1] * need, checks[i][2] * need
+            total += v + chance * (scen.great * great_c * hyper[i] + max(0.0, 1.0 - scen.miss) * extra_c -
+                                   scen.miss * fail_c)
             pause += chance * scen.miss * m["fail_pause"]
             drain.append(v)
         return total * max(0.1, 1.0 - pause), drain
@@ -365,7 +395,6 @@ def one_generator(data: Data, team, killer: Killer | None = None, scen: Scenario
     if fx["start_block"]:
         notes.append(f"Corrupt Intervention: +{fx['start_block']:g} s")
     instant = list(fx["instant"])
-    regression_mult = 0.25 / 0.25          # relative to the default rate
 
     def lose(share: float) -> float:
         nonlocal prog, events, lost
@@ -385,7 +414,7 @@ def one_generator(data: Data, team, killer: Killer | None = None, scen: Scenario
                 and events < m["regression_events"]:
             # the Killer arrives: the Survivors leave, the Generator is kicked and may take perk effects
             kicks_done += 1
-            loss = m["kick_loss"] + (0.15 if kicks_done <= fx["pop"] else 0.0)
+            loss = m["kick_loss"] + (fx["pop_value"] if kicks_done <= fx["pop"] else 0.0)
             oc = fx["overcharge"]
             if oc:
                 loss += oc["value"]
@@ -404,14 +433,13 @@ def one_generator(data: Data, team, killer: Killer | None = None, scen: Scenario
             free = max(0.0, wait - block)
             step, done = DT, 0.0
             while done < free and prog > 0:
-                mult = regression_mult
+                mult = 1.0                                 # relative to the default rate
                 if fx["brine"] and done + block < fx["brine"]["seconds"]:
                     mult *= fx["brine"]["value"]
                 if oc and done + block < oc["seconds"]:
                     mult *= oc["from"] + (oc["to"] - oc["from"]) * (done + block) / oc["seconds"]
                 mult = max(mult, fx["ruin"])
-                if steadfast:
-                    mult *= 0.5
+                mult *= 1.0 - steadfast
                 c = min(prog, m["regression_rate"] * mult * step)
                 prog -= c
                 lost += c

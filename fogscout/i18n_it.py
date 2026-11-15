@@ -2051,6 +2051,18 @@ T = {
         '+{p} % di velocità per tutti per {s} s dopo un generatore completato insieme',
     'jeder Great Skill Check in Folge bringt {p} % mehr Bonus (bis {n} Tokens)':
         'ogni prova di abilità ottima consecutiva dà il {p} % di bonus in più (fino a {n} gettoni)',
+    'Skill Checks kommen öfter: +{p} Prozentpunkte Chance je Sekunde':
+        'le prove di abilità arrivano più spesso: +{p} punti percentuali di probabilità al secondo',
+    'Skill Checks kommen für alle am Generator öfter: +{p} Prozentpunkte Chance je Sekunde':
+        'le prove di abilità arrivano più spesso per tutti al generatore: +{p} punti percentuali di probabilità al secondo',
+    'Skill Checks der Survivor kommen öfter: +{p} Prozentpunkte Chance je Sekunde':
+        'le prove di abilità dei sopravvissuti arrivano più spesso: +{p} punti percentuali di probabilità al secondo',
+    'ein verfehlter Skill Check kostet {p} % Fortschritt mehr':
+        'una prova di abilità fallita costa il {p} % di progresso in più',
+    'jeder erfolgreiche Skill Check der anderen bringt im Mittel +{p} % Fortschritt (W20)':
+        'ogni prova di abilità riuscita degli altri dà in media +{p} % di progresso (d20)',
+    'ein verfehlter Skill Check kostet {p} % weniger Fortschritt':
+        'una prova di abilità fallita costa il {p} % di progresso in meno',
     'jeder Generator braucht {v} Ladungen weniger':
         'ogni generatore richiede {v} cariche in meno',
     'ein Generator braucht {v} Ladungen weniger':
