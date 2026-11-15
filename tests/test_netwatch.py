@@ -105,11 +105,13 @@ def test_pick_server():
     flows = [{"ip": "162.159.1.1", "port": 50001, "pps": 50.0},       # voice chat: not AWS
              {"ip": SERVER, "port": 7777, "pps": 40.0},
              {"ip": "52.1.1.1", "port": 7000, "pps": 3.0}]            # too little traffic
+    for f in flows:
+        f["lports"] = [50000]
     known = {SERVER: "eu-central-1", "52.1.1.1": "us-east-1"}
-    got = pick_server(flows, known.get)
+    got = pick_server(flows, known.get, {50000})
     assert got["ip"] == SERVER and got["region"] == "eu-central-1"
-    assert pick_server(flows[2:], known.get) is None
-    assert pick_server([], known.get) is None
+    assert pick_server(flows[2:], known.get, {50000}) is None
+    assert pick_server([], known.get, {50000}) is None
 
 
 def _watch(tmp_path, monkeypatch, exit_code=None):
@@ -125,27 +127,35 @@ def _watch(tmp_path, monkeypatch, exit_code=None):
     return w, control, result
 
 
+def _as_dbd(monkeypatch):
+    """1.50.7: only partners on DBD's own UDP ports count (no guess without them) – the tests below play DBD's window
+    (hwnd 77, port 50000); their flows carry ``lports`` and their polls the window."""
+    monkeypatch.setattr(connwatch, "window_pid", lambda hwnd: 4242)
+    monkeypatch.setattr(connwatch, "udp_ports", lambda pid: {50000})
+
+
 def test_poll_reads_result_and_loses_server(tmp_path, monkeypatch):
     w, control, result = _watch(tmp_path, monkeypatch)
+    _as_dbd(monkeypatch)
     w._rdns = {SERVER: ("eu-central-1", time.time())}
 
     def write(t, flows):
         result.write_text(json.dumps({"ok": True, "t": t, "flows": flows}))
 
     write(1000.0, [])
-    w.poll(1001.0)
+    w.poll(1001.0, game_hwnd=77)
     assert w.server is None and w.text() == "Warte auf Match …"
-    write(1002.0, [{"ip": SERVER, "port": 7777, "pps": 40.0}])
-    w.poll(1002.5)
+    write(1002.0, [{"ip": SERVER, "port": 7777, "pps": 40.0, "lports": [50000]}])
+    w.poll(1002.5, game_hwnd=77)
     assert w.server["region"] == "eu-central-1"
     assert w.text() == f"Frankfurt ({SERVER})"
     write(1005.0, [])
-    w.poll(1005.5)
+    w.poll(1005.5, game_hwnd=77)
     assert w.server is not None                               # short gap: keep
     write(1012.0, [])
-    w.poll(1012.5)
+    w.poll(1012.5, game_hwnd=77)
     assert w.server is None                                   # gone -> match over
-    w.poll(1030.0)                                            # result not updated any more
+    w.poll(1030.0, game_hwnd=77)                                            # result not updated any more
     assert w.text() == "keine Daten vom Mitschnitt"
 
 
@@ -174,10 +184,11 @@ def test_in_process_when_already_admin(monkeypatch):
     def fake_watch(control, result):
         while netwatch.keep_running(control, time.time()):
             netwatch.write(result, {"ok": True, "t": time.time(),
-                                    "flows": [{"ip": SERVER, "port": 7777, "pps": 40.0}]})
+                                    "flows": [{"ip": SERVER, "port": 7777, "pps": 40.0, "lports": [50000]}]})
             time.sleep(0.02)
 
     monkeypatch.setattr(connwatch, "IS_WIN", True)
+    _as_dbd(monkeypatch)
     monkeypatch.setattr(connwatch, "is_admin", lambda: True)
     monkeypatch.setattr(connwatch.regions, "start_elevated", lambda *a, **k: (_ for _ in ()).throw(AssertionError))
     monkeypatch.setattr(netwatch, "watch", fake_watch)
@@ -187,10 +198,10 @@ def test_in_process_when_already_admin(monkeypatch):
     assert w.start() is None and w.running
     thread = w.proc
     deadline = time.time() + 5          # 1.38.2: a busy shared runner wrote the first result later than 0.1 s
-    w.poll()
+    w.poll(game_hwnd=77)
     while not w.server and time.time() < deadline:
         time.sleep(0.02)
-        w.poll()
+        w.poll(game_hwnd=77)
     assert w.server and w.server["ip"] == SERVER
     w.stop()
     thread.join(timeout=3)
@@ -393,13 +404,14 @@ def test_server_in_aws_global_range_without_region(tmp_path, monkeypatch):
     No guess from the hosts file: in a friend's party their matchmaking picks the region."""
     monkeypatch.setattr(connwatch.socket, "gethostbyaddr", lambda ip: (_ for _ in ()).throw(AssertionError))
     w, control, result = _watch(tmp_path, monkeypatch)
+    _as_dbd(monkeypatch)
     pinged = []
     monkeypatch.setattr(connwatch.ConnectionWatch, "_ping", lambda self, region: pinged.append(region))
-    result.write_text(json.dumps({"ok": True, "t": 1000.0, "flows": [{"ip": "54.115.7.8", "port": 7786, "pps": 180.0}]}))
-    w.poll(1000.5)
+    result.write_text(json.dumps({"ok": True, "t": 1000.0, "flows": [{"ip": "54.115.7.8", "port": 7786, "pps": 180.0, "lports": [50000]}]}))
+    w.poll(1000.5, game_hwnd=77)
     assert w.server["region"] == connwatch.UNKNOWN and w.ping_ms is None and not pinged
     assert w.text() == "Global (54.115.7.8)"
-    w.poll(1001.0)
+    w.poll(1001.0, game_hwnd=77)
     assert w.server["region"] == connwatch.UNKNOWN and not pinged
     assert connwatch.aws_global("54.115.0.1") and not connwatch.aws_global("3.120.45.67")
 
@@ -448,21 +460,27 @@ def test_the_udp_table_gives_the_ports_of_one_process():
 
 def test_with_dbds_ports_only_its_partners_count():
     """Another AWS partner busier than the game server (other game, launcher …) is not chosen once DBD's ports are
-    known; no DBD port among the partners = not in a match; unknown ports or an old result file: as before."""
+    known; no DBD port among the partners = not in a match. 1.50.7 (user: "Rückfall weg"): unknown ports or an old
+    result file without local ports = no server, and no partner's address is looked up."""
     other = {"ip": "52.1.1.1", "port": 7000, "lports": [61000], "pps": 90.0}
     game = {"ip": SERVER, "port": 7777, "lports": [50000], "pps": 40.0}
     known = {SERVER: "eu-central-1", "52.1.1.1": "us-east-1"}.get
-    assert pick_server([other, game], known)["ip"] == "52.1.1.1"                 # unknown ports: the busiest
+    asked = []
+    assert pick_server([other, game], lambda ip: asked.append(ip) or known(ip)) is None   # unknown ports: none
+    assert asked == []                                                           # … and no reverse DNS for anyone
     assert pick_server([other, game], known, {50000, 50001})["ip"] == SERVER
     assert pick_server([other], known, {50000}) is None
     assert pick_server([other, game], known, set()) is None                      # DBD has no UDP socket
     old = [{k: v for k, v in other.items() if k != "lports"}]
-    assert pick_server(old, known, {50000})["ip"] == "52.1.1.1"                  # older helper: judged as before
+    assert pick_server(old, known, {50000}) is None                              # older helper: not DBD's for sure
+    asked = []
+    assert pick_server([other, game], lambda ip: asked.append(ip) or known(ip), {50000})["ip"] == SERVER
+    assert asked == [SERVER]                                                     # only DBD's partner is looked up
 
 
 def test_poll_asks_windows_for_dbds_ports_and_says_where_they_came_from(tmp_path, monkeypatch):
     """The ports of the DBD window's process are looked up every PORTS_EVERY s – one window → process lookup per
-    window; without a window, a process or the table the old guess runs, and the diagnosis says which."""
+    window; without a window, a process or the table there is no server (1.50.7), and the diagnosis says which."""
     w, control, result = _watch(tmp_path, monkeypatch)
     w._rdns = {SERVER: ("eu-central-1", time.time()), "52.1.1.1": ("us-east-1", time.time())}
     pids, asked = [], []
@@ -481,8 +499,10 @@ def test_poll_asks_windows_for_dbds_ports_and_says_where_they_came_from(tmp_path
     assert "DBD-Ports: 1 aus der Verbindungstabelle von Windows" in text
     assert "52.1.x.x Port 7000 · 90.0/s" in text and "nicht DBD" in text and "3.120.x.x Port 7777 · 40.0/s" in text
     assert "4242" not in text
-    w.poll(1004.0, game_hwnd=None)                             # no DBD window: the busiest partner again
-    assert w.ports is None and w.server["ip"] == "52.1.1.1" and "kein DBD-Fenster" in w.ports_why
+    w.poll(1004.0, game_hwnd=None)                             # no DBD window: no guess (1.50.7)
+    assert w.ports is None and "kein DBD-Fenster" in w.ports_why
+    w.poll(1004.0 + connwatch.LOST_AFTER + 1, game_hwnd=None)
+    assert w.server is None
     monkeypatch.setattr(connwatch, "udp_ports", lambda pid: None)
     w.poll(1010.0, game_hwnd=78)
     assert w.ports is None and "nicht lesbar" in w.ports_why and pids == [77, 78]
@@ -537,23 +557,24 @@ def test_the_servers_gaps_count_once_and_only_the_servers(tmp_path, monkeypatch)
     """The helper lists a gap for 5 s, the program counts it once (take_gaps for the round); other partners' gaps
     do not count; ``quiet`` is how long the server is silent now. 1.28.2: no live "stutters" state any more."""
     w, control, result = _watch(tmp_path, monkeypatch)
+    _as_dbd(monkeypatch)
     w._rdns = {SERVER: ("eu-central-1", time.time())}
     other = {"ip": "52.9.9.9", "port": 9000, "pps": 5.0, "gaps": [[1000.0, 2.0]], "quiet": 0.0}
 
     def write(t, gaps, quiet=0.0):
         result.write_text(json.dumps({"ok": True, "t": t, "flows": [
-            {"ip": SERVER, "port": 7777, "pps": 40.0, "gaps": gaps, "quiet": quiet}, other]}))
+            {"ip": SERVER, "port": 7777, "pps": 40.0, "lports": [50000], "gaps": gaps, "quiet": quiet}, other]}))
 
     write(1000.0, [])
-    w.poll(1000.2)
+    w.poll(1000.2, game_hwnd=77)
     assert w.take_gaps() == []
     write(1001.0, [[1000.9, 0.3]])
-    w.poll(1001.2)
+    w.poll(1001.2, game_hwnd=77)
     write(1002.0, [[1000.9, 0.3], [1001.8, 0.9]])
-    w.poll(1002.2)
+    w.poll(1002.2, game_hwnd=77)
     assert w.take_gaps() == [0.3, 0.9] and w.take_gaps() == []                 # each once
     write(1010.0, [], quiet=0.7)                                               # silent right now
-    w.poll(1010.2)
+    w.poll(1010.2, game_hwnd=77)
     assert abs(w.quiet - 0.9) < 1e-6
     assert not hasattr(w, "lagging") and not hasattr(connwatch, "LAG_LIVE_S")
     text = "\n".join(w.diag_lines(1011.0))
