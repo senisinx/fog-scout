@@ -3168,7 +3168,17 @@ def test_placeholders_grips_and_handles_are_readable_in_every_theme(qapp, keep):
         assert got.name() == qt_theme.colours(False)["dim"] and got.alpha() == 255
         win.search_keys.ensurePolished()                     # 1.38.55: the search button's "Ctrl+F" sign is dim
         got = win.search_keys.palette().color(QPalette.WindowText)
-        assert got.name() == qt_theme.colours(False)["dim"]
+        # 1.54.1: failed once on Windows (dark dim instead of light, the same commit passed in the re-run and under
+        # 3.14) – no window of this test ever had a dark sheet. What it says should it happen again: which sheet
+        # the navigation has, whether the application has one, and the application's own colours
+        light, darker = qt_theme.colours(False)["dim"], qt_theme.colours(True)["dim"]
+        sheet = win._side.styleSheet()
+        assert got.name() == light, {
+            "got": got.name(), "side sheet is the window's": sheet == win._qss, "light dim in it": light in sheet,
+            "dark dim in it": darker in sheet, "application sheet": len(qapp.styleSheet()),
+            "application text": qapp.palette().color(QPalette.WindowText).name(),
+            "application placeholder": qapp.palette().color(QPalette.PlaceholderText).name(),
+            "own sheet": len(win.search_keys.styleSheet()), "class": win.search_keys.property("class")}
     finally:
         qt_theme.set_theme("gold")
 
