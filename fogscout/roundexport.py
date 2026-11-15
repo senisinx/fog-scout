@@ -10,6 +10,7 @@ import csv
 import json
 import datetime
 import io
+import re
 import time
 from dataclasses import dataclass, field
 
@@ -68,7 +69,8 @@ def preset_range(key: str, now: float):
     """(since, until) of a preset; until is exclusive, None = open. "custom" keeps what the user typed (None, None)."""
     if key == "yesterday":
         today = history.period_start("day", now)
-        return today - 86400.0, today
+        # 1.56 (review F9): the midnight before – the day after a clock change has 23 or 25 hours, not 86400 s
+        return history.period_start("day", today - 1), today
     if key in history.PERIODS:
         return history.period_start(key, now), None
     return None, None
@@ -183,11 +185,24 @@ def header(keys) -> list:
     return [_(labels[k]) for k in keys]
 
 
+_FORMULA_START = ("=", "+", "-", "@", "\t", "\r")
+_PLAIN_NUMBER = re.compile(r"[+-]?\d+(?:[.,]\d+)?")
+
+
+def _inert(value) -> str:
+    """1.56 (review F4): a cell Excel/LibreOffice would read as a formula (it starts with = + - @, a tab or CR) gets
+    a leading ' – perks, character and mode come from downloaded files. Plain numbers ("-2", "+5") stay numbers."""
+    s = str(value)
+    if s.startswith(_FORMULA_START) and not _PLAIN_NUMBER.fullmatch(s):
+        return "'" + s
+    return s
+
+
 def csv_text(head, rows) -> str:
     buf = io.StringIO()
     w = csv.writer(buf, delimiter=";", lineterminator="\n")
-    w.writerow(head)
-    w.writerows(rows)
+    w.writerow([_inert(c) for c in head])
+    w.writerows([_inert(c) for c in row] for row in rows)
     return buf.getvalue()
 
 

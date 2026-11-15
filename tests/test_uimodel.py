@@ -1250,8 +1250,11 @@ def test_the_export_dialog_filters_rounds_and_writes_csv_or_a_text_list(app_root
         app.export_farming_var.set(True)
         app.export_from_var.set(time.strftime("%H:%M", time.localtime(t2 - 60)))   # typed: a time alone (today)
         assert app.export_preset_var.get() == "Eigener Zeitraum"
+        assert app._export_job is not None                                  # 1.56: rows follow when typing pauses
+        app._export_typed_done()
         assert app.export_count_var.get() == "1 Runden, 4 Spalten"
         app.export_from_var.set("irgendwann")
+        app._export_typed_done()
         assert app.export_count_var.get() == "" and "nicht lesbar" in app.export_msg_var.get()
         app.export_from_var.set("")
         app.export_format_var.set("csv")
@@ -1265,6 +1268,38 @@ def test_the_export_dialog_filters_rounds_and_writes_csv_or_a_text_list(app_root
         app._export_open()                                                   # remembered: columns and format
         assert [k for k, v in app.export_col_vars.items() if v.get()] == ["start", "map", "killer", "kills"]
         assert app.export_format_var.get() == "csv"
+    finally:
+        app.quit()
+
+
+def test_typing_a_time_into_the_export_dialog_refreshes_once_the_typing_pauses(app_root):
+    """1.56 (review): every key in Von/Bis rebuilt the table (~83 ms at 5000 rounds). Now one refresh
+    TYPING_PAUSE_MS after the last key – each key moves the timer; copy/save refresh at once and drop it."""
+    import json
+    from fogscout import app_export, history
+    from fogscout.app import App
+    (app_root / "settings.json").write_text(json.dumps({"welcome_seen": True}), encoding="utf-8")
+    day = history.period_start("day", time.time())
+    history.append(str(app_root / history.FILE), history.Round(day + 3600, 600, "coal", "Coal Tower", role="killer"))
+    app = App(str(app_root), simulate=str(app_root / "sim"))
+    app.root.clipboard_set = lambda text: None
+    try:
+        app._stats_render()
+        app._export_open()
+        refreshed, jobs, cancelled = [], [], []
+        real = app._export_refresh
+        app._export_refresh = lambda: (refreshed.append(1), real())
+        app.root.after = lambda ms, fn: jobs.append((ms, fn)) or len(jobs)
+        app.root.after_cancel = cancelled.append
+        for text in ("1", "12", "12:", "12:3"):
+            app.export_from_var.set(text)
+        assert refreshed == [] and [ms for ms, _fn in jobs] == [app_export.TYPING_PAUSE_MS] * 4
+        assert cancelled == [1, 2, 3] and app._export_job == 4               # only the last one is still due
+        jobs[-1][1]()
+        assert refreshed == [1] and app._export_job is None
+        app.export_from_var.set("")
+        app._export_copy()                                                   # at once, the timer dropped
+        assert cancelled[-1] == 5 and app._export_job is None
     finally:
         app.quit()
 

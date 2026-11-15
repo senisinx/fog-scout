@@ -23,7 +23,6 @@ OBS_STATE_FRESH_S = 60.0     # 1.24.3: OBS's state from the recordings page coun
 DAYS = 14                 # 1.11.14: the overview's chart "Runden pro Tag" covers this many days, today the last
 WEEKDAYS = (N_("Montag"), N_("Dienstag"), N_("Mittwoch"), N_("Donnerstag"), N_("Freitag"), N_("Samstag"),
             N_("Sonntag"))
-WEEK_S = 7 * 86400       # 1.8.83: the week before this one, for the comparison tiles
 
 
 @dataclass
@@ -371,7 +370,8 @@ def week(app, now: float) -> tuple[list, str]:
     with last week's value and the change below. ([], "") while neither week has a normal round."""
     j = app._joined()
     start = history.period_start("week", now)
-    this, last = _week_part(j, start, now + 1), _week_part(j, start - WEEK_S, start)
+    # 1.56 (review F10): the Monday before by the calendar – a week with a clock change has 167 or 169 hours
+    this, last = _week_part(j, start, now + 1), _week_part(j, history.period_start("week", start - 1), start)
     if not this["count"] and not last["count"]:
         return [], ""
     pct = lambda v: f"{v:.0%}"

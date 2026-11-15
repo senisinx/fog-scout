@@ -127,3 +127,35 @@ def test_the_new_columns_and_the_json_format():
     assert json.loads(rx.json_text(head, rows)) == [{"Map": "Kohlelager", "Aussetzer": "2"}]
     assert rx.text_of("json", head, rows) == rx.json_text(head, rows) and rx.SUFFIX["json"] == ".json"
     assert rx.preview("json", head, rows).startswith("[")
+
+
+@pytest.mark.skipif(not hasattr(time, "tzset"), reason="time.tzset: not on Windows")
+def test_yesterday_is_the_whole_day_before_also_after_a_clock_change(monkeypatch):
+    """1.56 (review F9): "Gestern" was midnight − 86400 s – on the day after the clocks went back (Europe/Berlin,
+    25.10.2026: 25 hours) that is 01:00 of yesterday, its first hour was missing (in spring an hour of the day
+    before came along)."""
+    monkeypatch.setenv("TZ", "Europe/Berlin")
+    time.tzset()
+    try:
+        for day, before in (((2026, 10, 26), (2026, 10, 25)), ((2026, 3, 30), (2026, 3, 29))):
+            now = time.mktime(day + (12, 0, 0, 0, 0, -1))
+            midnight = time.mktime(day + (0, 0, 0, 0, 0, -1))
+            assert rx.preset_range("yesterday", now) == (time.mktime(before + (0, 0, 0, 0, 0, -1)), midnight)
+    finally:
+        monkeypatch.undo()
+        time.tzset()
+
+
+def test_a_csv_cell_that_reads_as_a_formula_is_made_inert():
+    """1.56 (review F4): perks, character and mode come from downloaded files – a cell starting with = + - @ (or a
+    tab/CR) would be a formula in Excel/LibreOffice. It gets a leading '; plain numbers stay numbers."""
+    head = ["Perks", "Wert", "Text"]
+    rows = [["=HYPERLINK(\"x\")", "-2", "Normal"], ["+cmd|' /C calc'!A0", "+5", "@SUM(A1)"],
+            ["-1+1", "3,5", "\tTab"], ["\r=1", "-0.5", "a=b"]]
+    lines = rx.csv_text(head, rows).splitlines()
+    assert lines[0] == "Perks;Wert;Text"
+    assert lines[1] == "\"'=HYPERLINK(\"\"x\"\")\";-2;Normal"
+    assert lines[2] == "'+cmd|' /C calc'!A0;+5;'@SUM(A1)"
+    assert lines[3] == "'-1+1;3,5;'\tTab"
+    assert rx.csv_text(head, rows[3:]).endswith(";-0.5;a=b\n") and "\"'\r=1\"" in rx.csv_text(head, rows[3:])
+    assert rx.text_lines(rows)[0] == "=HYPERLINK(\"x\") · -2 · Normal"                 # the text list stays as it is
