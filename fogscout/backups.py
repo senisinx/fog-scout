@@ -327,13 +327,18 @@ def restore(data_dir: str, path: str, now: float | None = None) -> dict:
             snapshot(data_dir, now=now, tag="restore")
         if plan["rounds"] or plan["lost"]:
             hist_path = os.path.join(data_dir, history.FILE)
-            history._rewrite(hist_path, history.load(hist_path) + plan["rounds"],
-                             history._lost_lines(hist_path) + plan["lost"])
+            with history.LOCK:          # 1.56 (review F14): a correction in the window's thread waits, is not lost
+                history._rewrite(hist_path, history.load(hist_path) + plan["rounds"],
+                                 history._lost_lines(hist_path) + plan["lost"])
+        added = 0
         if plan["matches"]:
             off_path = os.path.join(data_dir, official.FILE)
-            kept = sorted(official.load(off_path) + plan["matches"], key=lambda m: m.t)[-official.KEEP:]
-            gaps = sorted(set(official.load_gaps(off_path)) | set(plan["gaps"]))
-            official._write(off_path, kept, [g for g in gaps if kept and g[1] >= kept[0].t])
+            with official.LOCK:
+                gaps = sorted(set(official.load_gaps(off_path)) | set(plan["gaps"]))
+                # 1.56 (review F6): beyond KEEP the oldest go to the archive (were cut away); counted is what stays
+                ordered = sorted(official.load(off_path) + plan["matches"], key=lambda m: m.t)
+                kept = {id(m) for m in official.write_kept(off_path, ordered, gaps)}
+            added = sum(1 for m in plan["matches"] if id(m) in kept)
         written = 0
         root = os.path.realpath(data_dir)
         for name in plan["files"]:
@@ -350,5 +355,5 @@ def restore(data_dir: str, path: str, now: float | None = None) -> dict:
                 written += 1
             except FileExistsError:
                 plan["known"] += 1
-    return {"rounds": len(plan["rounds"]), "lost": len(plan["lost"]), "matches": len(plan["matches"]),
+    return {"rounds": len(plan["rounds"]), "lost": len(plan["lost"]), "matches": added,
             "files": written, "known": plan["known"], "settings": plan["settings"]}

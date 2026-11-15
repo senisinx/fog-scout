@@ -388,12 +388,13 @@ def test_a_failed_settings_save_leaves_no_temp_file_and_says_it_once(tmp_path, m
 def test_a_rewritten_history_is_read_whole_again(tmp_path):
     """The cache reads only lines added since the last read; a rewrite (now "\\n" where the text mode wrote "\\r\\n"
     on Windows) makes the file different from the bytes it remembers – it parses from the start."""
+    import dataclasses
     from fogscout import history
     path = str(tmp_path / "rounds.jsonl")
     rounds = [history.Round(t=1000.0 + i, seconds=300.0, map_id=f"m{i}", map=f"M{i}") for i in range(3)]
     with open(path, "wb") as fh:                              # as Windows text mode wrote it
         for r in rounds:
-            fh.write(json.dumps(history.asdict(r)).encode() + b"\r\n")
+            fh.write(json.dumps(dataclasses.asdict(r)).encode() + b"\r\n")
     assert [r.map_id for r in history.load(path)] == ["m0", "m1", "m2"]
     history._rewrite(path, rounds[1:], [])
     assert [r.map_id for r in history.load(path)] == ["m1", "m2"]

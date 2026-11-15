@@ -161,14 +161,12 @@ def _name(item) -> str:
     return ""
 
 
-WEEK_S = 7 * 24 * 3600
-
-
 def week(rounds, off: dict, now: float) -> dict:
     """1.36: this calendar week (Monday to now) and the week before, each summed up like ``summary``."""
     start = history.period_start("week", now)
     this = [r for r in rounds if start <= r.t <= now]
-    last = [r for r in rounds if start - WEEK_S <= r.t < start]
+    before = history.period_start("week", start - 1)     # 1.56 (review F10): not start − 7 × 24 h (clock change)
+    last = [r for r in rounds if before <= r.t < start]
     return {"this_week": summary(this, off), "last_week": summary(last, off)}
 
 
