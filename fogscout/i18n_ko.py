@@ -993,8 +993,6 @@ T = {
         'Fog Scout {version}(빌드 {build})을 다운로드하고 SHA-256으로 검사했습니다. 지금 설치할까요? 프로그램이 종료된 후 다시 시작됩니다.',
     'Installieren':
         '설치',
-    'Update gesperrt: eine Runde läuft oder ein Clip wird gespeichert. Danach noch einmal auf „Aktualisieren und neu starten“ klicken.':
-        '업데이트 차단됨: 라운드가 진행 중이거나 클립을 저장하는 중입니다. 끝난 후 ‘업데이트 후 다시 시작’을 다시 클릭하세요.',
     'Programm schliesst sich und installiert das Update …':
         '프로그램을 종료하고 업데이트를 설치합니다 …',
     'Das Update wurde nicht gestartet: Die Setup-Datei hat sich seit dem Download verändert oder fehlt. Bitte das Update noch einmal laden.':
@@ -2301,6 +2299,8 @@ T = {
         '공구 상자를 쓰는 동안 일반 스킬 체크 없음',
     '+ {n} weitere':
         '+ 그 외 {n}개',
+    'Update gesperrt: OBS nimmt gerade auf – der Neustart würde die Aufnahme beenden. Aufnahme stoppen, dann noch einmal auf „Aktualisieren und neu starten“ klicken.':
+        '업데이트 잠김: OBS가 녹화 중입니다. 다시 시작하면 녹화가 끝납니다. 녹화를 중지한 뒤 ‘업데이트 후 다시 시작’을 다시 클릭하세요.',
     'Claude hat unverständlich geantwortet.':
         'Claude의 답변을 읽을 수 없습니다.',
     'Claude ist nicht erreichbar – keine Internetverbindung?':

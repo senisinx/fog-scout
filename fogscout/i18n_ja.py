@@ -993,8 +993,6 @@ T = {
         'Fog Scout {version}（ビルド {build}）のダウンロードと SHA-256 による検証が完了しました。今すぐインストールしますか？プログラムは終了し、その後再起動します。',
     'Installieren':
         'インストール',
-    'Update gesperrt: eine Runde läuft oder ein Clip wird gespeichert. Danach noch einmal auf „Aktualisieren und neu starten“ klicken.':
-        'アップデートがブロックされました：ラウンドが進行中か、クリップを保存中です。その後もう一度「アップデートして再起動」をクリックしてください。',
     'Programm schliesst sich und installiert das Update …':
         'プログラムを終了してアップデートをインストールします…',
     'Das Update wurde nicht gestartet: Die Setup-Datei hat sich seit dem Download verändert oder fehlt. Bitte das Update noch einmal laden.':
@@ -2301,6 +2299,8 @@ T = {
         '工具箱の使用中は通常のスキルチェックなし',
     '+ {n} weitere':
         '+ 他{n}件',
+    'Update gesperrt: OBS nimmt gerade auf – der Neustart würde die Aufnahme beenden. Aufnahme stoppen, dann noch einmal auf „Aktualisieren und neu starten“ klicken.':
+        'アップデートはロック中です：OBSが録画中です。再起動すると録画が終了します。録画を停止してから、もう一度「アップデートして再起動」をクリックしてください。',
     'Claude hat unverständlich geantwortet.':
         'Claude の回答を読み取れませんでした。',
     'Claude ist nicht erreichbar – keine Internetverbindung?':
