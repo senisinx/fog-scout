@@ -5917,4 +5917,6 @@ T = {
         'Giapponese',
     'Koreanisch':
         'Coreano',
+    'Ein Standbild hat keinen Anfang und kein Ende zum Schneiden – seine Länge stellst du unter „Standbild“ ein oder ziehst seinen Rand.':
+        'Un fermo immagine non ha inizio né fine da tagliare – impostane la durata in «Fermo immagine» o trascinane il bordo.',
 }

@@ -5917,4 +5917,6 @@ T = {
         '日本語',
     'Koreanisch':
         '韓国語',
+    'Ein Standbild hat keinen Anfang und kein Ende zum Schneiden – seine Länge stellst du unter „Standbild“ ein oder ziehst seinen Rand.':
+        '静止画には切り取る開始点も終了点もありません – 長さは「静止画」で設定するか、端をドラッグしてください。',
 }

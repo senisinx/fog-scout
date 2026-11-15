@@ -1145,6 +1145,22 @@ def source_inputs(parts, join_gap: float | None = None, most: int | None = None)
     return out
 
 
+def part_frames(parts, fps: float) -> list:
+    """1.56: frames of the finished clip each part fills at ``fps`` – its edges on the timeline (output time,
+    added up) rounded to the frame grid, at least one frame each. Cut per part, every part lost or gained up to a
+    frame (whole source frames, then setpts/tempo, then concat), so 30 parts drifted 0.13 s from the timeline and
+    the fade-out ended before the file did; rounded from the running sum, the clip is the timeline's length within
+    half a frame however many parts. Pure."""
+    fps = fps or 30.0
+    out, edge, t = [], 0, 0.0
+    for p in parts:
+        t += part_seconds(p)
+        nxt = max(edge + 1, int(round(t * fps)))
+        out.append(nxt - edge)
+        edge = nxt
+    return out
+
+
 def fit_filter(w: int, h: int, fps: float) -> str:
     """1.22: another recording's picture fitted into the first one's w×h (black borders), its frame rate and pixel
     format – so concat takes the parts of a montage."""
@@ -1317,13 +1333,23 @@ def edit_graph(edit: Edit, info: Info, mode: str = "exact", target_mb: float = D
             else:
                 back = "areverse," if p.reverse else ""
                 chains.append(f"{asrc[i]}{trim}asetpts=PTS-STARTPTS,{back}{atempo(p.speed)}[a{i}]")
+    # 1.56: every part exactly its frames (part_frames) – picture on the frame grid, the last frame repeated when
+    # one is missing, sound padded/cut to the same length – so concat lays the parts where the timeline has them
+    counts = part_frames(parts, fps)
+    for i, nf in enumerate(counts):
+        chains.append(f"[v{i}]fps={fps:g},tpad=stop=-1:stop_mode=clone,trim=end_frame={nf}[vf{i}]")
+        if sound:
+            d = nf / fps
+            chains.append(f"[a{i}]apad=whole_dur={d:.6f},atrim=duration={d:.6f}[af{i}]")
     if n > 1:
-        ins = "".join(f"[v{i}]" + (f"[a{i}]" if sound else "") for i in range(n))
-        chains.append(f"{ins}concat=n={n}:v=1:a={1 if sound else 0}[vcat]" + ("[acat]" if sound else ""))
+        ins = "".join(f"[vf{i}]" + (f"[af{i}]" if sound else "") for i in range(n))
+        chains.append(f"{ins}concat=n={n}:v=1:a={1 if sound else 0}[vcc]" + ("[acat]" if sound else ""))
+        # frame by frame on the grid: without sound concat gives a one-frame part no length (the next one lay on it)
+        chains.append(f"[vcc]setpts=N/({fps:g}*TB)[vcat]")
         vcur, acur = "[vcat]", "[acat]" if sound else None
     else:
-        vcur, acur = "[v0]", "[a0]" if sound else None
-    total = edit.seconds()
+        vcur, acur = "[vf0]", "[af0]" if sound else None
+    total = sum(counts) / fps                         # 1.56: the file's length – fades, music and the plan use it
     # 1.21: the user's own track (A2) under the game sound – ducked, faded, mixed (musictrack.chain)
     music = getattr(edit, "music", None) if mode != "gif" else None
     if music is not None and music_input is not None:

@@ -2,6 +2,7 @@
 frame exact), the sound stretch and the frame player – on a small clip ffmpeg generates itself. Skipped without
 imageio-ffmpeg."""
 import os
+import re
 import subprocess
 import sys
 import threading
@@ -810,7 +811,7 @@ def test_the_graph_cuts_parts_crops_draws_and_fades_in_that_order():
     assert "[sa1]atrim=start=4.000:end=8.000,asetpts=PTS-STARTPTS,atempo=2[a1]" in g and "concat=n=2:v=1:a=1" in g
     far, _v, _a, _e = clipedit.edit_graph(clipedit.Edit([clipedit.Part(0, 2), clipedit.Part(9, 11)]), info,
                                           shape_inputs=[(2, 1.0, 9.5)])
-    assert "split" not in far and "trim" not in far                           # 7 s apart: an input each, as it is
+    assert "split" not in far and "trim=start" not in far                     # 7 s apart: an input each, as it is
     assert "[0:v][2:v]overlay=0:0:format=auto:enable='between(t,1.000,9.500)'" in far
     assert "[1:v][2:v]overlay=0:0:format=auto:enable='between(t,0.000,0.500)'" in far   # that input starts at 9 s
     assert "fade=t=in:st=0:d=0.500" in g and "fade=t=out:st=3.000:d=1.000" in g and "afade=t=out" in g
@@ -1086,7 +1087,7 @@ def test_overlapping_parts_and_far_scenes_are_inputs_of_their_own(clip, tmp_path
     ok, why = clipedit.export(clip, e, out, "exact", FF, run=_recording_run(seen))
     assert ok, why
     [args] = seen
-    assert _inputs(args) == [clip, clip, clip] and "split" not in _graph(args) and "trim" not in _graph(args)
+    assert _inputs(args) == [clip, clip, clip] and "split" not in _graph(args) and "trim=start" not in _graph(args)
     seeks = [(args[i + 1], args[i + 3]) for i, a in enumerate(args) if a == "-ss"]
     assert seeks == [("1.000", "3.000"), ("1.000", "3.000"), ("2.000", "1.000")]
     info = clipedit.probe(out, FF)
@@ -1418,7 +1419,7 @@ def test_parts_keep_their_play_order_and_still_share_inputs(clip, tmp_path):
     info = clipedit.Info(12, 320, 180, 30, 1)
     g, _v, _a, _e = clipedit.edit_graph(clipedit.Edit(later_first), info)
     assert "[sv0]trim=start=7.000:end=9.000[vt0]" in g and "[sv1]trim=start=0.000:end=2.000[vt1]" in g
-    assert "[v0][a0][v1][a1]concat=n=2" in g                                # part 0 (8–10 s) plays first
+    assert "[vf0][af0][vf1][af1]concat=n=2" in g                            # part 0 (8–10 s) plays first
     out = str(tmp_path / "reordered.mp4")
     ok, why = clipedit.export(clip, clipedit.Edit(later_first), out, "exact", FF)
     assert ok, why
@@ -1507,3 +1508,40 @@ def test_the_time_an_export_may_take_grows_with_its_length():
     assert clipedit.export_timeout(30) == clipedit.EXPORT_MIN_S == 3600.0
     assert clipedit.export_timeout(4 * 3600) == 4 * 3600 * clipedit.EXPORT_PER_SECOND > 3600.0
     assert clipedit.export_timeout(None) == clipedit.export_timeout("x") == clipedit.export_timeout(-5) == 3600.0
+
+
+def test_part_frames_follow_the_timeline_within_half_a_frame():
+    """1.56 (E-3): the frames each part fills, rounded from the running sum of the timeline – however many parts,
+    the clip is the timeline's length within half a frame; every part keeps at least one frame."""
+    parts = [clipedit.Part(i * 0.37, i * 0.37 + 0.31, 1.5) for i in range(30)]
+    counts = clipedit.part_frames(parts, 30.0)
+    assert sum(counts) == round(clipedit.Edit(parts).seconds() * 30) == 186 and set(counts) <= {6, 7}
+    assert clipedit.part_frames([clipedit.Part(0, 2), clipedit.Part(5, 5, hold=1.3)], 30.0) == [60, 39]
+    assert clipedit.part_frames([clipedit.Part(0, 0.1, 4.0)] * 3, 30.0) == [1, 1, 1]       # shorter than a frame
+    for fps in (25.0, 29.97, 60.0):
+        many = [clipedit.Part(0, 0.1 + k * 0.013, (0.5, 1.5, 4.0)[k % 3]) for k in range(50)]
+        assert abs(sum(clipedit.part_frames(many, fps)) / fps - clipedit.Edit(many).seconds()) <= 0.5 / fps
+
+
+def _stream_seconds(path, which):
+    e = subprocess.run([FF, "-hide_banner", "-i", path, "-map", which, "-f", "null", "-"], capture_output=True,
+                       timeout=120).stderr.decode()
+    h, m, s = re.findall(r"time=(\d+):(\d+):([\d.]+)", e)[-1]
+    return int(h) * 3600 + int(m) * 60 + float(s)
+
+
+def test_many_short_fast_parts_end_with_the_timeline_and_the_fade(clip, tmp_path):
+    """1.56 (E-3): 30 parts of 0.31 s at ×1.5 – each cut to whole frames, then tempo, then concat – came out
+    6.33 s for a 6.2-s timeline and the last frames of the 0.5-s fade-out were black (the fade ended before the
+    file). Now the file has the timeline's frames and the fade ends on the last one."""
+    e = clipedit.Edit([clipedit.Part(i * 0.37, i * 0.37 + 0.31, 1.5) for i in range(30)], fade_out=0.5)
+    out = str(tmp_path / "drift.mp4")
+    ok, why = clipedit.export(clip, e, out, "exact", FF)
+    assert ok, why
+    p = subprocess.run([FF, "-hide_banner", "-i", out, "-vf", "signalstats,metadata=print:key=lavfi.signalstats.YAVG",
+                        "-f", "null", "-"], capture_output=True, timeout=120).stderr.decode()
+    yavg = [float(v) for v in re.findall(r"YAVG=([\d.]+)", p)]
+    assert len(yavg) == round(e.seconds() * 30) == 186                         # the timeline's frames, no more
+    assert abs(_stream_seconds(out, "0:a:0") - e.seconds()) <= 1 / 30 + 0.025  # sound as long (AAC frames)
+    assert yavg[-1] > 18 and yavg[-2] > yavg[-1]                               # still fading on the last frame
+    assert yavg[-1] < yavg[-16] < yavg[-30]

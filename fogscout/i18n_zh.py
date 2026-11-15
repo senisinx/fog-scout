@@ -5917,4 +5917,6 @@ T = {
         '日语',
     'Koreanisch':
         '韩语',
+    'Ein Standbild hat keinen Anfang und kein Ende zum Schneiden – seine Länge stellst du unter „Standbild“ ein oder ziehst seinen Rand.':
+        '静帧没有可剪切的开头和结尾——请在“静帧”中设置其时长，或拖动其边缘。',
 }

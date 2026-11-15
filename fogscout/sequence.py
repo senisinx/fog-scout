@@ -104,9 +104,12 @@ def split(parts, t: float) -> tuple[list, int | None]:
 
 def trim(parts, i: int, edge: str, src: float, total: float) -> list:
     """Part ``i`` with its ``edge`` ("start" or "end") moved to source second ``src`` (inside the recording of
-    ``total`` seconds, keeping MIN_LEN); the sequence re-flows."""
+    ``total`` seconds, keeping MIN_LEN); the sequence re-flows. 1.56: a still (``hold``) stays as it is – its
+    edges are its length (``set_hold``), and moving one would shift its picture or break end == start."""
     out = list(parts)
     p = out[i]
+    if p.hold > 0:
+        return out
     if edge == "start":
         out[i] = replace(p, start=min(max(0.0, src), p.end - MIN_LEN))
     else:

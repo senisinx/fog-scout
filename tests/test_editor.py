@@ -943,3 +943,26 @@ def test_subtitles_are_moved_and_trimmed_in_the_ruler_with_one_undo_step_each(qa
         assert win.pos == pytest.approx(5.0, abs=0.1)
     finally:
         win.close()
+
+
+def test_i_and_o_on_a_still_leave_it_alone_and_say_why(qapp, clip, tmp_path):
+    """1.56 (E-2): the I/O keys on a still moved its picture 0.1 s per press (I) or gave it an end (O); now the
+    still stays, no undo step is made and the status line says how to change a still's length."""
+    from fogscout import sequence
+    win = _window(qapp, clip, tmp_path)
+    try:
+        win.goto(6.0)
+        win.insert_hold()
+        j = win.timeline.selection
+        still = win.parts[j]
+        assert still.hold > 0 and still.start == still.end
+        before, steps = list(win.parts), len(win.history._past)
+        win.goto(sequence.starts(win.parts)[j] + 0.3)
+        win.set_start()
+        win.set_start()
+        win.set_end()
+        assert win.parts == before and win.parts[j].start == win.parts[j].end == still.start
+        assert "Standbild" in win.status.text() and "Länge" in win.status.text()
+        assert len(win.history._past) == steps
+    finally:
+        win.close()

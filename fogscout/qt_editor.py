@@ -1908,7 +1908,7 @@ class EditorWindow(ClaudeMixin, InputMixin, MomentsMixin, MontageMixin, MusicMix
     def set_start(self):
         """I: the clip under the playhead begins here (the earlier part of it goes)."""
         i, src = self._clip_at_playhead()
-        if i is None:
+        if i is None or self._still_untrimmable(i):
             return
         self.parts = sequence.trim(self.parts, i, "start", src, self._src_info(self.parts[i]).duration)
         self.timeline.set_parts(self.parts)
@@ -1917,12 +1917,20 @@ class EditorWindow(ClaudeMixin, InputMixin, MomentsMixin, MontageMixin, MusicMix
 
     def set_end(self):
         i, src = self._clip_at_playhead()
-        if i is None:
+        if i is None or self._still_untrimmable(i):
             return
         self.parts = sequence.trim(self.parts, i, "end", src, self._src_info(self.parts[i]).duration)
         self.timeline.set_parts(self.parts)
         self._commit()
         self.goto(sequence.starts(self.parts)[i + 1])
+
+    def _still_untrimmable(self, i) -> bool:
+        """1.56: I/O on a still would move its picture (sequence.trim leaves it alone) – say so instead."""
+        if self.parts[i].hold <= 0:
+            return False
+        self.status.setText(_("Ein Standbild hat keinen Anfang und kein Ende zum Schneiden – seine Länge stellst "
+                              "du unter „Standbild“ ein oder ziehst seinen Rand."))
+        return True
 
     def _speed_picked(self, _i):
         i = self.timeline.selection

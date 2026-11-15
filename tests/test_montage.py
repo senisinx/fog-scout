@@ -47,7 +47,7 @@ def test_format_6_keeps_the_montage_and_a_single_recording_keeps_its_hash():
 def test_one_recording_gives_the_old_graph_and_a_montage_fits_each_part():
     info = clipedit.Info(60.0, 640, 272, 30.0, 1)
     one = clipedit.edit_graph(clipedit.Edit([Part(0, 2), Part(4, 6)]), info)[0]
-    assert "pad=" not in one and "anullsrc" not in one and "aresample" not in one
+    assert "pad=640:272" not in one and "anullsrc" not in one and "aresample" not in one
     assert [g[:3] for g in clipedit.source_inputs([Part(0, 2), Part(4, 6)])] == \
         [(0, a, b) for a, b, _m in clipedit.part_inputs([Part(0, 2), Part(4, 6)])]
     small = clipedit.Info(30.0, 320, 180, 25.0, 0)                  # another size and rate, no sound
