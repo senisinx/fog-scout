@@ -24,13 +24,13 @@ from .overlay_render import (  # 1.38.34: the drawing lives there; every name st
     BORDER, CARD_BACKDROP, CARD_EDGE, GRAB_SURFACE, DIM_LABEL, FALLBACK_FONTS, FIT_MIN, GLYPHS_KEPT, INFO_DOT, INFO_MEMO,
     INFO_SERVER, INFO_TIMER, INFO_WARN, PING_COLOURS, REC_DOT, TIMER_GAP, TITLE_SCALE, UPNEXT_SCALE, _ascent, _below,
     _beside, _char_len, _content_bottom, _draw_run, _fallback_font, _font, _font_key, _glyph, _has_glyph, _line_cap,
-    _paste, _run_len, _stack, _tracked_width, add_border, add_info, backdrop, backdrop_pad, blend_cards, body_cols,
+    _paste, _run_len, _stack, _tracked_width, _upnext_draw, _upnext_still, add_border, add_info, backdrop, backdrop_pad, blend_cards, body_cols,
     compose, cover_radius, fira, fit_lines, font_for, guide_line, info_card, lines_above, map_backdrop, map_body,
     music_body, music_card, music_fit_height, music_full_width, music_picture, pad_to, ping_colour, premultiplied_bgra, premultiplied_bgra_numpy,
     progress_strip, rec_dot, rec_phase, render_hud, render_music, render_music_compact, upnext_block, upnext_rows)
 from .overlay_render import (  # 1.39: the input card
     INPUT_BG, INPUT_CAP, INPUT_CAP_DOWN, INPUT_EDGE, INPUT_EDGE_PX, INPUT_GAP, INPUT_H, INPUT_IDLE, INPUT_KEPT, INPUT_PAD, INPUT_PATCHES_KEPT, INPUT_RATIO, INPUT_SS, INPUT_W, PAD_FACE, _INPUT_MEMO, _INPUT_PATCHES, _cap_font, _centred_text, _draw_gamepad, _draw_keyboard, _input_box, _input_controls, _input_full, _input_keys, input_card, input_size)
-_RENDER_NAMES = (FIRA, BACKDROP, _HAS, _GLYPHS, _CHAR_LEN, BORDER, CARD_BACKDROP, CARD_EDGE, GRAB_SURFACE, DIM_LABEL, FALLBACK_FONTS, FIT_MIN, GLYPHS_KEPT, INFO_DOT, INFO_MEMO, INFO_SERVER, INFO_TIMER, INFO_WARN, PING_COLOURS, REC_DOT, TIMER_GAP, TITLE_SCALE, UPNEXT_SCALE, _ascent, _below, _beside, _char_len, _content_bottom, _draw_run, _fallback_font, _font, _font_key, _glyph, _has_glyph, _line_cap, _paste, _run_len, _stack, _tracked_width, add_border, add_info, backdrop, backdrop_pad, blend_cards, body_cols, compose, cover_radius, fira, fit_lines, font_for, guide_line, info_card, lines_above, map_backdrop, map_body, music_body, music_card, music_fit_height, music_full_width, music_picture, pad_to, ping_colour, premultiplied_bgra, premultiplied_bgra_numpy, progress_strip, rec_dot, rec_phase, render_hud, render_music, render_music_compact, upnext_block, upnext_rows, INPUT_BG, INPUT_CAP, INPUT_CAP_DOWN, INPUT_EDGE, INPUT_EDGE_PX, INPUT_GAP, INPUT_H, INPUT_IDLE, INPUT_KEPT, INPUT_PAD, INPUT_PATCHES_KEPT, INPUT_RATIO, INPUT_SS, INPUT_W, PAD_FACE, _INPUT_MEMO, _INPUT_PATCHES, _cap_font, _centred_text, _draw_gamepad, _draw_keyboard, _input_box, _input_controls, _input_full, _input_keys, input_card, input_size)   # re-exported (keeps pyflakes from calling them unused)
+_RENDER_NAMES = (FIRA, BACKDROP, _HAS, _GLYPHS, _CHAR_LEN, BORDER, CARD_BACKDROP, CARD_EDGE, GRAB_SURFACE, DIM_LABEL, FALLBACK_FONTS, FIT_MIN, GLYPHS_KEPT, INFO_DOT, INFO_MEMO, INFO_SERVER, INFO_TIMER, INFO_WARN, PING_COLOURS, REC_DOT, TIMER_GAP, TITLE_SCALE, UPNEXT_SCALE, _ascent, _below, _beside, _char_len, _content_bottom, _draw_run, _fallback_font, _font, _font_key, _glyph, _has_glyph, _line_cap, _paste, _run_len, _stack, _tracked_width, _upnext_draw, _upnext_still, add_border, add_info, backdrop, backdrop_pad, blend_cards, body_cols, compose, cover_radius, fira, fit_lines, font_for, guide_line, info_card, lines_above, map_backdrop, map_body, music_body, music_card, music_fit_height, music_full_width, music_picture, pad_to, ping_colour, premultiplied_bgra, premultiplied_bgra_numpy, progress_strip, rec_dot, rec_phase, render_hud, render_music, render_music_compact, upnext_block, upnext_rows, INPUT_BG, INPUT_CAP, INPUT_CAP_DOWN, INPUT_EDGE, INPUT_EDGE_PX, INPUT_GAP, INPUT_H, INPUT_IDLE, INPUT_KEPT, INPUT_PAD, INPUT_PATCHES_KEPT, INPUT_RATIO, INPUT_SS, INPUT_W, PAD_FACE, _INPUT_MEMO, _INPUT_PATCHES, _cap_font, _centred_text, _draw_gamepad, _draw_keyboard, _input_box, _input_controls, _input_full, _input_keys, input_card, input_size)   # re-exported (keeps pyflakes from calling them unused)
 
 IS_WIN = sys.platform == "win32"
 
@@ -285,7 +285,7 @@ class HudWindow:
                     self._moving = False
                     rc = wintypes.RECT()
                     _u.GetWindowRect(self._hwnd, ctypes.byref(rc))
-                    self._pos = (rc.left, rc.top, round(self.opacity, 3))
+                    self._pos = (rc.left, rc.top, round(self.opacity * self.fade, 3))
                     if self.on_moved:
                         self.on_moved(rc.left, rc.top)
                 if msg == WM_NCRBUTTONUP and (self.on_menu or self.on_reset):
@@ -401,7 +401,10 @@ class HudWindow:
                 if err:
                     self.last_error = err
             return
-        pos = (int(x), int(y), round(self.opacity, 3))
+        # 1.56 (audit B4): the opacity on the screen includes the fade – after a fade-out the window was hidden at
+        # opacity 0 and set_fade(1.0) does not push while hidden; with the bare opacity in the key the next show_at
+        # at the same place pushed nothing and the card stayed invisible
+        pos = (int(x), int(y), round(self.opacity * self.fade, 3))
         if pos != self._pos:
             self._pos = pos
             err = _surface(self).push(self._hwnd, self._data, self.size[0], self.size[1], pos[:2],
@@ -434,6 +437,7 @@ class HudWindow:
                                       None if self.dragging else self._pos[:2], self.opacity * fade)
             if err:
                 self.last_error = err
+            self._pos = self._pos[:2] + (round(self.opacity * fade, 3),)    # what the screen has now (1.56)
 
     @property
     def shown(self):
@@ -709,7 +713,7 @@ class PictureOverlay:
         screen keeps the picture it has (the App tries sizes before it settles; pushing each one made the
         overlay grow and shrink on every tick)."""
         if self._waiting:
-            return self._render_waiting(max(40, int(self.text_height) or int(height)))
+            return self._render_waiting(max(40, int(self.text_height) or int(height)), push)
         if not self._frames:
             return 0, 0
         height = max(40, int(height))
@@ -804,31 +808,64 @@ class PictureOverlay:
         key = (height, text_h, avail) + self._content_key()
         if self._fit is None or self._fit[0] != key:
             timer, self._timer = self._timer, key[3]
+            waiting, self._waiting = self._waiting, key[-1]      # 1.56: measured with the widest digits too
             try:
                 self.text_height = text_h
-                pad2 = 2 * self.backdrop_pad(text_h)
-                iw, ih = self.map_extent()
-                if pad2 and ih:                 # the dark area's edge does not scale: the map makes room for it
-                    height = fit_height(height, avail - pad2, iw, ih)
-                w, _h = self.render(height, push=False)
-                for _try in range(4):           # the lines below are wider than the bar: smaller text, same map
-                    if w <= avail or self.text_height <= 40:
-                        break
-                    pad2 = 2 * self.backdrop_pad(self.text_height)
-                    self.text_height = max(40, int(self.text_height * (avail - pad2) / max(1, w - pad2)) - 1)
-                    w, _h = self.render(height, push=False)
-                for _try in range(10):          # still too wide (the map with the area's edge): the map too
-                    if w <= avail or height <= 80:
-                        break
-                    # at least 2 px smaller each time: the area's edge and the text's shadow do not scale with the
-                    # map, a 1-px step could stall a few px too wide (sweep 1.2.10: 12 maps at text 160 %)
-                    height = max(80, min(height - 2, int(height * avail / w)))
-                    w, _h = self.render(height, push=False)
+                if self._waiting:
+                    self.text_height = self._fit_waiting(text_h, avail)
+                else:
+                    height = self._fit_map(height, avail)
             finally:
-                self._timer = timer
+                self._timer, self._waiting = timer, waiting
             self._fit = (key, self.text_height, height)
         self.text_height = self._fit[1]
         return self._fit[2]
+
+    def _fit_map(self, height: int, avail: float) -> int:
+        """fit_width with a map: smaller text first, then a smaller map (``text_height`` set on the way)."""
+        pad2 = 2 * self.backdrop_pad(self.text_height)
+        iw, ih = self.map_extent()
+        if pad2 and ih:                 # the dark area's edge does not scale: the map makes room for it
+            height = fit_height(height, avail - pad2, iw, ih)
+        w, _h = self.render(height, push=False)
+        for _try in range(4):           # the lines below are wider than the bar: smaller text, same map
+            if w <= avail or self.text_height <= 40:
+                break
+            pad2 = 2 * self.backdrop_pad(self.text_height)
+            self.text_height = max(40, int(self.text_height * (avail - pad2) / max(1, w - pad2)) - 1)
+            w, _h = self.render(height, push=False)
+        for _try in range(10):          # still too wide (the map with the area's edge): the map too
+            if w <= avail or height <= 80:
+                break
+            # at least 2 px smaller each time: the area's edge and the text's shadow do not scale with the
+            # map, a 1-px step could stall a few px too wide (sweep 1.2.10: 12 maps at text 160 %)
+            height = max(80, min(height - 2, int(height * avail / w)))
+            w, _h = self.render(height, push=False)
+        return height
+
+    def _fit_waiting(self, text_h: int, avail: float) -> int:
+        """1.56: the text height of the waiting card (no map: its width depends on the text alone) – the largest
+        one at most ``avail`` wide. The small lines have a minimum font size, so a long lobby line can stay wider
+        than the bar at any text height: then the largest text height at that narrowest width (smaller text would
+        only be harder to read). Searched by halving – the 4 proportional steps of the map card stopped anywhere
+        in between, and before the waiting lines were part of the key, another line's fit was reused."""
+        def width(t):
+            self.text_height = t
+            return self.render(t, push=False)[0]
+        full = width(text_h)
+        if text_h <= 40 or full <= avail:
+            return text_h
+        goal = max(avail, width(40))
+        if full <= goal:                # already as narrow as the smallest text
+            return text_h
+        lo, hi = 40, text_h             # width(lo) <= goal < width(hi)
+        while hi - lo > 1:
+            mid = (lo + hi) // 2
+            if width(mid) <= goal:
+                lo = mid
+            else:
+                hi = mid
+        return lo
 
     def _content_key(self) -> tuple:
         """What the overlay's size depends on besides the heights (the timer with its widest digits)."""
@@ -837,7 +874,9 @@ class PictureOverlay:
                 self.info_apart, self.lines_top,
                 self._editing, self.show_map, self.show_caption, self._caption, self.transparent, self.backdrop,
                 self._floor, id(self._frames[0][0]) if self._frames else None, self.skin, self.accent, self.realm,
-                self._rec)
+                self._rec,
+                # 1.56: the waiting card (its lobby line counts seconds: measured with the widest digits) – last
+                tuple(re.sub(r"\d", "0", line) for line in self._waiting))
 
     def fit_room(self, height: int, room: int) -> int:
         """1.8.23 (user: right after 1.8.22 "the map got bigger and smaller all the time"): the map height at which
@@ -858,7 +897,7 @@ class PictureOverlay:
             self._fit_room = (key, height)
         return self._fit_room[1]
 
-    def _render_waiting(self, height: int):
+    def _render_waiting(self, height: int, push: bool = True):
         key = ("waiting", height, self.transparent, self._editing, self._waiting, self._server, self._ping,
                self.backdrop, self.skin, self.accent)
         if key != self._key:
@@ -878,8 +917,10 @@ class PictureOverlay:
             self._pics = [pic]
             self._key, self._base_key, self._frame_i = key, None, 0     # the map is rebuilt afterwards
             self._size = (pic.width, pic.height)
-            if self._shown:
-                self._push()
+        # 1.56: only measuring (fit_width) puts nothing on the screen – before, every size tried was pushed
+        if push and self._shown and self._pushed_key != self._key:
+            self._push()
+            self._pushed_key = self._key
         return self._size
 
     # ----------------------------------------------------------- animation
