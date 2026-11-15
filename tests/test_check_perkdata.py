@@ -242,7 +242,7 @@ def test_every_entry_of_the_calculator_has_a_kept_state(tool):
 
 
 def test_every_perk_whose_tags_touch_the_calculator_is_decided_on(tool, tmp_path, capsys):
-    """1.56 (audit: Bardic Inspiration, Deadline, Technician … were missing, because the tool only named perks new
+    """1.55.2 (audit: Bardic Inspiration, Deadline, Technician … were missing, because the tool only named perks new
     since the last --accept): a perk whose wiki tags touch a speed, a Skill Check or a Generator's progress must be
     calculated or named in not_modelled / not_modelled_areas / not_relevant – made-up pages first."""
     loadout = LOADOUT.replace('p.perks = {', 'p.perks = {\n    ["Fresh Perk"] = {id = 902, values = {1, 2, 3}, '

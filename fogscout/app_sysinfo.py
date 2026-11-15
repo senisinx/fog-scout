@@ -171,7 +171,7 @@ class SysInfo:
         return style if style in skin.STYLES else "classic"
 
     def _skin_accent(self) -> str:
-        """The window theme's accent (dark palette – the overlay sits on dark bars) for the modern styles. 1.56
+        """The window theme's accent (dark palette – the overlay sits on dark bars) for the modern styles. 1.55.6
         (audit P1): kept until the theme changes (qt_theme.look_key) – the overlay tick asked several times a tick and
         every call built the whole palette."""
         key = qt_theme.look_key()
@@ -698,7 +698,7 @@ class SysInfo:
                 "inputs": "inputs_win"}[name]
         return getattr(self, attr, None)
 
-    # 1.56 (audit B6): the worker's rectangle of each window – the App clears it the moment a window should go, but
+    # 1.55.6 (audit B6): the worker's rectangle of each window – the App clears it the moment a window should go, but
     # a fading window stays on the screen for Fader.OUT_S; until _fade_tick hides it, it is blacked out from here
     FADE_RECTS = {"map": "overlay_rect", "hud": "hud_rect", "today": "today_rect", "music": "media_rect",
                   "info": "info_rect", "inputs": "inputs_rect"}

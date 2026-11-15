@@ -121,7 +121,7 @@ def thumbnail(path: str, box: tuple, cache_dir: str | None = None, by_content: b
 def prune(cache_dir: str, now: float | None = None, max_age_s: float = PRUNE_AFTER_S,
           exts: tuple = (".png", ".jpg")) -> int:
     """Delete thumbnails nobody used for ``max_age_s`` (their mtime is refreshed on every use); the number
-    removed. Only our own files in the folder (``exts``; 1.56: the editor's analyses are ".json")."""
+    removed. Only our own files in the folder (``exts``; 1.55.8: the editor's analyses are ".json")."""
     if not cache_dir or not os.path.isdir(cache_dir):
         return 0
     now = time.time() if now is None else now

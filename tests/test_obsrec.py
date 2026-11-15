@@ -61,7 +61,7 @@ class FakeObs(threading.Thread):
         self.replay_fails = False                   # 1.8.42: the encoder cannot start the replay buffer
         self.source_size = (3440, 1440)             # 1.8.89: what every source reports as its picture size
         self.paused = False                         # 1.15: PauseRecord / ResumeRecord
-        self.stop_fails = 0                         # 1.56: refuse this many StopRecord (OBS busy), recording on
+        self.stop_fails = 0                         # 1.55.1: refuse this many StopRecord (OBS busy), recording on
         self.video = {"baseWidth": 2560, "baseHeight": 1440, "outputWidth": 2560, "outputHeight": 1440,
                       "fpsNumerator": 60, "fpsDenominator": 1}                    # 1.29: SetVideoSettings
         self.stats = {"activeFps": 60.0, "cpuUsage": 3.5, "availableDiskSpace": 2048.0,     # 1.15: GetStats
@@ -2420,9 +2420,9 @@ def test_the_recorder_says_an_error_on_one_line():
 
 
 
-# ---- 1.56: audit R-1 / R-2 / R-3 / E-1
+# ---- 1.55.1: audit R-1 / R-2 / R-3 / E-1
 def test_a_stop_obs_refuses_keeps_the_round_and_is_tried_again(obs, tmp_path):
-    """1.56 (audit R-1, reproduced): the round was forgotten before StopRecord – OBS busy for a moment, and OBS
+    """1.55.1 (audit R-1, reproduced): the round was forgotten before StopRecord – OBS busy for a moment, and OBS
     recorded on, the file was never filed and every later round said "OBS nimmt schon auf"."""
     folder = str(tmp_path)
     r, posted = _recorder(obs, folder, pre=False, tail_s=0)
@@ -2444,7 +2444,7 @@ def test_a_stop_obs_refuses_keeps_the_round_and_is_tried_again(obs, tmp_path):
 
 
 def test_a_new_round_first_files_the_one_obs_could_not_stop(obs, tmp_path):
-    """1.56 (audit R-1): OBS not reachable at the round end (connection refused) – the next banner stops and files
+    """1.55.1 (audit R-1): OBS not reachable at the round end (connection refused) – the next banner stops and files
     the old round before it starts the new one; while OBS stays away nothing is lost and nothing starts."""
     folder = str(tmp_path)
     r, posted = _recorder(obs, folder, pre=False, tail_s=0)
@@ -2466,7 +2466,7 @@ def test_a_new_round_first_files_the_one_obs_could_not_stop(obs, tmp_path):
 
 
 def test_a_recording_stopped_without_us_is_let_go(obs, tmp_path):
-    """1.56 (audit R-1): OBS refuses the stop because its output no longer runs (stopped in OBS, OBS restarted) –
+    """1.55.1 (audit R-1): OBS refuses the stop because its output no longer runs (stopped in OBS, OBS restarted) –
     the round is let go instead of being retried for ever."""
     r, posted = _recorder(obs, str(tmp_path), pre=False, tail_s=0)
     r._begin({"t": 1000.0, "label": "A"})
@@ -2477,7 +2477,7 @@ def test_a_recording_stopped_without_us_is_let_go(obs, tmp_path):
 
 
 def test_quitting_mid_round_indexes_both_files_and_joins_nothing(tmp_path, monkeypatch):
-    """1.56 (audit R-2, reproduced): quitting waits app.QUIT_RECORDER_S for the recorder; the entry was written only
+    """1.55.1 (audit R-2, reproduced): quitting waits app.QUIT_RECORDER_S for the recorder; the entry was written only
     after the join (ffmpeg, minutes for a big file) – a thread ended before left both files outside the index for
     good. While quitting nothing is joined; the entry names the round and its pre-roll."""
     from fogscout.app import QUIT_RECORDER_S
@@ -2507,7 +2507,7 @@ def test_quitting_mid_round_indexes_both_files_and_joins_nothing(tmp_path, monke
 
 
 def test_the_entry_is_in_the_index_before_the_join_starts(tmp_path, monkeypatch):
-    """1.56 (audit R-2): a thread ended during the join still leaves an entry naming both files."""
+    """1.55.1 (audit R-2): a thread ended during the join still leaves an entry naming both files."""
     run, _calls = _fake_ffmpeg()
     monkeypatch.setattr(obsrec, "ffmpeg_exe", lambda: "ffmpeg")
     monkeypatch.setattr(obsrec, "_run", run)
@@ -2540,7 +2540,7 @@ def _join_files(tmp_path):
 
 
 def test_a_failed_replace_after_the_join_keeps_the_pre_roll(tmp_path, monkeypatch):
-    """1.56 (audit R-3, reproduced): the pre-roll was removed before the joined file took the round's name – a
+    """1.55.1 (audit R-3, reproduced): the pre-roll was removed before the joined file took the round's name – a
     failed replace lost it although both files were promised to stay."""
     run, _calls = _fake_ffmpeg()
     monkeypatch.setattr(obsrec, "ffmpeg_exe", lambda: "ffmpeg")
@@ -2560,7 +2560,7 @@ def test_a_failed_replace_after_the_join_keeps_the_pre_roll(tmp_path, monkeypatc
 
 
 def test_a_replace_held_a_moment_is_retried_and_a_pre_roll_left_stays_named(tmp_path, monkeypatch):
-    """1.56 (audit R-3): the replace retries like _move; a pre-roll that cannot be removed afterwards stays in the
+    """1.55.1 (audit R-3): the replace retries like _move; a pre-roll that cannot be removed afterwards stays in the
     entry (pruned and deleted with the round) instead of becoming an orphan."""
     run, _calls = _fake_ffmpeg()
     monkeypatch.setattr(obsrec, "ffmpeg_exe", lambda: "ffmpeg")
@@ -2588,7 +2588,7 @@ def test_a_replace_held_a_moment_is_retried_and_a_pre_roll_left_stays_named(tmp_
 
 
 def test_files_queued_for_upload_or_open_in_an_editor_are_never_pruned(obs, tmp_path):
-    """1.56 (audit E-1): pruning for room and the farming days deleted recordings the YouTube queue or an open
+    """1.55.1 (audit E-1): pruning for room and the farming days deleted recordings the YouTube queue or an open
     editor still used; the app tells the recorder those files (index names or absolute paths)."""
     folder = str(tmp_path)
     os.makedirs(os.path.join(folder, obsrec.FARMING_DIR))

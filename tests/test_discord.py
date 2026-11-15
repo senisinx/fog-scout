@@ -279,7 +279,7 @@ def test_a_message_from_the_pipe_reaches_the_status_clipped_and_on_one_line():
 
 @pytest.mark.parametrize("answer", [(dc.OP_FRAME, [1]), (dc.OP_FRAME, 7), (dc.OP_FRAME, {"evt": "ERROR", "data": "x"})])
 def test_a_malformed_handshake_answer_is_an_error_and_the_pipe_is_closed(tmp_path, monkeypatch, answer):
-    """1.56 (audit SEC-6): anything local can serve discord-ipc-N. A JSON list or number as the answer crashed
+    """1.55.4 (audit SEC-6): anything local can serve discord-ipc-N. A JSON list or number as the answer crashed
     connect with AttributeError (d.get) – the presence thread caught it, but the connection was never closed, one
     more leaked pipe handle on each retry. Now: IpcError, and the pipe is closed on every way out but READY."""
     if sys.platform == "win32":

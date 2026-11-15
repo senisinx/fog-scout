@@ -15,7 +15,7 @@ Rules used (all from the wiki, retrieved 2026-11-15):
   the 3rd a quarter, the 4th an eighth, every further 5 %. The wiki exempts only add-ons; the toolbox is counted
   (assumption, can be switched off together with the rule: ``Scenario.diminishing``).
 - Skill Checks: 8 % chance per second (40 % with a toolbox), Great +1 % progress, a miss −10 % and 3 s without
-  progress. Results use the expected value for the chosen share of Great/missed checks. 1.56: perks that change
+  progress. Results use the expected value for the chosen share of Great/missed checks. 1.55.2: perks that change
   the odds (Deadline, One-Two-Three-Four!, Unnerving Presence: "+10 %") add percentage points to the chance per
   second – the wiki gives the odds as a chance per second (8 %, 40 % with a toolbox) and the perks' "+x %" in the
   same unit (assumption: added, not multiplied; relative, +10 % of 8 % would be 0.8 points and hardly a change).
@@ -310,7 +310,7 @@ def _killer_effects(data: Data, killer: Killer) -> dict:
         kind = e["kind"]
         if kind == "kick_loss":
             fx["pop"] = n
-            fx["pop_value"] = e["value"]            # 1.56: from perkdata.json, no longer typed in here
+            fx["pop_value"] = e["value"]            # 1.55.2: from perkdata.json, no longer typed in here
         elif kind == "instant":
             fx["instant"] += [e["value"]] * n
         elif kind == "undone":
@@ -331,7 +331,7 @@ def _killer_effects(data: Data, killer: Killer) -> dict:
 
 
 def skill_checks(data: Data, team, killer: Killer | None = None, great: float = 0.0) -> list:
-    """1.56: per Survivor of ``team`` (all at one Generator) what the perks change about Skill Checks: (added
+    """1.55.2: per Survivor of ``team`` (all at one Generator) what the perks change about Skill Checks: (added
     chance per second, share of the Generator a missed check costs, extra share every successful check grants).
     One-Two-Three-Four! and Bardic Inspiration count once (the stronger of two copies), Bardic only for the others.
     Hyperfocus adds its trigger odds per Token (``chance_per_token``) as the expected value over the Token counts
@@ -369,7 +369,7 @@ def one_generator(data: Data, team, killer: Killer | None = None, scen: Scenario
     need, notes = requirement(data, team, first)
     fx = _killer_effects(data, killer)
     steadfast = max((e["regression"] for s in team for e in _known(data, s.perks, data.survivor)
-                     if e["kind"] == "team" and e.get("regression")), default=0.0)     # 1.56: from perkdata.json
+                     if e["kind"] == "team" and e.get("regression")), default=0.0)     # 1.55.2: from perkdata.json
     hyper = _hyper(data, team, scen.great)
     great_c = m["great_bonus"] * need
     checks = skill_checks(data, team, killer, scen.great)

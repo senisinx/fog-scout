@@ -237,7 +237,7 @@ class RecordingsTab:
         self.rec_period_var = ui.StringVar(value=self._rec_periods[0][1])
         cb = ui.Combobox(fr, textvariable=self.rec_period_var, values=[lbl for _k, lbl in self._rec_periods],
                          state="readonly", width=16)
-        cb._dbdms_name = _("Zeitraum")  # 1.56: its accessible name (no label)
+        cb._dbdms_name = _("Zeitraum")  # 1.55.7: its accessible name (no label)
         cb.pack(side="left")
         cb.bind("<<ComboboxSelected>>", lambda e: self._rec_render(force=True))
         self._rec_maps = [(None, _("Alle Maps"))]
@@ -333,7 +333,7 @@ class RecordingsTab:
         ui.Button(row, text=_("Anderen Ordner …"), command=self._shot_pick_folder).pack(side="left")
         # an own folder that is gone (drive unplugged, renamed) leaves the page empty: back to Steam's from here too
         self.rec_empty_steam_btn = ui.Button(row, text=_("Steam-Ordner verwenden"), command=self._shot_steam_folder)
-        # 1.56 (audit V-5): the card as it is now from the start – built showing "Warte auf OBS …" it flashed while
+        # 1.55.7 (audit V-5): the card as it is now from the start – built showing "Warte auf OBS …" it flashed while
         # recordings were off, until the first tick of the shown page hid it
         self._rec_card_render()
         return outer
@@ -347,7 +347,7 @@ class RecordingsTab:
         self.clip_period_var = ui.StringVar(value=self._rec_periods[0][1])
         cb = ui.Combobox(fr, textvariable=self.clip_period_var, values=[lbl for _k, lbl in self._rec_periods],
                          state="readonly", width=16)
-        cb._dbdms_name = _("Zeitraum")  # 1.56: its accessible name (no label)
+        cb._dbdms_name = _("Zeitraum")  # 1.55.7: its accessible name (no label)
         cb.pack(side="left")
         cb.bind("<<ComboboxSelected>>", lambda e: self._clips_render())
         self.clip_role_var = ui.StringVar(value=self._rec_roles[0][1])
@@ -434,7 +434,7 @@ class RecordingsTab:
         self.shot_kind_var = ui.StringVar(value=self._shot_kinds[0][1])
         cb = ui.Combobox(fr, textvariable=self.shot_kind_var, values=[lbl for _k, lbl in self._shot_kinds],
                          state="readonly", width=18)
-        cb._dbdms_name = _("Art")  # 1.56: its accessible name (no label)
+        cb._dbdms_name = _("Art")  # 1.55.7: its accessible name (no label)
         cb.pack(side="left")
         cb.bind("<<ComboboxSelected>>", lambda e: self._shots_render())
         self.shot_src_var = ui.StringVar(value="")
@@ -649,7 +649,7 @@ class RecordingsTab:
         self._rec_card_tick()
 
     def _rec_protect(self):
-        """1.56 (audit E-1): pruning (room, farming days) deleted recordings queued for YouTube or open in an editor.
+        """1.55.1 (audit E-1): pruning (room, farming days) deleted recordings queued for YouTube or open in an editor.
         The recorder learns those files whenever they change: the upload queue's names and the editors' paths
         (a montage: each of its sources)."""
         names = set(getattr(self, "_yt_queued", ()) or ())
@@ -1701,7 +1701,7 @@ class RecordingsTab:
                          mix_on=self.settings.get("clip_mix_on") or {},                           # 1.8.6
                          mix_vol=self.settings.get("clip_mix_vol") or {},
                          sources=(r.extra or {}).get("sources"),                            # 1.8.23
-                         analysis_dir=os.path.join(self.data_dir, ANALYSIS_DIR),            # 1.56
+                         analysis_dir=os.path.join(self.data_dir, ANALYSIS_DIR),            # 1.55.8
                          encoding=encoders.from_settings(self.settings), **extra)           # 1.15
         win.on_saved = lambda out: self._clip_saved(r, out, win)              # 1.8.13: into the clips list
         if hasattr(win, "claude_key"):                                         # 1.27: „Mit Claude bearbeiten“

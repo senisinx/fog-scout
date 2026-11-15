@@ -271,7 +271,7 @@ def test_git_runs_without_hooks_fsmonitor_or_user_config(tmp_path, monkeypatch):
     assert os.path.basename(args[0]).lower().startswith("git") and args[-2:] == ["fetch", "origin"]
     assert "core.fsmonitor=false" in args and any(a.startswith("core.hooksPath=") for a in args)
     hooks = next(a for a in args if a.startswith("core.hooksPath=")).split("=", 1)[1]
-    assert hooks == up._no_hooks() and not hooks.startswith(str(tmp_path))     # 1.56: never in the user's folder
+    assert hooks == up._no_hooks() and not hooks.startswith(str(tmp_path))     # 1.55.4: never in the user's folder
     assert "credential.helper=" in args and "http.sslVerify=true" in args
     # 1.38.57: the user's global config is off (any program of the user writes it), the system config stays
     assert "GIT_CONFIG_NOSYSTEM" not in env and env["GIT_CONFIG_GLOBAL"] == "/dev/null"
@@ -281,7 +281,7 @@ def test_git_runs_without_hooks_fsmonitor_or_user_config(tmp_path, monkeypatch):
 
 
 def test_a_hook_planted_in_the_program_folder_never_runs(repos):
-    """1.56 (audit SEC-3): core.hooksPath pointed to <root>/.venv/no-hooks – a folder the user writes to, so a hook
+    """1.55.4 (audit SEC-3): core.hooksPath pointed to <root>/.venv/no-hooks – a folder the user writes to, so a hook
     planted there ran as administrator on the update's merge. Now it points to a place that can never hold one
     (Linux: the null device; Windows: a missing folder below System32)."""
     user, release = repos
@@ -344,7 +344,7 @@ def test_packages_come_only_from_pypi_with_their_hashes(tmp_path):
 
 
 def test_pip_ignores_the_users_python_and_openssl_variables(tmp_path, monkeypatch):
-    """1.56 (audit SEC-2): pip ran as administrator as ``python -m pip`` with the user's environment – a sitecustomize
+    """1.55.4 (audit SEC-2): pip ran as administrator as ``python -m pip`` with the user's environment – a sitecustomize
     on PYTHONPATH ran with it (confirmed). Now ``-I`` and the cleaned environment (no PYTHON*/OPENSSL_*/
     SSLKEYLOGFILE/GIT_*; proxies stay)."""
     seen = []

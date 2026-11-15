@@ -69,7 +69,7 @@ def preset_range(key: str, now: float):
     """(since, until) of a preset; until is exclusive, None = open. "custom" keeps what the user typed (None, None)."""
     if key == "yesterday":
         today = history.period_start("day", now)
-        # 1.56 (review F9): the midnight before – the day after a clock change has 23 or 25 hours, not 86400 s
+        # 1.55.5 (review F9): the midnight before – the day after a clock change has 23 or 25 hours, not 86400 s
         return history.period_start("day", today - 1), today
     if key in history.PERIODS:
         return history.period_start(key, now), None
@@ -190,7 +190,7 @@ _PLAIN_NUMBER = re.compile(r"[+-]?\d+(?:[.,]\d+)?")
 
 
 def _inert(value) -> str:
-    """1.56 (review F4): a cell Excel/LibreOffice would read as a formula (it starts with = + - @, a tab or CR) gets
+    """1.55.5 (review F4): a cell Excel/LibreOffice would read as a formula (it starts with = + - @, a tab or CR) gets
     a leading ' – perks, character and mode come from downloaded files. Plain numbers ("-2", "+5") stay numbers."""
     s = str(value)
     if s.startswith(_FORMULA_START) and not _PLAIN_NUMBER.fullmatch(s):

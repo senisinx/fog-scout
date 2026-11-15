@@ -666,7 +666,7 @@ class Uploader(threading.Thread):
                 return
             try:
                 tok = exchange_code(self.client_id, self.secret, srv.code, self._verifier, self._redirect)
-            except YouTubeError as e:                     # 1.56 (audit SEC-7): as Spotify – before, the generic
+            except YouTubeError as e:                     # 1.55.4 (audit SEC-7): as Spotify – before, the generic
                 self.state = "login_needed"               # error state ("YouTube: Fehler – …") without a hint
                 self._say(_("YouTube: Anmeldung fehlgeschlagen ({error}) – Client-ID und Client-Secret prüfen und "
                             "noch einmal „Mit YouTube verbinden“ klicken.", error=str(e)), False)

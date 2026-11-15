@@ -131,7 +131,7 @@ def test_the_new_columns_and_the_json_format():
 
 @pytest.mark.skipif(not hasattr(time, "tzset"), reason="time.tzset: not on Windows")
 def test_yesterday_is_the_whole_day_before_also_after_a_clock_change(monkeypatch):
-    """1.56 (review F9): "Gestern" was midnight − 86400 s – on the day after the clocks went back (Europe/Berlin,
+    """1.55.5 (review F9): "Gestern" was midnight − 86400 s – on the day after the clocks went back (Europe/Berlin,
     25.10.2026: 25 hours) that is 01:00 of yesterday, its first hour was missing (in spring an hour of the day
     before came along)."""
     monkeypatch.setenv("TZ", "Europe/Berlin")
@@ -147,7 +147,7 @@ def test_yesterday_is_the_whole_day_before_also_after_a_clock_change(monkeypatch
 
 
 def test_a_csv_cell_that_reads_as_a_formula_is_made_inert():
-    """1.56 (review F4): perks, character and mode come from downloaded files – a cell starting with = + - @ (or a
+    """1.55.5 (review F4): perks, character and mode come from downloaded files – a cell starting with = + - @ (or a
     tab/CR) would be a formula in Excel/LibreOffice. It gets a leading '; plain numbers stay numbers."""
     head = ["Perks", "Wert", "Text"]
     rows = [["=HYPERLINK(\"x\")", "-2", "Normal"], ["+cmd|' /C calc'!A0", "+5", "@SUM(A1)"],

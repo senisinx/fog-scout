@@ -111,7 +111,7 @@ def test_a_perk_acts_only_on_its_rows_and_on_the_right_survivors():
     assert line("objects", "gate", team, subject=0).mult == pytest.approx(1.3)  # from the other Leader
     assert line("objects", "gate", team, subject=1).mult == pytest.approx(1.3)  # two Leaders: once
     assert line("objects", "gate", [S(("Leader",)), S()], subject=0).mult == 1.0    # not for its owner
-    # 1.56 (patch 10.3.0): others unhook you 65/70/75 % faster (was 90/95/100 %) – tier III: 1 s / 1.75
+    # 1.55.2 (patch 10.3.0): others unhook you 65/70/75 % faster (was 90/95/100 %) – tier III: 1 s / 1.75
     assert line("hook", "unhook", [S(("Slippery Meat",)), S()], subject=1).result == pytest.approx(1 / 1.75)
     # Tokens of a Survivor perk: all, half, one
     flow = [S(("Flow State",))]
@@ -141,7 +141,7 @@ def test_the_killers_own_actions_and_what_survivors_do_to_them():
 
 
 def test_the_values_changed_by_patch_10_3_0():
-    """1.56 (tools/check_perkdata.py reported them): Calm Spirit 23/24/25 % (was 8/9/10 %), Dark Arrogance
+    """1.55.2 (tools/check_perkdata.py reported them): Calm Spirit 23/24/25 % (was 8/9/10 %), Dark Arrogance
     vaulting +15 % and hit recovery +13/14/15 %, but missed attacks recover 15 % slower (was +25 % / +10 % on both)."""
     calm = [S(("Calm Spirit",))]
     for row in ("cleanse", "bless", "chest"):
@@ -158,7 +158,7 @@ def test_the_values_changed_by_patch_10_3_0():
 
 
 def test_skill_check_perks_count_on_generators_and_are_named_where_they_cannot():
-    """1.56: the heal rows have no Skill Checks (a fixed time per Health State), so what Deadline, One-Two-Three-
+    """1.55.2: the heal rows have no Skill Checks (a fixed time per Health State), so what Deadline, One-Two-Three-
     Four!, Bardic Inspiration and Unnerving Presence do while healing – and the healing-only perks Autodidact, Bite
     the Bullet, Reactive Healing and Resurgence – is named as not calculated instead of invented."""
     checks = ("Deadline", "One-Two-Three-Four!", "Bardic Inspiration", "Technician")

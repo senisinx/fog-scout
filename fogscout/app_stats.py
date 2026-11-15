@@ -118,7 +118,7 @@ class StatsTab:
         self.stats_period_var = ui.StringVar(value=self._stats_periods[0][1])
         cb = ui.Combobox(fr, textvariable=self.stats_period_var, values=[lbl for _k, lbl in self._stats_periods],
                           state="readonly", width=16)
-        cb._dbdms_name = _("Zeitraum")  # 1.56: its accessible name (no label)
+        cb._dbdms_name = _("Zeitraum")  # 1.55.7: its accessible name (no label)
         cb.pack(side="left")
         cb.bind("<<ComboboxSelected>>", lambda e: self._stats_render())
         self._stats_roles = [(k, _(label)) for k, label in STATS_ROLES]
@@ -307,7 +307,7 @@ class StatsTab:
         self.stats_alias_var = ui.StringVar(value="")
         self.stats_alias_cb = ui.Combobox(ar, textvariable=self.stats_alias_var, state="disabled", width=16,
                                            values=[killer_label(k) for k in self._stats_alias_choices])
-        self.stats_alias_cb._dbdms_name = _("Zuordnen zu")  # 1.56: its accessible name (no label)
+        self.stats_alias_cb._dbdms_name = _("Zuordnen zu")  # 1.55.7: its accessible name (no label)
         self.stats_alias_cb.pack(side="left")
         self.stats_alias_btn = ui.Button(ar, text=_("Zuordnen"), command=self._stats_alias_set, state="disabled")
         self.stats_alias_btn.pack(side="left", padx=(6, 0))
@@ -402,7 +402,7 @@ class StatsTab:
         self.stats_wait_by_var = ui.StringVar(value=self._stats_wait_groups[0][1])
         cb = ui.Combobox(wr, textvariable=self.stats_wait_by_var, values=[lbl for _k, lbl in self._stats_wait_groups],
                           state="readonly", width=16)
-        cb._dbdms_name = _("Gruppieren nach")  # 1.56: its accessible name (no label)
+        cb._dbdms_name = _("Gruppieren nach")  # 1.55.7: its accessible name (no label)
         cb.pack(side="right")
         cb.bind("<<ComboboxSelected>>", lambda e: self._stats_render())
         self.stats_wait = self._stats_tree(box_w, (("grp", _("Wann/Wo"), 230, "w"), ("n", _("Runden"), 70, "e"),
@@ -1006,7 +1006,7 @@ class StatsTab:
         rounds, pairs = c.rounds, c.pairs
         res = official.results([(r, m) for r, m in pairs if r.role == "killer"], lambda r: r.killer)
         t = self.stats_kill
-        keep = t.selection()          # 1.56 (audit S-2): read before the rows go – the note being typed stayed
+        keep = t.selection()          # 1.55.3 (audit S-2): read before the rows go – the note being typed stayed
         t.delete(*t.get_children())
         for name, n, avg, top in history.per_killer(rounds):
             ks = res.get(name, {}).get("kills") or []
@@ -1847,7 +1847,7 @@ class StatsTab:
         if not ts:
             return
         try:
-            done = history.set_role_many(self._hist_path(), ts, role)     # 1.56 (F2): one rewrite for all
+            done = history.set_role_many(self._hist_path(), ts, role)     # 1.55.5 (F2): one rewrite for all
         except OSError as e:
             self._log(_("Rolle konnte nicht gespeichert werden: {error}", error=e), "Fehler")
             return
@@ -1873,7 +1873,7 @@ class StatsTab:
             return
         on = not all(r.farming for r in picked)
         try:
-            done = history.set_farming_many(self._hist_path(), [r0.t for r0 in picked], on)   # 1.56 (F2): one rewrite
+            done = history.set_farming_many(self._hist_path(), [r0.t for r0 in picked], on)   # 1.55.5 (F2): one rewrite
         except OSError as e:
             self._log(_("Rolle konnte nicht gespeichert werden: {error}", error=e), "Fehler")
             return
@@ -1958,7 +1958,7 @@ class StatsTab:
         if farming:
             done = 0
             try:
-                for r in history.set_farming_many(self._hist_path(), [r.t for r in rounds], True):   # 1.56 (F2)
+                for r in history.set_farming_many(self._hist_path(), [r.t for r in rounds], True):   # 1.55.5 (F2)
                     self.recorder.set_farming(r.t, True)
                     done += 1
             except OSError as e:
@@ -1981,7 +1981,7 @@ class StatsTab:
             return
         done = 0
         try:
-            for r in history.set_farming_many(self._hist_path(), [r.t for r in found], True):   # 1.56 (F2)
+            for r in history.set_farming_many(self._hist_path(), [r.t for r in found], True):   # 1.55.5 (F2)
                 self.recorder.set_farming(r.t, True)
                 done += 1
         except OSError as e:
@@ -2011,7 +2011,7 @@ class StatsTab:
                          ok_text=_("Löschen"), danger=True):
             return
         try:
-            gone = history.delete_many(self._hist_path(), self._stats_selected_ts())   # 1.56 (F2): one rewrite
+            gone = history.delete_many(self._hist_path(), self._stats_selected_ts())   # 1.55.5 (F2): one rewrite
         except OSError as e:
             self._log(_("Runde konnte nicht gelöscht werden: {error}", error=e), "Fehler")
             return
@@ -2030,7 +2030,7 @@ class StatsTab:
         if not ts or target is None:
             return
         try:
-            changed = history.set_killer_many(self._hist_path(), ts, target)       # 1.56 (F2): one rewrite
+            changed = history.set_killer_many(self._hist_path(), ts, target)       # 1.55.5 (F2): one rewrite
             r = changed[-1] if changed else None
         except OSError as e:
             self._log(_("Killer konnte nicht gespeichert werden: {error}", error=e), "Fehler")
@@ -2050,7 +2050,7 @@ class StatsTab:
         if not ts or target is None:
             return
         try:
-            changed = history.set_map_many(self._hist_path(), ts, target.id, target.name)   # 1.56 (F2): one rewrite
+            changed = history.set_map_many(self._hist_path(), ts, target.id, target.name)   # 1.55.5 (F2): one rewrite
         except OSError as e:
             self._log(_("Map konnte nicht gespeichert werden: {error}", error=e), "Fehler")
             return

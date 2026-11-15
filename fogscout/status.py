@@ -36,7 +36,7 @@ def tray_dot(state: State, unsure: bool = False, game_found: bool = True) -> str
 
 def is_problem(worker_status: str) -> bool:
     """Guess from German/English words – only for callers without the worker's flag (the app passes
-    ``problem``, 1.56: the words differ in the other languages)."""
+    ``problem``, 1.55.3: the words differ in the other languages)."""
     low = (worker_status or "").lower()
     return any(w in low for w in ("fehl", "schwarz", "minimiert", "abgestürzt",       # German texts
                                    "fail", "black", "minimi", "crash"))                # English texts

@@ -111,7 +111,7 @@ def scan_rate(base: float, *, in_match: bool, session: bool, since_button: float
 
 class DetectionWorker(threading.Thread):
     inputs_rect = None               # 1.39: the input card on screen (set by the UI; a default for bare instances)
-    fade_rects = ()                  # 1.56: windows still fading out (their *_rect is cleared already)
+    fade_rects = ()                  # 1.55.6: windows still fading out (their *_rect is cleared already)
 
     def __init__(self, root_dir: str, settings, catalog, events: queue.Queue, simulate: str | None = None,
                  data_dir: str | None = None):
@@ -296,7 +296,7 @@ class DetectionWorker(threading.Thread):
         last_hist = 0.0
         last_status = None
         black_since = None
-        capture_warn = None               # 1.56: black/failed capture – overrides "DBD gefunden" until a good look
+        capture_warn = None               # 1.55.3: black/failed capture – overrides "DBD gefunden" until a good look
         fails, failed = 0, False          # 1.8.38: ticks in a row that raised, did the last one
 
         while self.running:
@@ -337,13 +337,13 @@ class DetectionWorker(threading.Thread):
                     with self.times.measure("window"):
                         window = find_game_window(window)   # 1.34.1 (P4): the known window checked first
                     window_checked = tick
-                # 1.56 (audit D-5): with the automatic detection off only a map on display needs the model here (its
+                # 1.55.6 (audit D-5): with the automatic detection off only a map on display needs the model here (its
                 # round end); a manual scan or any other look builds it on first use
                 auto = bool(self.settings.get("auto_detect", True))
                 if (source is not None or (window is not None and (auto or self.map_on_screen))) and not rec.built:
                     rec.load()                       # 1.50.4: built here, before the first look needs it
                 if auto and (source is not None or window is not None):
-                    reader.load()                    # 1.56 (D-4): the other scripts' models (ticked ones) the same way
+                    reader.load()                    # 1.55.6 (D-4): the other scripts' models (ticked ones) the same way
                 if source is not None:
                     frame = source.current()
                     if frame is None:
@@ -435,14 +435,14 @@ class DetectionWorker(threading.Thread):
                     status = _("Automatische Erkennung ist aus")
                 if not (self.settings.get("auto_detect", True) and (source is not None or window is not None)):
                     capture_warn = None          # no banner look this tick: nothing left to warn about
-                # 1.56: one status per tick – a black or failed capture stays the status until a good look (it
+                # 1.55.3: one status per tick – a black or failed capture stays the status until a good look (it
                 # alternated with "DBD gefunden" every tick before: two log lines a second)
                 shown = capture_warn or status
                 if shown != last_status:
                     self._status(shown, last_status, problem=bool(capture_warn))
                     last_status = shown
                 sep = None
-                # 1.56 (D-5): only with the automatic detection – the lobby look arms the match start, and without it
+                # 1.55.6 (D-5): only with the automatic detection – the lobby look arms the match start, and without it
                 # the whole picture once a second was taken for nothing
                 start_due = (auto and not self.map_on_screen and not session
                              and tick - last_start_look >= START_LOOK_INTERVAL
@@ -491,7 +491,7 @@ class DetectionWorker(threading.Thread):
                     else:
                         black_since = None
                         capture_warn = None
-                    shown = capture_warn or status        # 1.56: the grab worked – a failure warning ends here
+                    shown = capture_warn or status        # 1.55.3: the grab worked – a failure warning ends here
                     if shown != last_status:
                         self._status(shown, last_status, problem=bool(capture_warn))
                         last_status = shown
@@ -808,7 +808,7 @@ class DetectionWorker(threading.Thread):
             self.post("queue", what="remind", seconds=ev[1])
 
     def _status(self, text, last, problem=False):
-        """1.56: ``problem`` = needs the player's action (minimised, black or failed capture) – a flag, since
+        """1.55.3: ``problem`` = needs the player's action (minimised, black or failed capture) – a flag, since
         the text is translated and the app cannot tell it from the words."""
         if text != last:
             self.post("status", text=text, problem=problem)

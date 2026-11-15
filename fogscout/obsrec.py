@@ -55,8 +55,8 @@ DEFAULT_LIMIT_GB = 0
 MIN_FREE = 5 * 1024 ** 3        # below this much free space on the drive: no new recording
 RENAME_TRIES = 40               # OBS may still hold the file a moment after StopRecord
 RENAME_WAIT = 0.5
-QUIT_RENAME_TRIES = 4           # 1.56: while quitting the app waits only app.QUIT_RECORDER_S for this thread
-STOP_RETRY_S = 5.0              # 1.56: StopRecord failed (OBS busy, restarting) – the round is kept and tried again
+QUIT_RENAME_TRIES = 4           # 1.55.1: while quitting the app waits only app.QUIT_RECORDER_S for this thread
+STOP_RETRY_S = 5.0              # 1.55.1: StopRecord failed (OBS busy, restarting) – the round is kept and tried again
 REPLAY_WAIT = 4.0               # 1.5.4: s to wait for OBS to finish writing the replay buffer (it saves asynchronously)
 REPLAY_POLL = 0.2
 MAX_INPUT_EVENTS = 100_000      # 1.39.1: input changes kept per recording (= inputs.MAX_EVENTS)
@@ -814,8 +814,8 @@ class Recorder(threading.Thread):
         self._folder_hit = None      # 1.22.4: (key, time, path) of the last find_folder (Recorder.folder)
         self._free_t = 0.0           # 1.15: last look at the drive's free space while recording
         self.paused = False          # 1.15: the recording on air is paused (ours)
-        self._quitting = False       # 1.56: "quit" came – files are filed and indexed, never joined (QUIT_RECORDER_S)
-        self._protected = frozenset()  # 1.56: files the app uses (upload queue, open editors) – never pruned
+        self._quitting = False       # 1.55.1: "quit" came – files are filed and indexed, never joined (QUIT_RECORDER_S)
+        self._protected = frozenset()  # 1.55.1: files the app uses (upload queue, open editors) – never pruned
         self.start_obs = self._start_obs_process       # tests replace it
 
     @property
@@ -935,7 +935,7 @@ class Recorder(threading.Thread):
         self.cmds.put(("quality", dict(before or {}, restore=True)))
 
     def protect(self, names):
-        """1.56 (audit E-1): the files the app uses now – queued for YouTube (index names as Job.rel) or open in
+        """1.55.1 (audit E-1): the files the app uses now – queued for YouTube (index names as Job.rel) or open in
         an editor (absolute paths). Pruning (room, farming days) skips their recordings; set whole on this thread."""
         self.cmds.put(("protect", frozenset(str(n) for n in names or () if n)))
 
@@ -1374,7 +1374,7 @@ class Recorder(threading.Thread):
         if not on:
             try:
                 self._flush()                           # DBD closed: the round is over
-            except ObsError as e:                       # 1.56: kept and retried (_finish) – our buffer still stops
+            except ObsError as e:                       # 1.55.1: kept and retried (_finish) – our buffer still stops
                 self._say(str(e), False, err=True)
             if self._buffer_ours:
                 self._buffer_ours = False
@@ -1541,7 +1541,7 @@ class Recorder(threading.Thread):
 
     def _begin(self, meta, pre_roll=True):
         a = self.active
-        if a is not None and a.get("manual") and self._pending is None:     # 1.56: not one whose stop failed
+        if a is not None and a.get("manual") and self._pending is None:     # 1.55.1: not one whose stop failed
             # 1.15: a recording started by hand is on air – the round goes into it (nothing restarts); the first
             # banner names it, later rounds only add their marks
             if not meta.get("early") and not a.get("map_id"):
@@ -1637,7 +1637,7 @@ class Recorder(threading.Thread):
             self.paused = False
             return
         rec.update({k: v for k, v in meta.items() if v})
-        # 1.56 (audit R-1, reproduced): the round was forgotten before StopRecord – OBS busy or restarting at that
+        # 1.55.1 (audit R-1, reproduced): the round was forgotten before StopRecord – OBS busy or restarting at that
         # moment, and OBS recorded on, the file was never filed and every later round found "OBS nimmt schon auf".
         # Now it stays ours until OBS confirms the stop: a failure is retried (``_pending`` → _due, or _flush at the
         # next banner/quit); a refused stop of an output that no longer runs (stopped in OBS, OBS restarted) ends it
@@ -1674,7 +1674,7 @@ class Recorder(threading.Thread):
         who = rec.get("killer") or {"killer": "Killer", "survivor": "Survivor"}.get(rec.get("role") or "", "")
         name = self._unique(dest, file_name(rec.get("t") or time.time(), rec.get("label", ""), who, ext))
         target = os.path.join(dest, name)
-        tries = QUIT_RENAME_TRIES if self._quitting else RENAME_TRIES      # 1.56 (audit R-2)
+        tries = QUIT_RENAME_TRIES if self._quitting else RENAME_TRIES      # 1.55.1 (audit R-2)
         final = self._move(path, target, tries)
         pre = obs_file(rec.get("pre"), inside=self.folder(), since=rec.get("since"))
         pre_name = ""
@@ -1696,7 +1696,7 @@ class Recorder(threading.Thread):
         if rec.get("sources") is not None:             # 1.8.23: the sources OBS had (the clip editor tells "none")
             extra["sources"] = list(rec["sources"])
         prefix = sub + "/" if sub else ""              # index names: "Farming/…" with "/" on every system
-        # 1.56 (audit R-2, reproduced): the entry was written only after the join (ffmpeg, minutes for a big file)
+        # 1.55.1 (audit R-2, reproduced): the entry was written only after the join (ffmpeg, minutes for a big file)
         # – quitting mid-round waits app.QUIT_RECORDER_S for this thread, and a thread ended before the write left
         # both files outside the index for good (never listed, never pruned). The entry comes first now, with the
         # round and its pre-roll as two files; the join updates it. While quitting, nothing is joined.
@@ -1717,7 +1717,7 @@ class Recorder(threading.Thread):
                 entry.pre_s = shift = pre_s
             else:
                 extra["merge_failed"] = True
-            entry.pre = prefix + pre_name if pre_name else ""      # 1.56: a pre-roll left after a join stays ours
+            entry.pre = prefix + pre_name if pre_name else ""      # 1.55.1: a pre-roll left after a join stays ours
         inputs_name = self._write_inputs(dest, final, rec.get("inputs"), shift)
         entry.inputs = prefix + inputs_name if inputs_name else ""
         limit = int(self.cfg.limit_gb) * 1024 ** 3
@@ -1765,7 +1765,7 @@ class Recorder(threading.Thread):
         tmp = os.path.splitext(round_path)[0] + " (zusammen)" + os.path.splitext(round_path)[1]
         if not merge_files([pre_path, round_path], tmp, ffmpeg):
             return round_path, os.path.basename(pre_path), 0.0, False
-        # 1.56 (audit R-3, reproduced): the pre-roll was removed before the joined file took the round's name – a
+        # 1.55.1 (audit R-3, reproduced): the pre-roll was removed before the joined file took the round's name – a
         # failed replace (the round held by a virus scanner or a player) lost it. Now the replace comes first (with
         # _move's retry); only then the pre-roll goes. If it cannot, it stays named in the entry (pruned with it).
         for i in range(RENAME_TRIES):

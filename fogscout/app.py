@@ -144,7 +144,7 @@ class App(ServerTab, StatsTab, ExportDialog, RecordingsTab, DiscordPresence, Spo
         self._last_place = None
         self._log_alert = False          # an error in the log the user has not looked at yet
         self._worker_status = ""
-        self._worker_problem = False     # 1.56: the worker's flag – the status text is translated
+        self._worker_problem = False     # 1.55.3: the worker's flag – the status text is translated
         self._layout_unsure = False
         self._unsure = None              # doubtful detection: {"label", "t", "shown", "fit", "name"}
         self._rejected = None            # (map_id, time) thrown away with "Falsch erkannt"
@@ -1304,7 +1304,7 @@ class App(ServerTab, StatsTab, ExportDialog, RecordingsTab, DiscordPresence, Spo
 
     def _set_status(self, text, problem=False):
         """Technical status from the worker: goes to the log; the status line shows a plain summary.
-        ``problem`` (1.56) = the worker's flag that it needs action (red status, tray dot)."""
+        ``problem`` (1.55.3) = the worker's flag that it needs action (red status, tray dot)."""
         self._worker_status = text
         self._worker_problem = bool(problem)
         self._log(text, "System")
@@ -1748,7 +1748,7 @@ class App(ServerTab, StatsTab, ExportDialog, RecordingsTab, DiscordPresence, Spo
         var = ui.StringVar(value=labels[[m.id for m in entries].index(guess)] if guess in
                            [m.id for m in entries] else "")
         cb = ui.Combobox(body, textvariable=var, values=labels, state="readonly", width=44, height=18)
-        cb._dbdms_name = _("Map")                          # 1.56: its accessible name (no label)
+        cb._dbdms_name = _("Map")                          # 1.55.7: its accessible name (no label)
         cb.pack(fill="x")
         msg = ui.StringVar(value="")
         ui.Label(body, textvariable=msg, style="Dim.TLabel", wraplength=380).pack(anchor="w", pady=(6, 0))

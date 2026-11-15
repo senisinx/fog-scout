@@ -89,7 +89,7 @@ def _t(root, text, **kw) -> str:
     return out.format(**kw) if kw else out
 
 
-# 1.38.21 (audit SEC-2): as fogscout/launch.py – this script runs as administrator from start.bat. 1.56 (audit
+# 1.38.21 (audit SEC-2): as fogscout/launch.py – this script runs as administrator from start.bat. 1.55.4 (audit
 # SEC-1): also OPENSSL_* (OPENSSL_CONF loads a provider DLL into the process) and SSLKEYLOGFILE (TLS keys to a file).
 UNSAFE_PREFIXES = ("SSL_CERT_", "PYTHON", "GIT_", "OPENSSL_")
 UNSAFE_NAMES = ("REQUESTS_CA_BUNDLE", "CURL_CA_BUNDLE", "SSLKEYLOGFILE")
@@ -103,7 +103,7 @@ def _clean_environment(environ) -> dict:
 
 
 def _harden_own_environment() -> list:
-    """1.56 (audit SEC-1): the same variables out of this process itself, first thing in ``main`` – ``-E`` only
+    """1.55.4 (audit SEC-1): the same variables out of this process itself, first thing in ``main`` – ``-E`` only
     covers PYTHON*, but OpenSSL reads OPENSSL_CONF when hashlib is first imported (``_digest``; it is imported
     there, not at the top, for this reason). Returns the names dropped."""
     gone = sorted(k for k in os.environ if k not in _clean_environment(os.environ))
@@ -187,7 +187,7 @@ def _git(root, *args, timeout=15):
 
 
 def _no_hooks() -> str:
-    """1.56 (audit SEC-3): where git looks for hooks – a place that can never hold one. Before it was
+    """1.55.4 (audit SEC-3): where git looks for hooks – a place that can never hold one. Before it was
     <root>/.venv/no-hooks, inside the folder the user writes to: a hook planted there ran as administrator. Linux:
     os.devnull (a device, never a folder). Windows: a folder below System32 that does not exist and only
     administrators could create ("nul" is no safe choice there: git would take it as a folder relative to the
@@ -328,7 +328,7 @@ def update(root: str, branch: str = "main"):
 
 # ------------------------------------------------------------------ packages
 def _digest(path) -> str | None:
-    import hashlib                                  # 1.56: not at the top – see _harden_own_environment
+    import hashlib                                  # 1.55.4: not at the top – see _harden_own_environment
     try:
         with open(path, "rb") as fh:
             return hashlib.sha256(fh.read()).hexdigest()
@@ -339,7 +339,7 @@ def _digest(path) -> str | None:
 def sync_packages(root: str, venv: str, run=None) -> list:
     """pip install for every requirements file that changed since it was last installed.
     Returns messages. ``run(args) -> exit code`` can be replaced in tests."""
-    # 1.56 (audit SEC-2): pip runs as administrator – without the user's PYTHON*/OPENSSL_*/SSLKEYLOGFILE (``-I``
+    # 1.55.4 (audit SEC-2): pip runs as administrator – without the user's PYTHON*/OPENSSL_*/SSLKEYLOGFILE (``-I``
     # ignores PYTHON* and the current folder; a sitecustomize on PYTHONPATH ran as administrator before)
     run = run or (lambda args: subprocess.run(args, env=_clean_environment(os.environ)).returncode)
     msgs = []

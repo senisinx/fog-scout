@@ -39,7 +39,7 @@ def _icon_button(glyph: str, tip: str) -> QToolButton:
     b.setAutoRaise(True)
     b.setCursor(Qt.PointingHandCursor)
     b.setFocusPolicy(Qt.TabFocus)
-    on_zoom(b, lambda _z: b.setIconSize(QSize(qt_theme.icon_px(qt_theme.ICON["m"]),     # 1.56: with the text
+    on_zoom(b, lambda _z: b.setIconSize(QSize(qt_theme.icon_px(qt_theme.ICON["m"]),     # 1.55.7: with the text
                                               qt_theme.icon_px(qt_theme.ICON["m"]))))   # zoom
     b._glyph = glyph
     _set_tip(b, tip)
@@ -47,7 +47,7 @@ def _icon_button(glyph: str, tip: str) -> QToolButton:
 
 
 def _set_tip(b, tip: str, owner: str = ""):
-    """An icon-only button's tooltip – 1.56 (a11y audit): also its accessible name (a screen reader read nothing),
+    """An icon-only button's tooltip – 1.55.7 (a11y audit): also its accessible name (a screen reader read nothing),
     with the element it belongs to in front ("Karte: Ausblenden")."""
     name = f"{owner}: {tip}" if owner else tip
     if b.toolTip() != tip:
@@ -57,7 +57,7 @@ def _set_tip(b, tip: str, owner: str = ""):
 
 
 class _ElideLabel(QLabel):
-    """1.56 (audit V-1, 150 % in a small window): a one-line text of the element list ends in "…" when its room is
+    """1.55.7 (audit V-1, 150 % in a small window): a one-line text of the element list ends in "…" when its room is
     narrower – it was cut in the middle of a word. The whole text stays ``text()`` (and the row's accessible name)."""
 
     def minimumSizeHint(self):
@@ -103,7 +103,7 @@ class _Row(QFrame):
         self.title.setObjectName("ovrowname")
         self.info = _ElideLabel(_(WHAT.get(name, "")) if name != "general" else _("Stil, Abstand, Grenzen, Discord"))
         self.info.setObjectName("ovrowinfo")
-        self.setAccessibleName(self.title.text())           # 1.56: the row is a focus stop of its own
+        self.setAccessibleName(self.title.text())           # 1.55.7: the row is a focus stop of its own
         self.setAccessibleDescription(self.info.text())
         for lbl in (self.title, self.info):
             lbl.setAttribute(Qt.WA_TransparentForMouseEvents)
@@ -205,7 +205,7 @@ class ElementRail(QWidget):
             self.grid.removeWidget(row)
         names = list(self._order) + ["general"]
         cols = self.COMPACT_COLS if self._compact else 1
-        for c in range(self.COMPACT_COLS):        # 1.56: chips share the width equally (a long name ends in "…",
+        for c in range(self.COMPACT_COLS):        # 1.55.7: chips share the width equally (a long name ends in "…",
             self.grid.setColumnStretch(c, 1 if self._compact else 0)      # it does not squeeze a short one)
         for i, name in enumerate(n for n in names if n in self._rows):
             row = self._rows[name]
@@ -267,7 +267,7 @@ class AnchorGrid(QWidget):
             b.setFixedSize(CELL)
             b.setCursor(Qt.PointingHandCursor)
             b.setFocusPolicy(Qt.TabFocus)
-            _set_tip(b, _("Nach {where} legen (mit Rand)", where=_(word)))   # 1.56: also its accessible name
+            _set_tip(b, _("Nach {where} legen (mit Rand)", where=_(word)))   # 1.55.7: also its accessible name
             b.clicked.connect(lambda _c=False, c=c, r=r: self._click(("cell", c, r)))
             g.addWidget(b, r, c)
             self.cells[(c, r)] = b
@@ -345,12 +345,12 @@ class OverlayEditor(QWidget):
         for c in toolbar:
             if c[0] != "stretch":
                 page._add(c, row)
-        from .qt_pages import _link_names                 # 1.56: the preset choice is named by its label
+        from .qt_pages import _link_names                 # 1.55.7: the preset choice is named by its label
         _link_names(page.controls, [c[1] for c in toolbar if c[0] != "stretch"])
         bl.addLayout(row)
         preset = page.controls.get("ov.preset")
         if preset is not None:                          # the presets' names are long: the bar stays one line
-            on_zoom(preset[1], lambda z, w=preset[1]: w.setMaximumWidth(round(PRESET_W * z)))   # 1.56: and on a change
+            on_zoom(preset[1], lambda z, w=preset[1]: w.setMaximumWidth(round(PRESET_W * z)))   # 1.55.7: and on a change
         outer.addWidget(self.bar)
         # ---- body: list | canvas + status | inspector (a grid: arrange() puts them per width)
         self.body = QGridLayout()
@@ -506,7 +506,7 @@ class OverlayEditor(QWidget):
             self._narrow_canvas()
 
     def _rezoomed(self):
-        """1.56: the text zoom changed while the window runs – the list's and inspector's widths follow it (arranged
+        """1.55.7: the text zoom changed while the window runs – the list's and inspector's widths follow it (arranged
         again right after, never inside the theme switch's own layout pass)."""
         if self._wide is not None and not self._arranging:
             self._wide = None

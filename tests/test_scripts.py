@@ -307,7 +307,7 @@ def test_the_worker_builds_no_model_while_dbd_is_not_running(tmp_path, monkeypat
 
 
 def test_no_model_loads_before_dbd_and_none_with_the_automatic_detection_off(tmp_path, monkeypatch):
-    """1.56 (audit D-4, D-5): the models of other ticked scripts (here Cyrillic) were loaded when the worker started
+    """1.55.6 (audit D-4, D-5): the models of other ticked scripts (here Cyrillic) were loaded when the worker started
     – BannerReader asked the pool in __init__ (+94 MB with ru/ja/ko, also without DBD). With "Automatische
     Erkennung" off and DBD running, the loading-screen look still took the whole picture once a second and the main
     model was built. Now: nothing before DBD; with DBD but detection off neither a model nor a whole picture; on

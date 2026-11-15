@@ -292,7 +292,7 @@ def test_hud_rows_can_be_switched_off_one_by_one():
 
 
 def test_a_window_fading_out_stays_blacked_out_for_the_worker_until_it_is_hidden(monkeypatch):
-    """1.56 (audit B6): on a hide reason the App clears worker.*_rect at once, but the window stays on the screen
+    """1.55.6 (audit B6): on a hide reason the App clears worker.*_rect at once, but the window stays on the screen
     (more and more transparent) for Fader.OUT_S – the worker read the half-visible card. Its last rectangle stays
     in worker.fade_rects until _fade_tick hides the window (or it comes back / fading is switched off)."""
     import numpy as np
@@ -385,7 +385,7 @@ def test_every_window_fades_in_and_out_through_one_helper(monkeypatch):
 
 
 def test_the_cards_accent_is_kept_until_the_theme_changes(monkeypatch):
-    """1.56 (audit P1): _skin_accent built the whole palette several times every overlay tick – now kept by
+    """1.55.6 (audit P1): _skin_accent built the whole palette several times every overlay tick – now kept by
     qt_theme.look_key, and a new theme (or own colour) gives the new accent at once."""
     from fogscout import qt_theme
     from fogscout.app_sysinfo import SysInfo

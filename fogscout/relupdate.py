@@ -255,7 +255,7 @@ def download(rel: Release, data_dir: str, opener=None, progress=None, retried=No
 
 
 def _linked(folder: str) -> bool:
-    """1.56 (audit SEC-5): ``folder`` (``cache/update`` or the program's ``update``) or its parent is a symlink or a
+    """1.55.4 (audit SEC-5): ``folder`` (``cache/update`` or the program's ``update``) or its parent is a symlink or a
     junction – the elevated program would write and delete wherever it points (the data folder is the user's)."""
     return fsops.is_link(folder) or fsops.is_link(os.path.dirname(os.path.abspath(folder)))
 
@@ -265,7 +265,7 @@ def clean_update_folder(folder: str) -> int:
     (this is the new version) or not wanted; only our own names go (setups and .part leftovers). Returns how many.
     1.34: ``folder`` is the folder itself – the download folder in data_dir and the program folder's "update"."""
     gone = 0
-    if _linked(folder):                             # 1.56 (audit SEC-5): never delete through a link
+    if _linked(folder):                             # 1.55.4 (audit SEC-5): never delete through a link
         return 0
     try:
         names = os.listdir(folder)

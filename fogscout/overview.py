@@ -166,7 +166,7 @@ def switch_state(app, key: str, on: bool, is_win: bool = True) -> tuple[str, str
     if not on:
         return "off", _("aus")
     if key == "detect":
-        if getattr(app, "_worker_problem", False):        # 1.56: the worker's flag, not the translated words
+        if getattr(app, "_worker_problem", False):        # 1.55.3: the worker's flag, not the translated words
             return "err", _("Fehler – Details im Log")
         if getattr(app, "game", None) is None and not getattr(app, "simulate", False):
             return "off", _("wartet auf DBD")
@@ -370,7 +370,7 @@ def week(app, now: float) -> tuple[list, str]:
     with last week's value and the change below. ([], "") while neither week has a normal round."""
     j = app._joined()
     start = history.period_start("week", now)
-    # 1.56 (review F10): the Monday before by the calendar – a week with a clock change has 167 or 169 hours
+    # 1.55.5 (review F10): the Monday before by the calendar – a week with a clock change has 167 or 169 hours
     this, last = _week_part(j, start, now + 1), _week_part(j, history.period_start("week", start - 1), start)
     if not this["count"] and not last["count"]:
         return [], ""

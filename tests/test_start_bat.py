@@ -43,7 +43,7 @@ PYTHON_RUN = re.compile(r'(?:python(?:w)?\.exe"|(?<![\w%])py -%%V|(?<![\w\\%"])p
 
 
 def test_every_python_the_starters_run_ignores_python_environment_variables():
-    """1.56 (audit SEC-2): start.bat and verknuepfung_erstellen.bat run as administrator – not only the program and
+    """1.55.4 (audit SEC-2): start.bat and verknuepfung_erstellen.bat run as administrator – not only the program and
     the updater, every Python they start ignores PYTHONPATH/PYTHONHOME of the user: the launcher probe, the venv
     creation and the first pip installs (``-I``: pip needs no current folder), the task setup (``-E``: ``-m
     fogscout.autostart`` needs the program folder on sys.path)."""

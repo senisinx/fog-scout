@@ -210,7 +210,7 @@ class SignsDelegate(QStyledItemDelegate):
         widget.style().drawControl(QStyle.CE_ItemViewItem, o, p, widget)
         c = qt_theme.colours(qt_theme.current_dark())
         colour = c["on_select"] if o.state & QStyle.State_Selected else c["fg"]
-        size = qt_theme.icon_px(qt_theme.ICON["s"])       # 1.56: with the text zoom
+        size = qt_theme.icon_px(qt_theme.ICON["s"])       # 1.55.7: with the text zoom
         ratio = widget.devicePixelRatioF() if widget is not None else 1.0
         x, mid = o.rect.x() + 6, o.rect.center().y()
         p.save()
@@ -330,7 +330,7 @@ class Table(QTreeWidget):
 
     def _size_columns(self):
         """Each column as wide as its contents and heading (at least the model's width – room for "…"); the name
-        column takes the rest (not always the first: "Wann" stays readable). 1.56 (audit V-3: at 150 % the server
+        column takes the rest (not always the first: "Wann" stays readable). 1.55.7 (audit V-3: at 150 % the server
         regions were cut although the hosts column had room): the tick boxes counted in, measured in the font the
         table shows (polished first) and again when that font changes (text zoom while the window runs)."""
         self.ensurePolished()
