@@ -594,6 +594,13 @@ TIPS = {
         "Neue Clips (F8, Editor) gehen von selbst auf YouTube. Aus: nichts Neues wird eingereiht – was schon in der "
         "Warteschlange steht, lädt fertig; Runden lädst du weiter per Rechtsklick hoch. Einstellungen → "
         "Verbindungen → YouTube.",
+    # Aufnahmen nachtragen, Marken-Clips, Platz-Prognose, GitHub-Limit
+    'Aufnahmen nachtragen …':
+        'Sucht im Aufnahmeordner (und in „Farming“) nach Videos der letzten 30 Tage, die in keiner Aufnahme stehen – z. B. OBS-eigene Namen oder Reste nach einem Absturz – und übernimmt sie nach einer Rückfrage als Aufnahmen ohne Map. Nichts wird umbenannt oder gelöscht.',
+    'Marken-Clips abbrechen':
+        'Hält „Marken als einzelne Clips speichern“ nach dem Clip an, der gerade geschnitten wird; fertige Clips bleiben.',
+    'Marken als einzelne Clips speichern':
+        'Schneidet zu jeder F8-Marke der Runde einen Clip (Länge wie der Sofort-Clip, bis zur Marke, ohne neu zu kodieren) in den Ordner „Clips“. Marken, deren Clip schon da ist, werden übersprungen.',
 }
 _PREFIX = [("Hintergrund entfernen", "Macht Dunkelblau (#282a42) und Graulila (#535781) der "
             "Community-Karten transparent, schneidet den gleichfarbigen Rand ab und bringt das Bild auf "

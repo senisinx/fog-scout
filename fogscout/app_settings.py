@@ -1061,6 +1061,8 @@ class SettingsTab:
             self._rec_card_state(d)
         elif kind == "obs_quality":             # 1.29: "In OBS einstellen" / "Zurücksetzen"
             self._rec_quality_event(d)
+        elif kind == "unindexed":               # "Aufnahmen nachtragen …": what the folder holds beside the index
+            self._rec_unindexed(d)
 
     def record_toggle(self):
         """1.15: hotkey / card button – start an OBS recording by hand, or stop the one on air (a round's too)."""

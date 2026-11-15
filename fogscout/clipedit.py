@@ -543,6 +543,47 @@ def unique_path(folder: str, name: str, ext: str) -> str:
     return out
 
 
+MARK_MIN_S = 1.0                     # mark_spans: a stretch shorter than this (a mark at second 0) is no clip
+
+
+def mark_spans(marks, clip_s: float, duration: float = 0.0) -> list:
+    """(pure) "Marken als einzelne Clips speichern": the stretch of each F8 mark (seconds of the file) as
+    (start, end) – the ``clip_s`` seconds up to the mark, as the F8 instant clip keeps the seconds before the key
+    press; inside the file (``duration`` > 0), each mark once, in order, none shorter than MARK_MIN_S."""
+    out, seen = [], set()
+    for m in sorted(float(x) for x in marks or () if isinstance(x, (int, float)) and not isinstance(x, bool)):
+        end = min(m, duration) if duration and duration > 0 else m
+        start = max(0.0, end - max(0.0, float(clip_s)))
+        key = (round(start, 1), round(end, 1))
+        if end - start < MARK_MIN_S or key in seen:
+            continue
+        seen.add(key)
+        out.append((start, end))
+    return out
+
+
+def cut_marks(path: str, spans, cdir: str, ffmpeg: str | None = None, run=None, cancel=None,
+              progress=None) -> list:
+    """One copy-mode ``cut`` per span of ``path`` into ``cdir``, named ``clip_name`` + ".mp4" – a span whose clip
+    is there already (or being written) is skipped, so a second run makes only what is missing. ``cancel`` (a
+    threading.Event) stops before the next cut; ``progress(done, total)`` after each span. Returns
+    [(out, start, end, state, error)] with state "made" / "there" / "failed" (spans not reached are left out)."""
+    done = []
+    spans = list(spans)
+    for i, (start, end) in enumerate(spans):
+        if cancel is not None and cancel.is_set():
+            break
+        out = os.path.join(cdir, clip_name(path, start, end) + ".mp4")
+        if os.path.exists(out) or os.path.exists(out + PART_EXT):
+            done.append((out, start, end, "there", ""))
+        else:
+            ok, err = cut(path, start, end, out, "copy", ffmpeg=ffmpeg, run=run)
+            done.append((out, start, end, "made" if ok else "failed", err))
+        if progress is not None:
+            progress(i + 1, len(spans))
+    return done
+
+
 def copyable(path: str) -> bool:
     """False for a source whose picture cannot be stream-copied into a clip (an animated GIF): "copy" re-encodes it
     like "exact" – the mp4 muxer has no tag for the gif codec, every save failed."""

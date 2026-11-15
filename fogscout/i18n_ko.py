@@ -6019,4 +6019,47 @@ T = {
         '전적 아래에 이 맵을 마지막으로 플레이한 날짜를 표시합니다. 해당 라운드가 통계 페이지 데이터와 연결되어 있으면 결과(킬 수 또는 탈출)도, 아니면 날짜만 표시합니다.',
     'Eine Zeile „Serie“ in „Heute“: wie viele 4K (Killer) bzw. Escapes (Survivor) in Folge in der laufenden Sitzung – laut Stats-Seite, Farming zählt nicht.':
         "'오늘'에 '연속' 행: 현재 세션에서 연속된 4K(킬러) 또는 탈출(생존자) 횟수 – 통계 페이지 기준, 파밍은 포함되지 않습니다.",
+    # Aufnahmen nachtragen, Marken-Clips, Platz-Prognose, GitHub-Limit
+    'GitHub-Limit erreicht – erneut ab {time}':
+        'GitHub 한도에 도달했습니다 – {time}부터 다시 시도하세요',
+    'Platz für ca. {n} Runden':
+        '약 {n}라운드 분량의 공간',
+    'Platz für ca. 1 Runde':
+        '약 1라운드 분량의 공간',
+    'Aufnahmen nachtragen …':
+        '누락된 녹화 추가 …',
+    'Aufnahmen nachtragen':
+        '누락된 녹화 추가',
+    'Marken-Clips abbrechen':
+        '마크 클립 중지',
+    'Marken als einzelne Clips speichern':
+        '마크를 개별 클립으로 저장',
+    'Während einer Aufnahme wird nichts nachgetragen.':
+        '녹화 중에는 아무것도 추가하지 않습니다.',
+    'Während einer Aufnahme wird nichts nachgetragen – OBS schreibt gerade in den Aufnahmeordner.':
+        '녹화 중에는 아무것도 추가하지 않습니다 – OBS가 녹화 폴더에 쓰는 중입니다.',
+    'Keine Videos ohne Eintrag gefunden (gesucht: Aufnahmeordner und „Farming“, geschrieben in den letzten {days} Tagen).':
+        "항목이 없는 동영상을 찾지 못했습니다(검색: 녹화 폴더와 'Farming', 최근 {days}일 이내에 기록됨).",
+    '{n} Videos ({size}) im Aufnahmeordner stehen in keiner Aufnahme:\n{list}\n\nAls Aufnahmen ohne Map in die Liste übernehmen? Die Dateien werden nicht umbenannt. Danach zählen sie wie eigene Aufnahmen: Fog Scout räumt sie bei Platzmangel (und im Ordner „Farming“ nach den Farming-Tagen) auf, ausser du behältst sie.':
+        "녹화 폴더에 어느 녹화에도 속하지 않는 동영상 {n}개({size})가 있습니다:\n{list}\n\n맵 없는 녹화로 목록에 추가할까요? 파일 이름은 바뀌지 않습니다. 이후에는 자체 녹화처럼 취급되어, 공간이 부족하면(및 'Farming' 폴더에서는 파밍 일수가 지나면) Fog Scout가 정리합니다. 보관하면 예외입니다.",
+    'Nachtragen':
+        '추가',
+    'Marken-Clips: {done} von {total} …':
+        '마크 클립: {total}개 중 {done}개 …',
+    'Marken-Clips werden abgebrochen …':
+        '마크 클립을 중지하는 중 …',
+    'Marken-Clips fehlgeschlagen: {error}':
+        '마크 클립 실패: {error}',
+    'Marken-Clips: {made} gespeichert, {there} schon vorhanden, {failed} fehlgeschlagen.':
+        '마크 클립: {made}개 저장, {there}개 이미 있음, {failed}개 실패.',
+    'Aufnahmen nachgetragen: {n}':
+        '추가된 녹화: {n}',
+    'Nichts nachgetragen – die Dateien sind nicht mehr da oder schon in der Liste.':
+        '추가된 것이 없습니다 – 파일이 없어졌거나 이미 목록에 있습니다.',
+    'Sucht im Aufnahmeordner (und in „Farming“) nach Videos der letzten 30 Tage, die in keiner Aufnahme stehen – z. B. OBS-eigene Namen oder Reste nach einem Absturz – und übernimmt sie nach einer Rückfrage als Aufnahmen ohne Map. Nichts wird umbenannt oder gelöscht.':
+        "녹화 폴더(및 'Farming')에서 어느 녹화에도 속하지 않는 최근 30일의 동영상(OBS 자체 이름이나 충돌 후 남은 파일 등)을 찾아, 확인 후 맵 없는 녹화로 추가합니다. 이름을 바꾸거나 삭제하지 않습니다.",
+    'Hält „Marken als einzelne Clips speichern“ nach dem Clip an, der gerade geschnitten wird; fertige Clips bleiben.':
+        "지금 자르는 클립 다음에 '마크를 개별 클립으로 저장'을 멈춥니다. 완성된 클립은 남습니다.",
+    'Schneidet zu jeder F8-Marke der Runde einen Clip (Länge wie der Sofort-Clip, bis zur Marke, ohne neu zu kodieren) in den Ordner „Clips“. Marken, deren Clip schon da ist, werden übersprungen.':
+        "라운드의 F8 마크마다 클립 하나를(인스턴트 클립과 같은 길이, 마크까지, 재인코딩 없이) 'Clips' 폴더에 잘라 냅니다. 클립이 이미 있는 마크는 건너뜁니다.",
 }

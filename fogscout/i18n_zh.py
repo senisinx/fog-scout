@@ -6019,4 +6019,47 @@ T = {
         '在战绩下方显示你上次在此地图游玩的时间——若该局已关联统计页面的数据，则附带结果（击杀数或逃脱），否则只显示日期。',
     'Eine Zeile „Serie“ in „Heute“: wie viele 4K (Killer) bzw. Escapes (Survivor) in Folge in der laufenden Sitzung – laut Stats-Seite, Farming zählt nicht.':
         '在“今天”中添加一行“连胜”：当前游戏时段中连续的 4K（杀手）或逃脱（幸存者）次数——依据统计页面；刷分不计入。',
+    # Aufnahmen nachtragen, Marken-Clips, Platz-Prognose, GitHub-Limit
+    'GitHub-Limit erreicht – erneut ab {time}':
+        '已达到 GitHub 请求上限 – 请于 {time} 后重试',
+    'Platz für ca. {n} Runden':
+        '约可再录 {n} 局',
+    'Platz für ca. 1 Runde':
+        '约可再录 1 局',
+    'Aufnahmen nachtragen …':
+        '补录遗漏的录像 …',
+    'Aufnahmen nachtragen':
+        '补录遗漏的录像',
+    'Marken-Clips abbrechen':
+        '停止生成标记片段',
+    'Marken als einzelne Clips speichern':
+        '将标记保存为单独片段',
+    'Während einer Aufnahme wird nichts nachgetragen.':
+        '录制进行中，不会补录任何内容。',
+    'Während einer Aufnahme wird nichts nachgetragen – OBS schreibt gerade in den Aufnahmeordner.':
+        '录制进行中，不会补录任何内容 – OBS 正在向录像文件夹写入。',
+    'Keine Videos ohne Eintrag gefunden (gesucht: Aufnahmeordner und „Farming“, geschrieben in den letzten {days} Tagen).':
+        '未发现没有条目的视频（搜索范围：录像文件夹和“Farming”，最近 {days} 天内写入）。',
+    '{n} Videos ({size}) im Aufnahmeordner stehen in keiner Aufnahme:\n{list}\n\nAls Aufnahmen ohne Map in die Liste übernehmen? Die Dateien werden nicht umbenannt. Danach zählen sie wie eigene Aufnahmen: Fog Scout räumt sie bei Platzmangel (und im Ordner „Farming“ nach den Farming-Tagen) auf, ausser du behältst sie.':
+        '录像文件夹中有 {n} 个视频（{size}）不属于任何录像：\n{list}\n\n要将它们作为无地图的录像加入列表吗？文件不会被重命名。之后它们与自己的录像一样处理：空间不足时（以及“Farming”文件夹中超过刷分天数后）Fog Scout 会清理它们，除非你选择保留。',
+    'Nachtragen':
+        '补录',
+    'Marken-Clips: {done} von {total} …':
+        '标记片段：{done} / {total} …',
+    'Marken-Clips werden abgebrochen …':
+        '正在停止生成标记片段 …',
+    'Marken-Clips fehlgeschlagen: {error}':
+        '标记片段生成失败：{error}',
+    'Marken-Clips: {made} gespeichert, {there} schon vorhanden, {failed} fehlgeschlagen.':
+        '标记片段：已保存 {made} 个，已存在 {there} 个，失败 {failed} 个。',
+    'Aufnahmen nachgetragen: {n}':
+        '已补录录像：{n}',
+    'Nichts nachgetragen – die Dateien sind nicht mehr da oder schon in der Liste.':
+        '未补录任何内容 – 文件已不存在或已在列表中。',
+    'Sucht im Aufnahmeordner (und in „Farming“) nach Videos der letzten 30 Tage, die in keiner Aufnahme stehen – z. B. OBS-eigene Namen oder Reste nach einem Absturz – und übernimmt sie nach einer Rückfrage als Aufnahmen ohne Map. Nichts wird umbenannt oder gelöscht.':
+        '在录像文件夹（及“Farming”）中查找最近 30 天内不属于任何录像的视频 – 例如 OBS 自己命名的文件或崩溃后的残留 – 确认后将其作为无地图的录像加入。不会重命名或删除任何文件。',
+    'Hält „Marken als einzelne Clips speichern“ nach dem Clip an, der gerade geschnitten wird; fertige Clips bleiben.':
+        '在当前片段剪完后停止“将标记保存为单独片段”；已完成的片段会保留。',
+    'Schneidet zu jeder F8-Marke der Runde einen Clip (Länge wie der Sofort-Clip, bis zur Marke, ohne neu zu kodieren) in den Ordner „Clips“. Marken, deren Clip schon da ist, werden übersprungen.':
+        '为本局的每个 F8 标记剪出一个片段（时长与即时片段相同，截至标记处，不重新编码），保存到“Clips”文件夹。已有片段的标记会被跳过。',
 }

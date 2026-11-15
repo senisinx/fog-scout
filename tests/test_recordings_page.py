@@ -982,3 +982,106 @@ def test_the_recorder_learns_the_files_in_use_only_when_they_change():
     app._yt_queued, app._clip_windows = set(), []
     RecordingsTab._rec_protect(app)
     assert sent[-1] == frozenset() and len(sent) == 2
+
+
+def test_videos_beside_the_index_are_offered_and_taken_in_only_after_the_confirmation(app_root, tmp_path, monkeypatch):
+    """„Aufnahmen nachtragen …“: the recorder thread lists (nothing read on the window's thread), the page asks with
+    count and size, and only OK hands the names to the recorder – the one writer of the index."""
+    app = _clips_app(app_root, tmp_path, monkeypatch)
+    asked, adopted = [], []
+    monkeypatch.setattr(app.recorder, "find_unindexed", lambda: asked.append(True))
+    monkeypatch.setattr(app.recorder, "adopt", adopted.append)
+    folder = app.recorder.folder()
+    files = [("2026-11-14 21-40-05.mkv", 3 * 1024 ** 3, 1.0), ("Farming/x (zusammen).mkv", 1024 ** 3, 2.0)]
+    try:
+        app._rec_render(force=True)
+        assert app.rec_adopt_btn.winfo_manager() and app.rec_adopt_btn.cget("text") == "Aufnahmen nachtragen …"
+        app.rec_adopt_btn.invoke()
+        assert asked == [True] and adopted == []
+        app._rec_event("unindexed", {"files": files, "folder": folder, "busy": False})
+        title, text, retry, ok_text = app._qt_question[:4]
+        assert title == "Aufnahmen nachtragen" and ok_text == "Nachtragen" and retry is not None
+        assert text.startswith("2 Videos (4.0 GB)") and "• Farming/x (zusammen).mkv" in text
+        assert "nicht umbenannt" in text and adopted == []                     # nothing before OK
+        app._confirmed = True
+        retry()
+        assert adopted == [["2026-11-14 21-40-05.mkv", "Farming/x (zusammen).mkv"]]
+        app._rec_event("unindexed", {"files": [], "folder": folder, "busy": False})
+        assert app._qt_question[2] is None and "Keine Videos ohne Eintrag" in app._qt_question[1]
+        app._rec_event("unindexed", {"files": [], "folder": folder, "busy": True})
+        assert "Während einer Aufnahme" in app._qt_question[1]
+        app._rec_event("changed", {"what": "adopt", "n": 2, "files": [f for f, _s, _t in files]})
+        assert app._rec_dirty and len(adopted) == 1
+    finally:
+        app.quit()
+
+
+def test_the_summary_says_how_many_rounds_still_fit(app_root, tmp_path, monkeypatch):
+    from fogscout import obsrec
+    app = _clips_app(app_root, tmp_path, monkeypatch)
+    folder = app.recorder.folder()
+    R = obsrec.Recording
+    recs = [R(t=1000.0 * i, end=1000.0 * i + 500, file=f"{i}.mkv", size=1_000_000_000) for i in range(1, 4)]
+    try:
+        obsrec.save_index(folder, recs[:2])
+        app.recorder.space = obsrec.Space(free=obsrec.RESERVE + 12_500_000_000, total=10 ** 13, folder=folder)
+        app._rec_render(force=True)
+        assert "frei" in app.rec_summary_var.get() and "Platz für" not in app.rec_summary_var.get()   # 2: too few
+        obsrec.save_index(folder, recs)
+        app._rec_render(force=True)
+        assert app.rec_summary_var.get().endswith("Platz für ca. 12 Runden")
+    finally:
+        app.quit()
+
+
+def test_the_marks_of_a_round_become_single_clips_in_a_thread(app_root, tmp_path, monkeypatch):
+    """Right click on a round with F8 marks → one copy-mode clip per mark into Clips/, each through the recorder's
+    add_clip (the one writer of the clips index); progress below the table; a second run skips what is there."""
+    import subprocess
+    import time
+    from fogscout import obsrec
+    ff = obsrec.ffmpeg_exe()
+    if ff is None:
+        pytest.skip("imageio-ffmpeg not installed")
+    app = _clips_app(app_root, tmp_path, monkeypatch)
+    folder = app.recorder.folder()
+    added = []
+    monkeypatch.setattr(app.recorder, "add_clip", lambda **meta: added.append(meta))
+    t = time.mktime((2026, 10, 17, 21, 40, 0, 0, 0, -1))
+    rec = os.path.join(folder, "2026-10-17 21-40 Coal Tower – Nurse.mkv")
+    subprocess.run([ff, "-hide_banner", "-loglevel", "error", "-y", "-f", "lavfi", "-i",
+                    "testsrc=duration=8:size=160x90:rate=30", "-c:v", "libx264", "-preset", "veryfast", "-g", "30",
+                    "-pix_fmt", "yuv420p", rec], check=True, timeout=120)
+    obsrec.save_index(folder, [obsrec.Recording(t=t, file=os.path.basename(rec), label="Coal Tower", role="killer",
+                                                killer="nurse", end=t + 8, size=1000, marks=[3.0, 7.0])])
+
+    def wait():
+        deadline = time.time() + 60
+        while app._mark_job is not None and time.time() < deadline:
+            app._drain_events()
+            time.sleep(0.02)
+        assert app._mark_job is None
+    try:
+        app.settings.set("rec_clip_s", 2)
+        app._rec_render(force=True)
+        app.rec_table.selection_set(repr(t))
+        items = app._rec_menu_items()
+        assert ("marks_clips", "Marken als einzelne Clips speichern", True) in items
+        app._rec_menu_act("marks_clips")
+        assert app.rec_job_cancel_btn.winfo_manager()
+        assert ("marks_cancel", "Marken-Clips abbrechen", True) in app._rec_menu_items()
+        wait()
+        assert not app.rec_job_cancel_btn.winfo_manager()
+        assert app.rec_job_var.get() == "Marken-Clips: 2 gespeichert, 0 schon vorhanden, 0 fehlgeschlagen."
+        names = sorted(m["file"] for m in added)
+        assert names == ["2026-10-17 21-40 Coal Tower – Nurse – Clip 0m01s-0m03s.mp4",
+                         "2026-10-17 21-40 Coal Tower – Nurse – Clip 0m05s-0m07s.mp4"]
+        assert all(os.path.isfile(os.path.join(folder, obsrec.CLIPS_DIR, n)) for n in names)
+        assert all(m["source"] == t and m["kind"] == "clip" and m["seconds"] == 2.0 and m["killer"] == "nurse"
+                   for m in added)
+        app._rec_menu_act("marks_clips")                                         # again: nothing new
+        wait()
+        assert app.rec_job_var.get() == "Marken-Clips: 0 gespeichert, 2 schon vorhanden, 0 fehlgeschlagen."
+        assert len(added) == 2
+    finally:
+        app.quit()

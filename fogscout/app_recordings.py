@@ -289,6 +289,10 @@ class RecordingsTab:
         self._clip_windows = []
         self.rec_folder_btn = ui.Button(row, text=_("Aufnahmeordner öffnen"), command=self._rec_open_folder)
         self.rec_folder_btn.pack(side="right")
+        # videos in the folder without an index entry (OBS's own names, a crash mid-join) were never listed, never
+        # pruned: on a click they are offered, and taken in only after a confirmation
+        self.rec_adopt_btn = ui.Button(row, text=_("Aufnahmen nachtragen …"), command=self._rec_adopt_find)
+        self.rec_adopt_btn.pack(side="right", padx=(0, 6))
 
         tf = ui.Frame(f)
         tf.pack(fill="both", expand=True)
@@ -315,6 +319,13 @@ class RecordingsTab:
         self._table_menu(self.rec_table, self._rec_menu_items, self._rec_menu_act)       # 1.8.10: right click
         self.rec_marks_var = ui.StringVar(value="")
         ui.Label(f, textvariable=self.rec_marks_var, style="Dim.TLabel", wraplength=560).pack(anchor="w", pady=(6, 0))
+        # "Marken als einzelne Clips speichern" runs in a thread: its progress and a way to stop it
+        self._mark_job = None
+        jrow = ui.Frame(f)
+        jrow.pack(fill="x", pady=(4, 0))
+        self.rec_job_var = ui.StringVar(value="")
+        ui.Label(jrow, textvariable=self.rec_job_var, style="Dim.TLabel", wraplength=560).pack(side="left")
+        self.rec_job_cancel_btn = ui.Button(jrow, text=_("Marken-Clips abbrechen"), command=self._rec_marks_cancel)
         ui.Label(f, text=_("★ behalten (nie aufgeräumt) · ⚑ Marken (F8 in der Runde) · ▶ auf YouTube · "
                             "Rechtsklick auf die Spaltenköpfe: Spalten ein-/ausblenden"),
                  style="Dim.TLabel", wraplength=560).pack(anchor="w", pady=(6, 0))
@@ -901,6 +912,11 @@ class RecordingsTab:
                     fmt_bytes(sum(r.size for r in recs))]
             if sp.total and sp.folder == folder:
                 bits.append(_("{size} frei", size=fmt_bytes(sp.free)))
+                # the free bytes alone did not say how many rounds still fit before old ones are pruned
+                n = obsrec.rounds_left(sp.free, recs, limit=int(self.settings.get("rec_limit_gb", 0) or 0) * 1024 ** 3,
+                                       used=sum(r.size for r in recs))
+                if n is not None:
+                    bits.append(_("Platz für ca. {n} Runden", n=n) if n != 1 else _("Platz für ca. 1 Runde"))
             self.rec_summary_var.set(" · ".join(bits))
             self.rec_hint_var.set(folder)
         # the map list follows the index
@@ -1349,6 +1365,10 @@ class RecordingsTab:
                  ("explorer", _("Im Explorer zeigen"), True), ("copy", _("Datei kopieren (zum Einfügen)"), True), None,
                  ("keep", _("Behalten"), True, bool(r.keep)), ("farming", _("Farming-Runde"), True, bool(r.farming)),
                  None]
+        if getattr(self, "_mark_job", None) is not None:    # one at a time; the running one can be stopped here
+            items += [("marks_cancel", _("Marken-Clips abbrechen"), True), None]
+        elif r.marks:
+            items += [("marks_clips", _("Marken als einzelne Clips speichern"), True), None]
         if r.yt:                                                                   # 1.10
             items += [("yt_link", _("YouTube-Link kopieren"), True), ("yt_open", _("Auf YouTube öffnen"), True), None]
         else:
@@ -1361,6 +1381,7 @@ class RecordingsTab:
                "montage": self._recs_montage,
                "copy": self._rec_copy, "keep": self._rec_keep, "farming": self._rec_farming,
                "delete": self._rec_delete, "youtube": self._rec_youtube,
+               "marks_clips": self._rec_marks_clips, "marks_cancel": self._rec_marks_cancel,
                "yt_link": lambda: self._yt_copy_link(r.yt) if r is not None and r.yt else None,
                "yt_open": lambda: self._yt_open_link(r.yt) if r is not None and r.yt else None}.get(ident)
         if act is not None:
@@ -1452,6 +1473,114 @@ class RecordingsTab:
         if at is not None and win.info.ok:
             win.take_over(*at)
         self._editor_show(win)
+
+    # ---- "Aufnahmen nachtragen …": videos in the folder that no index entry names
+    def _rec_adopt_find(self):
+        """The click: the recorder thread lists them (event ``unindexed`` → _rec_unindexed) – nothing is read on
+        this thread, nothing is written before the confirmation."""
+        if not (self.settings.get("rec_on", False) or self.settings.get("rec_folder")):
+            self._inform(_("Aufnahmen nachtragen"), _("Noch kein Aufnahmeordner gewählt."))
+            return
+        self.recorder.find_unindexed()
+
+    def _rec_unindexed(self, d):
+        files = [tuple(f) for f in d.get("files") or ()]
+        title = _("Aufnahmen nachtragen")
+        if d.get("folder") is None:
+            self._inform(title, _("Aufnahme-Laufwerk nicht angeschlossen."))
+            return
+        if d.get("busy") or (self._obs_state or {}).get("recording"):
+            self._inform(title, _("Während einer Aufnahme wird nichts nachgetragen – OBS schreibt gerade in den "
+                                  "Aufnahmeordner."))
+            return
+        if not files:
+            self._inform(title, _("Keine Videos ohne Eintrag gefunden (gesucht: Aufnahmeordner und „Farming“, "
+                                  "geschrieben in den letzten {days} Tagen).",
+                                  days=int(obsrec.UNINDEXED_MAX_AGE_S // 86400)))
+            return
+        self._rec_adopt_offer = files
+        self._rec_adopt_confirm()
+
+    def _rec_adopt_confirm(self):
+        files = getattr(self, "_rec_adopt_offer", None) or []
+        if not files:
+            return
+        names = [n for n, _size, _t in files]
+        listed = "\n".join("• " + n for n in names[:8]) + ("\n…" if len(names) > 8 else "")
+        text = _("{n} Videos ({size}) im Aufnahmeordner stehen in keiner Aufnahme:\n{list}\n\nAls Aufnahmen ohne Map "
+                 "in die Liste übernehmen? Die Dateien werden nicht umbenannt. Danach zählen sie wie eigene Aufnahmen: "
+                 "Fog Scout räumt sie bei Platzmangel (und im Ordner „Farming“ nach den Farming-Tagen) auf, ausser du "
+                 "behältst sie.", n=len(names), size=fmt_bytes(sum(s for _n, s, _t in files)), list=listed)
+        if not self._ask(_("Aufnahmen nachtragen"), text, self._rec_adopt_confirm, ok_text=_("Nachtragen")):
+            return
+        self._rec_adopt_offer = None
+        self.recorder.adopt(names)
+
+    # ---- "Marken als einzelne Clips speichern": one copy-mode cut per F8 mark, in a thread
+    def _rec_marks_clips(self):
+        r = self._rec_selected()
+        if r is None or not r.marks or getattr(self, "_mark_job", None) is not None:
+            return
+        path = self._rec_editable(r)
+        folder = self.recorder.folder()
+        if path is None or not folder:
+            return
+        from . import clipedit
+        clip_s = int(self.settings.get("rec_clip_s", 0) or obsrec.DEFAULT_CLIP_S)
+        cdir = obsrec.clips_dir(folder)
+        cancel = self._mark_job = threading.Event()
+        self.rec_job_var.set(_("Marken-Clips: {done} von {total} …", done=0, total=len(r.marks)))
+        if not self.rec_job_cancel_btn.winfo_manager():
+            self.rec_job_cancel_btn.pack(side="left", padx=(8, 0))
+
+        def progress(done, total):
+            self.events.put(("call", self._rec_marks_progress, (done, total)))
+
+        def run():
+            try:
+                info = clipedit.probe(path)
+                spans = clipedit.mark_spans(r.marks, clip_s, info.duration if info.ok else 0.0)
+                res = clipedit.cut_marks(path, spans, cdir, cancel=cancel, progress=progress)
+            except Exception as e:                    # an answer, never a dead thread with the job still "running"
+                log.exception("Marken-Clips")
+                res = e
+            self.events.put(("call", self._rec_marks_done, (r, res, cancel.is_set())))
+        threading.Thread(target=run, daemon=True, name="mark-clips").start()
+
+    def _rec_marks_progress(self, done, total):
+        if getattr(self, "_mark_job", None) is not None:
+            self.rec_job_var.set(_("Marken-Clips: {done} von {total} …", done=done, total=total))
+
+    def _rec_marks_cancel(self):
+        job = getattr(self, "_mark_job", None)
+        if job is not None:
+            job.set()
+            self.rec_job_var.set(_("Marken-Clips werden abgebrochen …"))
+
+    def _rec_marks_done(self, r, res, cancelled):
+        self._mark_job = None
+        if self.rec_job_cancel_btn.winfo_manager():
+            self.rec_job_cancel_btn.pack_forget()
+        if isinstance(res, Exception):
+            text = _("Marken-Clips fehlgeschlagen: {error}", error=res)
+            self.rec_job_var.set(text)
+            self._log(text, "Fehler")
+            return
+        made = [x for x in res if x[3] == "made"]
+        for out, start, end, _state, _err in made:             # into the clips index through the recorder thread
+            self.recorder.add_clip(file=os.path.basename(out), kind="clip", source=r.t, map_id=r.map_id,
+                                   label=r.label, role=r.role, killer=r.killer, farming=r.farming,
+                                   seconds=round(end - start, 1))
+        failed = [x for x in res if x[3] == "failed"]
+        for out, _start, _end, _state, err in failed:
+            log.info("Marken-Clip nicht geschnitten (%s): %s", os.path.basename(out), err)
+        text = _("Marken-Clips: {made} gespeichert, {there} schon vorhanden, {failed} fehlgeschlagen.",
+                 made=len(made), there=sum(1 for x in res if x[3] == "there"), failed=len(failed))
+        if cancelled:
+            text += " " + _("Abgebrochen.")
+        self.rec_job_var.set(text)
+        self._log(text, "Fehler" if failed else "System")
+        self._rec_dirty = True
 
     def _editors(self) -> list:
         """1.18.1: the big editor windows open now."""
@@ -1774,6 +1903,10 @@ class RecordingsTab:
         self._rec_dirty = True
         if d.get("what") == "clip_delete":
             self._log(_("Clip gelöscht: {file}", file=d.get("file", "")), "System")
+        if d.get("what") == "adopt":
+            n = int(d.get("n") or 0)
+            self._log(_("Aufnahmen nachgetragen: {n}", n=n) if n else
+                      _("Nichts nachgetragen – die Dateien sind nicht mehr da oder schon in der Liste."), "System")
         if d.get("what") == "keep":
             self._log(_("Aufnahme wird behalten: {file}", file=d.get("file", "")) if d.get("on")
                       else _("Aufnahme wird nicht mehr behalten: {file}", file=d.get("file", "")), "System")

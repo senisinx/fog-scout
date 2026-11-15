@@ -6019,4 +6019,47 @@ T = {
         '戦績の下に、このマップを前回プレイした日を表示します。そのラウンドが統計ページのデータと結び付いていれば結果（キル数または脱出）も、なければ日付のみ。',
     'Eine Zeile „Serie“ in „Heute“: wie viele 4K (Killer) bzw. Escapes (Survivor) in Folge in der laufenden Sitzung – laut Stats-Seite, Farming zählt nicht.':
         '「今日」に「連続」の行：現在のセッションで連続した 4K（キラー）または脱出（サバイバー）の回数。統計ページに基づき、ファーミングは数えません。',
+    # Aufnahmen nachtragen, Marken-Clips, Platz-Prognose, GitHub-Limit
+    'GitHub-Limit erreicht – erneut ab {time}':
+        'GitHub の制限に達しました – {time} 以降に再試行してください',
+    'Platz für ca. {n} Runden':
+        'あと約 {n} ラウンド分の空き',
+    'Platz für ca. 1 Runde':
+        'あと約 1 ラウンド分の空き',
+    'Aufnahmen nachtragen …':
+        '未登録の録画を追加 …',
+    'Aufnahmen nachtragen':
+        '未登録の録画を追加',
+    'Marken-Clips abbrechen':
+        'マーククリップを中止',
+    'Marken als einzelne Clips speichern':
+        'マークを個別のクリップとして保存',
+    'Während einer Aufnahme wird nichts nachgetragen.':
+        '録画中は何も追加しません。',
+    'Während einer Aufnahme wird nichts nachgetragen – OBS schreibt gerade in den Aufnahmeordner.':
+        '録画中は何も追加しません – OBS が録画フォルダーに書き込み中です。',
+    'Keine Videos ohne Eintrag gefunden (gesucht: Aufnahmeordner und „Farming“, geschrieben in den letzten {days} Tagen).':
+        '登録されていない動画は見つかりませんでした（検索対象：録画フォルダーと「Farming」、過去 {days} 日以内に書き込まれたもの）。',
+    '{n} Videos ({size}) im Aufnahmeordner stehen in keiner Aufnahme:\n{list}\n\nAls Aufnahmen ohne Map in die Liste übernehmen? Die Dateien werden nicht umbenannt. Danach zählen sie wie eigene Aufnahmen: Fog Scout räumt sie bei Platzmangel (und im Ordner „Farming“ nach den Farming-Tagen) auf, ausser du behältst sie.':
+        '録画フォルダーに、どの録画にも属さない動画が {n} 本（{size}）あります：\n{list}\n\nマップなしの録画としてリストに追加しますか？ファイル名は変更しません。追加後は自分の録画と同じ扱いになり、空き容量が足りないとき（「Farming」フォルダーではファーミング日数の経過後）Fog Scout が整理します。保持した場合は除きます。',
+    'Nachtragen':
+        '追加',
+    'Marken-Clips: {done} von {total} …':
+        'マーククリップ：{total} 本中 {done} 本 …',
+    'Marken-Clips werden abgebrochen …':
+        'マーククリップを中止しています …',
+    'Marken-Clips fehlgeschlagen: {error}':
+        'マーククリップに失敗しました：{error}',
+    'Marken-Clips: {made} gespeichert, {there} schon vorhanden, {failed} fehlgeschlagen.':
+        'マーククリップ：保存 {made} 本、既存 {there} 本、失敗 {failed} 本。',
+    'Aufnahmen nachgetragen: {n}':
+        '追加した録画：{n}',
+    'Nichts nachgetragen – die Dateien sind nicht mehr da oder schon in der Liste.':
+        '何も追加していません – ファイルがもう無いか、すでにリストにあります。',
+    'Sucht im Aufnahmeordner (und in „Farming“) nach Videos der letzten 30 Tage, die in keiner Aufnahme stehen – z. B. OBS-eigene Namen oder Reste nach einem Absturz – und übernimmt sie nach einer Rückfrage als Aufnahmen ohne Map. Nichts wird umbenannt oder gelöscht.':
+        '録画フォルダー（と「Farming」）から、どの録画にも属さない過去 30 日間の動画（OBS 独自の名前やクラッシュ後の残りなど）を探し、確認後にマップなしの録画として追加します。名前の変更や削除は行いません。',
+    'Hält „Marken als einzelne Clips speichern“ nach dem Clip an, der gerade geschnitten wird; fertige Clips bleiben.':
+        '「マークを個別のクリップとして保存」を、いま切り出し中のクリップの後で止めます。完成したクリップは残ります。',
+    'Schneidet zu jeder F8-Marke der Runde einen Clip (Länge wie der Sofort-Clip, bis zur Marke, ohne neu zu kodieren) in den Ordner „Clips“. Marken, deren Clip schon da ist, werden übersprungen.':
+        'ラウンドの F8 マークごとにクリップを 1 本（インスタントクリップと同じ長さ、マークまで、再エンコードなし）「Clips」フォルダーに切り出します。クリップがすでにあるマークはスキップします。',
 }

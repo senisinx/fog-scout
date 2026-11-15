@@ -42,8 +42,9 @@ from .recindex import (  # 1.38.35: index, clips and pruning live there; every n
     NAME_CHARS, OLD_CLIPS_INDEX, OLD_INDEX, PARTS_CHECK_S, PARTS_WRITING, PART_EXT, PART_STALE_S, RESERVE, Recording,
     SHORT_ROUND_S, STILL_EXTS, Space, VIDEO_EXTS, _COPY_RE, _SPACE, _STAMP_RE, _entry, _index_stamp, _kind_value, _who,
     adopt_clip, adopt_old_file, clips_dir, deletable, expired_farming, own_files, file_name, in_use, list_clips,
-    load_clips, load_index, part_key, protected_paths, prune, prune_farming, prune_rank, save_clips, save_index, select_clips, select_recordings, settle_parts, space, whole)
-_INDEX_NAMES = (CLIPS_DIR, CLIPS_INDEX, CLIP_EXTS, CLIP_KINDS, Clip, DEFAULT_FARMING_DAYS, FARMING_CHECK_S, FARMING_DAYS, INDEX, NAME_CHARS, OLD_CLIPS_INDEX, OLD_INDEX, PARTS_CHECK_S, PARTS_WRITING, PART_EXT, PART_STALE_S, RESERVE, Recording, SHORT_ROUND_S, STILL_EXTS, Space, VIDEO_EXTS, _COPY_RE, _SPACE, _STAMP_RE, _entry, _index_stamp, _kind_value, _who, adopt_clip, adopt_old_file, clips_dir, deletable, expired_farming, own_files, file_name, in_use, list_clips, load_clips, load_index, part_key, protected_paths, prune, prune_farming, prune_rank, save_clips, save_index, select_clips, select_recordings, settle_parts, space, whole)   # re-exported
+    load_clips, load_index, part_key, protected_paths, prune, prune_farming, prune_rank, save_clips, save_index, select_clips, select_recordings, settle_parts, space, whole,
+    FARMING_SUB, FORECAST_MIN, UNINDEXED_MAX_AGE_S, UNINDEXED_QUIET_S, rounds_left, unindexed_videos)
+_INDEX_NAMES = (CLIPS_DIR, CLIPS_INDEX, CLIP_EXTS, CLIP_KINDS, Clip, DEFAULT_FARMING_DAYS, FARMING_CHECK_S, FARMING_DAYS, INDEX, NAME_CHARS, OLD_CLIPS_INDEX, OLD_INDEX, PARTS_CHECK_S, PARTS_WRITING, PART_EXT, PART_STALE_S, RESERVE, Recording, SHORT_ROUND_S, STILL_EXTS, Space, VIDEO_EXTS, _COPY_RE, _SPACE, _STAMP_RE, _entry, _index_stamp, _kind_value, _who, adopt_clip, adopt_old_file, clips_dir, deletable, expired_farming, own_files, file_name, in_use, list_clips, load_clips, load_index, part_key, protected_paths, prune, prune_farming, prune_rank, save_clips, save_index, select_clips, select_recordings, settle_parts, space, whole, FARMING_SUB, FORECAST_MIN, UNINDEXED_MAX_AGE_S, UNINDEXED_QUIET_S, rounds_left, unindexed_videos)   # re-exported
 
 log = logging.getLogger("fogscout")
 
@@ -152,7 +153,8 @@ REC_TRACKS_NEEDED = 0b11111
 DEFAULT_CLIP_SOURCES = SOURCES                             # F8: 1.11.4 (user: "Discord sound etc. in clips too") every source;
                                                            # 1.8.6–1.11.3 only the game and the own voice
 LEGACY = -1                                                # 1.8.5 recordings: track 2 = everything but Discord
-FARMING_DIR = "Farming"         # 1.5.3 (user's wish): recordings of farming rounds go into this subfolder
+FARMING_DIR = FARMING_SUB         # 1.5.3 (user's wish): recordings of farming rounds go into this subfolder
+                                  # (the name lives in recindex, whose unindexed_videos looks into it too)
 
 
 # 1.15 (recording card): what OBS's profile calls its recording encoder → a short name for the card. Only read
@@ -879,6 +881,16 @@ class Recorder(threading.Thread):
         """1.8.13: the editor saved a clip / still – into the clips index (written on this thread only)."""
         self.cmds.put(("clip_add", meta))
 
+    def find_unindexed(self):
+        """"Aufnahmen nachtragen …": list the videos in the folder that no index entry names (unindexed_videos) →
+        event ``unindexed`` (files = [(name, size, mtime)]); only reads."""
+        self.cmds.put(("unindexed", None))
+
+    def adopt(self, names):
+        """The user confirmed: these files (index names from ``unindexed``) into the index as recordings without a
+        map – never renamed, never deleted here. Index writes stay on this thread."""
+        self.cmds.put(("adopt", tuple(str(n) for n in names or () if n)))
+
     def delete_clip(self, name: str):
         """1.8.13: remove one clip – only a file of the clips index (or one the program made before it)."""
         self.cmds.put(("clip_delete", str(name)))
@@ -1051,6 +1063,10 @@ class Recorder(threading.Thread):
                 self._add_clip(arg)
             elif cmd == "clip_delete":
                 self._delete_clip(arg)
+            elif cmd == "unindexed":
+                self._find_unindexed()
+            elif cmd == "adopt":
+                self._adopt(arg)
         except ObsError as e:
             self._say(str(e), False, err=True)
         except Exception as e:                     # never let the thread die
@@ -1263,6 +1279,53 @@ class Recorder(threading.Thread):
             save_clips(cdir, [c for c in clips if c.file != name])
         self._post("changed", what="clip_delete", file=name)
         self._look_at_space(force=True)
+
+    def _find_unindexed(self):
+        folder = self.folder()
+        if folder is None:
+            self._post("unindexed", files=[], folder=None)
+            return
+        # OBS's file of the recording on air is in the folder too: nothing is offered while one of ours runs
+        busy = self.active is not None
+        files = [] if busy else unindexed_videos(folder, load_index(folder))
+        self._post("unindexed", files=files, folder=folder, busy=busy)
+
+    def _adopt(self, names):
+        """Only what unindexed_videos still offers now (the user may have waited; a file may have gone or been
+        indexed meanwhile): each one an entry without a map – start = file time minus its length (media_duration),
+        ``check_file``'s verdict as ``extra["bad"]``, farming when it lies in FARMING_DIR. Files stay as they are."""
+        folder = self.folder()
+        if folder is None:
+            self._warn(_("Aufnahme-Laufwerk nicht angeschlossen."))
+            return
+        if self.active is not None:
+            self._say(_("Während einer Aufnahme wird nichts nachgetragen."), False)
+            return
+        recs = load_index(folder)
+        offered = {n: (size, mtime) for n, size, mtime in unindexed_videos(folder, recs)}
+        starts = {r.t for r in recs}
+        added = []
+        ffmpeg = ffmpeg_exe()
+        for name in names:
+            path = rel_path(folder, name) if name in offered else None
+            if not path:
+                continue
+            size, mtime = offered[name]
+            bad = check_file(path)
+            secs = media_duration(path, ffmpeg) if ffmpeg and bad in (None, "zu klein") else None
+            t = round(mtime - secs, 3) if secs and 0 < secs < mtime else mtime
+            while t in starts:                 # the start time is the entry's key (table rows, delete, keep)
+                t = round(t + 0.001, 3)
+            starts.add(t)
+            extra = {"adopted": True}
+            if bad:
+                extra["bad"] = bad
+            added.append(Recording(t=t, file=name, end=mtime if mtime > t else t, size=int(size), extra=extra,
+                                   farming=name.startswith(FARMING_DIR + "/")))
+        if added:
+            save_index(folder, recs + added)
+            self._look_at_space(force=True)
+        self._post("changed", what="adopt", n=len(added), files=[r.file for r in added])
 
     def _look_at_space(self, force=False):
         """Drive and index for the overview – every SPACE_EVERY s while recording is on."""

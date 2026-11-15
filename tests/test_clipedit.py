@@ -1655,3 +1655,34 @@ def test_waveform_and_track_levels_are_kept_until_the_recording_changes(four_tra
     os.utime(old, (1, 1))
     os.makedirs(os.path.join(cache, "keep.png"))                                        # never anything but ours
     assert thumbs.prune(cache, exts=(".json",)) == 1 and not os.path.exists(old)
+
+
+# ---- "Marken als einzelne Clips speichern"
+def test_each_mark_becomes_the_stretch_up_to_it_as_long_as_the_instant_clip():
+    spans = clipedit.mark_spans([5.0, 1.0, 0.3, 5.0, 11.5, 20.0, True, "x"], 3, duration=12.0)
+    # 0.3 s is too short; 5.0 once; 20.0 lies behind the end of the file: up to the end
+    assert spans == [(0.0, 1.0), (2.0, 5.0), (8.5, 11.5), (9.0, 12.0)]
+    assert clipedit.mark_spans([40.0], 30) == [(10.0, 40.0)]                 # length unknown: as marked
+    assert clipedit.mark_spans([], 30) == []
+
+
+def test_marks_are_cut_one_clip_each_and_a_second_run_makes_only_what_is_missing(clip, tmp_path):
+    cdir = str(tmp_path / "Clips")
+    spans = clipedit.mark_spans([3.0, 9.0], 2, duration=12.0)
+    seen = []
+    res = clipedit.cut_marks(clip, spans, cdir, progress=lambda d, n: seen.append((d, n)))
+    assert [(os.path.basename(o), s, e, st) for o, s, e, st, _err in res] == [
+        ("2026-10-17 21-40 Coal Tower – Nurse – Clip 0m01s-0m03s.mp4", 1.0, 3.0, "made"),
+        ("2026-10-17 21-40 Coal Tower – Nurse – Clip 0m07s-0m09s.mp4", 7.0, 9.0, "made")]
+    assert seen == [(1, 2), (2, 2)]
+    assert sorted(os.listdir(cdir)) == sorted(os.path.basename(o) for o, *_r in res)      # no .tmp left
+    for out, *_r in res:
+        info = clipedit.probe(out)
+        assert info.ok and 1.5 <= info.duration <= 3.5                   # copy mode: from the key frame before
+        assert obsrec.adopt_clip(os.path.basename(out), []) is not None   # a name the clips list knows as ours
+    os.remove(res[0][0])                                                  # the user deleted one clip
+    again = clipedit.cut_marks(clip, spans, cdir)
+    assert [st for *_r, st, _err in again] == ["made", "there"]
+    stop = threading.Event()
+    stop.set()
+    assert clipedit.cut_marks(clip, spans, cdir, cancel=stop) == []       # cancelled before the first cut
