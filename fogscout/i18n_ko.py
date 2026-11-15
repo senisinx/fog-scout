@@ -1152,7 +1152,7 @@ T = {
     'Zeile RAM':
         'RAM 행',
     'Zeile in den Systemwerten an/aus. Die Warnungen „CPU/GPU DROSSELT“ erscheinen immer.':
-        '시스템 값의 행 켜기/끄기. ‘CPU/GPU THROTTLED’ 경고는 항상 표시됩니다.',
+        '시스템 값의 행 켜기/끄기. ‘CPU/GPU 스로틀링’ 경고는 항상 표시됩니다.',
     'Zeile in den Systemwerten an/aus – Hotspot und Memory Junction kommen nur mit HWiNFO.':
         '시스템 값의 행 켜기/끄기 – 핫스팟과 메모리 정션은 HWiNFO가 있을 때만 표시됩니다.',
     'Zeile in den Systemwerten an/aus.':
@@ -4620,7 +4620,7 @@ T = {
     'Werkzeuge':
         '도구',
     'Leertaste':
-        'Space',
+        '스페이스',
     'Abspielen / Anhalten':
         '재생 / 일시 정지',
     '1 Sekunde zurück / vor':
@@ -5414,7 +5414,7 @@ T = {
     'Frequenzsteuerung: CQP, QP-Werte 18 (HEVC 20)':
         '속도 제어: CQP, QP 값 18(HEVC 20)',
     'Voreinstellung: Qualität':
-        '프리셋: Quality',
+        '프리셋: 품질',
     'Video-Encoder: QuickSync H.264 oder HEVC (nicht „Stream-Encoder verwenden“)':
         '비디오 인코더: QuickSync H.264 또는 HEVC(‘방송 인코더 사용’ 아님)',
     'Frequenzsteuerung: ICQ (oder CQP), Wert 18':
@@ -5917,4 +5917,10 @@ T = {
         '일본어',
     'Koreanisch':
         '한국어',
+    'Zuordnen zu':
+        '지정 대상',
+    'Gruppieren nach':
+        '그룹 기준',
+    'Killer-Perk {n}':
+        '살인마 퍽 {n}',
 }

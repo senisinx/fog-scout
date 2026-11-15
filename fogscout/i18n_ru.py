@@ -3530,7 +3530,7 @@ T = {
     'Spielstatus in Discord anzeigen (Rich Presence)':
         'Показывать статус игры в Discord (Rich Presence)',
     'Application-ID':
-        'Application ID',
+        'ID приложения',
     'Discord testen':
         'Проверить Discord',
     'Developer-Portal öffnen':
@@ -3638,7 +3638,7 @@ T = {
     '„Als nächstes“ aus Spotify in der Musikkarte zeigen':
         'Показывать «Далее» из Spotify на музыкальной карточке',
     'Client-ID':
-        'Client ID',
+        'Идентификатор клиента',
     'Developer-Dashboard öffnen':
         'Открыть панель разработчика',
     'Mit Spotify verbinden':
@@ -3656,7 +3656,7 @@ T = {
     'Öffentlich':
         'Открытый',
     'Client-Secret':
-        'Client secret',
+        'Секрет клиента',
     'Sichtbarkeit':
         'Доступ',
     'Clips automatisch auf YouTube hochladen':
@@ -5172,7 +5172,7 @@ T = {
     '{file}: {n} Clip(s) angehängt.':
         '{file}: добавлено клипов: {n}.',
     'Audiomediathek':
-        'Audio Library',
+        'Аудиотека',
     'Audiomediathek im Browser geöffnet – heruntergeladene Titel erscheinen im Abschnitt Ton, sobald du zurück im Editor bist.':
         'Audio Library открыта в браузере — скачанные треки появятся в разделе «Звук», когда вы вернётесь в редактор.',
     'Neu im Download-Ordner – Klick legt sie am Abspielkopf auf A2:':
@@ -5414,7 +5414,7 @@ T = {
     'Frequenzsteuerung: CQP, QP-Werte 18 (HEVC 20)':
         'Управление битрейтом: CQP, значения QP 18 (HEVC 20)',
     'Voreinstellung: Qualität':
-        'Предустановка: Quality',
+        'Предустановка: качество',
     'Video-Encoder: QuickSync H.264 oder HEVC (nicht „Stream-Encoder verwenden“)':
         'Видеокодировщик: QuickSync H.264 или HEVC (не «Использовать кодировщик потока»)',
     'Frequenzsteuerung: ICQ (oder CQP), Wert 18':
@@ -5917,4 +5917,10 @@ T = {
         'Японский',
     'Koreanisch':
         'Корейский',
+    'Zuordnen zu':
+        'Назначить',
+    'Gruppieren nach':
+        'Группировать по',
+    'Killer-Perk {n}':
+        'Перк убийцы {n}',
 }

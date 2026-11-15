@@ -1090,7 +1090,7 @@ T = {
     'Tasten drücken …':
         'Premi i tasti …',
     'Neue Kombination drücken – Esc bricht ab, Entf schaltet den Hotkey aus.':
-        "Premi la nuova combinazione – Esc annulla, Del disattiva l'hotkey.",
+        "Premi la nuova combinazione – Esc annulla, Canc disattiva l'hotkey.",
     '{keys} ist schon „{action}“ – andere wählen.':
         "{keys} è già «{action}» – scegline un'altra.",
     'aus':
@@ -1152,7 +1152,7 @@ T = {
     'Zeile RAM':
         'Riga RAM',
     'Zeile in den Systemwerten an/aus. Die Warnungen „CPU/GPU DROSSELT“ erscheinen immer.':
-        'Riga dei valori di sistema on/off. Gli avvisi «CPU/GPU THROTTLED» compaiono sempre.',
+        'Riga dei valori di sistema on/off. Gli avvisi «CPU/GPU RALLENTATA» compaiono sempre.',
     'Zeile in den Systemwerten an/aus – Hotspot und Memory Junction kommen nur mit HWiNFO.':
         'Riga dei valori di sistema on/off – hot spot e memory junction arrivano solo con HWiNFO.',
     'Zeile in den Systemwerten an/aus.':
@@ -1486,19 +1486,19 @@ T = {
     'Werkzeuge für die Fehlersuche ein- oder ausklappen: Live-Zustand der Rundenende-Erkennung, Debug-Bilder, Bildschirm scannen.':
         'Mostra o nascondi gli strumenti di risoluzione problemi: stato in tempo reale del rilevamento di fine round, immagini di debug, scansione dello schermo.',
     'Klicken und die neue Tastenkombination drücken: Strg/Alt + Taste, oder eine Taste allein (F1–F12, Numpad, Pause, Rollen, Einfg, Pos1, Ende, Bild↑/↓ – die gilt nur, solange DBD vorne ist). Esc bricht ab, Entf schaltet den Hotkey aus.':
-        "Fai clic e premi la nuova combinazione di tasti: Ctrl/Alt + tasto, oppure un singolo tasto (F1–F12, tastierino numerico, Pause, Scroll Lock, Insert, Home, End, Page Up/Down – funziona solo mentre DBD è in primo piano). Esc annulla, Del disattiva l'hotkey.",
+        "Fai clic e premi la nuova combinazione di tasti: Ctrl/Alt + tasto, oppure un singolo tasto (F1–F12, tastierino numerico, Pausa, Bloc Scorr, Ins, Home, Fine, PagSu/PagGiù – funziona solo mentre DBD è in primo piano). Esc annulla, Canc disattiva l'hotkey.",
     'Bild↑':
-        'PgUp',
+        'PagSu',
     'Bild↓':
-        'PgDn',
+        'PagGiù',
     'Einfg':
-        'Insert',
+        'Ins',
     'Pos1':
         'Home',
     'Ende':
-        'End',
+        'Fine',
     'Rollen':
-        'Scroll Lock',
+        'Bloc Scorr',
     'Gilt nur, solange DBD im Vordergrund ist – DBD selbst bekommt {keys} dann nicht mehr (in DBD nicht belegt?).':
         'Funziona solo mentre DBD è in primo piano – DBD stesso non riceve più {keys} (non assegnato in DBD?).',
     'Map-Namen in dieser Spielsprache erkennen. Nur die Sprachen anhaken, in denen du spielst – weniger Sprachen, weniger Verwechslungen.':
@@ -1816,9 +1816,9 @@ T = {
     'Noch keine Systemwerte in dieser Auswahl (Tab Overlay → Systemwerte einschalten).':
         'Ancora nessun valore di sistema in questa selezione (scheda Overlay → attiva i valori di sistema).',
     'GPU DROSSELT (TEMP.)':
-        'GPU THROTTLED (TEMP.)',
+        'GPU RALLENTATA (TEMP.)',
     'GPU DROSSELT (HW)':
-        'GPU THROTTLED (HW)',
+        'GPU RALLENTATA (HW)',
     'Hotspot max {v} °C':
         'hot spot max {v} °C',
     'Hotspot max':
@@ -1928,7 +1928,7 @@ T = {
     'Suchen: Einstellung, Seite, Map, Aktion, Runde …':
         'Cerca: impostazione, pagina, mappa, azione, round …',
     'Pfeiltasten wählen · Enter öffnen · Strg+Enter im Spiel bzw. die Aufnahme · Esc schliesst':
-        'Frecce scelgono · Enter apre · Ctrl+Enter nel gioco o nella registrazione · Esc chiude',
+        'Frecce scelgono · Invio apre · Ctrl+Invio nel gioco o nella registrazione · Esc chiude',
     'Aktionen':
         'Azioni',
     'Seiten':
@@ -1936,9 +1936,9 @@ T = {
     'Vorschlag von Claude':
         'Suggerito da Claude',
     'Enter':
-        'Enter',
+        'Invio',
     'Strg+Enter':
-        'Ctrl+Enter',
+        'Ctrl+Invio',
     'Claude fragen: „{q}“':
         'Chiedi a Claude: «{q}»',
     'Schickt nur die Frage und die Namen der Einstellungen an Claude':
@@ -2520,7 +2520,7 @@ T = {
     'INFOS':
         'INFO',
     'Infos (Timer, Bilanz, Server)':
-        'Info (timer, record, server)',
+        'Info (timer, bilancio, server)',
     'In OBS ist der Wiederholungspuffer nicht aktiviert – OBS: Einstellungen → Ausgabe → Wiederholungspuffer → „Wiederholungspuffer aktivieren“ und übernehmen. Ohne ihn gibt es keine Sofort-Clips (F8) und keinen Vorlauf.':
         'Il buffer di replay di OBS non è attivato – OBS: Impostazioni → Uscita → Buffer di replay → «Abilita buffer di replay» e applica. Senza di esso non ci sono clip istantanee (F8) né pre-roll.',
     'Wiederholungspuffer in OBS nicht aktiviert (Einstellungen → Ausgabe → Wiederholungspuffer)':
@@ -2742,7 +2742,7 @@ T = {
     'Suchen: Name, Realm, Abkürzung …':
         'Cerca: nome, Realm, abbreviazione …',
     'Klick oder Enter = groß ansehen · Doppelklick oder Strg+Enter = jetzt anzeigen. Die Erkennung übernimmt beim nächsten Match wieder.':
-        'Clic o Enter = vista grande · doppio clic o Ctrl+Enter = mostra ora. Alla prossima partita il rilevamento riprende il controllo.',
+        'Clic o Invio = vista grande · doppio clic o Ctrl+Invio = mostra ora. Alla prossima partita il rilevamento riprende il controllo.',
     'Zurück zu den Karten des Realms (Esc).':
         'Torna alle mappe del Realm (Esc).',
     'Allgemein':
@@ -2830,7 +2830,7 @@ T = {
     'Zu Einstellungen → Match-Daten → Offizielle Match-Daten: einmal das Userscript in den Browser, danach zählen Kills, Entkommen und Bloodpoints in der Statistik.':
         "A Impostazioni → Dati partita → Dati partita ufficiali: l'userscript nel browser una volta, poi uccisioni, fughe e Punti Sangue contano nelle statistiche.",
     'CPU DROSSELT (TEMP.)':
-        'CPU THROTTLED (TEMP.)',
+        'CPU RALLENTATA (TEMP.)',
     'CPU gedr.':
         'CPU rall.',
     'GPU gedr.':
@@ -3620,7 +3620,7 @@ T = {
     'Kasten entfernen':
         'Rimuovi riquadro',
     'Entfernt den markierten Kasten (Taste Entf).':
-        'Rimuove il riquadro selezionato (tasto Del).',
+        'Rimuove il riquadro selezionato (tasto Canc).',
     'Alle entfernen':
         'Rimuovi tutti',
     'Noch kein Kasten. „Namen links unten“ setzt einen auf die Survivor-Namen, „Kasten zeichnen“ lässt dich einen aufziehen.':
@@ -3638,7 +3638,7 @@ T = {
     '„Als nächstes“ aus Spotify in der Musikkarte zeigen':
         'Mostra «Prossimi brani» di Spotify sulla scheda musicale',
     'Client-ID':
-        'Client ID',
+        'ID client',
     'Developer-Dashboard öffnen':
         'Apri dashboard sviluppatori',
     'Mit Spotify verbinden':
@@ -3656,7 +3656,7 @@ T = {
     'Öffentlich':
         'Pubblico',
     'Client-Secret':
-        'Client secret',
+        'Segreto client',
     'Sichtbarkeit':
         'Visibilità',
     'Clips automatisch auf YouTube hochladen':
@@ -4160,9 +4160,9 @@ T = {
     'Einblenden':
         'Dissolvenza in entrata',
     'Entfernt den markierten Kasten (Entf).':
-        'Rimuove il riquadro selezionato (Del).',
+        'Rimuove il riquadro selezionato (Canc).',
     'Entfernt die markierte Zeichnung (Entf).':
-        'Rimuove il disegno selezionato (Del).',
+        'Rimuove il disegno selezionato (Canc).',
     'Farbe':
         'Colore',
     'Farbe zurücksetzen':
@@ -4184,7 +4184,7 @@ T = {
     'Im Bild einen Bereich aufziehen, der unkenntlich wird – Namen, Chat, Freundesliste. Kästen lassen sich verschieben und an der Ecke rechts unten vergrössern.':
         "Trascina un'area nell'immagine che viene resa illeggibile – nomi, chat, lista amici. I riquadri si possono spostare e ridimensionare dall'angolo in basso a destra.",
     'Im Bild ziehen (Text: klicken). Eine Zeichnung anklicken markiert sie, ziehen verschiebt sie, Entf löscht sie.':
-        "Trascina nell'immagine (testo: clic). Fai clic su un disegno per selezionarlo, trascina per spostarlo, Del lo rimuove.",
+        "Trascina nell'immagine (testo: clic). Fai clic su un disegno per selezionarlo, trascina per spostarlo, Canc lo rimuove.",
     'Immer':
         'Sempre',
     'In Zwischenablage':
@@ -4206,7 +4206,7 @@ T = {
     'Kreis':
         'Ellisse',
     'Leertaste Abspielen · ←/→ 1 s · Shift 5 s · Strg 1 Bild · I/O Start/Ende · A Abschnitt · M Marke · Pos1/Ende Anfang/Schluss · Entf Kasten/Zeichnung weg · Esc schliessen':
-        'Space riproduci · ←/→ 1 s · Shift 5 s · Ctrl 1 fotogramma · I/O inizio/fine · A parte · M segno · Home/End inizio/fine · Del rimuove riquadro/disegno · Esc chiudi',
+        'Spazio riproduci · ←/→ 1 s · Shift 5 s · Ctrl 1 fotogramma · I/O inizio/fine · A parte · M segno · Home/Fine inizio/fine · Canc rimuove riquadro/disegno · Esc chiudi',
     'Letzten Schritt zurücknehmen (Strg+Z).':
         "Annulla l'ultimo passo (Ctrl+Z).",
     'Linie':
@@ -4248,7 +4248,7 @@ T = {
     'Steam-Ordner verwenden':
         'Usa la cartella di Steam',
     'Strg+Z rückgängig · Strg+Y wiederholen · Strg+C kopieren · Strg+S speichern · Entf Markiertes löschen · Esc schliessen':
-        "Ctrl+Z annulla · Ctrl+Y ripeti · Ctrl+C copia · Ctrl+S salva · Del rimuove l'elemento selezionato · Esc chiudi",
+        "Ctrl+Z annulla · Ctrl+Y ripeti · Ctrl+C copia · Ctrl+S salva · Canc rimuove l'elemento selezionato · Esc chiudi",
     'Strichstärke bzw. Textgrösse.':
         'Spessore della linea o dimensione del testo.',
     'Sättigung':
@@ -4502,7 +4502,7 @@ T = {
     'Ein Bild zurück (Strg+←); ← eine Sekunde.':
         'Un fotogramma indietro (Ctrl+←); ← un secondo.',
     'Entfernt den markierten Clip von der Zeitleiste (Entf) – die Aufnahme bleibt.':
-        'Rimuove la clip selezionata dalla timeline (Del) – la registrazione resta.',
+        'Rimuove la clip selezionata dalla timeline (Canc) – la registrazione resta.',
     'Export':
         'Esporta',
     'Exportieren':
@@ -4526,7 +4526,7 @@ T = {
     'Lautstärke der Vorschau (nicht des Clips).':
         "Volume dell'anteprima (non della clip).",
     '? alle Tastenkürzel · Leertaste Abspielen · ←/→ 1 s · Shift 5 s · Strg oder ,/. 1 Bild · I/O Clip beginnt/endet hier · S Teilen · Entf Löschen · Strg+Z/Y Rückgängig/Wiederholen · F Vollbild · Strg+S Projekt · Strg+E Export':
-        '? tutte le scorciatoie · Space riproduci · ←/→ 1 s · Shift 5 s · Ctrl o ,/. 1 fotogramma · I/O la clip inizia/finisce qui · S dividi · Del elimina · Ctrl+Z/Y annulla/ripeti · F schermo intero · Ctrl+S progetto · Ctrl+E esporta',
+        '? tutte le scorciatoie · Spazio riproduci · ←/→ 1 s · Shift 5 s · Ctrl o ,/. 1 fotogramma · I/O la clip inizia/finisce qui · S dividi · Canc elimina · Ctrl+Z/Y annulla/ripeti · F schermo intero · Ctrl+S progetto · Ctrl+E esporta',
     'Längste zuerst':
         'Prima le più lunghe',
     'Löschen':
@@ -4538,7 +4538,7 @@ T = {
     'Neueste zuerst':
         'Prima le più recenti',
     'Pause (Leertaste)':
-        'Pausa (Space)',
+        'Pausa (Spazio)',
     'Pfeile, Rahmen, Freihand und Text ins Bild zeichnen (D).':
         "Disegna frecce, riquadri, a mano libera e testo sull'immagine (D).",
     'Projekt':
@@ -4620,7 +4620,7 @@ T = {
     'Werkzeuge':
         'Strumenti',
     'Leertaste':
-        'Space',
+        'Spazio',
     'Abspielen / Anhalten':
         'Riproduci / pausa',
     '1 Sekunde zurück / vor':
@@ -4634,7 +4634,7 @@ T = {
     '1 Bild zurück / vor':
         '1 fotogramma indietro / avanti',
     'Pos1 / Ende':
-        'Home / End',
+        'Home / Fine',
     'Zum Anfang / zum Schluss':
         "All'inizio / alla fine",
     'Zur nächsten Marke':
@@ -4772,7 +4772,7 @@ T = {
     'Clip am Abspielkopf teilen':
         'Dividi la clip alla testina',
     'Entf':
-        'Del',
+        'Canc',
     'Markierten Clip löschen':
         'Elimina la clip selezionata',
     'Hinein- / herauszoomen':
@@ -5392,7 +5392,7 @@ T = {
     'Frequenzsteuerung: CQP, CQ-Level 18 (HEVC 20)':
         'Controllo frequenza: CQP, livello CQ 18 (HEVC 20)',
     'Voreinstellung: P5: Langsam (gute Qualität), Tuning: Hohe Qualität, Mehrfachdurchlauf: zwei Durchläufe (Viertelauflösung)':
-        'Preset: P5: Slow (good quality), tuning: high quality, multipass: two passes (quarter resolution)',
+        'Preset: P5: lento (buona qualità), tuning: alta qualità, multipass: due passaggi (risoluzione a un quarto)',
     'Profil: high (HEVC: main), Keyframe-Intervall: 2 s':
         'Profilo: high (HEVC: main), intervallo fotogrammi chiave: 2 s',
     'Danach eine kurze Runde aufnehmen – die Karte zeigt die neue Bitrate.':
@@ -5414,7 +5414,7 @@ T = {
     'Frequenzsteuerung: CQP, QP-Werte 18 (HEVC 20)':
         'Controllo frequenza: CQP, valori QP 18 (HEVC 20)',
     'Voreinstellung: Qualität':
-        'Preset: Quality',
+        'Preset: qualità',
     'Video-Encoder: QuickSync H.264 oder HEVC (nicht „Stream-Encoder verwenden“)':
         'Codificatore video: QuickSync H.264 o HEVC (non «Usa il codificatore della diretta»)',
     'Frequenzsteuerung: ICQ (oder CQP), Wert 18':
@@ -5714,9 +5714,9 @@ T = {
     'Eingaben mit der Aufnahme speichern (für den Clip-Editor)':
         "Salva gli input con la registrazione (per l'editor di clip)",
     'Fog Scout zeigt nur, welche dieser Tasten gerade gedrückt sind: W, A, S, D, Q, E, R, Leertaste, Shift, Strg, die Maustasten und ein Gamepad (Knöpfe, Trigger, Sticks). Gelesen wird nur während einer Runde und nur, solange DBD das aktive Fenster ist – Tippen in anderen Programmen sieht Fog Scout nie. Nichts davon wird geloggt oder gesendet, und nichts geht an das Spiel; mit „Eingaben mit der Aufnahme speichern“ liegen die Tasten einer Runde als Datei neben ihrer OBS-Aufnahme (für den Clip-Editor). Eine offizielle Freigabe von Behaviour gibt es für solche Anzeigen nicht; sie geben keinen Spielvorteil.':
-        "Fog Scout mostra solo quali di questi tasti sono premuti in questo momento: W, A, S, D, Q, E, R, Space, Shift, Ctrl, i pulsanti del mouse e un gamepad (pulsanti, grilletti, levette). Vengono letti solo durante un round e solo mentre DBD è la finestra attiva – Fog Scout non vede mai ciò che scrivi in altri programmi. Nulla viene registrato nel log o inviato, e nulla va al gioco; con «Salva gli input con la registrazione» i tasti di un round vengono conservati come file accanto alla sua registrazione OBS (per l'editor di clip). Behaviour non ha approvato ufficialmente queste visualizzazioni; non danno alcun vantaggio nel gioco.",
+        "Fog Scout mostra solo quali di questi tasti sono premuti in questo momento: W, A, S, D, Q, E, R, Spazio, Shift, Ctrl, i pulsanti del mouse e un gamepad (pulsanti, grilletti, levette). Vengono letti solo durante un round e solo mentre DBD è la finestra attiva – Fog Scout non vede mai ciò che scrivi in altri programmi. Nulla viene registrato nel log o inviato, e nulla va al gioco; con «Salva gli input con la registrazione» i tasti di un round vengono conservati come file accanto alla sua registrazione OBS (per l'editor di clip). Behaviour non ha approvato ufficialmente queste visualizzazioni; non danno alcun vantaggio nel gioco.",
     'Gelesen werden nur W, A, S, D, Q, E, R, Leertaste, Shift, Strg, die Maustasten und ein Gamepad – nur während einer Runde und nur, solange DBD vorne ist. Gesendet wird nichts; gespeichert nur mit dem Häkchen oben, als Datei neben der eigenen Aufnahme.':
-        'Vengono letti solo W, A, S, D, Q, E, R, Space, Shift, Ctrl, i pulsanti del mouse e un gamepad – solo durante un round e solo mentre DBD è in primo piano. Nulla viene inviato; salvato solo con la casella sopra, come file accanto alla tua registrazione.',
+        'Vengono letti solo W, A, S, D, Q, E, R, Spazio, Shift, Ctrl, i pulsanti del mouse e un gamepad – solo durante un round e solo mentre DBD è in primo piano. Nulla viene inviato; salvato solo con la casella sopra, come file accanto alla tua registrazione.',
     'Eine Karte im Spiel zeigt, welche Tasten, Maustasten oder Gamepad-Knöpfe du gerade drückst – wie bei Streamern. Gelesen wird nur eine feste Liste von Tasten, nur während einer Runde und nur, solange DBD vorne ist; gesendet wird nichts, gespeichert nur mit „Eingaben mit der Aufnahme speichern“.':
         'Una scheda nel gioco mostra quali tasti, pulsanti del mouse o del gamepad stai premendo in questo momento – come fanno gli streamer. Viene letto solo un elenco fisso di tasti, solo durante un round e solo mentre DBD è in primo piano; nulla viene inviato, salvato solo con «Salva gli input con la registrazione».',
     'Mit OBS-Aufnahmen: die gedrückten Tasten der Runde kommen als kleine Datei neben die Aufnahme – der Clip-Editor zeigt sie als Spur und kann die Karte ins Video einbrennen. Die Datei wird mit der Aufnahme verschoben und gelöscht.':
@@ -5846,7 +5846,7 @@ T = {
     'Tasten und Gamepad':
         'Tasti e gamepad',
     'Timer, Bilanz, Server':
-        'Timer, record, server',
+        'Timer, bilancio, server',
     'Verhalten':
         'Comportamento',
     'Zeilen':
@@ -5917,4 +5917,10 @@ T = {
         'Giapponese',
     'Koreanisch':
         'Coreano',
+    'Zuordnen zu':
+        'Assegna a',
+    'Gruppieren nach':
+        'Raggruppa per',
+    'Killer-Perk {n}':
+        'Perk del killer {n}',
 }

@@ -1717,6 +1717,7 @@ class App(ServerTab, StatsTab, ExportDialog, RecordingsTab, DiscordPresence, Spo
         var = ui.StringVar(value=labels[[m.id for m in entries].index(guess)] if guess in
                            [m.id for m in entries] else "")
         cb = ui.Combobox(body, textvariable=var, values=labels, state="readonly", width=44, height=18)
+        cb._dbdms_name = _("Map")                          # 1.56: its accessible name (no label)
         cb.pack(fill="x")
         msg = ui.StringVar(value="")
         ui.Label(body, textvariable=msg, style="Dim.TLabel", wraplength=380).pack(anchor="w", pady=(6, 0))

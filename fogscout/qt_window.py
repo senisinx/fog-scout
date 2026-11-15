@@ -20,7 +20,7 @@ from . import i18n, qt_icons, qt_theme
 from .status import DOT_STYLE
 from .i18n import N_, _
 from .qt_app import FIRA, application          # 1.14.2: made before the heavy imports (splash)
-from .qt_common import (SLIDER_MAX, WheelGuard, guard_wheel, pixmap_from_pil, set_glyph, _label, _tip, _card, _set,
+from .qt_common import (SLIDER_MAX, WheelGuard, guard_wheel, pixmap_from_pil, rezoom, set_glyph, _label, _tip, _card, _set,
                         _scroll_page)
 from .qt_views import (FactBox, CHECKS, _check, Table, LogView, HotkeyButton, Chart, HEAT_RAMP,
                        heat_colour, ink_on, MapBars, Heatmap, SwatchView, TilesView, DashboardView)
@@ -113,6 +113,16 @@ NAV_ICON = 18                     # px (logical): every icon of the navigation i
 NAV_SIGN_X = 24 + NAV_ICON // 2    # 1.24.7: centre of the icons' column – measured: list + item padding (qt_theme)
 #                                   6 + 12 and the style's own margin 6
 NAV_W, NAV_COMPACT_W = 190, 62    # px (logical) at text zoom 1.0: navigation with names / only icons
+
+
+def nav_icon_px() -> int:
+    """1.56 (audit V-4): the navigation's icon box at the text zoom (NAV_ICON at 100 %)."""
+    return round(NAV_ICON * qt_theme.current_zoom())
+
+
+def nav_sign_x() -> int:
+    """NAV_SIGN_X at the text zoom: the item padding stays, the icon grows."""
+    return 24 + nav_icon_px() // 2
 
 
 def nav_w() -> int:
@@ -393,12 +403,13 @@ def nav_icon(key: str, colour: str, ratio: float = 1.0, alert: bool = False) -> 
     in different sizes and places). All in a NAV_ICON box, 1.6 px lines; ``alert`` = amber dot (log)."""
     from PySide6.QtCore import QPointF, QRectF
     from PySide6.QtGui import QPainter, QPen
-    size = NAV_ICON
-    pm = QPixmap(round(size * ratio), round(size * ratio))
+    size, side = NAV_ICON, nav_icon_px()      # drawn in a NAV_ICON box, scaled to the zoom's size (1.56)
+    pm = QPixmap(round(side * ratio), round(side * ratio))
     pm.setDevicePixelRatio(ratio)
     pm.fill(Qt.transparent)
     p = QPainter(pm)
     p.setRenderHint(QPainter.Antialiasing)
+    p.scale(side / size, side / size)
     col = QColor(colour)
     pen = QPen(col, 1.6)
     pen.setCapStyle(Qt.RoundCap)
@@ -565,14 +576,20 @@ class NavStatus(QFrame):
         self.setFocusPolicy(Qt.TabFocus)
         self._on_click = on_click
         h = QHBoxLayout(self)
-        h.setContentsMargins(NAV_SIGN_X - qt_theme.ICON["s"] // 2, 10, 10, 12)   # 1.24.7: the sign on the icons'
-        h.setSpacing(8)                                                          # column of the navigation
+        h.setSpacing(8)
         self.dot = QLabel()
-        self.dot.setFixedWidth(qt_theme.ICON["s"])       # 1.24.7: the layout squeezed it to half – off the column
         self.text = QLabel()
         self.text.setObjectName("navstatustext")         # 1.24.5: lines made by _two_lines, no wrapping
         h.addWidget(self.dot, 0, Qt.AlignTop)
         h.addWidget(self.text, 1)
+        self._shown = None
+        self.rezoom()
+
+    def rezoom(self):
+        """The sign on the icons' column of the navigation (1.24.7), at the text zoom (1.56)."""
+        side = qt_theme.icon_px(qt_theme.ICON["s"])
+        self.layout().setContentsMargins(nav_sign_x() - side // 2, 10, 10, 12)
+        self.dot.setFixedWidth(side)                     # 1.24.7: the layout squeezed it to half – off the column
         self._shown = None
 
     def show_state(self, colour: str, text: str, compact: bool, ratio: float = 1.0, sign: str = "record"):
@@ -580,7 +597,7 @@ class NavStatus(QFrame):
         if (colour, text, compact, ratio, sign) == self._shown:  # ratio: another screen draws the dot anew
             return
         self._shown = (colour, text, compact, ratio, sign)
-        self.dot.setPixmap(qt_icons.pixmap(sign, colour, qt_theme.ICON["s"], ratio))
+        self.dot.setPixmap(qt_icons.pixmap(sign, colour, qt_theme.icon_px(qt_theme.ICON["s"]), ratio))
         _set(self.text, "" if compact else self._two_lines(text))
         self.text.setVisible(not compact)
         self.setAccessibleName(text)
@@ -591,7 +608,7 @@ class NavStatus(QFrame):
         self.text.ensurePolished()
         fm = self.text.fontMetrics()
         m = self.layout().contentsMargins()      # margins, the sign, the gap
-        width = nav_w() - m.left() - m.right() - qt_theme.ICON["s"] - self.layout().spacing()
+        width = nav_w() - m.left() - m.right() - qt_theme.icon_px(qt_theme.ICON["s"]) - self.layout().spacing()
         words, first = text.split(), ""
         for i, word in enumerate(words):
             t = f"{first} {word}" if first else word
@@ -658,7 +675,7 @@ class MainWindow(QMainWindow):
         self._qss = ""                    # the style sheet, set per part (_style_lazily)
         self._stale = []                  # pages still waiting for it
         self.forms = _Forms(self._build_form)
-        self.nav.setIconSize(QSize(NAV_ICON, NAV_ICON))
+        self.nav.setIconSize(QSize(nav_icon_px(), nav_icon_px()))
         self._pages = {}                   # page key -> its widget in the stack (the nav rows can be reordered)
         for key, label in PAGES:
             item = QListWidgetItem(_(label))
@@ -1207,9 +1224,13 @@ class MainWindow(QMainWindow):
         pal.setColor(QPalette.Disabled, QPalette.Text, QColor(qt_theme.colours(dark)["fg_dis"]))
         pal.setColor(QPalette.Disabled, QPalette.ButtonText, QColor(qt_theme.colours(dark)["fg_dis"]))
         QApplication.setPalette(pal)
+        old_zoom = qt_theme.current_zoom()
         qt_theme.set_dark(dark, zoom)                              # 1.22.3: state colours, editor zoom
         self._nav_widths()                                         # 1.38.11: the navigation grows with the zoom
         self._style_lazily(qt_theme.stylesheet(dark, zoom))
+        if zoom is not None and float(zoom) != old_zoom:           # 1.56: sizes set at build follow (on_zoom)
+            for w in [self.stack.widget(i) for i in range(self.stack.count())] + list(self.dialogs.values()):
+                rezoom(w, float(zoom))
         self._dark = bool(dark)
         self._signs_paint()                               # 1.24: navigation icons, compass, state dot, drawn signs
         try:
@@ -1225,7 +1246,7 @@ class MainWindow(QMainWindow):
         if qss == self._qss:
             return
         self._qss = qss
-        for w in (self._side, self.message, self.palette):
+        for w in (self._side, self.message, self.palette, *self.dialogs.values()):   # 1.56: open dialogs too
             w.setStyleSheet(qss)
         current = self.stack.currentWidget()
         self._stale = [self.stack.widget(i) for i in range(self.stack.count())]
@@ -1352,8 +1373,9 @@ class MainWindow(QMainWindow):
         row = QWidget()
         row.setObjectName("navbrand")
         h = QHBoxLayout(row)
-        h.setContentsMargins(NAV_SIGN_X - qt_theme.ICON["l"] // 2, 14, 10, 0)   # 1.24.7: on the icons' column
-        h.setSpacing(8)
+        h.setContentsMargins(nav_sign_x() - qt_theme.icon_px(qt_theme.ICON["l"]) // 2, 14, 10, 0)   # 1.24.7: on
+        h.setSpacing(8)                                                                       # the icons' column
+        self._brand_lay = h
         self.brand_icon = QLabel()
         self.brand_name = QLabel("Fog Scout")
         self.brand_name.setObjectName("brandname")
@@ -1365,7 +1387,7 @@ class MainWindow(QMainWindow):
     def _brand_paint(self):
         c = qt_theme.colours(self._dark)
         # 1.24.7 (visual QA): in the text's colour – the accent marks only a state and the main action
-        self.brand_icon.setPixmap(qt_icons.pixmap("compass", c["fg"], qt_theme.ICON["l"],
+        self.brand_icon.setPixmap(qt_icons.pixmap("compass", c["fg"], qt_theme.icon_px(qt_theme.ICON["l"]),
                                                   self.devicePixelRatioF() or 1.0))
 
     def show_status(self, kind: str, text: str):
@@ -1412,6 +1434,13 @@ class MainWindow(QMainWindow):
         self.search.setFixedWidth(nav_w())
         self.search_btn.setFixedWidth(nav_compact_w())
         self.status_btn.setFixedWidth(nav_compact_w() if on else nav_w())
+        side = nav_icon_px()                       # 1.56: the icons and the signs on their column grow too
+        if self.nav.iconSize().width() != side:
+            self.nav.setIconSize(QSize(side, side))
+            self.status_btn.rezoom()
+            m = self._brand_lay.contentsMargins()
+            self._brand_lay.setContentsMargins(nav_sign_x() - qt_theme.icon_px(qt_theme.ICON["l"]) // 2, m.top(),
+                                               m.right(), m.bottom())
 
     def _nav_texts(self):
         """Names in the rows (or as hover text while the navigation is narrow), whatever their order."""
