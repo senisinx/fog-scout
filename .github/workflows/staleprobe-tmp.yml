@@ -1,5 +1,6 @@
-# TEMPORARY, removed before the merge: the Windows suite twenty times with tests/staleprobe.py, to see where a label
-# gets the colour of a style sheet its window never had (failed once in "windows", passed in the re-run).
+# TEMPORARY, removed before the merge: the Windows suite twenty times with and twenty times without the remedy
+# (qt_app.set_sheet), each with tests/staleprobe.py, to see where a widget is styled with a sheet that is not its own
+# (the theme test failed once in "windows", passed in the re-run).
 name: Stale sheet probe (temporary)
 
 on:
@@ -14,12 +15,13 @@ concurrency:
 
 jobs:
   probe:
-    name: probe ${{ matrix.run }}
+    name: probe ${{ matrix.remedy }} ${{ matrix.run }}
     runs-on: windows-latest
     timeout-minutes: 40
     strategy:
       fail-fast: false
       matrix:
+        remedy: [with, without]
         run: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262  # v4.4.0
@@ -39,6 +41,7 @@ jobs:
         env:
           PYTHONUNBUFFERED: "1"
           PYTHONPATH: tests
+          STALEPROBE_UNFIXED: ${{ matrix.remedy == 'without' && '1' || '0' }}
         run: |
           python -X faulthandler -m pytest -q --timeout=900 -p staleprobe tests
           python -X faulthandler -m pytest -q --timeout=900 -p staleprobe tests
