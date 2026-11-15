@@ -364,6 +364,9 @@ def test_perk_pictures_are_found_by_the_perks_name_or_the_packs_file_name(tmp_pa
     assert os.path.dirname(index.find("Botany Knowledge")) == str(user)
     assert perkicons.key("iconPerks_We'reGonnaLiveForever") == perkicons.key("We're Gonna Live Forever")
     assert perkicons.key("T_UI_iconsPerks_Rampage") == perkicons.key("IconsPerks_Rampage") == "rampage"
+    # the beginning goes only with its underscore: "IconAddon_scraps" must not lose the s of its name
+    assert perkicons.key("IconAddon_scraps") == "scraps" and perkicons.key("IconItems_toolbox") == "toolbox"
+    assert perkicons.key("Iconoclast") == "iconoclast"
     empty = perkicons.Index([str(tmp_path / "nothing")])
     assert not empty.any() and empty.find("Botany Knowledge") is None
     assert perkicons.folders("D") == [os.path.join("D", perkicons.USER_FOLDER),
@@ -371,16 +374,22 @@ def test_perk_pictures_are_found_by_the_perks_name_or_the_packs_file_name(tmp_pa
 
 
 def test_every_perk_of_the_calculator_has_its_picture_in_the_program():
-    """Saru: "Wiki ist in Ordnung" – the perks' pictures come with the program (64 px PNG from the Dead by Daylight
-    Wiki, THIRD_PARTY.md): one for every perk of perkdata.json, nothing else in the folder, each a small picture."""
+    """Saru: "Wiki ist in Ordnung" – the pictures come with the program (64 px PNG from the Dead by Daylight Wiki,
+    THIRD_PARTY.md): one for every perk of perkdata.json and (1.53, "ja") for every item and add-on, each of its
+    own kind, nothing else in the folder, each a small picture."""
     from PIL import Image
     folder = os.path.join(perkicons.HERE, perkicons.FOLDER)
     index = perkicons.Index([folder])
-    names = set(D.survivor) | set(D.killer) | set(D.perks)
-    assert [n for n in sorted(names) if index.find(n) is None] == []
+    perks = set(D.survivor) | set(D.killer) | set(D.perks)
+    others = set(D.toolboxes) | set(D.medkits) | set(D.item_addons) | set(D.killer_addons)
+    names = perks | others
+    assert not perks & others and [n for n in sorted(names) if index.find(n) is None] == []
+    assert all("perks_" in os.path.basename(index.find(n)).lower() for n in perks)
+    kind = [os.path.basename(index.find(n)).lower().removeprefix("t_ui_") for n in sorted(others)]
+    assert all(k.startswith(("iconaddon_", "iconitems_")) for k in kind)
     used = {index.find(part) for n in names for part in n.split(" / ")} - {None}
     files = sorted(os.listdir(folder))
-    assert sorted(os.path.basename(p) for p in used) == files and len(files) > 100
+    assert sorted(os.path.basename(p) for p in used) == files and len(files) > 190
     for name in files:
         path = os.path.join(folder, name)
         assert name.endswith(".png") and os.path.getsize(path) < 16 * 1024, name
@@ -540,6 +549,10 @@ def test_the_page_takes_a_killer_its_add_ons_and_the_items_add_ons(app_root):
         assert app.calc_killer_var.get() == "The Clown"
         (box1, add1), (box2, add2) = app.calc_killer_addons
         assert add1.get() == "Cheap Gin Bottle" and add2.get() == app_calc.NONE
+        from fogscout import app_qt
+        st = app_qt.ui_state(box1)                                   # the add-ons' pictures go to the page
+        assert st["icons"][0] is None and all("iconAddon_" in os.path.basename(p) or "IconAddon_" in
+                                              os.path.basename(p) for p in st["icons"][1:])
         assert list(box1.cget("values")) == [app_calc.NONE] + g.killer_addon_names(D, "The Clown")
         assert list(t.get_children()) == [f"{g.KILLER}:kbase", f"{g.KILLER}:kalt0", f"{g.KILLER}:carry"]
         assert t.item(f"{g.KILLER}:kbase", "text") == "Grundgeschwindigkeit"

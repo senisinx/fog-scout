@@ -271,12 +271,12 @@ class CalcTab:
             lab._dbdms_px = NAME_PX
             lab.pack(side="left")
             tv = ui.StringVar(value=tool if tool in item_names else NONE)
-            self._calc_choice(r, tv, item_names).pack(side="left", padx=(6, 0))
+            self._calc_choice(r, tv, item_names, icons=True).pack(side="left", padx=(6, 0))
             ui.Label(r, text=_("Add-ons")).pack(side="left", padx=(12, 0))
             slots = []
             for k in range(ADDON_SLOTS):                    # 1.53: the item's add-ons (those of the item in hand)
                 av = ui.StringVar(value=had[k] if k < len(had) and had[k] in d.item_addons else NONE)
-                c = self._calc_choice(r, av, [NONE])
+                c = self._calc_choice(r, av, [NONE], icons=True)
                 c.pack(side="left", padx=(6, 0))
                 slots.append((c, av))
             self.calc_item_addons.append(slots)
@@ -301,7 +301,7 @@ class CalcTab:
         had = list(st["killer_addons"]) if isinstance(st["killer_addons"], list) else []
         for k in range(ADDON_SLOTS):
             av = ui.StringVar(value=had[k] if k < len(had) and had[k] in d.killer_addons else NONE)
-            c = self._calc_choice(r, av, [NONE], px=PERK_PX + 16)
+            c = self._calc_choice(r, av, [NONE], px=PERK_PX + 16, icons=True)
             c.pack(side="left", padx=(6, 0))
             self.calc_killer_addons.append((c, av))
         self.calc_killer_hint = ui.StringVar(value="")
