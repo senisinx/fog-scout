@@ -1957,6 +1957,98 @@ T = {
         'Claude は現在混み合っています – 数分後にもう一度お試しください。',
     'Claude hat die Anfrage nicht angenommen – zu gross oder vom gewählten Modell nicht unterstützt.':
         'Claude がリクエストを受け付けませんでした – 大きすぎるか、選択したモデルが対応していません。',
+    'Annahmen':
+        '前提',
+    'Anzahl':
+        '回数',
+    'Anzahl = {what}':
+        '回数 = {what}',
+    'Bedingte Perks zählen als aktiv (z. B. Resilience = verletzt, Déjà Vu = auf einem der drei nahen Generatoren).':
+        '条件付きのパークは発動中として計算します（例：Resilience = 負傷、Déjà Vu = 近い3台の発電機のいずれか）。',
+    'Der Killer nimmt dem Generator {lost} Ladungen (Regressions-Ereignisse: {events}).':
+        'キラーにより発電機は {lost} チャージを失います（後退イベント：{events}）。',
+    'Diminishing Returns anwenden':
+        '効果逓減を適用',
+    'Ein Generator, Survivor 1 allein':
+        '発電機1台、サバイバー1のみ',
+    'Ein Generator, {n} Survivor':
+        '発電機1台、サバイバー{n}人',
+    'Fünf Generatoren, alle zusammen':
+        '発電機5台、全員で一緒に',
+    'Fünf Generatoren, jeder allein':
+        '発電機5台、各自で',
+    'Great Skill Checks':
+        'グレートスキルチェック',
+    'Kicks am Generator':
+        '発電機を蹴る回数',
+    'Killer kommt bei':
+        'キラーが来る進捗',
+    'Killer-Build':
+        'キラーのビルド',
+    'Laufweg zwischen Generatoren':
+        '発電機間の移動',
+    'Mit Diminishing Returns: {on} · ohne: {off} (ein Generator, alle, ohne Killer).':
+        '効果逓減あり：{on} · なし：{off}（発電機1台、全員、キラーなし）。',
+    'Perks kombinieren und ausrechnen, wie lange ein Generator dauert':
+        'パークを組み合わせて発電機にかかる時間を計算',
+    'Rechner':
+        '計算機',
+    'Situation':
+        '状況',
+    'Survivor am Generator':
+        '発電機を修理するサバイバー',
+    'Survivor {n}':
+        'サバイバー{n}',
+    'Survivor-Builds':
+        'サバイバーのビルド',
+    'S{n}: {v} c/s':
+        'S{n}: {v} c/s',
+    'Tempo am Generator (Ladungen pro Sekunde, Grundwert 1): {speeds}':
+        '発電機での速度（毎秒チャージ、基本値 1）：{speeds}',
+    'Verfehlte Skill Checks':
+        '失敗したスキルチェック',
+    'Weg nach dem Kick':
+        '蹴られた後に離れる時間',
+    'Werte aus dem Dead by Daylight Wiki (deadbydaylight.wiki.gg, Stand {date}), nach jedem Patch zu prüfen. Nicht berechnet: {names}.':
+        '数値は Dead by Daylight Wiki（deadbydaylight.wiki.gg、{date} 時点）によります。パッチのたびに確認が必要です。計算対象外：{names}。',
+    'mit Killer':
+        'キラーあり',
+    'ohne Killer':
+        'キラーなし',
+    'verletzte, sterbende oder aufgehängte Survivor':
+        '負傷・瀕死・フックに吊られたサバイバー',
+    'Tokens (Haken an anderen als der Obsession)':
+        'トークン（オブセッション以外を吊った回数）',
+    'neu entzündete Totems':
+        '再点火されたトーテム',
+    '1 = die Survivor sind im Terrorradius':
+        '1 = サバイバーが脅威範囲内',
+    'Kicks mit aktivem Perk (20 % statt 5 %)':
+        'パーク発動中のキック（5 % ではなく 20 %）',
+    'Haken, die diesen Generator treffen':
+        'この発電機に当たるフック回数',
+    'Downs per Basisangriff in 32 m um diesen Generator':
+        'この発電機から 32 m 以内で通常攻撃によりダウンさせた回数',
+    'Downs, während dieser Generator markiert ist':
+        'この発電機がマークされている間のダウン回数',
+    'Einsätze auf diesen Generator':
+        'この発電機への使用回数',
+    'Tokens beim ersten Kick':
+        '最初のキック時のトークン',
+    'so oft wird dieser Generator blockiert':
+        'この発電機がブロックされる回数',
+    'erste Haken (1–3)':
+        '初回フック（1～3）',
+    '1 = dieser Generator ist am Start blockiert':
+        '1 = この発電機は開始時にブロックされる',
+    'An (wie im Spiel seit Patch 9.6.0): von mehreren Tempo-Boni zählt der grösste voll, der zweite halb, der dritte zu einem Viertel, der vierte zu einem Achtel. Aus: alle Boni zählen voll – zum Vergleich.':
+        'オン（パッチ 9.6.0 以降のゲームと同じ）：複数の速度ボーナスのうち最大のものは全額、2番目は半分、3番目は4分の1、4番目は8分の1で計算します。オフ：すべて全額で計算（比較用）。',
+    'Werkzeugkasten':
+        '工具箱',
+    'Eingerechnet: {what}.':
+        '計算に含む：{what}。',
+    'Kicks und die Anzahl je Killer-Perk gelten für jeden Generator einzeln.':
+        'キックの回数とキラーのパークごとの回数は、発電機1台ごとに適用されます。',
     'Claude hat unverständlich geantwortet.':
         'Claude の回答を読み取れませんでした。',
     'Claude ist nicht erreichbar – keine Internetverbindung?':

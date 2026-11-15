@@ -1957,6 +1957,98 @@ T = {
         'Claude 目前负载过高 – 请几分钟后重试。',
     'Claude hat die Anfrage nicht angenommen – zu gross oder vom gewählten Modell nicht unterstützt.':
         'Claude 未接受该请求 – 请求过大或所选模型不支持。',
+    'Annahmen':
+        '假设',
+    'Anzahl':
+        '数量',
+    'Anzahl = {what}':
+        '数量 = {what}',
+    'Bedingte Perks zählen als aktiv (z. B. Resilience = verletzt, Déjà Vu = auf einem der drei nahen Generatoren).':
+        '有条件的技能按已生效计算（例如 Resilience = 受伤，Déjà Vu = 在三台相近的发电机之一上）。',
+    'Der Killer nimmt dem Generator {lost} Ladungen (Regressions-Ereignisse: {events}).':
+        '杀手使发电机损失 {lost} 点充能（回退事件：{events}）。',
+    'Diminishing Returns anwenden':
+        '应用收益递减',
+    'Ein Generator, Survivor 1 allein':
+        '一台发电机，逃生者 1 单独',
+    'Ein Generator, {n} Survivor':
+        '一台发电机，{n} 名逃生者',
+    'Fünf Generatoren, alle zusammen':
+        '五台发电机，全员一起',
+    'Fünf Generatoren, jeder allein':
+        '五台发电机，各自单独',
+    'Great Skill Checks':
+        '完美技能检定',
+    'Kicks am Generator':
+        '踢发电机次数',
+    'Killer kommt bei':
+        '杀手到来时的进度',
+    'Killer-Build':
+        '杀手配置',
+    'Laufweg zwischen Generatoren':
+        '发电机之间的路程',
+    'Mit Diminishing Returns: {on} · ohne: {off} (ein Generator, alle, ohne Killer).':
+        '应用收益递减：{on} · 不应用：{off}（一台发电机，全员，无杀手）。',
+    'Perks kombinieren und ausrechnen, wie lange ein Generator dauert':
+        '组合技能，计算修好一台发电机需要多久',
+    'Rechner':
+        '计算器',
+    'Situation':
+        '情况',
+    'Survivor am Generator':
+        '修理发电机的逃生者',
+    'Survivor {n}':
+        '逃生者 {n}',
+    'Survivor-Builds':
+        '逃生者配置',
+    'S{n}: {v} c/s':
+        'S{n}: {v} c/s',
+    'Tempo am Generator (Ladungen pro Sekunde, Grundwert 1): {speeds}':
+        '修理速度（每秒充能，基础值 1）：{speeds}',
+    'Verfehlte Skill Checks':
+        '失败的技能检定',
+    'Weg nach dem Kick':
+        '被踢后离开的时间',
+    'Werte aus dem Dead by Daylight Wiki (deadbydaylight.wiki.gg, Stand {date}), nach jedem Patch zu prüfen. Nicht berechnet: {names}.':
+        '数值来自 Dead by Daylight Wiki（deadbydaylight.wiki.gg，截至 {date}），每次补丁后需核对。未计算：{names}。',
+    'mit Killer':
+        '有杀手',
+    'ohne Killer':
+        '无杀手',
+    'verletzte, sterbende oder aufgehängte Survivor':
+        '受伤、倒地或被挂钩的逃生者',
+    'Tokens (Haken an anderen als der Obsession)':
+        '标记（挂钩非痴迷对象的次数）',
+    'neu entzündete Totems':
+        '重新点燃的图腾',
+    '1 = die Survivor sind im Terrorradius':
+        '1 = 逃生者处于恐惧范围内',
+    'Kicks mit aktivem Perk (20 % statt 5 %)':
+        '技能生效时的踢击（20 % 而非 5 %）',
+    'Haken, die diesen Generator treffen':
+        '影响这台发电机的挂钩次数',
+    'Downs per Basisangriff in 32 m um diesen Generator':
+        '在这台发电机 32 米内用普通攻击击倒的次数',
+    'Downs, während dieser Generator markiert ist':
+        '这台发电机被标记期间的击倒次数',
+    'Einsätze auf diesen Generator':
+        '对这台发电机使用的次数',
+    'Tokens beim ersten Kick':
+        '第一次踢击时的标记数',
+    'so oft wird dieser Generator blockiert':
+        '这台发电机被封锁的次数',
+    'erste Haken (1–3)':
+        '首次挂钩（1–3）',
+    '1 = dieser Generator ist am Start blockiert':
+        '1 = 这台发电机在开局被封锁',
+    'An (wie im Spiel seit Patch 9.6.0): von mehreren Tempo-Boni zählt der grösste voll, der zweite halb, der dritte zu einem Viertel, der vierte zu einem Achtel. Aus: alle Boni zählen voll – zum Vergleich.':
+        '开启（与 9.6.0 补丁后的游戏一致）：多个速度加成中最大者全额生效，第二个减半，第三个四分之一，第四个八分之一。关闭：所有加成全额生效，用于比较。',
+    'Werkzeugkasten':
+        '工具箱',
+    'Eingerechnet: {what}.':
+        '已计入：{what}。',
+    'Kicks und die Anzahl je Killer-Perk gelten für jeden Generator einzeln.':
+        '踢击次数和每个杀手技能的数量按每台发电机单独计算。',
     'Claude hat unverständlich geantwortet.':
         'Claude 给出的回答无法读取。',
     'Claude ist nicht erreichbar – keine Internetverbindung?':

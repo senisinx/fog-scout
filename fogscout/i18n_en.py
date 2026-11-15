@@ -1474,6 +1474,98 @@ EN = {
         'Claude is overloaded right now – try again in a few minutes.',
     'Claude hat die Anfrage nicht angenommen – zu gross oder vom gewählten Modell nicht unterstützt.':
         'Claude did not accept the request – too large or not supported by the chosen model.',
+    'Annahmen':
+        'Assumptions',
+    'Anzahl':
+        'Count',
+    'Anzahl = {what}':
+        'Count = {what}',
+    'Bedingte Perks zählen als aktiv (z. B. Resilience = verletzt, Déjà Vu = auf einem der drei nahen Generatoren).':
+        'Conditional perks count as active (e.g. Resilience = injured, Déjà Vu = on one of the three close generators).',
+    'Der Killer nimmt dem Generator {lost} Ladungen (Regressions-Ereignisse: {events}).':
+        'The killer takes {lost} charges from the generator (regression events: {events}).',
+    'Diminishing Returns anwenden':
+        'Apply diminishing returns',
+    'Ein Generator, Survivor 1 allein':
+        'One generator, survivor 1 alone',
+    'Ein Generator, {n} Survivor':
+        'One generator, {n} survivors',
+    'Fünf Generatoren, alle zusammen':
+        'Five generators, everyone together',
+    'Fünf Generatoren, jeder allein':
+        'Five generators, everyone alone',
+    'Great Skill Checks':
+        'Great skill checks',
+    'Kicks am Generator':
+        'Kicks on the generator',
+    'Killer kommt bei':
+        'Killer arrives at',
+    'Killer-Build':
+        'Killer build',
+    'Laufweg zwischen Generatoren':
+        'Walk between generators',
+    'Mit Diminishing Returns: {on} · ohne: {off} (ein Generator, alle, ohne Killer).':
+        'With diminishing returns: {on} · without: {off} (one generator, everyone, no killer).',
+    'Perks kombinieren und ausrechnen, wie lange ein Generator dauert':
+        'Combine perks and work out how long a generator takes',
+    'Rechner':
+        'Calculator',
+    'Situation':
+        'Situation',
+    'Survivor am Generator':
+        'Survivors on the generator',
+    'Survivor {n}':
+        'Survivor {n}',
+    'Survivor-Builds':
+        'Survivor builds',
+    'S{n}: {v} c/s':
+        'S{n}: {v} c/s',
+    'Tempo am Generator (Ladungen pro Sekunde, Grundwert 1): {speeds}':
+        'Speed on the generator (charges per second, base 1): {speeds}',
+    'Verfehlte Skill Checks':
+        'Missed skill checks',
+    'Weg nach dem Kick':
+        'Away after the kick',
+    'Werte aus dem Dead by Daylight Wiki (deadbydaylight.wiki.gg, Stand {date}), nach jedem Patch zu prüfen. Nicht berechnet: {names}.':
+        'Values from the Dead by Daylight Wiki (deadbydaylight.wiki.gg, as of {date}), to be checked after every patch. Not calculated: {names}.',
+    'mit Killer':
+        'with killer',
+    'ohne Killer':
+        'without killer',
+    'verletzte, sterbende oder aufgehängte Survivor':
+        'injured, dying or hooked survivors',
+    'Tokens (Haken an anderen als der Obsession)':
+        'tokens (hooks of survivors other than the obsession)',
+    'neu entzündete Totems':
+        'rekindled totems',
+    '1 = die Survivor sind im Terrorradius':
+        '1 = the survivors are inside the terror radius',
+    'Kicks mit aktivem Perk (20 % statt 5 %)':
+        'kicks with the perk active (20 % instead of 5 %)',
+    'Haken, die diesen Generator treffen':
+        'hooks that hit this generator',
+    'Downs per Basisangriff in 32 m um diesen Generator':
+        'downs with a basic attack within 32 m of this generator',
+    'Downs, während dieser Generator markiert ist':
+        'downs while this generator is marked',
+    'Einsätze auf diesen Generator':
+        'uses on this generator',
+    'Tokens beim ersten Kick':
+        'tokens at the first kick',
+    'so oft wird dieser Generator blockiert':
+        'how often this generator is blocked',
+    'erste Haken (1–3)':
+        'first hooks (1–3)',
+    '1 = dieser Generator ist am Start blockiert':
+        '1 = this generator is blocked at the start',
+    'An (wie im Spiel seit Patch 9.6.0): von mehreren Tempo-Boni zählt der grösste voll, der zweite halb, der dritte zu einem Viertel, der vierte zu einem Achtel. Aus: alle Boni zählen voll – zum Vergleich.':
+        'On (as in the game since patch 9.6.0): of several speed bonuses the largest counts fully, the second half, the third a quarter, the fourth an eighth. Off: every bonus counts fully – for comparison.',
+    'Werkzeugkasten':
+        'Toolbox',
+    'Eingerechnet: {what}.':
+        'Included: {what}.',
+    'Kicks und die Anzahl je Killer-Perk gelten für jeden Generator einzeln.':
+        'Kicks and the count per killer perk apply to each generator separately.',
     'Claude hat unverständlich geantwortet.': 'Claude gave an answer that could not be read.',
     'Claude ist nicht erreichbar – keine Internetverbindung?': 'Claude cannot be reached – no internet connection?',
     'Claude: Zu viele Anfragen – gleich noch einmal versuchen.': 'Claude: too many requests – try again in a moment.',

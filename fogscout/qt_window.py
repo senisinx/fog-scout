@@ -95,7 +95,8 @@ __all__ = (
 # key, label (the navigation's icons are drawn by nav_icon: same size and place for all)
 NAV_KEYS = 9                      # 1.17: Ctrl+1 … Ctrl+9 jump to the pages of the navigation
 PAGES = (("overview", N_("Übersicht")), ("maps", N_("Maps")), ("overlay", N_("Overlay")), ("stats", N_("Statistik")),
-         ("recordings", N_("Aufnahmen")), ("server", N_("Server")), ("settings", N_("Einstellungen")),
+         ("recordings", N_("Aufnahmen")), ("calc", N_("Rechner")), ("server", N_("Server")),
+         ("settings", N_("Einstellungen")),
          ("log", N_("Log")))          # 1.8.78: "Erkennung" went into the settings (cards) and the log ("Erweitert")
 
 
@@ -127,7 +128,7 @@ def nav_compact_w() -> int:
 NAV_COMPACT_BELOW = 960           # px (logical) window width from which the navigation shows only icons
 
 
-AUTO_PAGES = ("stats", "recordings", "server", "log")   # built from the tab's structure (app_qt.ui_layout)
+AUTO_PAGES = ("stats", "recordings", "calc", "server", "log")   # built from the tab's structure (app_qt.ui_layout)
 
 
 FOUND_MS = 1800                   # ms a search hit's card stays lit
@@ -425,6 +426,13 @@ def nav_icon(key: str, colour: str, ratio: float = 1.0, alert: bool = False) -> 
             x = m + 1.5 + i * 4.6
             p.drawLine(QPointF(x, base - 1.5), QPointF(x, base - 1.5 - h))
         p.drawLine(QPointF(m, base), QPointF(size - m, base))
+    elif key == "calc":                        # 1.51: a calculator – frame, display, two rows of keys
+        p.drawRoundedRect(QRectF(m + 1.5, m, size - 2 * m - 3, size - 2 * m), 2, 2)
+        p.drawLine(QPointF(m + 4, m + 3.5), QPointF(size - m - 4, m + 3.5))
+        p.setBrush(col)
+        for x in (c - 2.6, c + 2.6):
+            for y in (c + 1.2, c + 5.0):
+                p.drawEllipse(QPointF(x, y), 0.9, 0.9)
     elif key == "server":                      # globe
         p.drawEllipse(QPointF(c, c), 6.5, 6.5)
         p.drawEllipse(QPointF(c, c), 2.8, 6.5)

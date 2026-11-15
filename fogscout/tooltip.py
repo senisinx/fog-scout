@@ -177,6 +177,9 @@ TIPS = {
     "Farming an/aus": "Diese Runde als Farming-Runde zählen bzw. wieder als normale Runde – Farming-Runden "
                       "zählen überall mit, bis „Farming ausblenden“ sie heraushält; der Reiter „Farming“ listet sie "
                       "immer. Runden auf der Farming-Region (Einstellungen → Match-Daten) bleiben Farming.",
+    "Diminishing Returns anwenden": "An (wie im Spiel seit Patch 9.6.0): von mehreren Tempo-Boni zählt der grösste "
+                                    "voll, der zweite halb, der dritte zu einem Viertel, der vierte zu einem Achtel. "
+                                    "Aus: alle Boni zählen voll – zum Vergleich.",                    # 1.51
     "Farming ausblenden": "An: Farming-Runden (Crossplay aus, Farming-Region, Farming-Gegner) bleiben aus Statistik, "
                           "Aufnahmen und Clips draussen – ein Schalter für alle drei. Aus: sie zählen wie jede andere "
                           "Runde. Der Reiter Statistik → Farming zeigt sie immer.",

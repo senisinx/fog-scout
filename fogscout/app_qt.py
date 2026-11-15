@@ -82,6 +82,8 @@ def ui_layout(w, reg: dict):
         node = {"kind": kind, "key": key, "side": _side(w)}
         if note:
             node["note"] = True
+        if getattr(w, "_dbdms_px", None):            # 1.51: a choice of fixed width (the calculator's perk rows)
+            node["px"] = int(w._dbdms_px)
         if getattr(w, "_dbdms_fold", None):          # 1.38.13: shut behind a fold (qt_pages.make_fold)
             node["fold"] = w._dbdms_fold
         if isinstance(w, ui.Treeview):           # packed without expand: as tall as its rows (server regions)

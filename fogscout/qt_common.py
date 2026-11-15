@@ -83,6 +83,7 @@ PAGE_SUBTITLES = {
     "overlay": N_("Was im Spiel erscheint, wo und wie gross"),
     "stats": N_("Deine Runden, Kills und Wartezeiten – nur auf diesem PC gespeichert"),
     "recordings": N_("Runden, Clips und Screenshots – abspielen, schneiden, aufräumen"),
+    "calc": N_("Perks kombinieren und ausrechnen, wie lange ein Generator dauert"),
     "server": N_("Server-Regionen wählen und die Verbindung im Blick behalten"),
     "settings": N_("Alles, was Fog Scout tut – suchen mit Strg+F"),
     "log": N_("Was das Programm gemacht hat – zum Nachlesen und für die Fehlersuche"),

@@ -44,6 +44,7 @@ from .app_spotify import SpotifyUpNext
 from .app_youtube import YouTubeUpload
 from .app_palette import PaletteMixin
 from .app_inputs import InputsCard
+from .app_calc import CalcTab
 
 LANGS = [("en", "EN"), ("de", "DE"), ("fr", "FR"), ("es", "ES"), ("es-MX", "ES-MX"), ("it", "IT"),
          ("pl", "PL"), ("pt-BR", "PT"), ("tr", "TR"),
@@ -76,7 +77,7 @@ log = logging.getLogger("fogscout")
 
 
 class App(ServerTab, StatsTab, ExportDialog, RecordingsTab, DiscordPresence, SpotifyUpNext, YouTubeUpload, LobbyInfo,
-          Hotkeys, SettingsTab, PaletteMixin,
+          Hotkeys, SettingsTab, PaletteMixin, CalcTab,
           SysInfo, InputsCard, OverlayPlacement, LayoutMemory, OverlayTab, QtShell):
     def __init__(self, root_dir: str, simulate: str | None = None, start_in_tray: bool = False, progress=None,
                  data_dir: str | None = None, start_clock=None):
@@ -261,11 +262,13 @@ class App(ServerTab, StatsTab, ExportDialog, RecordingsTab, DiscordPresence, Spo
         self.tab_log = self._tab_log()
         self.tab_stats = self._tab_stats()
         self.tab_recordings = self._tab_recordings()          # 1.5
+        self.tab_calc = self._tab_calc()                      # 1.51: the generator calculator
         self.tab_settings = self._tab_settings()
         self.nb.add(self.tab_maps, text="Maps")
         self.nb.add(self.tab_overlay, text=_("Overlay"))
         self.nb.add(self.tab_stats, text=_("Statistik"))
         self.nb.add(self.tab_recordings, text=_("Aufnahmen"))
+        self.nb.add(self.tab_calc, text=_("Rechner"))
         self.nb.add(self.tab_server, text=_("Server"))
         self.nb.add(self.tab_settings, text=_("Einstellungen"))
         self.nb.add(self.tab_log, text=_("Log"))

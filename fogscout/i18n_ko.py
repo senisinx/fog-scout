@@ -1957,6 +1957,98 @@ T = {
         'Claude가 지금 과부하 상태입니다 – 몇 분 후에 다시 시도하세요.',
     'Claude hat die Anfrage nicht angenommen – zu gross oder vom gewählten Modell nicht unterstützt.':
         'Claude가 요청을 받지 않았습니다 – 너무 크거나 선택한 모델이 지원하지 않습니다.',
+    'Annahmen':
+        '가정',
+    'Anzahl':
+        '횟수',
+    'Anzahl = {what}':
+        '횟수 = {what}',
+    'Bedingte Perks zählen als aktiv (z. B. Resilience = verletzt, Déjà Vu = auf einem der drei nahen Generatoren).':
+        '조건부 퍽은 발동 중으로 계산합니다(예: Resilience = 부상, Déjà Vu = 가까운 발전기 세 대 중 하나).',
+    'Der Killer nimmt dem Generator {lost} Ladungen (Regressions-Ereignisse: {events}).':
+        '살인마가 발전기에서 충전량 {lost}을(를) 빼앗습니다(퇴행 이벤트: {events}).',
+    'Diminishing Returns anwenden':
+        '효과 감쇠 적용',
+    'Ein Generator, Survivor 1 allein':
+        '발전기 1대, 생존자 1 혼자',
+    'Ein Generator, {n} Survivor':
+        '발전기 1대, 생존자 {n}명',
+    'Fünf Generatoren, alle zusammen':
+        '발전기 5대, 모두 함께',
+    'Fünf Generatoren, jeder allein':
+        '발전기 5대, 각자 따로',
+    'Great Skill Checks':
+        '대성공 기술 검사',
+    'Kicks am Generator':
+        '발전기 걷어차기 횟수',
+    'Killer kommt bei':
+        '살인마가 오는 진행도',
+    'Killer-Build':
+        '살인마 빌드',
+    'Laufweg zwischen Generatoren':
+        '발전기 사이 이동',
+    'Mit Diminishing Returns: {on} · ohne: {off} (ein Generator, alle, ohne Killer).':
+        '효과 감쇠 적용: {on} · 미적용: {off}(발전기 1대, 전원, 살인마 없음).',
+    'Perks kombinieren und ausrechnen, wie lange ein Generator dauert':
+        '퍽을 조합해 발전기 수리 시간을 계산',
+    'Rechner':
+        '계산기',
+    'Situation':
+        '상황',
+    'Survivor am Generator':
+        '발전기를 수리하는 생존자',
+    'Survivor {n}':
+        '생존자 {n}',
+    'Survivor-Builds':
+        '생존자 빌드',
+    'S{n}: {v} c/s':
+        'S{n}: {v} c/s',
+    'Tempo am Generator (Ladungen pro Sekunde, Grundwert 1): {speeds}':
+        '발전기 수리 속도(초당 충전량, 기본값 1): {speeds}',
+    'Verfehlte Skill Checks':
+        '실패한 기술 검사',
+    'Weg nach dem Kick':
+        '걷어차인 뒤 자리를 비우는 시간',
+    'Werte aus dem Dead by Daylight Wiki (deadbydaylight.wiki.gg, Stand {date}), nach jedem Patch zu prüfen. Nicht berechnet: {names}.':
+        '수치는 Dead by Daylight Wiki(deadbydaylight.wiki.gg, {date} 기준)에서 가져왔으며 패치마다 확인해야 합니다. 계산하지 않음: {names}.',
+    'mit Killer':
+        '살인마 있음',
+    'ohne Killer':
+        '살인마 없음',
+    'verletzte, sterbende oder aufgehängte Survivor':
+        '부상·빈사·갈고리에 걸린 생존자',
+    'Tokens (Haken an anderen als der Obsession)':
+        '토큰(집착 대상이 아닌 생존자를 건 횟수)',
+    'neu entzündete Totems':
+        '다시 불붙인 토템',
+    '1 = die Survivor sind im Terrorradius':
+        '1 = 생존자가 공포 범위 안에 있음',
+    'Kicks mit aktivem Perk (20 % statt 5 %)':
+        '퍽 발동 중 걷어차기(5 % 대신 20 %)',
+    'Haken, die diesen Generator treffen':
+        '이 발전기에 적용되는 갈고리 횟수',
+    'Downs per Basisangriff in 32 m um diesen Generator':
+        '이 발전기 32 m 안에서 기본 공격으로 쓰러뜨린 횟수',
+    'Downs, während dieser Generator markiert ist':
+        '이 발전기가 표시된 동안 쓰러뜨린 횟수',
+    'Einsätze auf diesen Generator':
+        '이 발전기에 사용한 횟수',
+    'Tokens beim ersten Kick':
+        '첫 걷어차기 때의 토큰',
+    'so oft wird dieser Generator blockiert':
+        '이 발전기가 봉쇄되는 횟수',
+    'erste Haken (1–3)':
+        '첫 갈고리(1–3)',
+    '1 = dieser Generator ist am Start blockiert':
+        '1 = 이 발전기는 시작할 때 봉쇄됨',
+    'An (wie im Spiel seit Patch 9.6.0): von mehreren Tempo-Boni zählt der grösste voll, der zweite halb, der dritte zu einem Viertel, der vierte zu einem Achtel. Aus: alle Boni zählen voll – zum Vergleich.':
+        '켜짐(9.6.0 패치 이후 게임과 동일): 여러 속도 보너스 중 가장 큰 것은 전부, 두 번째는 절반, 세 번째는 4분의 1, 네 번째는 8분의 1만 적용됩니다. 꺼짐: 모든 보너스를 전부 적용(비교용).',
+    'Werkzeugkasten':
+        '공구 상자',
+    'Eingerechnet: {what}.':
+        '반영됨: {what}.',
+    'Kicks und die Anzahl je Killer-Perk gelten für jeden Generator einzeln.':
+        '걷어차기 횟수와 살인마 퍽별 횟수는 발전기마다 따로 적용됩니다.',
     'Claude hat unverständlich geantwortet.':
         'Claude의 답변을 읽을 수 없습니다.',
     'Claude ist nicht erreichbar – keine Internetverbindung?':

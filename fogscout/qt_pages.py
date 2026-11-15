@@ -1682,6 +1682,11 @@ class AutoPage(QWidget, _Arranged):
         if n.get("fold") and not isinstance(lay, (QHBoxLayout, FlowRow)):
             lay = make_fold(n["fold"], lay)               # 1.38.13: a long explanation shut behind "Erklärung"
         w, extra = make_control(kind, key, self._post)
+        if kind == "combo" and n.get("px"):               # 1.51: as wide as the model says, whatever its longest
+            w.setSizeAdjustPolicy(QComboBox.AdjustToMinimumContentsLengthWithIcon)     # entry (the list shows all
+            w.setFixedWidth(round(n["px"] * qt_theme.current_zoom()))                   # of it: view at its own width)
+            w.view().setTextElideMode(Qt.ElideNone)
+            w.view().setMinimumWidth(round(260 * qt_theme.current_zoom()))
         if n.get("note"):                                 # 1.23: a warning line of the model ("Note.TLabel")
             w.setProperty("class", "note")
         if kind == "table" and n.get("fit"):
