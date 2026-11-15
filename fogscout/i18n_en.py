@@ -1568,6 +1568,20 @@ EN = {
         '+{p} % speed for everyone for {s} s after a generator finished together',
     'jeder Great Skill Check in Folge bringt {p} % mehr Bonus (bis {n} Tokens)':
         'every great skill check in a row gives {p} % more bonus (up to {n} tokens)',
+    'Skill Checks kommen öfter: +{p} Prozentpunkte Chance je Sekunde':
+        'skill checks come more often: +{p} percentage points of chance per second',
+    'Skill Checks kommen für alle am Generator öfter: +{p} Prozentpunkte Chance je Sekunde':
+        'skill checks come more often for everyone at the generator: +{p} percentage points of chance per second',
+    'Skill Checks der Survivor kommen öfter: +{p} Prozentpunkte Chance je Sekunde':
+        "the survivors' skill checks come more often: +{p} percentage points of chance per second",
+    'ein verfehlter Skill Check kostet {p} % Fortschritt mehr':
+        'a missed skill check costs {p} % more progress',
+    'jeder erfolgreiche Skill Check der anderen bringt im Mittel +{p} % Fortschritt (W20)':
+        'every successful skill check of the others gives +{p} % progress on average (d20)',
+    'ein verfehlter Skill Check kostet {p} % weniger Fortschritt':
+        'a missed skill check costs {p} % less progress',
+    '+{p} Prozentpunkte Skill-Check-Chance je Token':
+        '+{p} percentage points Skill Check chance per token',
     'jeder Generator braucht {v} Ladungen weniger':
         'every generator needs {v} charges less',
     'ein Generator braucht {v} Ladungen weniger':
