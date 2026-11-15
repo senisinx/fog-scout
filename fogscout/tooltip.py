@@ -593,7 +593,7 @@ _PREFIX = [("Hintergrund entfernen", "Macht Dunkelblau (#282a42) und Graulila (#
 
 def tip_for_label(text: str):
     """Info text for a (translated) label – the table is keyed by the German label."""
-    key = source(text)
+    key = source(text, TIPS)
     if key in TIPS:
         return _(TIPS[key])
     for prefix, tip in _PREFIX:

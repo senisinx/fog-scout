@@ -336,7 +336,8 @@ def reset_data(current: dict) -> dict:
 
 def read_backup(path: str, current: dict) -> dict:
     """Settings from a backup file, merged over the defaults (keys missing in older backups get their
-    default); ValueError if it is no settings file of this program."""
+    default) and migrated like a stored settings.json (1.56: a backup of an older version brought back what the
+    migrations remove – old tab orders, the record row …); ValueError if it is no settings file of this program."""
     try:
         with open(path, encoding="utf-8") as fh:
             raw = json.load(fh)
@@ -348,9 +349,10 @@ def read_backup(path: str, current: dict) -> dict:
         raw.pop(k, None)
         if k in current:
             raw[k] = current[k]
-    merged = _merge(DEFAULTS, raw)
-    merged["settings_version"] = SETTINGS_VERSION
-    return merged
+    try:
+        return _load(raw)
+    except (TypeError, ValueError, AttributeError, KeyError, RecursionError) as e:   # as Settings() catches them
+        raise ValueError(f"{type(e).__name__}: {e}") from e
 
 
 def _read_json(path: str):

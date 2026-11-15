@@ -1178,7 +1178,7 @@ T = {
     'Position zurücksetzen':
         'Ripristina posizione',
     'Rückgängig':
-        'Annulla',
+        'Annulla modifica',
     'Karte darf grösser als der Balken werden':
         'La mappa può diventare più grande della barra',
     'Karte füllt den Balken aus':
@@ -2584,7 +2584,7 @@ T = {
     'Vorlage „{name}“ angewendet.':
         'Preimpostazione «{name}» applicata.',
     'Setzt Karte, Systemwerte, „Heute“ und Musik auf einmal auf die gewählte Anordnung. „Rückgängig“ holt die vorherige zurück.':
-        'Mette subito mappa, valori di sistema, «Oggi» e musica nella disposizione scelta. «Annulla» riporta quella precedente.',
+        'Mette subito mappa, valori di sistema, «Oggi» e musica nella disposizione scelta. «Annulla modifica» riporta quella precedente.',
     'Weich ein- und ausblenden':
         'Dissolvenza morbida in entrata e uscita',
     'In kleinen DBD-Fenstern ausblenden':

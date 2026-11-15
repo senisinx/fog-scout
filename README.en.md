@@ -135,7 +135,7 @@ The overlay is a native Windows window of its own: always on top, click-through,
 | `F9` | **Start/stop recording** (since 1.15): an OBS recording by hand, outside a round too – only while DBD is in front |
 | `F10` | **Pause/resume recording** (since 1.15): pauses the running recording and continues it in the same file |
 
-**Backing up settings:** Settings → Backup → "Export settings …" saves everything (hotkeys, size and rotation per map, own map assignments, overlay, regions) to a file, "Import settings …" loads it again and restarts the program. The statistics are not part of it.
+**Backing up settings:** Settings → Backup → "Export settings …" saves everything (hotkeys, size and rotation per map, own map assignments, overlay, regions) to a file, "Import settings …" loads it again and restarts the program (a file of an older version is brought up to date like your own `settings.json`). The statistics are not part of it.
 
 Hotkeys can be changed under **Settings → Hotkeys**: click the field and press the new combination (Esc cancels, Delete switches the hotkey off, "Defaults" resets all). Letters, digits and space need Ctrl or Alt so the hotkey does not block normal typing (and DBD); combinations used twice are refused. **A single key** works with F1–F12, the numpad (0–9, +, −), Pause, Scroll Lock, Insert, Home, End and Page Up/Down: such hotkeys only apply while DBD is the active window – in every other program the key works as usual. DBD itself no longer gets the key, so pick one you have not bound in DBD. F13–F24 always apply (handy for mouse side buttons mapped to F13 in Logitech G Hub, Razer Synapse and the like). All settings are stored in `settings.json`.
 
