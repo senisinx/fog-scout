@@ -65,8 +65,21 @@ def test_the_loader_makes_thumbnails_in_a_thread_and_the_newest_request_wins(tmp
     loader = thumbs.Loader((126, 116), str(tmp_path / "cache"))
     assert loader.make(pics[0])[:3] == (pics[0], 126, 89)
     assert loader.make(str(tmp_path / "missing.png")) == (str(tmp_path / "missing.png"), 0, 0, b"")
+    # 1.51.1 (CI failure on main: two pictures of the first request came through): the thread is held with its
+    # first picture in hand until the second request is in – before, the test counted on the thread not finishing
+    # one picture and taking the next between two calls, which a busy runner does not promise
+    import threading
+    in_hand, go, real = threading.Event(), threading.Event(), loader.make
+
+    def held(path):
+        in_hand.set()
+        go.wait(10)
+        return real(path)
+    loader.make = held
     loader.request(pics[:3])
+    assert in_hand.wait(10)                                             # the first picture is being made
     loader.request(pics[3:])                                            # replaces what was still to do
+    go.set()
     got = {}
     end = time.time() + 10
     while not set(got) >= set(pics[3:]) and time.time() < end:    # 1.8.74: all three of the second request – the
@@ -74,7 +87,7 @@ def test_the_loader_makes_thumbnails_in_a_thread_and_the_newest_request_wins(tmp
             got[path] = (w, h, len(data))                          # first may come first (the test waited for 3)
         time.sleep(0.01)
     assert set(got) >= set(pics[3:]) and all(v == (126, 89, 126 * 89 * 4) for v in got.values())
-    assert not (set(got) - set(pics)) and len(got) <= 4                 # at most one of the first request
+    assert set(got) == {pics[0]} | set(pics[3:])                        # the one in hand, none of the dropped two
     assert not loader.busy
     assert all(os.path.isfile(os.path.join(str(tmp_path / "cache"), thumbs.cache_name(p, (126, 116))))
                for p in pics[3:])
