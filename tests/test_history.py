@@ -462,3 +462,29 @@ def test_the_round_count_of_today_says_what_it_is_made_of():
     assert d["count"] == 7
     d = h.today(mixed + [h.Round(t + 105, 600, "c", "C", custom=True)], now)
     assert "2× Custom Game" in overview.rounds_parts(d)
+
+
+def test_rounds_beyond_the_limit_go_to_the_archive_not_away(tmp_path, monkeypatch):
+    """1.50.6 (review): the tidying dropped the oldest rounds for good. They are appended to rounds-archive.jsonl
+    first; when that cannot be written, nothing is taken out; "delete all rounds" removes the archive too."""
+    import json
+    import os
+    monkeypatch.setattr(h, "KEEP", 3)
+    p = str(tmp_path / "rounds.jsonl")
+    for i in range(40):                                    # far beyond KEEP × 200 bytes: the tidying runs
+        h.append(p, h.Round(1000.0 + i, 60.0 + i, "m", "Map %d" % i))
+    kept = h.load(p)
+    arch = h.archive_path(p, h.ARCHIVE)
+    old = [json.loads(line) for line in open(arch, encoding="utf-8")]
+    assert len(kept) == 3 and [r.t for r in kept] == [1037.0, 1038.0, 1039.0]
+    assert sorted(d["t"] for d in old) == [1000.0 + i for i in range(37)]       # each once, none lost
+    assert all(d["map"].startswith("Map ") for d in old)
+
+    def refuse(path, lines):
+        raise OSError("disk full")
+    monkeypatch.setattr(h, "archive_lines", refuse)
+    for i in range(40, 60):
+        h.append(p, h.Round(1000.0 + i, 60.0, "m", "Map"))
+    assert len(h.load(p)) == 23                            # not archived = not dropped
+    h.clear(p)
+    assert not os.path.exists(p) and not os.path.exists(arch)

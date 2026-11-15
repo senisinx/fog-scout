@@ -1500,3 +1500,10 @@ def test_a_burst_gives_frame_at_s_pictures_in_one_run(clip):
     assert clipedit.frame_key(2.51, 30) == 76 and clipedit.frame_key(0.0, 30) == 0
     assert list(clipedit.frames_from(clip, 2.5, 5, 54, info, FF, stop=lambda: True)) == []
     assert list(clipedit.frames_from(clip, 2.5, 0, 54, info, FF)) == []
+
+
+def test_the_time_an_export_may_take_grows_with_its_length():
+    """1.50.6 (review): one fixed hour ended the export of a long recording with nothing saved."""
+    assert clipedit.export_timeout(30) == clipedit.EXPORT_MIN_S == 3600.0
+    assert clipedit.export_timeout(4 * 3600) == 4 * 3600 * clipedit.EXPORT_PER_SECOND > 3600.0
+    assert clipedit.export_timeout(None) == clipedit.export_timeout("x") == clipedit.export_timeout(-5) == 3600.0

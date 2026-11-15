@@ -807,3 +807,23 @@ def test_the_hourly_trend_keeps_the_repeated_hour_of_a_dst_end(monkeypatch):
     finally:
         monkeypatch.undo()
         time.tzset()
+
+
+def test_matches_beyond_the_limit_go_to_the_archive_not_away(tmp_path, monkeypatch):
+    """1.50.6 (review): like the rounds – older matches are appended to official-archive.jsonl before they leave."""
+    import json
+    import os
+    from fogscout import history
+    monkeypatch.setattr(o, "KEEP", 3)
+    p = str(tmp_path / "official.jsonl")
+    made = [o.Match(t=2000.0 + i * 1000, map="Coal Tower", role="killer", character="Nurse", seconds=600.0)
+            for i in range(5)]
+    o.merge(p, made)
+    arch = history.archive_path(p, o.ARCHIVE)
+    assert [m.t for m in o.load(p)] == [4000.0, 5000.0, 6000.0]
+    assert [json.loads(line)["t"] for line in open(arch, encoding="utf-8")] == [2000.0, 3000.0]
+    monkeypatch.setattr(history, "archive_lines", lambda path, lines: (_ for _ in ()).throw(OSError("full")))
+    o.merge(p, [o.Match(t=9000.0, map="Coal Tower", role="killer", character="Nurse", seconds=600.0)])
+    assert len(o.load(p)) == 4                             # not archived = not dropped
+    o.clear(p)
+    assert not os.path.exists(p) and not os.path.exists(arch)

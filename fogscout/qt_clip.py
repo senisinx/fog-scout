@@ -73,7 +73,7 @@ PREVIEW_MIN = (640, 360)
 VIEWER_BG = "#0e0f11"             # 1.16: the editor's viewer around the picture (dark whatever the theme, like players)
 PUMP_MS = 15                      # 1.8.66: how often the window takes what its threads produced
 CLOSED_PUMP_MS = 200              # how often the saves of closed editors are looked after (_drain_closed)
-SAVE_TIMEOUT_S = 3600             # one ffmpeg run of a save at most (clipedit.export's own limit)
+SAVE_TIMEOUT_S = 3600             # one ffmpeg run of a save at least this long (1.50.6: clipedit.export_timeout)
 STOP_WAIT_S = 2.0                 # quitting waits this long for the stopped saves to tidy up (within QUIT_WATCHDOG_S)
 
 
@@ -130,6 +130,7 @@ class _SaveJob:
         self.win, self.out = win, out
         self.thread = None
         self.stopped = False
+        self.timeout = SAVE_TIMEOUT_S                     # 1.50.6: longer for a long result (clipedit.export_timeout)
         self._proc = None
         self._lock = threading.Lock()
 
@@ -141,7 +142,7 @@ class _SaveJob:
                                                  stderr=subprocess.PIPE,
                                                  creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0))
         try:
-            _out, err = proc.communicate(timeout=SAVE_TIMEOUT_S)
+            _out, err = proc.communicate(timeout=self.timeout)
         except subprocess.TimeoutExpired:
             proc.kill()
             proc.communicate()
@@ -2060,6 +2061,7 @@ class ClipBase(QWidget):
             self.status.setText(_("Kodiere {file} … ({how}, dauert etwas)", file=os.path.basename(out),
                                   how=encoding.summary(_)))
         job = _SaveJob(self, out)                         # outlives the window, stoppable on quit (_SaveJob)
+        job.timeout = clipedit.export_timeout(edit.seconds())
         path, ffmpeg, bridge = self.path, self.ffmpeg, self.bridge
         ahead = EXPORTS.join(job)                         # 1.42.2: after the exports asked for before it
         if ahead:
