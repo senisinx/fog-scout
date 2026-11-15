@@ -41,9 +41,9 @@ from .recindex import (  # 1.38.35: index, clips and pruning live there; every n
     CLIPS_DIR, CLIPS_INDEX, CLIP_EXTS, CLIP_KINDS, Clip, DEFAULT_FARMING_DAYS, FARMING_CHECK_S, FARMING_DAYS, INDEX,
     NAME_CHARS, OLD_CLIPS_INDEX, OLD_INDEX, PARTS_CHECK_S, PARTS_WRITING, PART_EXT, PART_STALE_S, RESERVE, Recording,
     SHORT_ROUND_S, STILL_EXTS, Space, VIDEO_EXTS, _COPY_RE, _SPACE, _STAMP_RE, _entry, _index_stamp, _kind_value, _who,
-    adopt_clip, adopt_old_file, clips_dir, deletable, expired_farming, own_files, file_name, list_clips, load_clips, load_index, part_key, prune,
-    prune_farming, prune_rank, save_clips, save_index, select_clips, select_recordings, settle_parts, space, whole)
-_INDEX_NAMES = (CLIPS_DIR, CLIPS_INDEX, CLIP_EXTS, CLIP_KINDS, Clip, DEFAULT_FARMING_DAYS, FARMING_CHECK_S, FARMING_DAYS, INDEX, NAME_CHARS, OLD_CLIPS_INDEX, OLD_INDEX, PARTS_CHECK_S, PARTS_WRITING, PART_EXT, PART_STALE_S, RESERVE, Recording, SHORT_ROUND_S, STILL_EXTS, Space, VIDEO_EXTS, _COPY_RE, _SPACE, _STAMP_RE, _entry, _index_stamp, _kind_value, _who, adopt_clip, adopt_old_file, clips_dir, deletable, expired_farming, own_files, file_name, list_clips, load_clips, load_index, part_key, prune, prune_farming, prune_rank, save_clips, save_index, select_clips, select_recordings, settle_parts, space, whole)   # re-exported
+    adopt_clip, adopt_old_file, clips_dir, deletable, expired_farming, own_files, file_name, in_use, list_clips,
+    load_clips, load_index, part_key, protected_paths, prune, prune_farming, prune_rank, save_clips, save_index, select_clips, select_recordings, settle_parts, space, whole)
+_INDEX_NAMES = (CLIPS_DIR, CLIPS_INDEX, CLIP_EXTS, CLIP_KINDS, Clip, DEFAULT_FARMING_DAYS, FARMING_CHECK_S, FARMING_DAYS, INDEX, NAME_CHARS, OLD_CLIPS_INDEX, OLD_INDEX, PARTS_CHECK_S, PARTS_WRITING, PART_EXT, PART_STALE_S, RESERVE, Recording, SHORT_ROUND_S, STILL_EXTS, Space, VIDEO_EXTS, _COPY_RE, _SPACE, _STAMP_RE, _entry, _index_stamp, _kind_value, _who, adopt_clip, adopt_old_file, clips_dir, deletable, expired_farming, own_files, file_name, in_use, list_clips, load_clips, load_index, part_key, protected_paths, prune, prune_farming, prune_rank, save_clips, save_index, select_clips, select_recordings, settle_parts, space, whole)   # re-exported
 
 log = logging.getLogger("fogscout")
 
@@ -55,6 +55,8 @@ DEFAULT_LIMIT_GB = 0
 MIN_FREE = 5 * 1024 ** 3        # below this much free space on the drive: no new recording
 RENAME_TRIES = 40               # OBS may still hold the file a moment after StopRecord
 RENAME_WAIT = 0.5
+QUIT_RENAME_TRIES = 4           # 1.56: while quitting the app waits only app.QUIT_RECORDER_S for this thread
+STOP_RETRY_S = 5.0              # 1.56: StopRecord failed (OBS busy, restarting) – the round is kept and tried again
 REPLAY_WAIT = 4.0               # 1.5.4: s to wait for OBS to finish writing the replay buffer (it saves asynchronously)
 REPLAY_POLL = 0.2
 MAX_INPUT_EVENTS = 100_000      # 1.39.1: input changes kept per recording (= inputs.MAX_EVENTS)
@@ -812,6 +814,8 @@ class Recorder(threading.Thread):
         self._folder_hit = None      # 1.22.4: (key, time, path) of the last find_folder (Recorder.folder)
         self._free_t = 0.0           # 1.15: last look at the drive's free space while recording
         self.paused = False          # 1.15: the recording on air is paused (ours)
+        self._quitting = False       # 1.56: "quit" came – files are filed and indexed, never joined (QUIT_RECORDER_S)
+        self._protected = frozenset()  # 1.56: files the app uses (upload queue, open editors) – never pruned
         self.start_obs = self._start_obs_process       # tests replace it
 
     @property
@@ -930,6 +934,11 @@ class Recorder(threading.Thread):
         """1.29: put back what apply_quality changed (``before`` from its event)."""
         self.cmds.put(("quality", dict(before or {}, restore=True)))
 
+    def protect(self, names):
+        """1.56 (audit E-1): the files the app uses now – queued for YouTube (index names as Job.rel) or open in
+        an editor (absolute paths). Pruning (room, farming days) skips their recordings; set whole on this thread."""
+        self.cmds.put(("protect", frozenset(str(n) for n in names or () if n)))
+
     def quit(self):
         self.cmds.put(("quit", None))
 
@@ -980,6 +989,7 @@ class Recorder(threading.Thread):
                 # 1.8.38: quitting mid-round (or in the tail) stops the recording and our replay buffer –
                 # else OBS records on, the file is never filed and every later round finds "OBS nimmt schon
                 # auf" and starts nothing
+                self._quitting = True
                 try:
                     self._game_changed(False)
                 except Exception:
@@ -992,6 +1002,8 @@ class Recorder(threading.Thread):
                 if changed and self._game:         # 1.8.42 (user: "Fenster wurde nicht hinterlegt"): a setting
                     self._ready = False            # changed while DBD runs – OBS is set up again within seconds,
                     self._next_check = 0.0         # not only at the next DBD start
+            elif cmd == "protect":
+                self._protected = arg
             elif cmd == "test":
                 self._test()
             elif cmd == "start":
@@ -1269,7 +1281,7 @@ class Recorder(threading.Thread):
         if folder is None:
             return
         recs = load_index(folder)
-        left, deleted = prune_farming(folder, recs, int(self.cfg.farming_days))
+        left, deleted = prune_farming(folder, recs, int(self.cfg.farming_days), protect=self._protected)
         if len(left) != len(recs):
             save_index(folder, left)
         if deleted:
@@ -1360,7 +1372,10 @@ class Recorder(threading.Thread):
         self._buffer_tried = self._buffer_check = False
         self._obs_started = self._obs_late = False
         if not on:
-            self._flush()                               # DBD closed: the round is over
+            try:
+                self._flush()                           # DBD closed: the round is over
+            except ObsError as e:                       # 1.56: kept and retried (_finish) – our buffer still stops
+                self._say(str(e), False, err=True)
             if self._buffer_ours:
                 self._buffer_ours = False
                 try:
@@ -1526,7 +1541,7 @@ class Recorder(threading.Thread):
 
     def _begin(self, meta, pre_roll=True):
         a = self.active
-        if a is not None and a.get("manual"):
+        if a is not None and a.get("manual") and self._pending is None:     # 1.56: not one whose stop failed
             # 1.15: a recording started by hand is on air – the round goes into it (nothing restarts); the first
             # banner names it, later rounds only add their marks
             if not meta.get("early") and not a.get("map_id"):
@@ -1617,16 +1632,31 @@ class Recorder(threading.Thread):
         return path
 
     def _finish(self, meta):
-        rec, self.active = self.active, None
-        self.paused = False
+        rec = self.active
         if rec is None:
+            self.paused = False
             return
         rec.update({k: v for k, v in meta.items() if v})
-        c = self._client()
+        # 1.56 (audit R-1, reproduced): the round was forgotten before StopRecord – OBS busy or restarting at that
+        # moment, and OBS recorded on, the file was never filed and every later round found "OBS nimmt schon auf".
+        # Now it stays ours until OBS confirms the stop: a failure is retried (``_pending`` → _due, or _flush at the
+        # next banner/quit); a refused stop of an output that no longer runs (stopped in OBS, OBS restarted) ends it
         try:
-            path = c.request("StopRecord").get("outputPath", "")
-        finally:
-            c.close()
+            c = self._client()
+            try:
+                try:
+                    path = c.request("StopRecord").get("outputPath", "")
+                except ObsError:
+                    if c.request("GetRecordStatus").get("outputActive"):
+                        raise
+                    path = ""                          # stopped without us: nothing of ours left to stop
+            finally:
+                c.close()
+        except ObsError:
+            self._pending = (meta, time.time() + STOP_RETRY_S)
+            raise
+        self.active = None
+        self.paused = False
         if not obs_file(path, inside=self.folder(), since=rec.get("since")):
             self._say(_("OBS hat keinen Dateinamen genannt – Aufnahme nicht zugeordnet"), False)
             return
@@ -1644,27 +1674,21 @@ class Recorder(threading.Thread):
         who = rec.get("killer") or {"killer": "Killer", "survivor": "Survivor"}.get(rec.get("role") or "", "")
         name = self._unique(dest, file_name(rec.get("t") or time.time(), rec.get("label", ""), who, ext))
         target = os.path.join(dest, name)
-        final = self._move(path, target)
+        tries = QUIT_RENAME_TRIES if self._quitting else RENAME_TRIES      # 1.56 (audit R-2)
+        final = self._move(path, target, tries)
         pre = obs_file(rec.get("pre"), inside=self.folder(), since=rec.get("since"))
         pre_name = ""
         if pre and os.path.exists(pre):
             pname = self._unique(dest, file_name(rec.get("t") or time.time(), rec.get("label", ""), who,
                                                  os.path.splitext(pre)[1] or ext, " (Vorlauf)"))
-            moved = self._move(pre, os.path.join(dest, pname))
+            moved = self._move(pre, os.path.join(dest, pname), tries)
             pre_name = os.path.basename(moved) if os.path.dirname(moved) == dest else ""
         if os.path.dirname(final) != dest:            # another drive than the folder: leave it, still noted
             self._say(_("Aufnahme liegt in OBS' eigenem Ordner: {path}", path=final), False)
             return
         bad = check_file(final)                        # 1.4.1: OBS may have failed silently
         marks = list(rec.get("marks") or [])
-        pre_s, extra, shift = 0.0, {}, 0.0
-        if pre_name and not bad and self.cfg.merge:    # 1.4.2: pre-roll + round → one file
-            final, pre_name, pre_s, joined = self._join(dest, os.path.join(dest, pre_name), final)
-            if joined:
-                marks = [round(m + pre_s, 1) for m in marks]
-                shift = pre_s
-            else:
-                extra["merge_failed"] = True
+        extra = {}
         if bad:
             extra["bad"] = bad
         if rec.get("manual"):                          # 1.15: started by hand (button/hotkey)
@@ -1672,19 +1696,35 @@ class Recorder(threading.Thread):
         if rec.get("sources") is not None:             # 1.8.23: the sources OBS had (the clip editor tells "none")
             extra["sources"] = list(rec["sources"])
         prefix = sub + "/" if sub else ""              # index names: "Farming/…" with "/" on every system
-        if pre_name:
-            pre_name = prefix + pre_name
-        inputs_name = self._write_inputs(dest, final, rec.get("inputs"), shift)
+        # 1.56 (audit R-2, reproduced): the entry was written only after the join (ffmpeg, minutes for a big file)
+        # – quitting mid-round waits app.QUIT_RECORDER_S for this thread, and a thread ended before the write left
+        # both files outside the index for good (never listed, never pruned). The entry comes first now, with the
+        # round and its pre-roll as two files; the join updates it. While quitting, nothing is joined.
         recs = load_index(folder)
-        recs.append(Recording(t=float(rec.get("t") or time.time()), file=prefix + os.path.basename(final), pre=pre_name,
-                              map_id=rec.get("map_id", ""), label=rec.get("label", ""), role=rec.get("role", ""),
-                              killer=rec.get("killer", ""), end=time.time(), extra=extra, marks=marks,
-                              farming=bool(rec.get("farming")), pre_s=pre_s,
-                              inputs=prefix + inputs_name if inputs_name else ""))
+        entry = Recording(t=float(rec.get("t") or time.time()), file=prefix + os.path.basename(final),
+                          pre=prefix + pre_name if pre_name else "", map_id=rec.get("map_id", ""),
+                          label=rec.get("label", ""), role=rec.get("role", ""), killer=rec.get("killer", ""),
+                          end=time.time(), extra=extra, marks=marks, farming=bool(rec.get("farming")))
+        recs.append(entry)
+        save_index(folder, recs)
+        shift = 0.0
+        if pre_name and not bad and self.cfg.merge:    # 1.4.2: pre-roll + round → one file
+            joined = False
+            if not self._quitting:
+                final, pre_name, pre_s, joined = self._join(dest, os.path.join(dest, pre_name), final)
+            if joined:
+                entry.marks = [round(m + pre_s, 1) for m in marks]
+                entry.pre_s = shift = pre_s
+            else:
+                extra["merge_failed"] = True
+            entry.pre = prefix + pre_name if pre_name else ""      # 1.56: a pre-roll left after a join stays ours
+        inputs_name = self._write_inputs(dest, final, rec.get("inputs"), shift)
+        entry.inputs = prefix + inputs_name if inputs_name else ""
         limit = int(self.cfg.limit_gb) * 1024 ** 3
-        save_index(folder, recs)         # 1.38.24 (review STAB-3): the new round is in the index before anything is
-        recs, deleted = prune(folder, recs, limit)   # deleted – a failing write after the prune left it out for good
+        save_index(folder, recs)         # 1.38.24 (review STAB-3): the round is in the index before anything is deleted
+        recs, deleted = prune(folder, recs, limit, protect=self._protected)
         save_index(folder, recs)         # … and again with the sizes prune measured and without what it deleted
+        marks = entry.marks
         if bad:
             self._warn(_("Aufnahme sieht beschädigt aus ({why}): {file} – OBS-Einstellungen prüfen (Encoder, Platte).",
                          why=bad, file=os.path.basename(final)))
@@ -1725,16 +1765,28 @@ class Recorder(threading.Thread):
         tmp = os.path.splitext(round_path)[0] + " (zusammen)" + os.path.splitext(round_path)[1]
         if not merge_files([pre_path, round_path], tmp, ffmpeg):
             return round_path, os.path.basename(pre_path), 0.0, False
+        # 1.56 (audit R-3, reproduced): the pre-roll was removed before the joined file took the round's name – a
+        # failed replace (the round held by a virus scanner or a player) lost it. Now the replace comes first (with
+        # _move's retry); only then the pre-roll goes. If it cannot, it stays named in the entry (pruned with it).
+        for i in range(RENAME_TRIES):
+            try:
+                os.replace(tmp, round_path)
+                break
+            except OSError as e:
+                if isinstance(e, PermissionError) and i < RENAME_TRIES - 1:
+                    time.sleep(RENAME_WAIT)
+                    continue
+                log.info("ffmpeg: zusammengefügte Datei nicht abgelegt (%s)", e)
+                try:
+                    os.remove(tmp)
+                except OSError:
+                    pass
+                return round_path, os.path.basename(pre_path), 0.0, False
         try:
             os.remove(pre_path)
-            os.replace(tmp, round_path)
         except OSError as e:
-            log.info("ffmpeg: zusammengefügte Datei nicht abgelegt (%s)", e)
-            try:
-                os.remove(tmp)
-            except OSError:
-                pass
-            return round_path, os.path.basename(pre_path) if os.path.exists(pre_path) else "", 0.0, False
+            log.info("ffmpeg: Vorlauf nach dem Zusammenfügen nicht gelöscht (%s)", e)
+            return round_path, os.path.basename(pre_path), float(pre_s or 0.0), True
         return round_path, "", float(pre_s or 0.0), True
 
     @staticmethod
@@ -1747,11 +1799,11 @@ class Recorder(threading.Thread):
         return out
 
     @staticmethod
-    def _move(src, dst) -> str:
+    def _move(src, dst, tries: int = RENAME_TRIES) -> str:
         """Rename (same drive: instant); OBS may still hold the file a moment. Another drive: left where it is."""
         if os.path.splitdrive(os.path.abspath(src))[0].lower() != os.path.splitdrive(os.path.abspath(dst))[0].lower():
             return src
-        for _i in range(RENAME_TRIES):
+        for _i in range(tries):
             try:
                 os.replace(src, dst)
                 return dst
