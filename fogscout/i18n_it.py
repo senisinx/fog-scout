@@ -5999,4 +5999,24 @@ T = {
         '{when}: mediana {time} · {n} round',
     'Keine Wartezeiten dieser Rolle in dieser Auswahl.':
         'Nessun tempo di attesa per questo ruolo in questa selezione.',
+    'Zeile FPS (HWiNFO)':
+        'Riga FPS (HWiNFO)',
+    'Zuletzt auf dieser Map (Datum, Ergebnis)':
+        'Ultima volta su questa mappa (data, risultato)',
+    'Serie der laufenden Sitzung (4K / Entkommen)':
+        'Serie della sessione in corso (4K / fuga)',
+    'Zuletzt hier: {date} · {result}':
+        'Ultima volta qui: {date} · {result}',
+    'Zuletzt hier: {date}':
+        'Ultima volta qui: {date}',
+    '{n} × ENTKOMMEN':
+        '{n} × FUGHE',
+    'SERIE ':
+        'SERIE ',
+    'Zeile in den Systemwerten an/aus: die Bilder pro Sekunde, nur wenn HWiNFO sie misst (gelesen aus HWiNFOs Shared Memory, nie aus dem Spiel). Standard aus.':
+        'Riga nei valori di sistema on/off: i fotogrammi al secondo, solo se HWiNFO li misura (letti dalla memoria condivisa di HWiNFO, mai dal gioco). Disattivata per impostazione predefinita.',
+    'Zeigt unter der Bilanz, wann du zuletzt auf dieser Map warst – mit dem Ergebnis, wenn die Runde mit Daten der Stats-Seite verknüpft ist (Kills bzw. entkommen), sonst nur das Datum.':
+        "Mostra sotto il bilancio quando hai giocato l'ultima volta su questa mappa – con il risultato se la partita è collegata ai dati della pagina delle statistiche (kill o fuga), altrimenti solo la data.",
+    'Eine Zeile „Serie“ in „Heute“: wie viele 4K (Killer) bzw. Escapes (Survivor) in Folge in der laufenden Sitzung – laut Stats-Seite, Farming zählt nicht.':
+        'Una riga «Serie» in «Oggi»: quante 4K (killer) o fughe (survivor) di fila nella sessione in corso – secondo la pagina delle statistiche; il farming non conta.',
 }

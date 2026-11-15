@@ -82,6 +82,9 @@ TIPS = {
     "Eigene Bilanz unter dem Timer":
         "Zeigt unter dem Rundentimer, wie es dir auf dieser Map bisher ging: als Killer Ø Kills, als Survivor den "
         "Anteil Escapes – aus den Runden mit Daten der Stats-Seite, ab 3 Runden.",
+    "Zuletzt auf dieser Map (Datum, Ergebnis)":
+        "Zeigt unter der Bilanz, wann du zuletzt auf dieser Map warst – mit dem Ergebnis, wenn die Runde mit "
+        "Daten der Stats-Seite verknüpft ist (Kills bzw. entkommen), sonst nur das Datum.",
     "Eigene Notiz unter dem Timer":
         "Zeigt deine eigene Notiz zur Map unter dem Rundentimer – geschrieben auf der Seite Maps (Map anklicken "
         "oder Rechtsklick → „Notiz bearbeiten …“), höchstens vier Zeilen.",
@@ -93,6 +96,9 @@ TIPS = {
         "Eine eigene Karte, solange eine Map im Match zu sehen ist: wie viele Runden du heute gespielt hast, wie "
         "lange, Ø Kills bzw. Entkommen laut Stats-Seite und die Uhrzeit. Position darunter, Grösse über den "
         "Grössenregler („Heute“ wählen).",
+    "Serie der laufenden Sitzung (4K / Entkommen)":
+        "Eine Zeile „Serie“ in „Heute“: wie viele 4K (Killer) bzw. Escapes (Survivor) in Folge in der "
+        "laufenden Sitzung – laut Stats-Seite, Farming zählt nicht.",
     "Dunkle Fläche hinter „Heute“":
         "Eine halb durchsichtige dunkle Fläche mit runden Ecken hinter „Heute“.",
     "Eingaben im Spiel zeigen (Tasten, Maus, Gamepad)":
@@ -120,6 +126,9 @@ TIPS = {
         "Zeile in den Systemwerten an/aus.",
     "Zeile RAM":
         "Zeile in den Systemwerten an/aus.",
+    "Zeile FPS (HWiNFO)":
+        "Zeile in den Systemwerten an/aus: die Bilder pro Sekunde, nur wenn HWiNFO sie misst (gelesen aus "
+        "HWiNFOs Shared Memory, nie aus dem Spiel). Standard aus.",
     "Vorlage anwenden":
         "Setzt Karte, Systemwerte, „Heute“ und Musik auf einmal auf die gewählte Anordnung. „Rückgängig“ holt "
         "die vorherige zurück.",

@@ -190,7 +190,8 @@ def _registered_keys():
                     names = [k for k, _l in HOTKEY_LABELS] + ["lobby_notify", "lobby_remind", "notify_background_only",
                                                               "bp_cap_notify", "session_notify",    # 1.13, 1.38.27
                                                               "show_map", "focus", "caption", "timer", "server",
-                                                              "waiting", "floors", "record", "notes", "transparent"] + \
+                                                              "waiting", "floors", "record", "notes", "transparent",
+                                                              "last_round"] + \
                         [code for code, _l in LANGS]
                     keys.update(pattern.format(k) for k in names)
     return keys

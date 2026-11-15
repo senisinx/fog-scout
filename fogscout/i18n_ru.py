@@ -5999,4 +5999,24 @@ T = {
         '{when}: медиана {time} · {n} раундов',
     'Keine Wartezeiten dieser Rolle in dieser Auswahl.':
         'В этой выборке нет времени ожидания для этой роли.',
+    'Zeile FPS (HWiNFO)':
+        'Строка FPS (HWiNFO)',
+    'Zuletzt auf dieser Map (Datum, Ergebnis)':
+        'Последний раз на этой карте (дата, результат)',
+    'Serie der laufenden Sitzung (4K / Entkommen)':
+        'Серия текущей сессии (4K / побег)',
+    'Zuletzt hier: {date} · {result}':
+        'Последний раз здесь: {date} · {result}',
+    'Zuletzt hier: {date}':
+        'Последний раз здесь: {date}',
+    '{n} × ENTKOMMEN':
+        '{n} × ПОБЕГ',
+    'SERIE ':
+        'СЕРИЯ ',
+    'Zeile in den Systemwerten an/aus: die Bilder pro Sekunde, nur wenn HWiNFO sie misst (gelesen aus HWiNFOs Shared Memory, nie aus dem Spiel). Standard aus.':
+        'Строка в системных значениях вкл/выкл: кадры в секунду, только если их измеряет HWiNFO (читается из общей памяти HWiNFO, никогда из игры). По умолчанию выключено.',
+    'Zeigt unter der Bilanz, wann du zuletzt auf dieser Map warst – mit dem Ergebnis, wenn die Runde mit Daten der Stats-Seite verknüpft ist (Kills bzw. entkommen), sonst nur das Datum.':
+        'Показывает под итогом, когда вы в последний раз играли на этой карте – с результатом, если раунд связан с данными страницы статистики (убийства или побег), иначе только дату.',
+    'Eine Zeile „Serie“ in „Heute“: wie viele 4K (Killer) bzw. Escapes (Survivor) in Folge in der laufenden Sitzung – laut Stats-Seite, Farming zählt nicht.':
+        'Строка «Серия» в «Сегодня»: сколько 4K (убийца) или побегов (выживший) подряд в текущей сессии – по данным страницы статистики; фарм не считается.',
 }

@@ -58,6 +58,7 @@ DEFAULTS = {
         "floor_auto": True,             # maps with floors (Midwich): all one below the other (False: bottom only)
         "show_record": False,           # own record on the map below the timer (official match data); 1.11.11 off
         "show_notes": True,             # 1.8.54: own note on the map below the timer (mapnotes)
+        "show_last_round": False,       # "Zuletzt hier": date (+ official result) of the own last round on the map
         "show_map": True,               # off: overlay shows only timer, server and ping
         "show_media": True,             # "Läuft gerade": music of the Windows media controls (1.64)
         "media_pos": "bottom_right",    # its own window: below / bottom_right / bottom_left / custom (1.64.7)
@@ -73,7 +74,8 @@ DEFAULTS = {
         "media_next_n": 3,              # … how many coming tracks (1–5)
         "map_backdrop": False,          # dark area with rounded corners behind the map and its lines (1.2.4)
         "hud_backdrop": False,          # … behind the system values / "today"
-        "hud_rows": {"cpu": True, "gpu": True, "spot": True, "vram": True, "ram": True},   # rows shown (1.2.8)
+        "hud_rows": {"cpu": True, "gpu": True, "spot": True, "vram": True, "ram": True,   # rows shown (1.2.8)
+                     "fps": False},     # FPS from HWiNFO's shared memory (hard rule): an extra, off by default
         "stack_gap": 8,                 # px at 1440p between stacked cards / above the map (1.2.8)
         "bar_align": "centre",
         "bar_limits_on": False,         # 1.8.14: limiter lines at the top/bottom of the black bars
@@ -91,6 +93,7 @@ DEFAULTS = {
         "today_xy": [1.0, 0.0],         #   bottom_left / custom (centre of the card as a share of the window)
         "today_scale": 1.0,             # size of "today" (slider 60–200 %)
         "today_backdrop": False,        # dark area behind "today"
+        "today_streak": False,          # row "Serie" in "today": 4Ks / escapes in a row of the running session
         "show_inputs": False,           # 1.39: the input card "Eingaben" (keys / mouse / gamepad held right now)
         "inputs_layout": "auto",        #   auto (device used last) / keyboard / gamepad
         "inputs_pos": "bottom_right",   #   bottom_left / bottom_right (in the black bar) / custom

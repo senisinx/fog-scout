@@ -7,9 +7,10 @@ from __future__ import annotations
 
 import time
 
-from . import layout
+from . import layout, mapnotes
 from .capture import IS_WIN, foreground_root, is_game_window, window_kind
 from .i18n import _
+from .lobby import killer_label
 from .textnorm import fmt_duration
 
 SMALL_PICTURE = 1080      # 16:9 picture lines below which detection gets less reliable (log hint)
@@ -121,7 +122,7 @@ class OverlayPlacement:
                 and self.test_btn.cget("text") != _("Overlay testen")):
             self.test_btn.configure(text=_("Overlay testen"))
         wait = [] if forced else self._waiting_lines()
-        self.overlay.set_waiting(wait)
+        self.overlay.set_waiting(wait, self._waiting_memo() if wait else ())
         reason = None
         if forced:
             pass
@@ -344,6 +345,18 @@ class OverlayPlacement:
         elif self.hidden_after_match and self.round.start_t is not None and not self.round.running:
             lines.append(_("Letzte Runde: {time}", time=fmt_duration(self.round.elapsed(0))))
         return lines
+
+    def _waiting_memo(self) -> tuple:
+        """The own note on the killer the lobby read (``_queue["killer"]``) for the waiting card – before the map is
+        known, so it can still be read in the loading screen. Only the own note (Statistik › Killer), the same
+        lines as below the map (mapnotes.memo_lines: "Nurse: …", at most MAX_LINES × LINE_CHARS); off with the
+        note setting (overlay.show_notes). () without a killer or a note."""
+        name = (getattr(self, "_queue", None) or {}).get("killer") or ""
+        if not name or not self.settings["overlay"].get("show_notes", True):
+            return ()
+        killer = self._killer_of(name)
+        note = mapnotes.get(self.settings.get(mapnotes.KILLER_KEY), killer) if killer else ""
+        return mapnotes.memo_lines("", note, killer_label(killer)) if note else ()
 
     def _log_visibility(self, reason, game_rect):
         """One log line whenever the overlay goes from visible to hidden or back."""

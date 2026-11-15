@@ -5999,4 +5999,24 @@ T = {
         '{when}：中央値 {time} · {n} ラウンド',
     'Keine Wartezeiten dieser Rolle in dieser Auswahl.':
         'この選択にはこの役割の待ち時間がありません。',
+    'Zeile FPS (HWiNFO)':
+        'FPS の行（HWiNFO）',
+    'Zuletzt auf dieser Map (Datum, Ergebnis)':
+        'このマップで前回（日付、結果）',
+    'Serie der laufenden Sitzung (4K / Entkommen)':
+        '現在のセッションの連続記録（4K / 脱出）',
+    'Zuletzt hier: {date} · {result}':
+        '前回ここで：{date} · {result}',
+    'Zuletzt hier: {date}':
+        '前回ここで：{date}',
+    '{n} × ENTKOMMEN':
+        '{n} × 脱出',
+    'SERIE ':
+        '連続 ',
+    'Zeile in den Systemwerten an/aus: die Bilder pro Sekunde, nur wenn HWiNFO sie misst (gelesen aus HWiNFOs Shared Memory, nie aus dem Spiel). Standard aus.':
+        'システム値のこの行のオン/オフ：1 秒あたりのフレーム数。HWiNFO が測定している場合のみ（HWiNFO の共有メモリから読み取り、ゲームからは読み取りません）。既定はオフ。',
+    'Zeigt unter der Bilanz, wann du zuletzt auf dieser Map warst – mit dem Ergebnis, wenn die Runde mit Daten der Stats-Seite verknüpft ist (Kills bzw. entkommen), sonst nur das Datum.':
+        '戦績の下に、このマップを前回プレイした日を表示します。そのラウンドが統計ページのデータと結び付いていれば結果（キル数または脱出）も、なければ日付のみ。',
+    'Eine Zeile „Serie“ in „Heute“: wie viele 4K (Killer) bzw. Escapes (Survivor) in Folge in der laufenden Sitzung – laut Stats-Seite, Farming zählt nicht.':
+        '「今日」に「連続」の行：現在のセッションで連続した 4K（キラー）または脱出（サバイバー）の回数。統計ページに基づき、ファーミングは数えません。',
 }

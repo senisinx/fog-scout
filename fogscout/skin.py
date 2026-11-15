@@ -748,22 +748,23 @@ _MAP_BASES: dict = {}
 
 
 def map_card(body, name: str, realm: str, timer: str, note: str, record: str, server: str, ping, status,
-             text_h: int, style: str, accent=None, rec=None, lines_top: bool = False, memo=()) -> Image.Image:
+             text_h: int, style: str, accent=None, rec=None, lines_top: bool = False, memo=(),
+             last=()) -> Image.Image:
     """The map window in ``style`` – see _map_card_base. 1.34.1 (review P1): the card without the timer's digits is
     kept (``_MAP_BASES``, by everything but the digits – their widest shape stays in the key, it sets the field);
     each second only the timer is drawn on a copy and the shadow added, as for the music card (``_BODIES``)."""
-    status, memo = tuple(status or ()), tuple(memo or ())
+    status, memo, last = tuple(status or ()), tuple(memo or ()), tuple(last or ())
     try:
         key = (id(body) if body is not None else None, body.size if body is not None else None, name, realm,
                _widest(timer) if timer else "", note, record, server, ping, status, int(text_h), style, accent, rec,
-               bool(lines_top), memo)
+               bool(lines_top), memo, last)
         hash(key)
     except TypeError:                                    # an unhashable accent: drawn whole, as before
         key = None
     hit = _MAP_BASES.get(key) if key is not None else None
     if hit is None:
         hit = _map_card_base(body, name, realm, timer, note, record, server, ping, status, text_h, style, accent,
-                             rec, lines_top, memo) + (body,)   # (the map kept: its id stays unique while cached)
+                             rec, lines_top, memo, last) + (body,)   # (the map kept: its id stays unique while cached)
         if key is not None:
             _MAP_BASES[key] = hit
             while len(_MAP_BASES) > MAP_BASES_KEPT:
@@ -776,7 +777,7 @@ def map_card(body, name: str, realm: str, timer: str, note: str, record: str, se
 
 
 def _map_card_base(body, name, realm, timer, note, record, server, ping, status, text_h, style, accent, rec,
-                   lines_top, memo):
+                   lines_top, memo, last=()):
     """The map window in ``style``: ``body`` = the map picture without its drawn name (None: the lines alone –
     the info element – or the waiting card with ``status`` lines); ``name``/``realm`` for the header; ``timer``
     big, ``note`` (amber chip), ``record`` and ``server`` + ``ping`` as chips below a hairline; ``text_h`` sizes
@@ -784,6 +785,8 @@ def _map_card_base(body, name, realm, timer, note, record, server, ping, status,
     (1.8.33, user: "das Rekord-Zeichen neben Global als REC blinkend"; before: a dot right of the timer), None =
     no chip. ``lines_top`` (1.8.34, user: "mit der Map kombinieren, oben oder unten"): timer and chips between the
     header and the map instead of below it. ``memo`` (1.8.54): lines of the own note on the map, below the chips.
+    ``last``: the own last round on this map as a chip after the record – (text shown, other texts it may become
+    …), the pill sized for the widest of them, so a later round never resizes the card.
     One drawing for every modern style (1.8.27), the surface comes from
     SURFACES. Returns (card without the timer's digits and without its shadow, (x, y) of the
     timer or None, timer font, unit)."""
@@ -815,6 +818,10 @@ def _map_card_base(body, name, realm, timer, note, record, server, ping, status,
     if record:
         chips.append(chip(record, u, cf, colour=GREY, edge=s["tile_edge"], pad=int(12 * u), h=int(30 * u),
                           fill=s["tile"]))
+    if last:
+        widest = max(last + tuple(_widest(t) for t in last), key=lambda t: _width(cf, t))
+        chips.append(chip(last[0], u, cf, colour=GREY, edge=s["tile_edge"], pad=int(12 * u), h=int(30 * u),
+                          fill=s["tile"], width_text=widest))
     lines = [(inter("SemiBold" if i == 0 else "Medium", int((20 if i == 0 else 16) * u)), t, WHITE if i == 0 else GREY)
              for i, t in enumerate(status)]
     row_pic = chip_rows(chips, max(body.width if body is not None else 0, wrap), gap) if chips else None
@@ -822,10 +829,11 @@ def _map_card_base(body, name, realm, timer, note, record, server, ping, status,
     memo = tuple(memo or ())
     timer_w = _width(tf, _widest(timer).rjust(5, "0")) if timer else 0   # at least "00:00": 9:59 → 10:00 stays
     field_w = timer_w
+    # the waiting card's lobby line counts seconds: sized with the widest digits, so the card never breathes
     parts = [body.width if body is not None else 0, _header_w(realm, u) if realm else 0,
              _width(nf, name) if name else 0, field_w, row_pic.width if row_pic else 0] + \
-        [_width(f, t) for f, t, _c in lines] + [_width(mf, t) for t in memo]
-    w = max(int(max(parts)) + 2 * pad, int(140 * u))
+        [max(_width(f, t), _width(f, _widest(t))) for f, t, _c in lines] + [_width(mf, t) for t in memo]
+    w =max(int(max(parts)) + 2 * pad, int(140 * u))
     head = bool(realm or name)
     blocks = []                                      # (kind, height, gap before)
     if realm:

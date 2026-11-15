@@ -24,7 +24,7 @@ PRESET_LABELS = [("left", N_("Alles links")), ("right", N_("Alles rechts")),    
 # from app_sysinfo
 HUD_ROW_LABELS = [("cpu", N_("Zeile CPU (Temperatur, Last)")), ("gpu", N_("Zeile GPU (Temperatur, Last)")),
                   ("spot", N_("Zeile Hotspot / GPU-Speicher (HWiNFO)")), ("vram", N_("Zeile VRAM")),
-                  ("ram", N_("Zeile RAM"))]
+                  ("ram", N_("Zeile RAM")), ("fps", N_("Zeile FPS (HWiNFO)"))]
 
 # from app_sysinfo
 MEDIA_SPOTS = [("below", N_("Unter den Systemwerten")), ("under_today", N_("Unter „Heute“")),

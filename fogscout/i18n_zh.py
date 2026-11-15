@@ -5999,4 +5999,24 @@ T = {
         '{when}：中位数 {time} · {n} 局',
     'Keine Wartezeiten dieser Rolle in dieser Auswahl.':
         '此筛选中没有该角色的等待时间。',
+    'Zeile FPS (HWiNFO)':
+        'FPS 行（HWiNFO）',
+    'Zuletzt auf dieser Map (Datum, Ergebnis)':
+        '上次在此地图（日期、结果）',
+    'Serie der laufenden Sitzung (4K / Entkommen)':
+        '当前游戏时段的连胜（4K / 逃脱）',
+    'Zuletzt hier: {date} · {result}':
+        '上次在此：{date} · {result}',
+    'Zuletzt hier: {date}':
+        '上次在此：{date}',
+    '{n} × ENTKOMMEN':
+        '{n} × 逃脱',
+    'SERIE ':
+        '连胜 ',
+    'Zeile in den Systemwerten an/aus: die Bilder pro Sekunde, nur wenn HWiNFO sie misst (gelesen aus HWiNFOs Shared Memory, nie aus dem Spiel). Standard aus.':
+        '在系统数值中显示/隐藏此行：每秒帧数，仅当 HWiNFO 测量时（从 HWiNFO 的共享内存读取，绝不读取游戏）。默认关闭。',
+    'Zeigt unter der Bilanz, wann du zuletzt auf dieser Map warst – mit dem Ergebnis, wenn die Runde mit Daten der Stats-Seite verknüpft ist (Kills bzw. entkommen), sonst nur das Datum.':
+        '在战绩下方显示你上次在此地图游玩的时间——若该局已关联统计页面的数据，则附带结果（击杀数或逃脱），否则只显示日期。',
+    'Eine Zeile „Serie“ in „Heute“: wie viele 4K (Killer) bzw. Escapes (Survivor) in Folge in der laufenden Sitzung – laut Stats-Seite, Farming zählt nicht.':
+        '在“今天”中添加一行“连胜”：当前游戏时段中连续的 4K（杀手）或逃脱（幸存者）次数——依据统计页面；刷分不计入。',
 }

@@ -11,6 +11,7 @@ from .appconst import INPUT_LAYOUTS, INPUT_SPOTS, MEDIA_NEXT_N, MEDIA_NEXT_SPOTS
 from .appconst import (BAR_ALIGNS, HUD_ROW_LABELS, HUD_SIDES, MAP_SCALE, MEDIA_SPOTS, MEDIA_STYLES,
                           OPACITY_KEYS, PRESET_LABELS, SELECTABLE, TODAY_SPOTS)
 from .appconst import INFO_SPOTS   # noqa: F401 – 1.38.36: shared choices live in appconst
+from .sysinfo import HUD_ROWS_OFF
 
 ANCHORS = [("auto", N_("automatisch")), ("top-left", N_("oben links")), ("top-right", N_("oben rechts")),
            ("bottom-left", N_("unten links")), ("bottom-right", N_("unten rechts")), ("custom", N_("eigene Position"))]
@@ -204,6 +205,7 @@ class OverlayTab:
         self.floor_auto_var = ui.BooleanVar(value=o.get("floor_auto", True))
         self.record_var = ui.BooleanVar(value=o.get("show_record", False))
         self.notes_var = ui.BooleanVar(value=o.get("show_notes", True))
+        self.last_round_var = ui.BooleanVar(value=o.get("show_last_round", False))
         self._reg("ov.keep_bar", ui.Checkbutton(
             pos, text=_("Karte im schwarzen Rand halten"),
             variable=self.keep_bar_var, command=self._overlay_flags_changed)).pack(anchor="w", pady=(4, 0))
@@ -225,6 +227,7 @@ class OverlayTab:
                                ("floors", N_("Etagen untereinander zeigen"),
                                 self.floor_auto_var),
                                ("record", N_("Eigene Bilanz unter dem Timer"), self.record_var),
+                               ("last_round", N_("Zuletzt auf dieser Map (Datum, Ergebnis)"), self.last_round_var),
                                ("notes", N_("Eigene Notiz unter dem Timer"), self.notes_var),
                                ("transparent", N_("Transparenter Rand um die Karte"), self.transp_var)):
             self._reg(f"ov.{key}", ui.Checkbutton(look, text=_(text), variable=var,
@@ -264,7 +267,7 @@ class OverlayTab:
         self.hud_row_vars = {}
 
         def row_check(key, text):                      # 1.2.8: rows of the system values, each its own tick box
-            var = self.hud_row_vars[key] = ui.BooleanVar(value=bool(shown.get(key, True)))
+            var = self.hud_row_vars[key] = ui.BooleanVar(value=bool(shown.get(key, key not in HUD_ROWS_OFF)))
             return ui.Checkbutton(sysf, text=text, variable=var, command=self._hud_rows_changed)
         labels = dict(HUD_ROW_LABELS)
         self._reg("ov.hud_row_cpu", row_check("cpu", _(labels["cpu"]))).pack(anchor="w", pady=(2, 0))
@@ -272,6 +275,7 @@ class OverlayTab:
         self._reg("ov.hud_row_spot", row_check("spot", _(labels["spot"]))).pack(anchor="w", pady=(2, 0))
         self._reg("ov.hud_row_vram", row_check("vram", _(labels["vram"]))).pack(anchor="w", pady=(2, 0))
         self._reg("ov.hud_row_ram", row_check("ram", _(labels["ram"]))).pack(anchor="w", pady=(2, 0))
+        self._reg("ov.hud_row_fps", row_check("fps", _(labels["fps"]))).pack(anchor="w", pady=(2, 0))
         # 1.2.12: "Heute" and the music each have their own frame (= tab of the Qt page)
         tf = self._reg("ov.today_f", ui.LabelFrame(f, text=_("Heute"), padding=8))
         tf.pack(fill="x", pady=(8, 0))
@@ -292,6 +296,10 @@ class OverlayTab:
         self._reg("ov.today_backdrop", ui.Checkbutton(tf, text=_("Dunkle Fläche hinter „Heute“"),
                                                       variable=self.today_backdrop_var,
                                                       command=self._look_flags_changed)).pack(anchor="w", pady=(2, 0))
+        self.today_streak_var = ui.BooleanVar(value=o.get("today_streak", False))
+        self._reg("ov.today_streak", ui.Checkbutton(tf, text=_("Serie der laufenden Sitzung (4K / Entkommen)"),
+                                                    variable=self.today_streak_var,
+                                                    command=self._look_flags_changed)).pack(anchor="w", pady=(2, 0))
         mf = self._reg("ov.music_f", ui.LabelFrame(f, text=_("Musik"), padding=8))
         mf.pack(fill="x", pady=(8, 0))
         self.media_var = ui.BooleanVar(value=o.get("show_media", True))
@@ -424,6 +432,7 @@ class OverlayTab:
             self.settings["overlay"][key] = bool(var.get())
         self.settings["overlay"]["hud_backdrop"] = bool(self.hud_backdrop_var.get())
         self.settings["overlay"]["today_backdrop"] = bool(self.today_backdrop_var.get())
+        self.settings["overlay"]["today_streak"] = bool(self.today_streak_var.get())
         self.settings["overlay"]["fade"] = bool(self.fade_var.get())
         self.settings["overlay"]["map_backdrop"] = bool(self.map_backdrop_var.get())
         self.overlay.set_backdrop(self.settings["overlay"]["map_backdrop"])
@@ -607,8 +616,10 @@ class OverlayTab:
         o["grow_past_bar"] = bool(self.grow_var.get())
         o["fill_bar"] = bool(self.fill_bar_var.get())
         o["show_waiting"] = bool(self.waiting_var.get())
-        if bool(self.record_var.get()) != o.get("show_record", False):
+        if (bool(self.record_var.get()) != o.get("show_record", False)
+                or bool(self.last_round_var.get()) != o.get("show_last_round", False)):
             o["show_record"] = bool(self.record_var.get())
+            o["show_last_round"] = bool(self.last_round_var.get())
             self._update_record()
         if bool(self.notes_var.get()) != o.get("show_notes", True):
             o["show_notes"] = bool(self.notes_var.get())

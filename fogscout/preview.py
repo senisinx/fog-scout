@@ -17,7 +17,8 @@ from .overlay_render import (INPUT_RATIO, add_info, backdrop, backdrop_pad, body
                             music_full_width, pad_to, render_hud)
 
 SAMPLE_SNAPSHOT = dict(cpu_load=38, cpu_temp=64, gpu_temp=71, gpu_load=92, gpu_name="GPU",
-                       vram_used=7.1, vram_total=16, ram_used=17.2, ram_total=32, gpu_power=241)
+                       vram_used=7.1, vram_total=16, ram_used=17.2, ram_total=32, gpu_power=241,
+                       fps=144.0)     # the FPS row shows in the preview only when switched on (hud_rows)
 
 
 RENDER_H = 1440              # pictures at this game height at most: smaller ones distort (fonts have a minimum size)
@@ -41,7 +42,7 @@ def sample_snapshot():
 
 def overlay_picture(pic, map_h: int, caption: str, transparent: bool, timer: str, server: str, ping, record: str,
                     text_h: int = 0, dark_area: bool = False, style: str = "classic", accent=None, name: str = "",
-                    realm: str = "", lines_top: bool = False, memo=()):
+                    realm: str = "", lines_top: bool = False, memo=(), last=()):
     """The map window's picture (PictureOverlay.render for one frame); ``pic`` None = info only; ``text_h``: size
     of the name and the lines below (1.65: its own, not the map's). ``style`` (1.3.1): glass / chips / line draw
     the card in skin.map_card (``name``/``realm`` for its header; 1.8.27: chips too)."""
@@ -49,14 +50,16 @@ def overlay_picture(pic, map_h: int, caption: str, transparent: bool, timer: str
     if style != "classic":                           # 1.8.27: one card for every modern style
         body = map_body(pic, map_h, _split(pic)) if pic is not None else None
         return skin.map_card(body, name, realm, timer, "", record, server, ping, (), text_h, style, accent,
-                             lines_top=lines_top, memo=memo)
+                             lines_top=lines_top, memo=memo, last=last)
     base = compose(pic, map_h, caption, transparent, False, text_h, _split(pic), _cols(pic)) \
         if pic is not None else Image.new("RGBA", (1, 1), (0, 0, 0, 0))
-    if (timer or server or record or memo) and lines_top and pic is not None:      # 1.8.34: the lines above the map
+    if (timer or server or record or memo or last) and lines_top and pic is not None:      # 1.8.34: lines on top
         base = lines_above(base, add_info(Image.new("RGBA", (1, 1), (0, 0, 0, 0)), timer, server, text_h,
-                                          backdrop=not transparent, ping=ping, record=record, memo=memo), text_h)
-    elif timer or server or record or memo:
-        base = add_info(base, timer, server, text_h, backdrop=not transparent, ping=ping, record=record, memo=memo)
+                                          backdrop=not transparent, ping=ping, record=record, memo=memo, last=last),
+                           text_h)
+    elif timer or server or record or memo or last:
+        base = add_info(base, timer, server, text_h, backdrop=not transparent, ping=ping, record=record, memo=memo,
+                        last=last)
     return map_backdrop([base], text_h)[0] if dark_area else base
 
 
@@ -262,18 +265,20 @@ def layers(gw: int, gh: int, o: dict, hud_side: str, hud_rows: list, hud_own, ma
     ispot = o.get("info_pos", "below")
     lines = {k: v for k, v in info.items() if k in ("name", "realm")} if apart else info
     info_pic = None
-    if apart and (info.get("timer") or info.get("server") or info.get("record") or info.get("memo") or editing):
+    if apart and (info.get("timer") or info.get("server") or info.get("record") or info.get("memo")
+                  or info.get("last") or editing):
         timer = info.get("timer", "") or ("0:00" if editing else "")
         info_pic = fitted(lambda hh: info_card(timer, info.get("server", ""), info.get("ping"), "",
                                                info.get("record", ""), hh, style, accent,
-                                               o.get("transparent", True), dark, memo=info.get("memo", ())),
+                                               o.get("transparent", True), dark, memo=info.get("memo", ()),
+                                               last=info.get("last", ())),
                           text_h, avail if bar >= layout.MIN_BAR else 0,
                           ("text", repr(info), timer, style, accent, o.get("transparent", True), dark), fits)
         idrop, ilift = layout.info_reserve(o, info_pic.size, gap)
         drop, lift = drop + idrop, lift + ilift
     own = layout.own_block(o, info_pic.size if info_pic is not None else None, gap)   # own place: one block
     aspect = extent(map_pic)[0] / map_pic.height if map_pic is not None else 0.8
-    rows = sum(1 for k in ("timer", "server", "record") if lines.get(k))
+    rows = sum(1 for k in ("timer", "server", "record", "last") if lines.get(k))
     rows += 1 if lines.get("timer") else 0
     rows += len(lines.get("memo") or ())                            # 1.8.54: the own note's lines
     _x, _y, _w, _h, mh = layout.preview_rect(gw, gh, o["anchor"], o.get("pos_x", 0.0), o.get("pos_y", 0.0),
@@ -285,7 +290,7 @@ def layers(gw: int, gh: int, o: dict, hud_side: str, hud_rows: list, hud_own, ma
                                                  lines.get("timer", ""), lines.get("server", ""), lines.get("ping"),
                                                  lines.get("record", ""), th, dark, style, accent,
                                                  lines.get("name", ""), lines.get("realm", ""), top,
-                                                 lines.get("memo", ())),
+                                                 lines.get("memo", ()), lines.get("last", ())),
                       h, 0, ("map", id(map_pic), caption, o.get("transparent", True), dark, repr(lines), th, style,
                              accent, top))
 
