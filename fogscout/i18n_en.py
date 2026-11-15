@@ -4402,4 +4402,6 @@ EN = {
         'Group by',
     'Killer-Perk {n}':
         'Killer perk {n}',
+    'Ein Standbild hat keinen Anfang und kein Ende zum Schneiden – seine Länge stellst du unter „Standbild“ ein oder ziehst seinen Rand.':
+        'A still has no start or end to cut – set its length under “Still” or drag its edge.',
 }

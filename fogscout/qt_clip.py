@@ -98,6 +98,7 @@ class _Bridge(Bridge):
              "ended",        # the player that ended
              "saved",        # ok, path, why
              "sound",        # wav path (or None) ready for a playback from t
+             "chunk",        # 1.56: a further piece of the playback's sound ready (wav or None, round, index)
              "strip_done",   # 1.8.3: the thumbnail thread is through (all it could get)
              "still",        # 1.8.10: a still picture saved (ok, path)
              "levels",       # 1.8.18: {track index: loudest moment in dB}
@@ -1142,6 +1143,9 @@ CONTENT_SETTINGS = frozenset(("clip_mode", "clip_target_mb", "clip_mix_on", "cli
                               "clip_height", "clip_hw", "clip_censor_on", "clip_censor_style", "clip_censor_boxes"))
 
 
+_HELD_WAVS = set()                # 1.56: played WAVs Windows did not let go of yet (removed with the next one)
+
+
 def seg_part(seg):
     """1.19: the clip (clipedit.Part) a playback stretch belongs to – the big editor puts it 5th; None else."""
     return seg[4] if seg is not None and len(seg) > 4 else None
@@ -1195,8 +1199,9 @@ class ClipBase(QWidget):
                  on_saved=None, on_setting=None, log=None, dark=True, qss: str = "", title: str = "",
                  target_mb: int = clipedit.DEFAULT_TARGET_MB, censor_on: bool = False, censor_style: str = "pixel",
                  censor_boxes=(), mix_on=None, mix_vol=None, parent=None, sources=None, info=None, encoding=None,
-                 flags=Qt.Window):
+                 flags=Qt.Window, analysis_dir: str | None = None):
         super().__init__(parent, flags)
+        self._analysis_dir = analysis_dir   # 1.56: waveform and track levels kept there (clipedit._analysis_file)
         self.path, self.marks, self.clips_dir = path, sorted(float(m) for m in marks or ()), clips_dir
         self.on_saved, self.on_setting, self.log = on_saved, on_setting, (log or (lambda text, kind="System": None))
         self.saved_seconds = {}           # 1.8.13: out path -> length of the clip (the clips list shows it)
@@ -1211,6 +1216,14 @@ class ClipBase(QWidget):
         self.player = None
         self.playing = False
         self._wav = None
+        self._chunks = []                   # 1.56: the pieces of the stretch's sound (clipedit.sound_chunks) …
+        self._chunk_next = None             # … the next one made (index, wav) until its moment comes
+        self._chunk_round = 0               # … and which playback they belong to (a stop makes late ones stale)
+        self._sound_t0 = 0.0                # monotonic time the first piece started
+        self._chunk_timer = QTimer(self)    # starts the next piece at its moment (GUI thread)
+        self._chunk_timer.setSingleShot(True)
+        self._chunk_timer.setTimerType(Qt.PreciseTimer)
+        self._chunk_timer.timeout.connect(self._chunk_play)
         self._want = None                   # latest scrub moment asked for: (t, quick first look?)
         self._first_look = True             # 1.8.3: the first picture comes as a key frame at once, exact after
         self._scrub_lock = threading.Condition()
@@ -1626,6 +1639,7 @@ class ClipBase(QWidget):
         b.save_turn.connect(self._save_turn)
         b.still.connect(self._still_saved)
         b.sound.connect(self._sound_ready)
+        b.chunk.connect(self._chunk_ready)
         b.levels.connect(self._show_levels)
         b.content.connect(self._content_found)
         b.encoders.connect(self._encoders_known)
@@ -1714,7 +1728,8 @@ class ClipBase(QWidget):
                 self.bridge.frame.emit(t, img)
 
     def _level_loop(self):
-        levels = clipedit.track_levels(self.path, self.info.audio_tracks, self.ffmpeg, cancel=self._cancel)
+        levels = clipedit.track_levels(self.path, self.info.audio_tracks, self.ffmpeg, cancel=self._cancel,
+                                       cache_dir=self._analysis_dir)
         if levels and not self._closed:
             self.bridge.levels.emit(levels)
 
@@ -1830,13 +1845,85 @@ class ClipBase(QWidget):
             return
         back = bool(part is not None and part.reverse)
         if self._sound_wanted():
-            mix, n, vol, music = self.mix(), self._src_info(part).audio_tracks, self._volume, self._play_music(seg)
-            path = self._src_path(part)
-            threading.Thread(target=lambda: self.bridge.sound.emit(
-                clipedit.sound_wav(path, start, end, self.ffmpeg, mix=mix, n_tracks=n, speed=speed, volume=vol,
-                                   reverse=back, music=music), start), name="clip-sound", daemon=True).start()
+            # 1.56 (P-1): the sound in pieces – the picture waits for the first one only, the next ones are made
+            # while it plays (until 1.55 the whole stretch first: 2–9 s and up to 423 MB for an uncut round)
+            self._chunks = clipedit.sound_chunks(start, end, speed, back)
+            self._chunk_round += 1
+            if not self._chunks:                                # nothing left of the stretch: no sound to make
+                self._run_player(seg)
+                return
+            a, b, _off = self._chunks[0]
+            job = self._sound_job(seg, a, b, 0.0)
+            threading.Thread(target=lambda: self.bridge.sound.emit(job(), start), name="clip-sound",
+                             daemon=True).start()
         else:
             self._run_player(seg)
+
+    def _sound_job(self, seg, a, b, off):
+        """1.56: a function (for a thread) that makes the sound of source ``a``..``b`` of stretch ``seg`` – ``off``
+        output seconds after its start (the own track A2 under it from there)."""
+        start, end, speed, _out = seg[:4]
+        part = seg_part(seg)
+        mix, n, vol, music = self.mix(), self._src_info(part).audio_tracks, self._volume, self._play_music(seg)
+        if music is not None:                                   # (spec, output start, length, total) of this piece
+            spec, w0, _wl, total = music
+            music = (spec, w0 + off, (b - a) / max(speed, 1e-6), total)
+        path, ffmpeg, back = self._src_path(part), self.ffmpeg, bool(part is not None and part.reverse)
+
+        def job():
+            return clipedit.sound_wav(path, a, b, ffmpeg, mix=mix, n_tracks=n, speed=speed, volume=vol, reverse=back,
+                                      music=music)
+        return job
+
+    def _fetch_chunk(self, k):
+        """1.56: make piece ``k`` of the playing stretch's sound in a thread (``chunk`` brings it back)."""
+        if self._seg is None or not 0 < k < len(self._chunks):
+            return
+        a, b, off = self._chunks[k]
+        job, rnd, bridge = self._sound_job(self._seg, a, b, off), self._chunk_round, self.bridge
+        threading.Thread(target=lambda: bridge.chunk.emit(job(), rnd, k), name="clip-sound", daemon=True).start()
+
+    def _chunk_ready(self, wav, rnd, k):
+        """1.56: piece ``k`` is made – it starts when the sound before it ends (the first piece's clock: the pieces
+        follow on as one WAV would, whatever the making took)."""
+        if rnd != self._chunk_round or not self.playing or self._seg is None or self._chunk_next is not None:
+            if wav:
+                self._drop_wav(wav)
+            return
+        self._chunk_next = (k, wav)
+        due = self._sound_t0 + self._chunks[k][2] - time.monotonic()
+        self._chunk_timer.start(max(0, int(round(due * 1000))))
+
+    def _chunk_play(self):
+        nxt, self._chunk_next = self._chunk_next, None
+        if nxt is None or not self.playing:
+            if nxt is not None and nxt[1]:
+                self._drop_wav(nxt[1])
+            return
+        k, wav = nxt
+        if wav:
+            self._play_wav(wav)                                 # stops the piece before (it is at its end)
+            old, self._wav = self._wav, wav
+            if old:
+                self._drop_wav(old)
+        self._fetch_chunk(k + 1)
+
+    def _chunks_stop(self):
+        """1.56: no further piece – the stretch ended or playback stopped; a piece made meanwhile is dropped."""
+        self._chunk_round += 1
+        self._chunk_timer.stop()
+        self._chunks = []
+        nxt, self._chunk_next = self._chunk_next, None
+        if nxt is not None and nxt[1]:
+            self._drop_wav(nxt[1])
+
+    @staticmethod
+    def _play_wav(wav):
+        try:
+            import winsound
+            winsound.PlaySound(wav, winsound.SND_FILENAME | winsound.SND_ASYNC | winsound.SND_NODEFAULT)
+        except Exception:                                   # no sound device: the picture still plays
+            pass
 
     def _play_vf(self, part, t0, still: bool = False) -> list:
         """The filters on the preview picture of ``part`` from source second ``t0`` (1.19: its effects; the big
@@ -1890,12 +1977,10 @@ class ClipBase(QWidget):
             return
         self._wav = wav
         if wav:
-            try:
-                import winsound
-                winsound.PlaySound(wav, winsound.SND_FILENAME | winsound.SND_ASYNC | winsound.SND_NODEFAULT)
-            except Exception:                                   # no sound device: the picture still plays
-                pass
+            self._play_wav(wav)
+        self._sound_t0 = time.monotonic()                       # 1.56: the clock of the further pieces
         self._run_player(self._seg)
+        self._fetch_chunk(1)
 
     def _run_player(self, seg):
         b = self.bridge
@@ -1918,6 +2003,7 @@ class ClipBase(QWidget):
         self.playing = False
         self._queue = []
         self._seg = None
+        self._chunks_stop()
         self._show_playing(False)
         pl, self.player = self.player, None
         if pl is not None:
@@ -1934,14 +2020,21 @@ class ClipBase(QWidget):
 
     @staticmethod
     def _drop_wav(path):
-        try:
-            os.remove(path)
-        except OSError:
-            pass
+        """Remove a played WAV; 1.56: one Windows still holds is tried again with the next (no piece left in
+        %TEMP%)."""
+        for p in [path, *_HELD_WAVS]:
+            try:
+                os.remove(p)
+                _HELD_WAVS.discard(p)
+            except FileNotFoundError:
+                _HELD_WAVS.discard(p)
+            except OSError:
+                _HELD_WAVS.add(p)
 
     def _player_ended(self, player):
         if player is self.player and self.playing:            # ran to the end (not stopped by us)
             self.player = None
+            self._chunks_stop()
             if self._wav:
                 self._drop_wav(self._wav)
                 self._wav = None

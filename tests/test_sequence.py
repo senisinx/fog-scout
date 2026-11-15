@@ -85,3 +85,15 @@ def test_the_history_undoes_redoes_and_joins_typing_into_one_step():
     for i in range(6):
         small.push(sequence.EditState([Part(0, 1 + i)]))
     assert sum(1 for _ in iter(lambda: small.undo(), None)) == 2
+
+
+def test_trim_leaves_a_still_as_it_is():
+    """1.56 (E-2): I/O on a still went through trim – "start" moved its picture MIN_LEN earlier per press, "end"
+    broke end == start; a still's edges are its length (set_hold), so trim leaves it alone."""
+    still = Part(5.0, 5.0, 1.0, hold=2.0)
+    parts = [Part(0, 5), still, Part(5, 10)]
+    for edge in ("start", "end"):
+        out = sequence.trim(parts, 1, edge, 5.0, 40.0)
+        assert out[1] == still and out[1].start == out[1].end == 5.0
+        assert out == parts and out is not parts
+    assert sequence.duration(sequence.trim(parts, 1, "start", 5.0, 40.0)) == pytest.approx(12.0)

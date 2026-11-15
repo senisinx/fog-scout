@@ -943,3 +943,74 @@ def test_subtitles_are_moved_and_trimmed_in_the_ruler_with_one_undo_step_each(qa
         assert win.pos == pytest.approx(5.0, abs=0.1)
     finally:
         win.close()
+
+
+def test_i_and_o_on_a_still_leave_it_alone_and_say_why(qapp, clip, tmp_path):
+    """1.56 (E-2): the I/O keys on a still moved its picture 0.1 s per press (I) or gave it an end (O); now the
+    still stays, no undo step is made and the status line says how to change a still's length."""
+    from fogscout import sequence
+    win = _window(qapp, clip, tmp_path)
+    try:
+        win.goto(6.0)
+        win.insert_hold()
+        j = win.timeline.selection
+        still = win.parts[j]
+        assert still.hold > 0 and still.start == still.end
+        before, steps = list(win.parts), len(win.history._past)
+        win.goto(sequence.starts(win.parts)[j] + 0.3)
+        win.set_start()
+        win.set_start()
+        win.set_end()
+        assert win.parts == before and win.parts[j].start == win.parts[j].end == still.start
+        assert "Standbild" in win.status.text() and "Länge" in win.status.text()
+        assert len(win.history._past) == steps
+    finally:
+        win.close()
+
+
+def test_the_sound_plays_in_pieces_on_one_clock_and_leaves_no_wav(qapp, clip, tmp_path, monkeypatch):
+    """1.56 (P-1): playback no longer waits for the WAV of the whole stretch – the first piece starts with the
+    picture, each further one is made while the one before plays and starts when that one ends (on the first
+    piece's clock, as one WAV would run on); a played piece is removed, none is left in %TEMP% afterwards."""
+    import tempfile
+    import types
+    from fogscout import clipedit, qt_clip
+    tmp = tmp_path / "temp"
+    tmp.mkdir()
+    monkeypatch.setattr(tempfile, "tempdir", str(tmp))
+    monkeypatch.setattr(clipedit, "SOUND_FIRST_S", 1.0)
+    monkeypatch.setattr(clipedit, "SOUND_CHUNK_S", 1.5)
+    monkeypatch.setattr(clipedit, "SOUND_TAIL_S", 0.3)
+    monkeypatch.setattr(qt_clip.ClipBase, "_sound_wanted", lambda self: True)
+    played = []                                                     # (monotonic, wav, samples) per PlaySound
+
+    def play(wav, flags):
+        if wav:
+            import wave
+            with wave.open(wav, "rb") as w:
+                played.append((time.monotonic(), wav, w.getnframes()))
+    monkeypatch.setitem(sys.modules, "winsound", types.SimpleNamespace(
+        PlaySound=play, SND_FILENAME=1, SND_ASYNC=2, SND_NODEFAULT=4, SND_PURGE=8))
+    win = _window(qapp, clip, tmp_path)
+    try:
+        win.parts = [clipedit.Part(2.0, 6.0)]
+        win.timeline.set_parts(win.parts)
+        win._commit()
+        win.goto(0.0)
+        win.toggle_play()
+        assert _pump(qapp, lambda: not win.playing, 25)
+        want = clipedit.sound_chunks(2.0, 6.0)
+        assert len(want) == 3 and len(played) == 3                  # 1 s, 1.5 s, 1.5 s – each once, in order
+        t0 = played[0][0]
+        for (at, _wav, n), (a, b, off) in zip(played, want):
+            assert at - t0 >= off - 0.01                            # never before the piece before it ended …
+            assert abs(n - (b - a) * 44100) <= 64                   # … and each as long as its stretch
+        assert len({w for _t, w, _n in played}) == 3
+        assert not list(tmp.glob("dbdms-clip-*.wav"))               # every piece removed
+        win.playing = True                                          # a stretch with nothing left (the very end)
+        win._queue = [(6.0, 6.0, 1.0, 0.0)]
+        win._next_segment()
+        assert win.player is not None and win._chunks == []        # the picture plays on, no sound to make
+        win._stop_player()
+    finally:
+        win.close()

@@ -118,15 +118,16 @@ def thumbnail(path: str, box: tuple, cache_dir: str | None = None, by_content: b
     return pic
 
 
-def prune(cache_dir: str, now: float | None = None, max_age_s: float = PRUNE_AFTER_S) -> int:
+def prune(cache_dir: str, now: float | None = None, max_age_s: float = PRUNE_AFTER_S,
+          exts: tuple = (".png", ".jpg")) -> int:
     """Delete thumbnails nobody used for ``max_age_s`` (their mtime is refreshed on every use); the number
-    removed. Only our own PNG files in the folder."""
+    removed. Only our own files in the folder (``exts``; 1.56: the editor's analyses are ".json")."""
     if not cache_dir or not os.path.isdir(cache_dir):
         return 0
     now = time.time() if now is None else now
     gone = 0
     for name in os.listdir(cache_dir):
-        if not name.endswith((".png", ".jpg")):          # 1.16.1: qt_library keeps JPEGs of the recordings here
+        if not name.endswith(tuple(exts)):               # 1.16.1: qt_library keeps JPEGs of the recordings here
             continue
         full = os.path.join(cache_dir, name)
         try:

@@ -5929,4 +5929,6 @@ T = {
         'Группировать по',
     'Killer-Perk {n}':
         'Перк убийцы {n}',
+    'Ein Standbild hat keinen Anfang und kein Ende zum Schneiden – seine Länge stellst du unter „Standbild“ ein oder ziehst seinen Rand.':
+        'У стоп-кадра нет начала и конца для обрезки — задайте его длину в «Кадр» или потяните за край.',
 }

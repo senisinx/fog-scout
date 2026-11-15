@@ -1678,7 +1678,7 @@ class RecordingsTab:
     def _clip_window(self, r, path, **extra):
         """The compact editor (``compact=True``, beside a table) or, 1.16, the full editor window
         (qt_editor.EditorWindow) for recording ``r`` at ``path``."""
-        from .clipedit import CLIPS_DIR
+        from .clipedit import ANALYSIS_DIR, CLIPS_DIR
         if extra.pop("compact", False):
             from .qt_clip import ClipWindow as Window
         else:
@@ -1701,6 +1701,7 @@ class RecordingsTab:
                          mix_on=self.settings.get("clip_mix_on") or {},                           # 1.8.6
                          mix_vol=self.settings.get("clip_mix_vol") or {},
                          sources=(r.extra or {}).get("sources"),                            # 1.8.23
+                         analysis_dir=os.path.join(self.data_dir, ANALYSIS_DIR),            # 1.56
                          encoding=encoders.from_settings(self.settings), **extra)           # 1.15
         win.on_saved = lambda out: self._clip_saved(r, out, win)              # 1.8.13: into the clips list
         if hasattr(win, "claude_key"):                                         # 1.27: „Mit Claude bearbeiten“

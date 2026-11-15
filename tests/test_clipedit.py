@@ -2,6 +2,7 @@
 frame exact), the sound stretch and the frame player – on a small clip ffmpeg generates itself. Skipped without
 imageio-ffmpeg."""
 import os
+import re
 import subprocess
 import sys
 import threading
@@ -810,7 +811,7 @@ def test_the_graph_cuts_parts_crops_draws_and_fades_in_that_order():
     assert "[sa1]atrim=start=4.000:end=8.000,asetpts=PTS-STARTPTS,atempo=2[a1]" in g and "concat=n=2:v=1:a=1" in g
     far, _v, _a, _e = clipedit.edit_graph(clipedit.Edit([clipedit.Part(0, 2), clipedit.Part(9, 11)]), info,
                                           shape_inputs=[(2, 1.0, 9.5)])
-    assert "split" not in far and "trim" not in far                           # 7 s apart: an input each, as it is
+    assert "split" not in far and "trim=start" not in far                     # 7 s apart: an input each, as it is
     assert "[0:v][2:v]overlay=0:0:format=auto:enable='between(t,1.000,9.500)'" in far
     assert "[1:v][2:v]overlay=0:0:format=auto:enable='between(t,0.000,0.500)'" in far   # that input starts at 9 s
     assert "fade=t=in:st=0:d=0.500" in g and "fade=t=out:st=3.000:d=1.000" in g and "afade=t=out" in g
@@ -1086,7 +1087,7 @@ def test_overlapping_parts_and_far_scenes_are_inputs_of_their_own(clip, tmp_path
     ok, why = clipedit.export(clip, e, out, "exact", FF, run=_recording_run(seen))
     assert ok, why
     [args] = seen
-    assert _inputs(args) == [clip, clip, clip] and "split" not in _graph(args) and "trim" not in _graph(args)
+    assert _inputs(args) == [clip, clip, clip] and "split" not in _graph(args) and "trim=start" not in _graph(args)
     seeks = [(args[i + 1], args[i + 3]) for i, a in enumerate(args) if a == "-ss"]
     assert seeks == [("1.000", "3.000"), ("1.000", "3.000"), ("2.000", "1.000")]
     info = clipedit.probe(out, FF)
@@ -1418,7 +1419,7 @@ def test_parts_keep_their_play_order_and_still_share_inputs(clip, tmp_path):
     info = clipedit.Info(12, 320, 180, 30, 1)
     g, _v, _a, _e = clipedit.edit_graph(clipedit.Edit(later_first), info)
     assert "[sv0]trim=start=7.000:end=9.000[vt0]" in g and "[sv1]trim=start=0.000:end=2.000[vt1]" in g
-    assert "[v0][a0][v1][a1]concat=n=2" in g                                # part 0 (8–10 s) plays first
+    assert "[vf0][af0][vf1][af1]concat=n=2" in g                            # part 0 (8–10 s) plays first
     out = str(tmp_path / "reordered.mp4")
     ok, why = clipedit.export(clip, clipedit.Edit(later_first), out, "exact", FF)
     assert ok, why
@@ -1507,3 +1508,150 @@ def test_the_time_an_export_may_take_grows_with_its_length():
     assert clipedit.export_timeout(30) == clipedit.EXPORT_MIN_S == 3600.0
     assert clipedit.export_timeout(4 * 3600) == 4 * 3600 * clipedit.EXPORT_PER_SECOND > 3600.0
     assert clipedit.export_timeout(None) == clipedit.export_timeout("x") == clipedit.export_timeout(-5) == 3600.0
+
+
+def test_part_frames_follow_the_timeline_within_half_a_frame():
+    """1.56 (E-3): the frames each part fills, rounded from the running sum of the timeline – however many parts,
+    the clip is the timeline's length within half a frame; every part keeps at least one frame."""
+    parts = [clipedit.Part(i * 0.37, i * 0.37 + 0.31, 1.5) for i in range(30)]
+    counts = clipedit.part_frames(parts, 30.0)
+    assert sum(counts) == round(clipedit.Edit(parts).seconds() * 30) == 186 and set(counts) <= {6, 7}
+    assert clipedit.part_frames([clipedit.Part(0, 2), clipedit.Part(5, 5, hold=1.3)], 30.0) == [60, 39]
+    assert clipedit.part_frames([clipedit.Part(0, 0.1, 4.0)] * 3, 30.0) == [1, 1, 1]       # shorter than a frame
+    for fps in (25.0, 29.97, 60.0):
+        many = [clipedit.Part(0, 0.1 + k * 0.013, (0.5, 1.5, 4.0)[k % 3]) for k in range(50)]
+        assert abs(sum(clipedit.part_frames(many, fps)) / fps - clipedit.Edit(many).seconds()) <= 0.5 / fps
+
+
+def _stream_seconds(path, which):
+    e = subprocess.run([FF, "-hide_banner", "-i", path, "-map", which, "-f", "null", "-"], capture_output=True,
+                       timeout=120).stderr.decode()
+    h, m, s = re.findall(r"time=(\d+):(\d+):([\d.]+)", e)[-1]
+    return int(h) * 3600 + int(m) * 60 + float(s)
+
+
+def test_many_short_fast_parts_end_with_the_timeline_and_the_fade(clip, tmp_path):
+    """1.56 (E-3): 30 parts of 0.31 s at ×1.5 – each cut to whole frames, then tempo, then concat – came out
+    6.33 s for a 6.2-s timeline and the last frames of the 0.5-s fade-out were black (the fade ended before the
+    file). Now the file has the timeline's frames and the fade ends on the last one."""
+    e = clipedit.Edit([clipedit.Part(i * 0.37, i * 0.37 + 0.31, 1.5) for i in range(30)], fade_out=0.5)
+    out = str(tmp_path / "drift.mp4")
+    ok, why = clipedit.export(clip, e, out, "exact", FF)
+    assert ok, why
+    p = subprocess.run([FF, "-hide_banner", "-i", out, "-vf", "signalstats,metadata=print:key=lavfi.signalstats.YAVG",
+                        "-f", "null", "-"], capture_output=True, timeout=120).stderr.decode()
+    yavg = [float(v) for v in re.findall(r"YAVG=([\d.]+)", p)]
+    assert len(yavg) == round(e.seconds() * 30) == 186                         # the timeline's frames, no more
+    assert abs(_stream_seconds(out, "0:a:0") - e.seconds()) <= 1 / 30 + 0.025  # sound as long (AAC frames)
+    assert yavg[-1] > 18 and yavg[-2] > yavg[-1]                               # still fading on the last frame
+    assert yavg[-1] < yavg[-16] < yavg[-30]
+
+
+def test_the_preview_sound_comes_in_pieces_one_after_the_other():
+    """1.56 (P-1): the sound of a long stretch is made in pieces – a short first one (the picture waits for it), then
+    longer ones – edge to edge, on the millisecond, each with its output time; backwards stays one piece."""
+    chunks = clipedit.sound_chunks(100.0, 1300.0)
+    assert chunks[0] == (100.0, 100.0 + clipedit.SOUND_FIRST_S, 0.0)
+    assert all(a == pb for (_a0, pb, _o0), (a, _b, _o) in zip(chunks, chunks[1:]))          # no gap, no overlap
+    assert chunks[-1][1] == 1300.0 and all(b - a <= clipedit.SOUND_CHUNK_S + clipedit.SOUND_TAIL_S
+                                           for a, b, _o in chunks)
+    assert [o for _a, _b, o in chunks] == pytest.approx([a - 100.0 for a, _b, _o in chunks])
+    fast = clipedit.sound_chunks(0.0, 100.0, speed=2.0)                  # output seconds: the pieces are twice the source
+    assert fast[0][:2] == (0.0, 30.0) and fast[1][2] == pytest.approx(15.0)
+    assert clipedit.sound_chunks(0.0, 17.0) == [(0.0, 17.0, 0.0)]        # a short tail rides with the piece before
+    assert clipedit.sound_chunks(0.0, 600.0, reverse=True) == [(0.0, 600.0, 0.0)]
+    assert clipedit.sound_chunks(5.0, 5.0) == [] and clipedit.sound_chunks(0.0, 4.0) == [(0.0, 4.0, 0.0)]
+    odd = clipedit.sound_chunks(0.0123, 9.87, first=1.0, rest=2.0, tail=0.3)
+    assert all(round(b, 3) == b for _a, b, _o in odd) and odd[-1][1] == 9.87
+
+
+def _pcm(path):
+    import array
+    import wave
+    with wave.open(path, "rb") as w:
+        assert (w.getframerate(), w.getnchannels(), w.getsampwidth()) == (44100, 2, 2)
+        data = array.array("h", w.readframes(w.getnframes()))
+    return data[0::2]                                                       # the left channel
+
+
+def test_the_pieces_of_the_sound_line_up_with_the_whole_stretch(tmp_path):
+    """1.56 (P-1): each piece, read back, holds exactly the samples the whole stretch has at its output time – laid
+    one after the other at their offsets, the sound runs on as one WAV would (no shift at the edges)."""
+    src = str(tmp_path / "noise.mkv")
+    subprocess.run([FF, "-hide_banner", "-loglevel", "error", "-y", "-f", "lavfi", "-i",
+                    "testsrc=duration=12:size=160x90:rate=30", "-f", "lavfi", "-i",
+                    "anoisesrc=d=12:c=pink:r=48000:a=0.5:s=7", "-c:v", "libx264", "-preset", "veryfast",
+                    "-pix_fmt", "yuv420p", "-c:a", "aac", "-shortest", src], check=True, timeout=120)
+    whole = clipedit.sound_wav(src, 1.0, 10.0, FF)
+    chunks = clipedit.sound_chunks(1.0, 10.0, first=1.5, rest=2.5, tail=0.5)
+    pieces = [clipedit.sound_wav(src, a, b, FF) for a, b, _o in chunks]
+    try:
+        full = _pcm(whole)
+        assert len(chunks) == 4 and abs(len(full) - 9.0 * 44100) <= 64
+        total = 0
+        for (a, b, off), wav in zip(chunks, pieces):
+            got = _pcm(wav)
+            assert abs(len(got) - (b - a) * 44100) <= 64, (a, b, len(got))
+            at = round(off * 44100)
+            probe = got[2000:6000]                                         # inside the piece (resampler edges)
+            errs = {lag: sum(abs(x - y) for x, y in zip(probe, full[at + 2000 + lag:at + 6000 + lag]))
+                    for lag in range(-40, 41)}
+            best = min(errs, key=errs.get)
+            assert abs(best) <= 1 and errs[best] < 0.1 * errs[20], (off, best)   # where the whole one has it
+            total += len(got)
+        assert abs(total - len(full)) <= 64 * len(chunks)
+        for a, b, _off in clipedit.sound_chunks(1.0, 10.0, 2.0, first=1.5, rest=2.5, tail=0.5):   # ×2: atempo
+            fast = clipedit.sound_wav(src, a, b, FF, speed=2.0)
+            pieces.append(fast)
+            assert abs(len(_pcm(fast)) - (b - a) / 2.0 * 44100) <= 0.015 * 44100       # its output length
+    finally:
+        for w in [whole, *pieces]:
+            if w:
+                os.remove(w)
+
+
+def test_waveform_and_track_levels_are_kept_until_the_recording_changes(four_track, tmp_path, monkeypatch):
+    """1.56: reopening a long recording decoded its whole sound again for the waveform and the track levels (a
+    10-min file with four tracks: ~0.5 s + ~1.8 s each time). Now both are kept under the data folder, named by the
+    recording's quick fingerprint, its mtime and the parameters – the second opening reads them; a changed file, a
+    broken cache file or an analysis that failed or was cancelled is never taken (or kept); unused ones are pruned."""
+    import shutil
+    from fogscout import thumbs
+    rec = str(tmp_path / "round.mkv")
+    shutil.copyfile(four_track, rec)
+    cache = str(tmp_path / "data" / "cache" / "analysis")
+    wave = clipedit.waveform(rec, 6.0, FF, cache_dir=cache)
+    levels = clipedit.track_levels(rec, 4, FF, cache_dir=cache)
+    assert len(wave) >= 6 * clipedit.WAVE_PER_S - 2 and set(levels) == {0, 1, 2, 3}
+    files = sorted(os.listdir(cache))
+    assert len(files) == 2 and files[0].startswith("levels-") and files[1].startswith("wave-")
+    runs = []
+    real = clipedit._run_cancellable
+    monkeypatch.setattr(clipedit, "_run_cancellable", lambda *a, **k: runs.append(a) or real(*a, **k))
+    assert clipedit.waveform(rec, 6.0, FF, cache_dir=cache) == wave                    # read back, no ffmpeg
+    assert clipedit.track_levels(rec, 4, FF, cache_dir=cache) == levels and runs == []
+    assert clipedit.waveform(rec, 6.0, FF, per_s=10, cache_dir=cache) != wave and len(runs) == 1   # other bins
+    with open(rec, "ab") as fh:                                                         # the recording changes
+        fh.write(b"\0" * 16)
+    clipedit.track_levels(rec, 4, FF, cache_dir=cache)
+    assert len(runs) == 2 and len(os.listdir(cache)) == 4
+    for name in os.listdir(cache):                                                      # broken entries: anew
+        with open(os.path.join(cache, name), "w", encoding="utf-8") as fh:
+            fh.write("[\"x\"")
+    assert clipedit.track_levels(rec, 4, FF, cache_dir=cache) == pytest.approx(levels) and len(runs) == 3
+    assert clipedit.track_levels(rec, 4, FF, cache_dir=cache) == pytest.approx(levels) and len(runs) == 3   # mended
+    other = str(tmp_path / "other.mkv")
+    shutil.copyfile(four_track, other)
+    os.utime(other, ns=(1, 1))
+    cancel = threading.Event()
+    cancel.set()
+    clipedit.waveform(other, 6.0, FF, cancel=cancel, cache_dir=cache)                  # closed meanwhile: not kept
+    monkeypatch.setattr(clipedit, "_run_cancellable", lambda *a, **k: None)            # failed / cancelled
+    assert clipedit.waveform(other, 6.0, FF, cache_dir=cache) == []
+    assert clipedit.track_levels(other, 4, FF, cache_dir=cache) == {} and len(os.listdir(cache)) == 4
+    monkeypatch.setattr(clipedit, "_run_cancellable", real)
+    assert clipedit.waveform(rec, 6.0, FF, cache_dir=None) == wave                      # no folder: as before
+    old = os.path.join(cache, sorted(os.listdir(cache))[0])
+    os.utime(old, (1, 1))
+    os.makedirs(os.path.join(cache, "keep.png"))                                        # never anything but ours
+    assert thumbs.prune(cache, exts=(".json",)) == 1 and not os.path.exists(old)
