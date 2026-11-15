@@ -562,7 +562,7 @@ def _hold_the_list(app):
     assert not app.spotify.is_alive()
 
 
-def test_the_app_cross_fades_a_song_change_and_the_list_slides(app_root):
+def test_the_app_cross_fades_a_song_change_and_the_list_slides(app_root, monkeypatch):
     import json as _json
     from fogscout.app import App
     from fogscout import media
@@ -583,7 +583,13 @@ def test_the_app_cross_fades_a_song_change_and_the_list_slides(app_root):
         # the first coming track starts: the list moves up at once, the card cross-fades with the rows sliding
         app.media.now = media.NowPlaying("Save Your Tears", "The Weeknd", True, time.time(), position=1.0,
                                          duration=200.0, at=time.time())
-        assert app._media_card() == win.size
+        # 1.51.1 (CI failure, "0.777 < 0.5"): the first frame's place in the cross-fade is the time since the song
+        # changed – on a busy runner drawing took longer than half the fade. The clock stands still for this call
+        # (no time limit in a test); the timers of the event loop keep the real one
+        with monkeypatch.context() as clock:
+            start = time.monotonic()
+            clock.setattr(time, "monotonic", lambda: start)
+            assert app._media_card() == win.size
         kind, old, new, t = win.calls[-1]
         assert kind == "blend" and 0.0 <= t < 0.5
         assert new["rows"][0][0][0] == "Save Your Tears" and old["rows"][0][0][0] == "Blinding Lights"

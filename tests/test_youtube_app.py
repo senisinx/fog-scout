@@ -123,6 +123,12 @@ def test_the_app_queues_rounds_on_request_and_clips_by_themselves(app_root, tmp_
         # the thread learns about rounds (pause) and the folder once, not every tick
         app._yt_sent, app._yt_folder_at = None, 0.0
         sent = []
+        # 1.51.1 (CI failure): the tick asks the upload thread whether uploads are on – the thread takes the setting
+        # from its queue a moment after the tick box was set; on a busy runner the tick came first (folder "")
+        deadline = time.time() + 30
+        while not app.youtube.on and time.time() < deadline:
+            time.sleep(0.02)
+        assert app.youtube.on
         monkeypatch.setattr(app.youtube, "set_paused", lambda p: sent.append(("pause", p)))
         monkeypatch.setattr(app.youtube, "set_folder", lambda f: sent.append(("folder", f)))
         app._youtube_tick()
