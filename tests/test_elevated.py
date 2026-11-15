@@ -124,6 +124,52 @@ def test_windows_folders_come_from_windows_not_the_environment(monkeypatch):
         assert paths.known_folder("ProgramFiles") == "" and paths.known_folder("nope") == ""
 
 
+def test_openssl_and_key_log_variables_are_dropped_for_the_elevated_program_and_the_updater():
+    """1.56 (audit SEC-1): OPENSSL_CONF lets OpenSSL load a provider DLL into the elevated process (OPENSSL_MODULES/
+    OPENSSL_ENGINES say where from), SSLKEYLOGFILE makes every TLS context append its keys to a file of the user's
+    choosing – both were kept. Now gone from the program's start and from update.py (its own process and git/pip)."""
+    from fogscout import launch, update
+    env = {"OPENSSL_CONF": "C:/evil/o.cnf", "openssl_modules": "C:/evil", "OPENSSL_ENGINES": "C:/evil",
+           "SSLKEYLOGFILE": "C:/Users/x/keys.log", "HTTPS_PROXY": "http://proxy:3128", "PATH": "C:/Windows"}
+    kept = {"HTTPS_PROXY": "http://proxy:3128", "PATH": "C:/Windows"}
+    assert launch.clean_elevated_environment(env, "") == kept
+    assert update._clean_environment(env) == kept
+
+
+def _tls_max(code: str, conf: str, extra_env=None) -> str:
+    """The highest TLS version a context of a child Python allows after ``code`` ran, with OPENSSL_CONF = ``conf``."""
+    import subprocess
+    env = dict(os.environ, OPENSSL_CONF=conf, **(extra_env or {}))
+    probe = (f"import sys; sys.path.insert(0, {str(PKG.parent)!r})\n{code}\n"
+             "import ssl; print(ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT).maximum_version.name)")
+    r = subprocess.run([sys.executable, "-c", probe], env=env, capture_output=True, text=True, timeout=60)
+    assert r.returncode == 0, r.stderr
+    return r.stdout.strip().splitlines()[-1]
+
+
+@pytest.mark.skipif(sys.platform == "win32", reason="the elevated start is simulated; the probe config is POSIX-tested")
+def test_the_program_and_the_updater_clean_their_own_process_before_openssl_reads_its_config(tmp_path):
+    """1.56 (audit SEC-1): OpenSSL reads OPENSSL_CONF once, when hashlib or ssl is first imported – dropping it for the
+    children is not enough. Measured with a config that caps TLS at 1.2: harden_start_environment imported paths
+    (secrets → hashlib) before cleaning, so the elevated program had already loaded the user's config; update.py
+    imported hashlib at the top. Both now clean first."""
+    conf = tmp_path / "o.cnf"
+    conf.write_text("openssl_conf = init\n[init]\nssl_conf = ssl\n[ssl]\nsystem_default = sys\n[sys]\n"
+                    "MaxProtocol = TLSv1.2\n", encoding="ascii")
+    if _tls_max("", str(conf)) != "TLSv1_2":
+        pytest.skip("this OpenSSL does not apply the probe config")
+    assert _tls_max("from fogscout import launch\nlaunch.elevated = lambda: True\n"
+                    "launch.harden_start_environment()", str(conf)) == "MAXIMUM_SUPPORTED"
+    assert _tls_max("from fogscout import update\nupdate.sync_packages = lambda root, venv: []\n"
+                    "update.main(['--deps'])", str(conf)) == "MAXIMUM_SUPPORTED"
+    # nothing before main() of the program loads OpenSSL: the start module itself imports no hashlib/ssl
+    import subprocess
+    r = subprocess.run([sys.executable, "-E", "-c", f"import sys; sys.path.insert(0, {str(PKG.parent)!r})\n"
+                        "import fogscout.__main__\nprint(sorted(m for m in ('_hashlib', '_ssl') if m in sys.modules))"],
+                       capture_output=True, text=True, timeout=60)
+    assert r.returncode == 0 and r.stdout.strip() == "[]", (r.stdout, r.stderr)
+
+
 ENV_NAMES = ("SystemRoot", "windir", "ProgramFiles", "ProgramW6432", "COMSPEC", "ProgramData")
 
 

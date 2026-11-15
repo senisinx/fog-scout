@@ -271,13 +271,37 @@ def test_git_runs_without_hooks_fsmonitor_or_user_config(tmp_path, monkeypatch):
     assert os.path.basename(args[0]).lower().startswith("git") and args[-2:] == ["fetch", "origin"]
     assert "core.fsmonitor=false" in args and any(a.startswith("core.hooksPath=") for a in args)
     hooks = next(a for a in args if a.startswith("core.hooksPath=")).split("=", 1)[1]
-    assert hooks.startswith(str(tmp_path)) and not os.path.exists(hooks)          # nothing there to run
+    assert hooks == up._no_hooks() and not hooks.startswith(str(tmp_path))     # 1.56: never in the user's folder
     assert "credential.helper=" in args and "http.sslVerify=true" in args
     # 1.38.57: the user's global config is off (any program of the user writes it), the system config stays
     assert "GIT_CONFIG_NOSYSTEM" not in env and env["GIT_CONFIG_GLOBAL"] == "/dev/null"
     assert "core.autocrlf=ok" not in args                          # only true/false/input pass
     assert env["GIT_TERMINAL_PROMPT"] == "0" and env["HTTPS_PROXY"] == "http://proxy:3128"
     assert not any(k in env for k in ("GIT_SSL_CAINFO", "GIT_CONFIG_PARAMETERS", "SSL_CERT_FILE", "PYTHONPATH"))
+
+
+def test_a_hook_planted_in_the_program_folder_never_runs(repos):
+    """1.56 (audit SEC-3): core.hooksPath pointed to <root>/.venv/no-hooks – a folder the user writes to, so a hook
+    planted there ran as administrator on the update's merge. Now it points to a place that can never hold one
+    (Linux: the null device; Windows: a missing folder below System32)."""
+    user, release = repos
+    marker = user / "hook-ran"
+    hook = f"#!/bin/sh\necho ran >> '{marker.as_posix()}'\n"
+    for folder in (user / ".venv" / "no-hooks", user / ".git" / "hooks"):
+        for name in ("post-merge", "pre-commit", "reference-transaction"):
+            write(folder / name, hook)
+            os.chmod(folder / name, 0o755)
+    release("1.1.0")
+    assert up.update(str(user))[0] == up.UPDATED
+    assert up._git(str(user), "-c", "user.name=t", "-c", "user.email=t@t", "commit", "--allow-empty", "-m", "x")[0] == 0
+    assert not marker.exists()
+    if sys.platform != "win32":                       # the planted hook itself is runnable: plain git runs it
+        git(user, "commit", "--allow-empty", "-m", "y")
+        assert marker.exists()
+    if sys.platform == "win32":
+        assert up._no_hooks().lower().endswith("\\system32\\fogscout-no-hooks")
+    else:
+        assert up._no_hooks() == os.devnull
 
 
 def test_only_line_endings_and_safe_folders_come_from_the_global_git_config(tmp_path, monkeypatch):
@@ -317,3 +341,26 @@ def test_packages_come_only_from_pypi_with_their_hashes(tmp_path):
     up.sync_packages(str(root), str(venv), run=lambda a: calls.append(a) or 0)
     assert calls and all("--isolated" in c and "--require-hashes" in c for c in calls)
     assert all(c[c.index("--index-url") + 1] == "https://pypi.org/simple" for c in calls)
+
+
+def test_pip_ignores_the_users_python_and_openssl_variables(tmp_path, monkeypatch):
+    """1.56 (audit SEC-2): pip ran as administrator as ``python -m pip`` with the user's environment – a sitecustomize
+    on PYTHONPATH ran with it (confirmed). Now ``-I`` and the cleaned environment (no PYTHON*/OPENSSL_*/
+    SSLKEYLOGFILE/GIT_*; proxies stay)."""
+    seen = []
+
+    class Done:
+        returncode = 1
+
+    monkeypatch.setattr(up.subprocess, "run", lambda args, **kw: seen.append((args, kw.get("env"))) or Done())
+    for k, v in (("PYTHONPATH", "C:/evil"), ("OPENSSL_CONF", "C:/evil/o.cnf"), ("SSLKEYLOGFILE", "C:/keys.log"),
+                 ("HTTPS_PROXY", "http://proxy:3128")):
+        monkeypatch.setenv(k, v)
+    root, venv = tmp_path, tmp_path / ".venv"
+    venv.mkdir()
+    (root / "requirements.txt").write_text("numpy==1\n", encoding="utf-8")
+    up.sync_packages(str(root), str(venv))
+    (args, env), = seen
+    assert args[:4] == [sys.executable, "-I", "-m", "pip"]
+    assert env is not None and env["HTTPS_PROXY"] == "http://proxy:3128"
+    assert not any(k.upper() in ("PYTHONPATH", "OPENSSL_CONF", "SSLKEYLOGFILE") for k in env)

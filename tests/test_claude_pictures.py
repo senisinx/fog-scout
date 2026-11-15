@@ -322,6 +322,46 @@ def test_own_perks_become_groups_and_the_week_compares_two_summaries():
     assert "Meg" not in statsclaude.private_words(data)                    # survivors only as a count
 
 
+def test_a_single_round_is_never_summed_up_for_claude():
+    """1.56 (audit SEC-4): MIN_GROUP held only for the groups – with one round, "all" (minutes, kills, bloodpoints,
+    queue, ping) and first/last day were that round's own values, also for a week half. Now only the count."""
+    now = time.mktime((2026, 11, 12, 21, 30, 0, 0, 0, -1))                  # a Thursday
+    r = _round(now, "Coal Tower", "killer", "The Nurse")
+    m = official.Match(t=now - 38, map="Coal Tower", role="killer", character="The Nurse", bp=31450,
+                       opp=[official.Player("survivor", "Meg", "Sacrificed") for _k in range(4)])
+    data = statsclaude.summary([r], {id(r): m})
+    assert data == {"rounds": 1} and not statsclaude.enough(data)
+    assert "31450" not in json.dumps(data)
+    wk = statsclaude.week([r], {id(r): m}, now + 3600)
+    assert wk == {"this_week": {"rounds": 1}, "last_week": {"rounds": 0}} and not statsclaude.enough(wk)
+    two = [r, _round(now - 600, "Coal Tower", "killer", "The Nurse")]
+    assert statsclaude.summary(two, {})["all"]["n"] == 2 and statsclaude.enough(statsclaude.summary(two, {}))
+    assert statsclaude.enough(statsclaude.week(two, {}, now + 3600))
+    assert statsclaude.summary([], {}) == {"rounds": 0} and not statsclaude.enough({"rounds": 0})
+
+
+def test_a_single_round_question_is_refused_with_words(tmp_path):
+    """1.56 (audit SEC-4): the palette's statistics question says there is too little instead of sending one round."""
+    from types import SimpleNamespace
+
+    from fogscout import app_palette
+    from fogscout.config import Settings
+    errors, asked = [], []
+
+    class Stub(app_palette.PaletteMixin):
+        pass
+    s = Stub()
+    s.settings = Settings(str(tmp_path / "settings.json"))
+    s.settings.set("claude_stats", True)
+    s._claude_session_key = KEY
+    s.qt = SimpleNamespace(palette=SimpleNamespace(show_error=errors.append))
+    s.asker = SimpleNamespace(ask_stats=lambda key, q, data: asked.append(data))
+    now = time.time()
+    s._joined = lambda: SimpleNamespace(rounds=[_round(now - 60, "Coal Tower", "killer", "The Nurse")], off={})
+    s._palette_ask_stats("Wie läuft die Nurse?")
+    assert not asked and errors and "Zu wenige Runden" in errors[-1] and str(statsclaude.MIN_GROUP) in errors[-1]
+
+
 def test_a_fixed_question_reopens_the_palette_and_sends_the_week(tmp_path):
     from types import SimpleNamespace
 
@@ -354,8 +394,13 @@ def test_a_fixed_question_reopens_the_palette_and_sends_the_week(tmp_path):
     now = time.time()
     s._joined = lambda: SimpleNamespace(rounds=[_round(now - 60, "Coal Tower", "killer", "The Nurse")], off={})
     shown.clear()
+    s._palette_ask_fixed("week")                       # 1.56 (audit SEC-4): one round is never sent
+    assert shown[-1][0] == "error" and "Zu wenige Runden" in shown[-1][1] and not asked
+    s._joined = lambda: SimpleNamespace(rounds=[_round(now - 60 * m, "Coal Tower", "killer", "The Nurse")
+                                                for m in (1, 2)], off={})
+    shown.clear()
     s._palette_ask_fixed("week")
-    assert shown[-1] == ("waiting",) and asked[0][0] == shown[0][1] and asked[0][1]["this_week"]["rounds"] == 1
+    assert shown[-1] == ("waiting",) and asked[0][0] == shown[0][1] and asked[0][1]["this_week"]["rounds"] == 2
     s.settings.set("claude_stats", False)                                   # switched off: nothing at all
     shown.clear()
     s._palette_ask_fixed("build")
