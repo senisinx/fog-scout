@@ -7,6 +7,8 @@
 # 1.33 (stage 5): on a push to main (a merge) the job "release" publishes that setup as a GitHub release – tag
 # build-<run number>, the setup and its .sha256; the program's update check reads the latest one (fogscout/
 # relupdate.py). Only this job may write (contents: write); pull requests never reach it. Unsigned for now.
+# 1.50.7 (Saru: "Den Release erst erstellen wenn ich es dir sage"): a merge only builds and checks; the release is
+# published only when the workflow is started by hand on main (Actions → Build → Run workflow, workflow_dispatch).
 # Actions are pinned to the full commit SHA of their tag (the tag is in the comment), as in tests.yml.
 name: Build
 
@@ -14,6 +16,7 @@ on:
   pull_request:
   push:
     branches: [main]
+  workflow_dispatch:      # 1.50.7: started by hand – the only way to a release
 
 permissions:
   contents: read
@@ -187,7 +190,7 @@ jobs:
   release:
     name: release
     needs: exe
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:

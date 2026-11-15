@@ -471,12 +471,16 @@ def test_the_shown_build_counts_from_one_but_the_run_number_decides(tmp_path):
         relupdate.parse_release(_release(build=42))) == 42                 # no title: the run number
 
 
-def test_only_a_push_to_main_publishes_and_only_that_job_may_write():
+def test_only_a_start_by_hand_on_main_publishes_and_only_that_job_may_write():
+    """1.50.7 (Saru: "Den Release erst erstellen wenn ich es dir sage"): a merge (push to main) still builds and checks
+    the setup but publishes nothing; only the workflow started by hand on main does."""
     with open(os.path.join(ROOT, ".github", "workflows", "build.yml"), encoding="utf-8") as fh:
         wf = fh.read()
     head, release = wf[:wf.index("\njobs:")], wf[wf.index("\n  release:"):]
     assert "permissions:\n  contents: read" in head
-    assert "if: github.event_name == 'push' && github.ref == 'refs/heads/main'" in release
+    assert "if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main'" in release
+    assert "\n  workflow_dispatch:" in head and "push:\n    branches: [main]" in head      # merges are still built
+    assert "github.event_name == 'push'" not in wf
     assert len(re.findall(r"^ +contents: write$", wf, re.M)) == 1 and "    permissions:\n      contents: write" in release
     # 1.46.7: build provenance – only this job may ask for an OIDC token and write attestations, before publishing
     for right in ("id-token: write", "attestations: write"):
