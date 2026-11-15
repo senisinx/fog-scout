@@ -3,6 +3,7 @@ a tab's structure (AutoPage), dialogs and the setup assistant.
 """
 from __future__ import annotations
 
+from PIL import Image, ImageDraw
 from PySide6.QtCore import QEvent, QRectF, QSize, Qt, QTimer
 from PySide6.QtGui import QColor, QGuiApplication, QIcon, QPainter, QPen
 from PySide6.QtWidgets import (QBoxLayout, QComboBox, QDialog, QFrame, QGridLayout, QHBoxLayout, QLabel, QLineEdit, QProgressBar,
@@ -746,15 +747,29 @@ INDENT_W = 28                       # 1.29.1: options under the one they depend 
 OVERVIEW_GLYPHS = {"rotate": "rotate", "layout": "chevron_right", "floor": "chevron_right", "scan": "search"}
 
 
-ICON_PX = 20                        # 1.52: a picture before a choice's entry (the calculator's perks)
+ICON_PX = 22                        # 1.52: a picture before a choice's entry (the calculator's perks)
+ICON_TILE = 64                      # the picture is drawn on a dark tile this large (the game's icons are white)
+ICON_BACK = (38, 34, 48, 255)
 _FILE_ICONS = {}
 
 
 def _file_icon(path: str) -> QIcon:
-    """The QIcon of a picture file, made once (many choices list the same perks)."""
+    """The QIcon of a picture file, made once (many choices list the same perks): the picture on a dark rounded
+    tile – perk icons are white on nothing and would vanish in the light theme. Read with PIL (PNG and WebP,
+    whatever Qt plugins the build has); a file that is no picture gives an empty icon."""
     icon = _FILE_ICONS.get(path)
     if icon is None:
-        icon = _FILE_ICONS[path] = QIcon(path)
+        try:
+            with Image.open(path) as im:
+                im = im.convert("RGBA")
+                im.thumbnail((ICON_TILE - 4, ICON_TILE - 4), Image.LANCZOS)
+            tile = Image.new("RGBA", (ICON_TILE, ICON_TILE), (0, 0, 0, 0))
+            ImageDraw.Draw(tile).rounded_rectangle((0, 0, ICON_TILE - 1, ICON_TILE - 1), radius=14, fill=ICON_BACK)
+            tile.alpha_composite(im, ((ICON_TILE - im.width) // 2, (ICON_TILE - im.height) // 2))
+            icon = QIcon(pixmap_from_pil(tile, ICON_TILE))
+        except (OSError, ValueError, Image.DecompressionBombError):
+            icon = QIcon()
+        _FILE_ICONS[path] = icon
     return icon
 
 

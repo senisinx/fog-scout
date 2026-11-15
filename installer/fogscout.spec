@@ -32,6 +32,7 @@ datas = [
     (os.path.join(PACKAGE, "fonts"), os.path.join("fogscout", "fonts")),
     (os.path.join(PACKAGE, "matchexport.user.js"), "fogscout"),
     (os.path.join(PACKAGE, "perkdata.json"), "fogscout"),          # 1.51: the generator calculator's numbers
+    (os.path.join(PACKAGE, "perkicons"), os.path.join("fogscout", "perkicons")),   # 1.52: the perks' pictures
 ]
 # 1.33: build number/version/commit for the update check (relupdate.own_build) – written by CI before the build
 if os.path.isfile(os.path.join(ROOT, "build-info.json")):

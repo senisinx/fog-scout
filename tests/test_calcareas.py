@@ -228,7 +228,8 @@ def test_perk_pictures_are_found_by_the_perks_name_or_the_packs_file_name(tmp_pa
     (user / "cullTheWeak.png").write_bytes(b"x")
     (user / "notes.txt").write_bytes(b"x")
     (user / "Lithe.png").write_bytes(b"x" * (perkicons.MAX_BYTES + 1))             # no icon is that large
-    index = perkicons.Index([str(own), str(user)])
+    (own / "Botany Knowledge.png").write_bytes(b"x")               # the user's picture of a perk comes first
+    index = perkicons.Index([str(user), str(own)])
     assert index.any()
     assert index.find("Botany Knowledge").endswith("Botany Knowledge.png")
     assert index.find("Boon: Circle of Healing").endswith("iconPerks_boonCircleOfHealing.PNG")
@@ -236,11 +237,50 @@ def test_perk_pictures_are_found_by_the_perks_name_or_the_packs_file_name(tmp_pa
     assert index.find("Déjà Vu").endswith("iconPerks_dejaVu.png")
     assert index.find("Dying Light / Cull the Weak").endswith("cullTheWeak.png")
     assert index.find("Lithe") is None and index.find("notes") is None and index.find("Sprint Burst") is None
+    assert os.path.dirname(index.find("Botany Knowledge")) == str(user)
     assert perkicons.key("iconPerks_We'reGonnaLiveForever") == perkicons.key("We're Gonna Live Forever")
+    assert perkicons.key("T_UI_iconsPerks_Rampage") == perkicons.key("IconsPerks_Rampage") == "rampage"
     empty = perkicons.Index([str(tmp_path / "nothing")])
     assert not empty.any() and empty.find("Botany Knowledge") is None
-    assert perkicons.folders("D") == [os.path.join(perkicons.HERE, perkicons.FOLDER),
-                                      os.path.join("D", perkicons.USER_FOLDER)]
+    assert perkicons.folders("D") == [os.path.join("D", perkicons.USER_FOLDER),
+                                      os.path.join(perkicons.HERE, perkicons.FOLDER)]
+
+
+def test_every_perk_of_the_calculator_has_its_picture_in_the_program():
+    """Saru: "Wiki ist in Ordnung" – the perks' pictures come with the program (64 px PNG from the Dead by Daylight
+    Wiki, THIRD_PARTY.md): one for every perk of perkdata.json, nothing else in the folder, each a small picture."""
+    from PIL import Image
+    folder = os.path.join(perkicons.HERE, perkicons.FOLDER)
+    index = perkicons.Index([folder])
+    names = set(D.survivor) | set(D.killer) | set(D.perks)
+    assert [n for n in sorted(names) if index.find(n) is None] == []
+    used = {index.find(part) for n in names for part in n.split(" / ")} - {None}
+    files = sorted(os.listdir(folder))
+    assert sorted(os.path.basename(p) for p in used) == files and len(files) > 100
+    for name in files:
+        path = os.path.join(folder, name)
+        assert name.endswith(".png") and os.path.getsize(path) < 16 * 1024, name
+        with Image.open(path) as im:
+            assert im.size == (64, 64) and im.format == "PNG", name
+    with open(os.path.join(os.path.dirname(perkicons.HERE), "THIRD_PARTY.md"), encoding="utf-8") as fh:
+        assert "fogscout/perkicons" in fh.read()
+
+
+def test_a_perk_picture_is_drawn_on_a_dark_tile_and_a_broken_file_gives_none(tmp_path):
+    """The game's icons are white on nothing: the choice shows them on a dark tile (visible in the light theme);
+    a file that is no picture leaves the entry without one instead of failing."""
+    pytest.importorskip("PySide6.QtWidgets", exc_type=ImportError)
+    from fogscout import qt_app, qt_pages
+    qt_app.application()
+    good = os.path.join(perkicons.HERE, perkicons.FOLDER, "IconPerks_proveThyself.png")
+    icon = qt_pages._file_icon(good)
+    assert not icon.isNull() and qt_pages._file_icon(good) is icon               # made once
+    image = icon.pixmap(64, 64).toImage()
+    corner, edge = image.pixelColor(0, 0), image.pixelColor(32, 1)
+    assert corner.alpha() == 0 and edge.alpha() == 255 and edge.lightness() < 80   # rounded, dark
+    bad = tmp_path / "x.png"
+    bad.write_bytes(b"not a picture")
+    assert qt_pages._file_icon(str(bad)).isNull()
 
 
 @pytest.fixture
@@ -305,8 +345,10 @@ def test_the_page_shows_one_area_and_only_the_builds_of_the_team(app_root):
         assert "Self-Care" in app.calc_source_var.get()
         # the picture of a perk goes to the page with the choice's state
         st = app_qt.ui_state(box)
-        assert st["icons"][st["values"].index("Botany Knowledge")].endswith("Botany Knowledge.png")
-        assert st["icons"][0] is None
+        assert st["icons"][st["values"].index("Botany Knowledge")].endswith("Botany Knowledge.png")   # the user's own
+        assert st["icons"][0] is None and all(st["icons"][1:])                    # every perk has its picture
+        assert os.path.dirname(st["icons"][st["values"].index("Leader")]) == \
+            os.path.join(perkicons.HERE, perkicons.FOLDER)
         # Build A, then a change: both stand in the table
         assert app.calc_drop_btn.instate(["disabled"])
         app._calc_keep()
