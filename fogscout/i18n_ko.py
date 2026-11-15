@@ -2063,6 +2063,8 @@ T = {
         '다른 생존자의 기술 검사 성공마다 평균 +{p} % 진행도(d20)',
     'ein verfehlter Skill Check kostet {p} % weniger Fortschritt':
         '기술 검사 실패 시 진행도를 {p} % 덜 잃음',
+    '+{p} Prozentpunkte Skill-Check-Chance je Token':
+        '토큰당 기술 검사 확률 +{p}%p',
     'jeder Generator braucht {v} Ladungen weniger':
         '모든 발전기의 필요 충전량 {v} 감소',
     'ein Generator braucht {v} Ladungen weniger':

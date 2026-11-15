@@ -2063,6 +2063,8 @@ T = {
         '他の生存者のスキルチェック成功ごとに平均 +{p} % の進行度（d20）',
     'ein verfehlter Skill Check kostet {p} % weniger Fortschritt':
         'スキルチェック失敗で失う進行度が {p} % 減少',
+    '+{p} Prozentpunkte Skill-Check-Chance je Token':
+        'トークン1つにつきスキルチェック発生率 +{p} ポイント',
     'jeder Generator braucht {v} Ladungen weniger':
         '各発電機の必要チャージが {v} 減少',
     'ein Generator braucht {v} Ladungen weniger':

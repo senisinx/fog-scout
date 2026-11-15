@@ -274,3 +274,20 @@ def test_pop_and_steadfast_take_their_values_from_the_data_file():
     assert g.one_generator(D, [S(("Boon: Steadfast",))], K(), scen).lost == pytest.approx(4.5 + 2.5, abs=0.1)
     d.survivor["Boon: Steadfast"]["regression"] = 0.25
     assert g.one_generator(d, [S(("Boon: Steadfast",))], K(), scen).lost == pytest.approx(4.5 + 3.75, abs=0.1)
+
+
+def test_hyperfocus_also_raises_the_trigger_odds_per_token():
+    """Wiki: +4 % Skill Check trigger odds per Token (max 6) – percentage points like Unnerving Presence (whose
+    change log names it a static increase of the base chance). Expected over the stationary Token counts."""
+    assert D.survivor["Hyperfocus"]["chance_per_token"] == pytest.approx(0.04)
+    hyper = S(("Hyperfocus",))
+    # every check Great: always 6 Tokens → +24 points
+    assert g.skill_checks(D, [hyper], None, 1.0)[0][0] == pytest.approx(0.24)
+    # half Great: Token shares 0.5, 0.25, 0.125, 0.0625, 0.03125, 0.015625, 0.015625 → mean 0.984375 Tokens
+    assert g.skill_checks(D, [hyper], None, 0.5)[0][0] == pytest.approx(0.04 * 0.984375)
+    # none Great: no Token, nothing added; without the perk nothing either
+    assert g.skill_checks(D, [hyper], None, 0.0)[0][0] == 0.0
+    assert g.skill_checks(D, [S()], None, 1.0)[0][0] == 0.0
+    # on the Generator, all Great, alone: 1 c/s + 0.32 · 0.9 c · 2.8 (bonus +30 % × 6 Tokens) = 1.8064 c/s → 49.82 s
+    assert g.one_generator(D, [hyper], None, Sc(great=1.0, miss=0, kicks=0)).seconds == \
+        pytest.approx(90 / 1.8064, abs=0.01)

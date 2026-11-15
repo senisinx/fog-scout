@@ -165,8 +165,9 @@
    "kind": "great_scale",
    "value": 0.3,
    "tokens": 6,
+   "chance_per_token": 0.04,
    "patch": "6.2.0",
-   "when": "each Great Skill Check in a row adds a Token (max 6): +30 % of the bonus per Token"
+   "when": "each Great Skill Check in a row adds a Token (max 6): +30 % of the bonus and +4 percentage points Skill Check trigger odds per Token (the faster pointer is not modelled)"
   },
   {
    "name": "Invocation: Weaving Spiders",

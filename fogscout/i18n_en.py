@@ -1580,6 +1580,8 @@ EN = {
         'every successful skill check of the others gives +{p} % progress on average (d20)',
     'ein verfehlter Skill Check kostet {p} % weniger Fortschritt':
         'a missed skill check costs {p} % less progress',
+    '+{p} Prozentpunkte Skill-Check-Chance je Token':
+        '+{p} percentage points Skill Check chance per token',
     'jeder Generator braucht {v} Ladungen weniger':
         'every generator needs {v} charges less',
     'ein Generator braucht {v} Ladungen weniger':

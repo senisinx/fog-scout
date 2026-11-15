@@ -2063,6 +2063,8 @@ T = {
         'ogni prova di abilità riuscita degli altri dà in media +{p} % di progresso (d20)',
     'ein verfehlter Skill Check kostet {p} % weniger Fortschritt':
         'una prova di abilità fallita costa il {p} % di progresso in meno',
+    '+{p} Prozentpunkte Skill-Check-Chance je Token':
+        '+{p} punti percentuali di probabilità di prova di abilità per gettone',
     'jeder Generator braucht {v} Ladungen weniger':
         'ogni generatore richiede {v} cariche in meno',
     'ein Generator braucht {v} Ladungen weniger':

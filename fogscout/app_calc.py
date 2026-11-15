@@ -118,6 +118,7 @@ EFFECTS = {
     "others_check_bonus": N_("jeder erfolgreiche Skill Check der anderen bringt im Mittel +{p} % Fortschritt (W20)"),
 }
 FAIL_LESS = N_("ein verfehlter Skill Check kostet {p} % weniger Fortschritt")     # Deadline ("fail_mult")
+PER_TOKEN_CHANCE = N_("+{p} Prozentpunkte Skill-Check-Chance je Token")           # 1.56: Hyperfocus
 
 
 def _pct(v) -> str:
@@ -140,6 +141,8 @@ def effect_text(entry: dict, mech: dict | None = None) -> str:
         args["p"] = _pct(entry.get("value", 1))
     if kind == "slow" and entry.get("full_at"):
         return _(text, **args) + " · " + _("{p} % bei {n}", p=_pct(entry["full"]), n=entry["full_at"])
+    if entry.get("chance_per_token"):
+        return _(text, **args) + " · " + _(PER_TOKEN_CHANCE, p=_pct(entry["chance_per_token"]))
     if "fail_mult" in entry:
         return _(text, **args) + " · " + _(FAIL_LESS, p=_pct(1 - entry["fail_mult"]))
     return _(text, **args)

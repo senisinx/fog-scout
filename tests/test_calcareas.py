@@ -510,10 +510,7 @@ def test_perk_pictures_are_found_by_the_perks_name_or_the_packs_file_name(tmp_pa
 NO_PICTURE = {("addon", "Anti-Exhaustion Syringe"), ("addon", "Misty Day, Remains of Judgement"),
               ("addon", "Mysterious Elixir"), ("addon", "Spattered Handkerchief"), ("addon", "Vorpal Sword"),
               ("items", "Annotated Map"), ("items", "Banquet Flashlight"), ("items", "Banquet Med-Kit"),
-              ("items", "Banquet Toolbox"), ("items", "Scribbled Map"),
-              # 1.56: the Skill Check perks came without network access to the wiki's pictures – to be added
-              ("perks", "Bardic Inspiration"), ("perks", "Deadline"), ("perks", "One-Two-Three-Four!"),
-              ("perks", "Technician"), ("perks", "Unnerving Presence")}
+              ("items", "Banquet Toolbox"), ("items", "Scribbled Map")}
 
 
 def test_every_perk_of_the_calculator_has_its_picture_in_the_program():

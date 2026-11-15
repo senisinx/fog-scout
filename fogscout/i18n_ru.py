@@ -2063,6 +2063,8 @@ T = {
         'каждая успешная проверка реакции других даёт в среднем +{p} % прогресса (d20)',
     'ein verfehlter Skill Check kostet {p} % weniger Fortschritt':
         'проваленная проверка реакции стоит на {p} % прогресса меньше',
+    '+{p} Prozentpunkte Skill-Check-Chance je Token':
+        '+{p} процентных пункта к шансу проверки реакции за жетон',
     'jeder Generator braucht {v} Ladungen weniger':
         'каждому генератору нужно на {v} зарядов меньше',
     'ein Generator braucht {v} Ladungen weniger':

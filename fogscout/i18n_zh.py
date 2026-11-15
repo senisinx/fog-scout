@@ -2063,6 +2063,8 @@ T = {
         '其他人每次成功的技能检定平均增加 +{p} % 进度（d20）',
     'ein verfehlter Skill Check kostet {p} % weniger Fortschritt':
         '技能检定失败少损失 {p} % 进度',
+    '+{p} Prozentpunkte Skill-Check-Chance je Token':
+        '每个标记技能检定几率 +{p} 个百分点',
     'jeder Generator braucht {v} Ladungen weniger':
         '每台发电机所需充能减少 {v}',
     'ein Generator braucht {v} Ladungen weniger':

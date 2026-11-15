@@ -208,10 +208,16 @@ def _hyper(data: Data, team, great: float) -> list:
         if not e or great <= 0:
             out.append(1.0)
             continue
-        cap, g = int(e["tokens"]), min(max(great, 0.0), 1.0)
-        share = [(1 - g) * g ** t for t in range(cap)] + [g ** cap]
+        share = _token_shares(int(e["tokens"]), great)
         out.append(sum(p * (1 + e["value"] * t) for t, p in enumerate(share)))
     return out
+
+
+def _token_shares(cap: int, great: float) -> list:
+    """Hyperfocus: the stationary share of each Token count 0…cap while a check is Great with share ``great``
+    (a Token per Great check in a row, all lost on any other result)."""
+    g = min(max(great, 0.0), 1.0)
+    return [(1 - g) * g ** t for t in range(cap)] + [g ** cap]
 
 
 def item_kind(data: Data, item: str) -> str:
@@ -324,10 +330,12 @@ def _killer_effects(data: Data, killer: Killer) -> dict:
     return fx
 
 
-def skill_checks(data: Data, team, killer: Killer | None = None) -> list:
+def skill_checks(data: Data, team, killer: Killer | None = None, great: float = 0.0) -> list:
     """1.56: per Survivor of ``team`` (all at one Generator) what the perks change about Skill Checks: (added
     chance per second, share of the Generator a missed check costs, extra share every successful check grants).
-    One-Two-Three-Four! and Bardic Inspiration count once (the stronger of two copies), Bardic only for the others."""
+    One-Two-Three-Four! and Bardic Inspiration count once (the stronger of two copies), Bardic only for the others.
+    Hyperfocus adds its trigger odds per Token (``chance_per_token``) as the expected value over the Token counts
+    at the share ``great`` of Great checks (the same model as ``_hyper``)."""
     killer = killer or Killer()
     own = [_known(data, s.perks, data.survivor) for s in team]
     shared = max((e["value"] for es in own for e in es if e["kind"] == "team_check_chance"), default=0.0)
@@ -335,6 +343,10 @@ def skill_checks(data: Data, team, killer: Killer | None = None) -> list:
     out = []
     for i, es in enumerate(own):
         chance = shared + enemy + sum(e["value"] for e in es if e["kind"] == "check_chance")
+        for e in es:
+            if e["kind"] == "great_scale" and e.get("chance_per_token") and great > 0:
+                chance += sum(p * e["chance_per_token"] * t
+                              for t, p in enumerate(_token_shares(int(e["tokens"]), great)))
         fail = data.mech["fail_loss"] + sum(e["value"] for e in es if e["kind"] == "check_fail")
         for e in es:
             fail *= e.get("fail_mult", 1.0)
@@ -360,7 +372,7 @@ def one_generator(data: Data, team, killer: Killer | None = None, scen: Scenario
                      if e["kind"] == "team" and e.get("regression")), default=0.0)     # 1.56: from perkdata.json
     hyper = _hyper(data, team, scen.great)
     great_c = m["great_bonus"] * need
-    checks = skill_checks(data, team, killer)
+    checks = skill_checks(data, team, killer, scen.great)
     tool = [tool_charges(data, s) for s in team]
     quiet = [any(a.get("no_checks") for a in item_addons(data, s)) for s in team]     # Instructions: no checks
 
