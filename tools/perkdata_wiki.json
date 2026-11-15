@@ -1,0 +1,6958 @@
+{
+"addons":[
+"\"All Seeing\" - Blood",
+"\"All Seeing\" - Spirit",
+"\"Bad Man's\" Last Breath",
+"\"Blind Warrior\" - Mud",
+"\"Blind Warrior\" - White",
+"\"Blink\" - Mud",
+"\"Blink\" - White",
+"\"Calm\" - Carter's Notes",
+"\"Calm\" - Class I",
+"\"Calm\" - Class II",
+"\"Discipline\" - Carter's Notes",
+"\"Discipline\" - Class II",
+"\"Discipline\" - Class III",
+"\"Ghost Face Caught on Tape\"",
+"\"Order\" - Carter's Notes",
+"\"Order\" - Class I",
+"\"Order\" - Class II",
+"\"Philly\"",
+"\"Restraint\" - Carter's Notes",
+"\"Restraint\" - Class II",
+"\"Restraint\" - Class III",
+"\"Shadow Dance\" - Blood",
+"\"Shadow Dance\" - Soot",
+"\"Shadow Dance\" - White",
+"\"Swift Hunt\" - Blood",
+"\"Swift Hunt\" - Mud",
+"\"Swift Hunt\" - White",
+"\"The Beast\" - Soot",
+"\"The Ghost\" - Soot",
+"\"The Hound\" - Soot",
+"\"The Serpent\" - Soot",
+"\"Windstorm\" - Blood",
+"\"Windstorm\" - Mud",
+"\"Windstorm\" - White",
+"\"Z\" Block",
+"4-Coil Spring Kit",
+"Abdominal Dressing",
+"Access Panel",
+"Acidic Blood",
+"Adaptive Lighting",
+"Adi Valente Issue 1",
+"Admin Wristband",
+"Adrenaline Injector",
+"Adrenaline Vial",
+"Advanced Movement Prediction",
+"Air Freshener",
+"Akito's Crutch",
+"Alchemist's Ring",
+"Allie's Scalp",
+"Alucard's Shield",
+"Amanda's Letter",
+"Amanda's Secret",
+"Amanita Toxin",
+"Amon's Necktie",
+"Android Arm",
+"Anteiku Apron",
+"Anti-Exhaustion Syringe",
+"Anxious Gasp",
+"Aogiri Tree Robe",
+"Apex Muffler",
+"Art Crispies",
+"Ash's Innards",
+"Ashen Apple",
+"Ataxic Respiration",
+"Aurora's Telereceptor",
+"Automatic Drawing",
+"Automatic Screwdriver",
+"Award-winning Chilli",
+"B-Movie Poster",
+"BFFs",
+"Baby Teeth",
+"Bad Man Keepsake",
+"Bag of Gears",
+"Bag of Holding",
+"Bandaged Haft",
+"Bandages",
+"Barb's Glasses",
+"Barbed Wire",
+"Barley Meal",
+"Battered Tape",
+"Battery",
+"Battle Axe Head",
+"Bayshore's Cigar",
+"Bayshore's Gold Tooth",
+"Bead Maze",
+"Bear Oil",
+"Begrimed Chains (Bubba's Chainsaw)",
+"Begrimed Chains (Chainsaw)",
+"Begrimed Head",
+"Belaying Pins",
+"Bent Nail",
+"Bent Wheel",
+"Black Box",
+"Black Heart",
+"Black Incense",
+"Black Powder",
+"Black Strap",
+"Black Widow Spider",
+"Blackened Heart",
+"Blackened Toenail",
+"Blacksmith's Hammer",
+"Blessed Apple",
+"Blight Serum",
+"Blighted Crow",
+"Blighted Rat",
+"Blindfold of the Devoted",
+"Blond Hair",
+"Blood Amber",
+"Blood-Filled Goblet",
+"Blood-Stained Handkerchief",
+"Bloodied Mud",
+"Bloodied Water",
+"Bloodstained Bullet",
+"Bloody Black Hood",
+"Bloody Boa",
+"Bloody Coil",
+"Bloody Fingernails",
+"Bloody Magazine",
+"Bloody Roller Skate",
+"Bloody Sash",
+"Bloody Smile",
+"Blue Dress",
+"Blurry Photo",
+"Boat Key",
+"Bog Water",
+"Bone Clapper",
+"Bonnie's Guitar Strings",
+"Boots of Speed",
+"Bottle of Bleach",
+"Bottle of Chloroform",
+"Boyfriend's Memo",
+"Braided Bauble",
+"Brand New Part",
+"Brass Case Lighter",
+"Brett's Cap",
+"Brian's Intestine",
+"Broken Bulb",
+"Broken Chain",
+"Broken Doll",
+"Broken Hilt",
+"Broken Recovery Coin",
+"Broken Security Key",
+"Broken Skateboard",
+"Broken Tiara",
+"Brooke's Pustule",
+"Brown Noise Generator",
+"Buck Shot",
+"Bullhorn",
+"Burning Candle",
+"Burning Man Painting",
+"Burnt Fuse",
+"Burnt Letters",
+"Burnt Wings",
+"Butterfly Tape",
+"CCG ID Card",
+"Cabin Sign",
+"Caffeine Tablets",
+"Caged Heart Shoes",
+"Call to Arms",
+"Campbell's Last Breath",
+"Candy Head Bowl",
+"Canker Thorn",
+"Captured by the Dark",
+"Carburettor Tuning Guide",
+"Cat Block",
+"Cat Carrier",
+"Cat Figurine",
+"Cat's Eye",
+"Catatonic Boy's Treasure",
+"Celebrate! Poster",
+"Cerberus Talon",
+"Cereal Rations",
+"Ceremonial Candelabrum",
+"Chains of the Heretic",
+"Chainsaw File",
+"Chalice (Gold)",
+"Charcoal Stick",
+"Chatterer's Tooth",
+"Cheap Cologne",
+"Cheap Gin Bottle",
+"Chess Piece",
+"Chewed Pen",
+"Chewing Tobacco",
+"Chica's Bib",
+"Chicken Head",
+"Child's Wooden Sword",
+"Chilli",
+"Chipped Monocle",
+"Chipped Saihai",
+"Choclo Corn",
+"Chunk of Malai",
+"Cigar Box",
+"Cinch Straps",
+"Cinderella Music Box",
+"Class Photo",
+"Clean Rag",
+"Cloak of Elvenkind",
+"Cloak of Invisibility",
+"Clock Hands",
+"Clock Tower Gear",
+"Clogged Intake",
+"Clump of Hair",
+"Coarse Stone",
+"Coffee Grounds",
+"Cold Steel Manacles",
+"Combat Straps",
+"Compound Seven",
+"Compound Thirty-Three",
+"Compound Twenty-One",
+"Confessor's War Horn",
+"Copper Ring",
+"Coroner's Coffee",
+"Counterweight",
+"Coxcombed Clapper",
+"Cracked Primer Bulb",
+"Cracked Sakazuki",
+"Cracked Turtle Egg",
+"Crate of Gears",
+"Creature's Bone",
+"Cremated Remains",
+"Crew Headset",
+"Crew Manifest",
+"Crimson Ceremony Book",
+"Crimson Stamp",
+"Crown of the Destroyer",
+"Crumpled Sheet Music",
+"Cryo Gel",
+"Crystal Ball",
+"Cube of Zoe",
+"Cut Thru U Single",
+"Cutting Wire",
+"Cypress Necklet",
+"Dad's Boots",
+"Damaged Syringe",
+"Dark Cincture",
+"Dark Sunglasses",
+"Darkest Ink",
+"Dead Butterfly",
+"Dead Fly Mud",
+"Dead Opossum",
+"Dead Rabbit",
+"Death Throes Compilation",
+"Deer Lung",
+"Deerskin Gloves",
+"Defaced Smiley Pin",
+"Defective Metronome",
+"Denied Requisition Form",
+"Depleted Ink Ribbon",
+"Depth Gauge Rake",
+"Deputy's Badge",
+"Destroyed Pillow",
+"Device of Undisclosed Origin",
+"Devotee's Amulet",
+"Diagnostic Tool (Construction)",
+"Diagnostic Tool (Repair)",
+"Diamond Cufflinks",
+"Dirty Money",
+"Discarded Air Filter",
+"Discarded Milk Carton",
+"Disfigured Ear",
+"Distorted Photo",
+"Doll Eyes",
+"Dragonfly Wings",
+"Dragontooth Dagger",
+"Dried Cherry Blossom",
+"Dried Cicada",
+"Dried Horsemeat",
+"Drinking Bird",
+"Driver's License",
+"Drop of Perfume",
+"Drop-Leg Knife Sheath",
+"Duct Tape",
+"Dull Bracelet",
+"Dulled Knife",
+"Edge of Revival Album",
+"Egg (Gold)",
+"Electric Carving Knife",
+"Electric Torch",
+"Electrode Cap",
+"Electroshock Collar",
+"Eleven's Soda",
+"Emergency Helmet",
+"Emetic Potion",
+"Emily",
+"Endo CPU",
+"Engineer's Fang",
+"Etched Ruler",
+"Ether 15 Vol%",
+"Exorcism Amulet",
+"Expired Batteries",
+"Explosive Gift",
+"Eye Goop",
+"Eyes of Gerhardt",
+"Face Mask",
+"Fallen Shingle",
+"Fastening Tools",
+"Fatty Meat",
+"Faz-Coin",
+"Festering Carrion",
+"Field Recorder",
+"Filthy Blade",
+"Filthy Slippers",
+"Fingerless Parade Gloves",
+"First Libretto",
+"Fizz-Spin Soda",
+"Flash Powder",
+"Flask of Bleach",
+"Flickering Television",
+"Flint and Steel",
+"Flower Babushka",
+"Focus Lens",
+"Follower's Cowl",
+"Footprint Cast",
+"Force of Echo",
+"Foreign Plant Fibres",
+"Forest Stew",
+"Forged Death Certificate",
+"Forgotten Videotape",
+"Foxglove",
+"Foxy's Hook",
+"Fragile Wheeze",
+"Fragrant Tuft of Hair",
+"Framed Newspaper",
+"Frank's Heart",
+"Frank's Mix Tape",
+"Freddy's Hat",
+"Fresh Coffee",
+"Friendship Bracelet",
+"Friendship Charm",
+"Front-Page Article",
+"Fuming Mix Tape",
+"Furin",
+"Garden Claw",
+"Garden Rake",
+"Garden of Rot",
+"Garish Make-Up Kit",
+"Gauze Roll",
+"Gel Dressings",
+"Geographical Readout",
+"Gifted Bamboo Comb",
+"Glass Eye",
+"Glass Fragment",
+"Glowing Concoction",
+"Glowing Ink",
+"Gnarled Compass",
+"Gold Creek Whiskey",
+"Good Guy Box",
+"Grandma's Heart",
+"Greased Throttle",
+"Greasy Black Lens",
+"Greasy Paper Plate",
+"Green Dress",
+"Green Herb",
+"Grim Iron Mask",
+"Grip Wrench",
+"Grisly Chains",
+"Gritty Lump",
+"Gum",
+"Gun Powder",
+"Gunpowder Tin",
+"Gutted Supercom",
+"Hacksaw",
+"Haddie's Calendar",
+"Haematite Seal",
+"Hair Bow",
+"Hair Brush",
+"Hair Spray & Candle",
+"Half Eggshell",
+"Hard Hat",
+"Harpoon Gun",
+"Headline Cut-Outs",
+"Healing Poultice",
+"Healing Salve",
+"Heavy Duty Battery",
+"Heavy Panting",
+"Heavy Water",
+"Helicopter Stick",
+"Hellshire Iron",
+"Help Wanted Ad",
+"Heretic's Mark",
+"Hide's Headphones",
+"High Stimulus Electrode",
+"High-Current Upgrade",
+"High-End Sapphire Lens",
+"High-Power Floodlight",
+"High-Speed Idler Screw",
+"Hinami's Umbrella",
+"Hologram Generator",
+"Holy Winged Icon",
+"Homemade Mask",
+"Homemade Muffler",
+"Honey Locust Thorn",
+"Honing Stone",
+"Hyperawareness Spray",
+"Hypnotist's Watch",
+"Impaling Wire",
+"Imprinted Aluminum",
+"Improvised Cattle Prod",
+"Improvised Detonators",
+"Incensed Ointment",
+"Infantry Belt",
+"Infected Emetic",
+"Inferno Wires",
+"Infrared Upgrade",
+"Inhaler",
+"Ink Egg",
+"Ink Lion",
+"Instructions",
+"Intense Halogen",
+"Interlocking Razor",
+"Interview Tape",
+"Iridescent Amulet",
+"Iridescent Blight Tag",
+"Iridescent Boat Motor",
+"Iridescent Book of Vile Darkness",
+"Iridescent Button",
+"Iridescent Coin",
+"Iridescent Company Banner",
+"Iridescent Crystal Shard",
+"Iridescent Engravings",
+"Iridescent Eye Patch",
+"Iridescent Family Crest",
+"Iridescent Feather",
+"Iridescent Flesh",
+"Iridescent Head",
+"Iridescent King",
+"Iridescent Lament Configuration",
+"Iridescent OSS Report",
+"Iridescent Pendant",
+"Iridescent Photocard",
+"Iridescent Queen",
+"Iridescent Remnant",
+"Iridescent Ring of Vlad",
+"Iridescent Seal",
+"Iridescent Seal of Metatron",
+"Iridescent Soteria Chip",
+"Iridescent Stone",
+"Iridescent Umbrella Badge",
+"Iridescent Unpublished Manuscript",
+"Iridescent Uroboros Vial",
+"Iridescent Videotape",
+"Iridescent Wheel Handle",
+"Iridescent Wooden Plank",
+"Ironworker's Tongs",
+"J. Myers Memorial",
+"Jailer's Chimes",
+"Janjira's Hand",
+"Jaw Smasher",
+"Jenner's Last Breath",
+"Jewel Beetle",
+"Jewellery",
+"Jewellery Box",
+"Ji-Woon's Autograph",
+"Jigsaw's Annotated Plan",
+"Jigsaw's Sketch",
+"Jill's Sandwich",
+"Joey's Mix Tape",
+"John's Medical File",
+"Jonathan's Skull",
+"Judith's Journal",
+"Judith's Tombstone",
+"Julie's Mix Tape",
+"Jump Rope (Dream Demon)",
+"Jump Rope (Playtime's Over)",
+"Juniper Bonsai",
+"Kaiun Talisman",
+"Kanai-Anzen Talisman",
+"Kane's Helmet",
+"Kaneki's Satchel",
+"Kaneki's Wallet",
+"Katana Tsuba",
+"Kavanagh's Last Breath",
+"Kerosene Can",
+"Kid's Ball Glove",
+"Kid's Drawing",
+"Killer Doll",
+"Killing Part Chords",
+"Kintsugi Teacup",
+"Knife Belt Clip",
+"Knife Scratches",
+"Knight's Contract",
+"Knitting Needle",
+"Knotted Rope",
+"Koenrad's Gauntlet",
+"Lab Photo",
+"Lambert's Star Map",
+"Lantern of Revealing",
+"Lapis Lazuli",
+"Large Pack",
+"Larry's Blood",
+"Larry's Remains",
+"Last Known Recording",
+"Last Will",
+"Lasting Perfume",
+"Lavalier Microphone",
+"Lead Ring",
+"Leather Gloves",
+"Leather Grip",
+"Leather Harness",
+"Leather Knife Sheath",
+"Leather Loop",
+"Leather Strip",
+"Lengthened Jaws",
+"Leopard-Print Fabric",
+"Leprose Lichen",
+"Licker Tongue",
+"Lifeguard Whistle",
+"Light Chassis",
+"Light Wand",
+"Limestone Seal",
+"Lion Fang",
+"Lion Medallion",
+"Liquified Gore",
+"Live Wires",
+"Lively Crickets",
+"LoPro Chains",
+"Lock of Hair",
+"Long Fuse",
+"Long Guide Bar",
+"Long Life Battery",
+"Loose Crank",
+"Loose Screw",
+"Loot Bag",
+"Lorenza's Remains",
+"Lost Memories Book",
+"Low Amp Filament",
+"Low Kickback Chains",
+"Low-Power Mode",
+"Luckless Mouse",
+"Lucky Blade",
+"Madeleine's Glove",
+"Madeleine's Scarf",
+"Mado's Glove",
+"Magical Ticket",
+"Magnesium Powder",
+"Magnetised Manacles",
+"Maiden Medallion",
+"Makeshift Wrap",
+"Malthinker's Skull",
+"Manna Grass Braid",
+"Mannequin Foot",
+"Map of the Realm",
+"Maple Knight",
+"Mark of the Adherent",
+"Marked Map",
+"Marlinspike",
+"Marshal's Badge",
+"Marvin's Blood",
+"Matchbox",
+"Matias' Baby Shoes",
+"Medical Scissors",
+"Medium Fuse",
+"Medusa's Hair",
+"Melodious Murder",
+"Memento Blades",
+"Memorial Flower",
+"Metal Spoon",
+"Mews' Guts",
+"Mid-Century Radio",
+"Mike's Phone",
+"Mikhail's Eye",
+"Mint Rag",
+"Mirror Shard",
+"Mirror Shards (Omnipresent Evil)",
+"Mirror Shards (Playtime's Over)",
+"Mirror of the Creators",
+"Mischief List",
+"Missing Corkscrew",
+"Misty Day, Remains of Judgement",
+"Modified Ammo Belt",
+"Moonstone Necklace",
+"Mortar and Pestle",
+"Mother's Comb",
+"Mother's Glasses",
+"Mother's Mirror",
+"Mother-Daughter Ring",
+"Mouldy Electrode",
+"Moulted Skin",
+"Muddy Sports Day Cap",
+"Multipurpose Hatchet",
+"Mural Sketch",
+"Mushroom Formula",
+"Mysterious Elixir",
+"NE-a Parasite",
+"Nancy's Masterpiece",
+"Nancy's Sketch",
+"Nanomachine Gel",
+"Neck Tendril",
+"Needle & Thread",
+"Never-Sleep Pills",
+"Night Vision Monocular",
+"Notebook of Theories",
+"Nutritional Slurry",
+"O Grief, O Lover",
+"Oak Haft",
+"Obscure Game Cartridge",
+"Obsidian Feather",
+"Obsidian Goblet",
+"Odd Bulb",
+"Off-Brand Motor Oil",
+"Office Phone",
+"Oil Paints",
+"Oily Coil",
+"Oily Sap",
+"Old Newspaper",
+"Olibanum Incense",
+"Olsen's Address Book",
+"Olsen's Journal",
+"Olsen's Wallet",
+"On Target Single",
+"Order of Inquisition",
+"Orderly ID",
+"Orderly's Shoe",
+"Origami Crane",
+"Original Pain",
+"Ornate Horn",
+"Ottomarian Writing",
+"Outdoor Rope",
+"Outdoor Security Camera",
+"Ovomorph",
+"Padded Jaws",
+"Paint Thinner",
+"Paper Lantern",
+"Parker's Headband",
+"Party Bottle",
+"Party Hat",
+"Party Noisemaker",
+"Pearl of Power",
+"Pig's Eye",
+"Pile of Nails",
+"Pill Bottle",
+"Pillaged Mead",
+"Pizza Goggles",
+"Placebo Tablet",
+"Plague Bile",
+"Plaid Flannel",
+"Plant 43 Vines",
+"Plastic Bag",
+"Pocket Watch (Spencer's Last Breath)",
+"Pocket Watch (Vampiric Shift)",
+"Poison Oak Leaves",
+"Polished Electrode",
+"Polished Maedate",
+"Portable Safe",
+"Portable TV",
+"Potent Extract",
+"Potent Tincture",
+"Potion of Speed",
+"Powdered Eggshell",
+"Powdered Glass",
+"Power Bulb",
+"Power Drill",
+"Prayer Kneeler",
+"Prayer Tablet Fragment",
+"Primer Bulb",
+"Prison Chain",
+"Prophylactic Amulet",
+"Protective Gloves",
+"Prototype Claws",
+"Prototype Rotor",
+"Punctured Eyeball",
+"Purple Guy Drawing",
+"Pussy Willow Catkins",
+"Pustula Dust",
+"Queen's Sceptre",
+"R.P.D. Shoulder Walkie",
+"Rabbit Remains",
+"Rabbit's Foot",
+"Ragged Engine",
+"Randomised Strobes",
+"Rat Liver",
+"Rat Poison",
+"Rat Tail",
+"Raven's Feather",
+"Razor Wires",
+"Reactive Compound",
+"Red Herb",
+"Red Moss",
+"Red Paint Brush",
+"Red Spider Lily",
+"Red-Headed Centipede",
+"Redhead's Pinkie Finger",
+"Refined Serum",
+"Reflective Fragment",
+"Reiko's Watch",
+"Remote Control",
+"Renjiro's Bloody Glove",
+"Restaurant Menu",
+"Rickety Chain",
+"Rickety Pinwheel",
+"Rin's Broken Watch",
+"Ring Drawing",
+"Ring of Spell Storing",
+"Ring of Telekinesis",
+"Ripley's Watch",
+"Ripped Curtain",
+"Ripper Brace",
+"Rize's Glasses",
+"Robe of Eyes",
+"Robin Feather",
+"Rope Necklet",
+"Rose Root",
+"Rose Tonic",
+"Rotten Green Tripe",
+"Rotten Pizza",
+"Rotten Pumpkin",
+"Rotten Swine",
+"Rotting Rope",
+"Rubber Gloves",
+"Rubber Grip",
+"Rubbing Oil",
+"Ruby Circlet",
+"Rules Set No.2",
+"Running Shoes",
+"Rust-Coloured Egg",
+"Rusted Chains",
+"Rusted Jaws",
+"Rusted Needle",
+"Rusted Spike",
+"Rusty Attachments",
+"Rusty Flute",
+"Rusty Head",
+"Rusty Shackles",
+"S.T.A.R.S. Field Combat Manual",
+"Sacrificial Knife",
+"Sauna Rock",
+"Scalped Topknot",
+"Scarlet Egg",
+"Scarred Hand",
+"Scrapped Tape",
+"Scraps",
+"Scratched Mirror",
+"Scratched Ruler",
+"Sea-Soaked Cloth",
+"Searcher's Skull",
+"Secondary Coil",
+"Security Guard's Badge",
+"Self Adherent Wrap",
+"Self-Destruct Bolt",
+"Semiotic Keyboard",
+"Senko Hanabi",
+"Serotonin Injector",
+"Serrated Jaws",
+"Serum Vial",
+"Severed Hands",
+"Severed Toe",
+"Severed Tongue",
+"Sewer Sludge",
+"Sharpened Flint",
+"Sharpened Mount",
+"Shattered S.T.A.R.S. Badge",
+"Shattered Syringe",
+"Shattered Wakizashi",
+"Shattered Wrist Rocket",
+"Sheep Block",
+"Shiawase Amulet",
+"Shiny Pin",
+"Shiny Tricycle",
+"Ship Figurehead",
+"Shop Lubricant",
+"Shotgun Speakers",
+"Shredded Fedora",
+"Shredded Gown",
+"Shredded Notes",
+"Shrill Whistle",
+"Sienna's Flesh",
+"Silencing Cloth",
+"Silk Pillow",
+"Silver Bell",
+"Sketch Attempt",
+"Skewered Rat",
+"Slashed Backpack",
+"Sleeping Bag",
+"Slice of Frank",
+"Slow-Release Toxin",
+"Smash 'n' Run Gloves",
+"Smashed Cassette Deck",
+"Smelly Inner Soles",
+"Smiley Face Pin",
+"Smoked Snapper",
+"Snake Oil",
+"Socket Swivels",
+"Soldier's Puttee",
+"Solvent Jug",
+"Soma Family Photo",
+"Soul Chemical",
+"Soured Milk",
+"Spark Plug",
+"Spasmodic Breath",
+"Spattered Handkerchief",
+"Spearhead",
+"Speed Limiter",
+"Spent Oxygen Tank",
+"Spiked Boots",
+"Spiked Collar",
+"Spinning Top",
+"Spirit of Hartshorn",
+"Spit Polish Rag",
+"Splintered Hull",
+"Spoiled Meal",
+"Sponge",
+"Spring Clamp",
+"Spyglass",
+"Stab Wounds Study",
+"Staff of Withering",
+"Stained Glass Mural",
+"Stale Biscuit",
+"Starling Feather",
+"Steel Toe Boots",
+"Stereo Remote Mic",
+"Sticky Lining",
+"Sticky Lozenge",
+"Sticky Pitch",
+"Sticky Soda Bottle",
+"Still Life Crow",
+"Stolen Sketch Book",
+"Straight Razor",
+"Streamers",
+"Strobing Light",
+"Stylish Sunglasses",
+"Styptic Agent",
+"Sulphuric Acid Vial",
+"Summoning Stone",
+"Sunglasses",
+"Supercharge",
+"Superheated Glass",
+"Surgical Suture",
+"Susie's Mix Tape",
+"Swamp Orchid Necklet",
+"Swing Chains",
+"Sylph Feather",
+"T-Virus Sample",
+"TIR Optic",
+"Tablet of the Oppressor",
+"Tacky Earrings",
+"Taiyaki",
+"Tampered Timer",
+"Tape Editing Deck",
+"Tar Bottle",
+"Tattered Headband",
+"Tattered Tabard",
+"Tattoo's Middle Finger",
+"Tear-Soaked Tenugui",
+"Telephone",
+"Telephoto Lens",
+"Tension Spring",
+"Tequila Moonrock",
+"The Beast's Marks",
+"The Black Goat's Egg",
+"The Grease",
+"The Legion Pin",
+"The Ninth Circle",
+"The Thompsons' Mix",
+"Theatre Binoculars",
+"Thermal Casing",
+"Thick Cork Stopper",
+"Thick Tar",
+"Thornton Salt",
+"Thorny Nest",
+"Thorny Vines",
+"Tilling Blade",
+"Tin Oil Can",
+"Tiny Fingernail",
+"Tiny Scalpel",
+"Tombstone Piece",
+"Torn Bookmark",
+"Torn Novel",
+"Torture Apparatus",
+"Torture Pillar",
+"Town Watch's Torch",
+"Toxic Waste",
+"Toy Sword",
+"Trainer's Book",
+"Training Bell",
+"Trapper Bag",
+"Trapper Gloves",
+"Trapper Sack",
+"Traveller's Hat",
+"Treated Blade",
+"Trick Blades",
+"Trick Pouch",
+"Trickster's Glove",
+"Tuned Carburettor",
+"Two Nails",
+"Tyrant Gore",
+"Uchiwa",
+"Ultrasonic Sensor",
+"Ultrasonic Speaker",
+"Umbra Salts",
+"Undying Flame",
+"Unfinished Map",
+"Unicorn Block",
+"Unicorn Medallion",
+"Unique Wedding Ring",
+"Unknown Egg",
+"Untitled Agony",
+"Upside Down Resin",
+"Uroboros Tendril",
+"Uroboros Virus",
+"Utility Blades",
+"VCR",
+"VHS Porn",
+"Valtiel Sect Photograph",
+"Vanishing Box",
+"Vanity Mirror",
+"Vegetable Oil",
+"Velvet Fabric",
+"Venomous Concoction",
+"Vermilion Webcap",
+"Vibrant Obituary",
+"Victim's Detailed Routine",
+"Victim's Map",
+"Victor's Razor Blade",
+"Victor's Soldier",
+"Victoria's Eye",
+"Video Conference Device",
+"Video Tape",
+"Videotape Copy",
+"Vigo's Journal",
+"Vile Emetic",
+"Violet Waxcap",
+"Viscous Webbing",
+"Visitor Wristband",
+"Vital Targeting Processor",
+"Volcanic Stone",
+"Vorpal Sword",
+"Wacky Jacks",
+"Waiting For You Watch",
+"Wakizashi Saya",
+"Walleye's Matchbook",
+"Wanted Poster",
+"War Helmet",
+"Warden's Keys",
+"Warg's Fang",
+"Waterlogged Shoe",
+"Waterskin",
+"Wax Brick",
+"Wax Doll",
+"Weighted Head",
+"Weighty Rattle",
+"Well Stone",
+"Well Water",
+"White Hair Ribbon",
+"White Nit Comb",
+"White Wolf Medallion",
+"Wide Lens",
+"Willow Wreath",
+"Winged Boots",
+"Wire Spool",
+"Wooden Fox",
+"Wooden Horse",
+"Wooden Oni Mask",
+"Wooden Plank",
+"Wool Shirt",
+"Workshop Grease",
+"Worry Stone",
+"Worship Tablet",
+"Wriggling Maggots",
+"Wriggling Parasite",
+"Yakuyoke Amulet",
+"Yamaoka Sashimono",
+"Yamori's Mask",
+"Yardstick",
+"Yellowed Cloth",
+"Yoichi's Fishing Net",
+"Young Coconut",
+"Zombie Heart",
+"Zōri"
+],
+"entries":{
+"addon:\"All Seeing\" - Blood":{
+"h":"6f35b5a04de65fdd"
+},
+"addon:\"All Seeing\" - Spirit":{
+"h":"49fe5dde055aaf17"
+},
+"addon:\"Bad Man's\" Last Breath":{
+"h":"324ff362a78db90a"
+},
+"addon:\"Blind Warrior\" - Mud":{
+"h":"20a488e9d0dabdaf"
+},
+"addon:\"Blind Warrior\" - White":{
+"h":"5c149c0af8f27164",
+"n":[
+2.0,
+3.0,
+7.6,
+70.0
+]
+},
+"addon:\"Blink\" - Mud":{
+"h":"72e204e70c54f3c8"
+},
+"addon:\"Blink\" - White":{
+"h":"bba2c86f600085e6"
+},
+"addon:\"Calm\" - Carter's Notes":{
+"h":"d8a987b80b3deb30"
+},
+"addon:\"Calm\" - Class I":{
+"h":"5ab52dd114eae8b9"
+},
+"addon:\"Calm\" - Class II":{
+"h":"f43fb7a9829010f0"
+},
+"addon:\"Discipline\" - Carter's Notes":{
+"h":"9afb53d906c6eeba"
+},
+"addon:\"Discipline\" - Class II":{
+"h":"e0fa4a956354bff2"
+},
+"addon:\"Discipline\" - Class III":{
+"h":"3c5330ffc7c3669d"
+},
+"addon:\"Ghost Face Caught on Tape\"":{
+"h":"418483b18340749d"
+},
+"addon:\"Order\" - Carter's Notes":{
+"h":"fc0071cb0b3f780b"
+},
+"addon:\"Order\" - Class I":{
+"h":"5f7fc2d66d817dc1"
+},
+"addon:\"Order\" - Class II":{
+"h":"7d5a3ccf885d682c"
+},
+"addon:\"Philly\"":{
+"h":"3c62e6414d2942d7"
+},
+"addon:\"Restraint\" - Carter's Notes":{
+"h":"b1a81eb7174e8667"
+},
+"addon:\"Restraint\" - Class II":{
+"h":"74615571ea5c6fd2"
+},
+"addon:\"Restraint\" - Class III":{
+"h":"bcef452360815e48"
+},
+"addon:\"Shadow Dance\" - Blood":{
+"h":"0a084f824359da74",
+"n":[
+2.0,
+4.0,
+60.0
+]
+},
+"addon:\"Shadow Dance\" - White":{
+"h":"1c3100f4b6846bb1",
+"n":[
+2.0,
+3.0,
+40.0
+]
+},
+"addon:\"Swift Hunt\" - Blood":{
+"h":"d1ba5e21bcc5f1cb"
+},
+"addon:\"Swift Hunt\" - Mud":{
+"h":"e417012e523bd872"
+},
+"addon:\"Swift Hunt\" - White":{
+"h":"8023416312077d55"
+},
+"addon:\"The Beast\" - Soot":{
+"h":"12e6cea30ead55e9"
+},
+"addon:\"The Ghost\" - Soot":{
+"h":"afcae6b975de6b73"
+},
+"addon:\"The Hound\" - Soot":{
+"h":"9fbe701c273bc5ba"
+},
+"addon:\"The Serpent\" - Soot":{
+"h":"dffdb183e75e87b6"
+},
+"addon:\"Windstorm\" - Blood":{
+"h":"4c0305a77b1111f5"
+},
+"addon:\"Windstorm\" - Mud":{
+"h":"1687960b1183a698"
+},
+"addon:\"Windstorm\" - White":{
+"h":"2aae76990977a3ec"
+},
+"addon:\"Z\" Block":{
+"h":"295c71dab4a308b5"
+},
+"addon:4-Coil Spring Kit":{
+"h":"9fb86b497de3136d"
+},
+"addon:Abdominal Dressing":{
+"h":"9a445e895fa38ef0",
+"n":[
+4.0,
+6.0,
+15.0
+]
+},
+"addon:Access Panel":{
+"h":"f66e54522f2d903d"
+},
+"addon:Acidic Blood":{
+"h":"175a33f78e172b9b"
+},
+"addon:Adaptive Lighting":{
+"h":"321b561a15344a43"
+},
+"addon:Adi Valente Issue 1":{
+"h":"aeef316fb0281d6f"
+},
+"addon:Admin Wristband":{
+"h":"1507917911b25bf0"
+},
+"addon:Adrenaline Injector":{
+"h":"d2cba751fbd4b0e2"
+},
+"addon:Adrenaline Vial":{
+"h":"6dabdc32d81c2474"
+},
+"addon:Advanced Movement Prediction":{
+"h":"8fc0f9a3acf6cc32"
+},
+"addon:Air Freshener":{
+"h":"ae2f895e06a8c66a"
+},
+"addon:Akito's Crutch":{
+"h":"ddd1de35e8ff2bbf"
+},
+"addon:Alchemist's Ring":{
+"h":"e448d642c4c6bbd0"
+},
+"addon:Allie's Scalp":{
+"h":"5317559777f4d3da"
+},
+"addon:Alucard's Shield":{
+"h":"9828c5fafde02ed1"
+},
+"addon:Amanda's Letter":{
+"h":"23beb80b5af929f8"
+},
+"addon:Amanda's Secret":{
+"h":"0c570846282171c3"
+},
+"addon:Amanita Toxin":{
+"h":"df06b520cd5e6d19"
+},
+"addon:Amon's Necktie":{
+"h":"cd57d806e664d4d1"
+},
+"addon:Android Arm":{
+"h":"dccd1f59eb2e6949"
+},
+"addon:Anteiku Apron":{
+"h":"9f84aaec40cd1910"
+},
+"addon:Anti-Exhaustion Syringe":{
+"h":"e033c1419f813ad7"
+},
+"addon:Anxious Gasp":{
+"h":"de06d0920df0dfa9"
+},
+"addon:Aogiri Tree Robe":{
+"h":"e36281adc77ce194"
+},
+"addon:Apex Muffler":{
+"h":"25889c8dd6aea5fc"
+},
+"addon:Art Crispies":{
+"h":"03cd337d62d3f8ac"
+},
+"addon:Ash's Innards":{
+"h":"d1647474a3268d01"
+},
+"addon:Ashen Apple":{
+"h":"0827ddfc4db24646"
+},
+"addon:Ataxic Respiration":{
+"h":"9b2835196be24aa3"
+},
+"addon:Aurora's Telereceptor":{
+"h":"d2d735ed00a049fd"
+},
+"addon:Automatic Drawing":{
+"h":"5ec57598d77a7080"
+},
+"addon:Automatic Screwdriver":{
+"h":"db24ecf3d0b0f255"
+},
+"addon:Award-winning Chilli":{
+"h":"893f0d222d58cbb7"
+},
+"addon:B-Movie Poster":{
+"h":"4a783db8f3778755"
+},
+"addon:BFFs":{
+"h":"70b8dd18e8228ff5"
+},
+"addon:Baby Teeth":{
+"h":"7c54ea58cda7d589"
+},
+"addon:Bad Man Keepsake":{
+"h":"8582794e94adf683"
+},
+"addon:Bag of Gears":{
+"h":"1384a215d21ddfe2"
+},
+"addon:Bag of Holding":{
+"h":"d0794986be36d494"
+},
+"addon:Bandaged Haft":{
+"h":"3a32a4445ec86d09"
+},
+"addon:Bandages":{
+"h":"b2aa1ff31a79d56b"
+},
+"addon:Barb's Glasses":{
+"h":"1fe297e176296b2d"
+},
+"addon:Barbed Wire":{
+"h":"227f1719d53baf1e"
+},
+"addon:Barley Meal":{
+"h":"c54785e522a16ea2"
+},
+"addon:Battered Tape":{
+"h":"cb9aeb788b62089d"
+},
+"addon:Battery":{
+"h":"03f1b07df1aab548"
+},
+"addon:Battle Axe Head":{
+"h":"85f621bdce12e7da"
+},
+"addon:Bayshore's Cigar":{
+"h":"d379585df72583ef"
+},
+"addon:Bayshore's Gold Tooth":{
+"h":"6b56f372d439b39b"
+},
+"addon:Bead Maze":{
+"h":"2b23fd3d730bc9b9"
+},
+"addon:Bear Oil":{
+"h":"45f03892acb31a12"
+},
+"addon:Begrimed Chains (Bubba's Chainsaw)":{
+"h":"0e9e5fcc308bfcce"
+},
+"addon:Begrimed Chains (Chainsaw)":{
+"h":"a325ad75717eb68d",
+"n":[
+3.0,
+7.6,
+70.0
+]
+},
+"addon:Begrimed Head":{
+"h":"3c46b124f4511c24",
+"n":[
+4.0,
+7.6,
+8.0,
+80.0
+]
+},
+"addon:Belaying Pins":{
+"h":"2ba1369bbb80eb49"
+},
+"addon:Bent Nail":{
+"h":"6b02345b1abaca10"
+},
+"addon:Bent Wheel":{
+"h":"fca6e417ca07c4b5"
+},
+"addon:Black Box":{
+"h":"24425500e7dda0b2"
+},
+"addon:Black Heart":{
+"h":"f3c7426f3a9c2d4b"
+},
+"addon:Black Incense":{
+"h":"0f74720737825c0c"
+},
+"addon:Black Strap":{
+"h":"82f86664603ab905"
+},
+"addon:Black Widow Spider":{
+"h":"437149040162a436"
+},
+"addon:Blackened Heart":{
+"h":"dd5e24e54bd388bf"
+},
+"addon:Blackened Toenail":{
+"h":"0004f5bfc0bac717"
+},
+"addon:Blacksmith's Hammer":{
+"h":"152e5bd978257bd6"
+},
+"addon:Blessed Apple":{
+"h":"e5724c4b64ea2ee6"
+},
+"addon:Blighted Crow":{
+"h":"29912443154feab8"
+},
+"addon:Blighted Rat":{
+"h":"2b83e46fbf72d31c"
+},
+"addon:Blindfold of the Devoted":{
+"h":"836a353e2ccbed66"
+},
+"addon:Blond Hair":{
+"h":"894eebfce709f1ad"
+},
+"addon:Blood Amber":{
+"h":"3c9e88da159ac5b3"
+},
+"addon:Blood-Filled Goblet":{
+"h":"808fa6c6143755ba"
+},
+"addon:Blood-Stained Handkerchief":{
+"h":"eee012e68170897c"
+},
+"addon:Bloodied Mud":{
+"h":"ad3d9c319d50cc00"
+},
+"addon:Bloodied Water":{
+"h":"8c789ca2b826c9b9"
+},
+"addon:Bloodstained Bullet":{
+"h":"3844db52f53e8fdb"
+},
+"addon:Bloody Black Hood":{
+"h":"6693dedd8cb7091f"
+},
+"addon:Bloody Boa":{
+"h":"f0ea2592d031f0b5"
+},
+"addon:Bloody Coil":{
+"h":"3fde0ab780f13de4"
+},
+"addon:Bloody Fingernails":{
+"h":"51a4686185aa5c5d"
+},
+"addon:Bloody Magazine":{
+"h":"5422f3c831759ea9"
+},
+"addon:Bloody Roller Skate":{
+"h":"53d127271ce04150"
+},
+"addon:Bloody Sash":{
+"h":"5dd53ccc729250ea"
+},
+"addon:Bloody Smile":{
+"h":"fe886a99915ed930"
+},
+"addon:Blue Dress":{
+"h":"95b6202d8ba59371"
+},
+"addon:Blurry Photo":{
+"h":"f7b7fe108799a641"
+},
+"addon:Boat Key":{
+"h":"eab82e8bbdcd47ea"
+},
+"addon:Bog Water":{
+"h":"0e959fe33f818fe3"
+},
+"addon:Bone Clapper":{
+"h":"bf63a91bc99d126f"
+},
+"addon:Bonnie's Guitar Strings":{
+"h":"f83ace689d1cfbb1"
+},
+"addon:Boots of Speed":{
+"h":"fef662f79da898b1"
+},
+"addon:Bottle of Bleach":{
+"h":"5ae1576926f08535"
+},
+"addon:Bottle of Chloroform":{
+"h":"b48e1fb2096378ab"
+},
+"addon:Boyfriend's Memo":{
+"h":"67c15d7cd832c625"
+},
+"addon:Braided Bauble":{
+"h":"4e2d273c3b287d4f"
+},
+"addon:Brand New Part":{
+"h":"7959cd4ae89a2280",
+"n":[
+5.0,
+7.0,
+7.1,
+10.0
+]
+},
+"addon:Brass Case Lighter":{
+"h":"1965f0193da0f801"
+},
+"addon:Brett's Cap":{
+"h":"f9eb059dfa18d77a"
+},
+"addon:Brian's Intestine":{
+"h":"65466b0e71b95da8"
+},
+"addon:Broken Chain":{
+"h":"d7e6cd8bcc9eb76c"
+},
+"addon:Broken Doll":{
+"h":"0e6bdf83febb6df8"
+},
+"addon:Broken Hilt":{
+"h":"3a2e976cd86d43a0",
+"n":[
+3.0,
+8.1,
+30.0,
+70.0
+]
+},
+"addon:Broken Recovery Coin":{
+"h":"dc4a389b09130da9"
+},
+"addon:Broken Security Key":{
+"h":"0ca232c8974840c2"
+},
+"addon:Broken Skateboard":{
+"h":"e8739c40091843f1"
+},
+"addon:Broken Tiara":{
+"h":"033762bf5db198bd"
+},
+"addon:Brooke's Pustule":{
+"h":"a736c7d6eeed3346"
+},
+"addon:Brown Noise Generator":{
+"h":"b6540bf313885029"
+},
+"addon:Bullhorn":{
+"h":"24d2554f1c0fbcf7"
+},
+"addon:Burning Candle":{
+"h":"306d5cac931bd1c6"
+},
+"addon:Burning Man Painting":{
+"h":"a599de933a808d8f"
+},
+"addon:Burnt Fuse":{
+"h":"3b84129ad8f23294"
+},
+"addon:Burnt Letters":{
+"h":"35b3694f6dc99133"
+},
+"addon:Burnt Wings":{
+"h":"bdc3421e2ff4f05f"
+},
+"addon:Butterfly Tape":{
+"h":"c0819f2f0751442e",
+"n":[
+1.0,
+5.0,
+6.0
+]
+},
+"addon:CCG ID Card":{
+"h":"2cf8e36cc3160f83"
+},
+"addon:Cabin Sign":{
+"h":"14580b239f1d0c86"
+},
+"addon:Caffeine Tablets":{
+"h":"b381d08fb8dd5e7e"
+},
+"addon:Caged Heart Shoes":{
+"h":"7d983cd796f4cfb7"
+},
+"addon:Call to Arms":{
+"h":"29e62f8764531ae5"
+},
+"addon:Campbell's Last Breath":{
+"h":"79ccde86606723d2"
+},
+"addon:Candy Head Bowl":{
+"h":"8795dd2368ca707d"
+},
+"addon:Canker Thorn":{
+"h":"c81c70a499f7e625"
+},
+"addon:Captured by the Dark":{
+"h":"6e648f996c4b13a7"
+},
+"addon:Carburettor Tuning Guide":{
+"h":"af329c890217e08b"
+},
+"addon:Cat Block":{
+"h":"43033a8b0d392d82"
+},
+"addon:Cat Carrier":{
+"h":"df624b70251efa2e"
+},
+"addon:Cat Figurine":{
+"h":"719f84b3d1adc6dd"
+},
+"addon:Cat's Eye":{
+"h":"8b10346a5b9b65a8"
+},
+"addon:Catatonic Boy's Treasure":{
+"h":"5ddd540b624aa15c"
+},
+"addon:Celebrate! Poster":{
+"h":"3aaab22e7730571a",
+"n":[
+4.0,
+9.0,
+12.0,
+20.0,
+32.0,
+40.0
+]
+},
+"addon:Cerberus Talon":{
+"h":"ada6fee7704038c2"
+},
+"addon:Cereal Rations":{
+"h":"4afe01eb96fb5c48"
+},
+"addon:Ceremonial Candelabrum":{
+"h":"95c380bf3bf80085"
+},
+"addon:Chains of the Heretic":{
+"h":"1ff2d7fb370044a0"
+},
+"addon:Chainsaw File":{
+"h":"3d4cd5fa7606a2cf"
+},
+"addon:Chalice (Gold)":{
+"h":"b94e85feabf225d9"
+},
+"addon:Charcoal Stick":{
+"h":"d4adeff1d8acfa2f"
+},
+"addon:Chatterer's Tooth":{
+"h":"2714eba5e544315a"
+},
+"addon:Cheap Cologne":{
+"h":"7d9278b309ced2cc"
+},
+"addon:Cheap Gin Bottle":{
+"h":"c284121f4c5ad220",
+"n":[
+3.0,
+4.0,
+7.6,
+12.0,
+17.0
+]
+},
+"addon:Chess Piece":{
+"h":"ba224899337e8d42"
+},
+"addon:Chewed Pen":{
+"h":"cacd52db7eceb889"
+},
+"addon:Chewing Tobacco":{
+"h":"f5e6e08ae49dad19"
+},
+"addon:Chica's Bib":{
+"h":"57eda38f7933a79f"
+},
+"addon:Chicken Head":{
+"h":"e57dc7019a4b0cb0"
+},
+"addon:Child's Wooden Sword":{
+"h":"66fea078d4fcf195"
+},
+"addon:Chilli":{
+"h":"fa55b52ab96126ec"
+},
+"addon:Chipped Monocle":{
+"h":"2add9e40ea106ea3"
+},
+"addon:Chipped Saihai":{
+"h":"23a5fa7a76dc3b15"
+},
+"addon:Choclo Corn":{
+"h":"cc8c4836e9de99b4"
+},
+"addon:Chunk of Malai":{
+"h":"3d799e1aeb459152"
+},
+"addon:Cigar Box":{
+"h":"b69009358ff2f798"
+},
+"addon:Cinch Straps":{
+"h":"9f89b75939a969cf"
+},
+"addon:Cinderella Music Box":{
+"h":"8f8bc5dd4481377d"
+},
+"addon:Class Photo":{
+"h":"ece9c10ae7703db9"
+},
+"addon:Clean Rag":{
+"h":"a4f4acbf6c8fc144",
+"n":[
+1.0,
+3.6,
+7.0,
+20.0
+]
+},
+"addon:Cloak of Elvenkind":{
+"h":"e2451af098acfe15"
+},
+"addon:Cloak of Invisibility":{
+"h":"6d74e9b53d249109"
+},
+"addon:Clock Hands":{
+"h":"8fcbe4300a263172"
+},
+"addon:Clock Tower Gear":{
+"h":"3d2c9bc564adc9d0"
+},
+"addon:Clogged Intake":{
+"h":"9dc4010812a4469b"
+},
+"addon:Clump of Hair":{
+"h":"3130ebea5b7edb99"
+},
+"addon:Coarse Stone":{
+"h":"b2ce52fec419c1bf"
+},
+"addon:Coffee Grounds":{
+"h":"ceffed1e1e056717",
+"n":[
+1.0,
+2.0,
+5.0
+]
+},
+"addon:Cold Steel Manacles":{
+"h":"e47e6f40ba1c80d4"
+},
+"addon:Combat Straps":{
+"h":"e3ab379fec0f1d87"
+},
+"addon:Compound Seven":{
+"h":"5974b7c2a84dba58"
+},
+"addon:Compound Thirty-Three":{
+"h":"8abe6705ea30b2be"
+},
+"addon:Compound Twenty-One":{
+"h":"cf84ca04238875fc"
+},
+"addon:Confessor's War Horn":{
+"h":"eabbad7322806e48"
+},
+"addon:Copper Ring":{
+"h":"8261203085f317aa"
+},
+"addon:Coroner's Coffee":{
+"h":"7947585daff420ea",
+"n":[
+1.0,
+2.0,
+3.0,
+10.0,
+13.0,
+25.0,
+43.0
+]
+},
+"addon:Counterweight":{
+"h":"f628e1802ca8cd4e"
+},
+"addon:Coxcombed Clapper":{
+"h":"bdcff9f312eaf617"
+},
+"addon:Cracked Primer Bulb":{
+"h":"775cb15d1fa0fe06"
+},
+"addon:Cracked Sakazuki":{
+"h":"05a06fe53efb137c"
+},
+"addon:Cracked Turtle Egg":{
+"h":"d9a83d0db1a680cd"
+},
+"addon:Crate of Gears":{
+"h":"da072f4dcf616ec7"
+},
+"addon:Creature's Bone":{
+"h":"ac7640f8f3840d08"
+},
+"addon:Cremated Remains":{
+"h":"7af4a1af62dbc1d5"
+},
+"addon:Crew Headset":{
+"h":"945feec0d82d2aad"
+},
+"addon:Crew Manifest":{
+"h":"d0f6844126407e2e"
+},
+"addon:Crimson Ceremony Book":{
+"h":"2bc62ed6e09974ca",
+"n":[
+4.0,
+7.6,
+20.0,
+80.0
+]
+},
+"addon:Crimson Stamp":{
+"h":"57f9b8b83730d9c2"
+},
+"addon:Crown of the Destroyer":{
+"h":"bf640341b4f99f61"
+},
+"addon:Crumpled Sheet Music":{
+"h":"ef7d5c5f6e1f2475"
+},
+"addon:Cryo Gel":{
+"h":"ae8caf1f12eabfc8"
+},
+"addon:Crystal Ball":{
+"h":"60ee5318a9a26d4e"
+},
+"addon:Cube of Zoe":{
+"h":"8829522c2305732d"
+},
+"addon:Cut Thru U Single":{
+"h":"d560457f501f1319"
+},
+"addon:Cutting Wire":{
+"h":"569a1b583d06da57",
+"n":[
+2.0,
+7.0,
+8.0,
+20.0
+]
+},
+"addon:Cypress Necklet":{
+"h":"8d9239d330589c0d"
+},
+"addon:Dad's Boots":{
+"h":"aeb74a0a26cbc149"
+},
+"addon:Damaged Syringe":{
+"h":"084f36a36f847864"
+},
+"addon:Dark Cincture":{
+"h":"fa86310d3aebfac1"
+},
+"addon:Dark Sunglasses":{
+"h":"b119c20761b89047"
+},
+"addon:Darkest Ink":{
+"h":"9dfb3aff38e4ca4f"
+},
+"addon:Dead Butterfly":{
+"h":"6855c7ef40cbe786"
+},
+"addon:Dead Fly Mud":{
+"h":"8cfd3b91a5afae56"
+},
+"addon:Dead Opossum":{
+"h":"3459e9ddc4d14d56"
+},
+"addon:Dead Rabbit":{
+"h":"cc567d8c149ded31"
+},
+"addon:Death Throes Compilation":{
+"h":"afd9315bedc94b5d"
+},
+"addon:Deer Lung":{
+"h":"ba6f9885b8ac875a"
+},
+"addon:Deerskin Gloves":{
+"h":"41eefad58225d47d"
+},
+"addon:Defaced Smiley Pin":{
+"h":"d715ef444bd2e2bf",
+"n":[
+2.0,
+7.6,
+14.0,
+60.0
+]
+},
+"addon:Defective Metronome":{
+"h":"ff890a816a1e0784"
+},
+"addon:Denied Requisition Form":{
+"h":"b5ee86511948510a"
+},
+"addon:Depleted Ink Ribbon":{
+"h":"283630281127909e"
+},
+"addon:Depth Gauge Rake":{
+"h":"afa17a3e3df521b2"
+},
+"addon:Deputy's Badge":{
+"h":"42ac057a0998f9fc"
+},
+"addon:Destroyed Pillow":{
+"h":"c1d044b53bcdf09f"
+},
+"addon:Device of Undisclosed Origin":{
+"h":"3ae271e7cb0856c6"
+},
+"addon:Devotee's Amulet":{
+"h":"7b6c92f5f38f6df5"
+},
+"addon:Diagnostic Tool (Construction)":{
+"h":"40b01fbb9d509af9"
+},
+"addon:Diagnostic Tool (Repair)":{
+"h":"a0dcf4119b5aa52e"
+},
+"addon:Diamond Cufflinks":{
+"h":"60682f1406daa748"
+},
+"addon:Dirty Money":{
+"h":"6645f441d4d419ca"
+},
+"addon:Discarded Air Filter":{
+"h":"f821872ef2c550bb"
+},
+"addon:Discarded Milk Carton":{
+"h":"3e9c97699ee0bad0"
+},
+"addon:Disfigured Ear":{
+"h":"490191369ea3491a"
+},
+"addon:Distorted Photo":{
+"h":"24e5114ed1ac1c16"
+},
+"addon:Doll Eyes":{
+"h":"afe0a6a2d6a1f804"
+},
+"addon:Dragonfly Wings":{
+"h":"a6533fd95c441e7f"
+},
+"addon:Dragontooth Dagger":{
+"h":"41f70432d9d8c044",
+"n":[
+4.0,
+9.0,
+36.0,
+60.0
+]
+},
+"addon:Dried Cherry Blossom":{
+"h":"0e67ff094c13dea3"
+},
+"addon:Dried Cicada":{
+"h":"5d0f197a6f222487"
+},
+"addon:Dried Horsemeat":{
+"h":"149f480dcd55ad1d"
+},
+"addon:Drinking Bird":{
+"h":"826690e072f1d22d"
+},
+"addon:Driver's License":{
+"h":"975d2adccb400caa"
+},
+"addon:Drop of Perfume":{
+"h":"5817f5fa84dc51b1"
+},
+"addon:Drop-Leg Knife Sheath":{
+"h":"e62e56cc5e429905",
+"n":[
+4.0,
+5.0,
+10.0,
+16.0
+]
+},
+"addon:Duct Tape":{
+"h":"7c1729208e125123"
+},
+"addon:Dull Bracelet":{
+"h":"be8a2d818dd72590"
+},
+"addon:Dulled Knife":{
+"h":"84927525545fc04a",
+"n":[
+3.0,
+5.0,
+9.2,
+25.0,
+41.0
+]
+},
+"addon:Edge of Revival Album":{
+"h":"e8ec64a7bf65b7bb"
+},
+"addon:Egg (Gold)":{
+"h":"1c1315fcb13e1ad6"
+},
+"addon:Electric Carving Knife":{
+"h":"f52ed9ba7fd92780"
+},
+"addon:Electric Torch":{
+"h":"c85494c4f588bc7f"
+},
+"addon:Electrode Cap":{
+"h":"149c79a9899b8d09"
+},
+"addon:Electroshock Collar":{
+"h":"83f3e801f8de0d6d"
+},
+"addon:Eleven's Soda":{
+"h":"1bd4bed87774d08f"
+},
+"addon:Emergency Helmet":{
+"h":"41894a89495323b5"
+},
+"addon:Emetic Potion":{
+"h":"c6e4796492dce664"
+},
+"addon:Emily":{
+"h":"de863bc4c7042479"
+},
+"addon:Endo CPU":{
+"h":"51fd3102dfcb37f5",
+"n":[
+4.0,
+5.0,
+9.0,
+40.0
+]
+},
+"addon:Engineer's Fang":{
+"h":"6001910096f9e374"
+},
+"addon:Etched Ruler":{
+"h":"f1a08b9420894ecb"
+},
+"addon:Ether 15 Vol%":{
+"h":"1b253c1f3d0a0ca0"
+},
+"addon:Exorcism Amulet":{
+"h":"a865507758c03d29"
+},
+"addon:Expired Batteries":{
+"h":"1781f9a42df92a45"
+},
+"addon:Explosive Gift":{
+"h":"d17c02653396d419"
+},
+"addon:Eye Goop":{
+"h":"f9321cb9d47c03b8"
+},
+"addon:Eyes of Gerhardt":{
+"h":"714a176007f6c566"
+},
+"addon:Face Mask":{
+"h":"7244802bb75f3389"
+},
+"addon:Fallen Shingle":{
+"h":"473cb73c75ec4c33"
+},
+"addon:Fastening Tools":{
+"h":"40c82dc73c0edbb8"
+},
+"addon:Fatty Meat":{
+"h":"fc97123849b13370"
+},
+"addon:Faz-Coin":{
+"h":"08ea5684d7e512c4"
+},
+"addon:Festering Carrion":{
+"h":"1e3977bdb90547a5"
+},
+"addon:Field Recorder":{
+"h":"bcf3b4ca301c32c0"
+},
+"addon:Filthy Blade":{
+"h":"abb34244ad3376c1"
+},
+"addon:Filthy Slippers":{
+"h":"fb94e7017d9e0ed4"
+},
+"addon:Fingerless Parade Gloves":{
+"h":"d805fb44b7d82907"
+},
+"addon:First Libretto":{
+"h":"e066612035512144"
+},
+"addon:Fizz-Spin Soda":{
+"h":"b16eb67146f93863"
+},
+"addon:Flask of Bleach":{
+"h":"6435b9ac4228c569",
+"n":[
+2.0,
+3.0,
+9.1,
+12.0,
+16.0
+]
+},
+"addon:Flickering Television":{
+"h":"0a1b1f440e75b0cb"
+},
+"addon:Flint and Steel":{
+"h":"b5732cf811a150df"
+},
+"addon:Flower Babushka":{
+"h":"aeaad6057193ea49"
+},
+"addon:Focus Lens":{
+"h":"a404ef9f70632c33"
+},
+"addon:Follower's Cowl":{
+"h":"c03c495d6d0238c6"
+},
+"addon:Footprint Cast":{
+"h":"c0df73667ca1ac5d"
+},
+"addon:Force of Echo":{
+"h":"d7cbb5b7c21c1f02"
+},
+"addon:Foreign Plant Fibres":{
+"h":"ec0c1accc24ae0cb"
+},
+"addon:Forest Stew":{
+"h":"7ba878bb64f54ceb"
+},
+"addon:Forged Death Certificate":{
+"h":"e6df186d7fff9682"
+},
+"addon:Forgotten Videotape":{
+"h":"36c4227124d2fb41"
+},
+"addon:Foxglove":{
+"h":"8181b5830661487c"
+},
+"addon:Foxy's Hook":{
+"h":"6959d4aefdf74939",
+"n":[
+3.0,
+6.0,
+7.0,
+9.0,
+40.0
+]
+},
+"addon:Fragile Wheeze":{
+"h":"10ce5766f04e1c0f",
+"n":[
+3.0,
+4.0,
+7.6,
+70.0
+]
+},
+"addon:Fragrant Tuft of Hair":{
+"h":"1b211e6f9ecdbedb"
+},
+"addon:Framed Newspaper":{
+"h":"2455a6a731c679d3"
+},
+"addon:Frank's Heart":{
+"h":"4b91527ec11f986d"
+},
+"addon:Frank's Mix Tape":{
+"h":"80aea746df933380",
+"n":[
+4.0,
+14.0,
+20.0,
+30.0
+]
+},
+"addon:Freddy's Hat":{
+"h":"f1e49bab9f97f5e4"
+},
+"addon:Fresh Coffee":{
+"h":"779257fbb0123d89"
+},
+"addon:Friendship Bracelet":{
+"h":"35326940acb5e808"
+},
+"addon:Friendship Charm":{
+"h":"211fa3637c3d6b78"
+},
+"addon:Front-Page Article":{
+"h":"1e6668bf65b223d9"
+},
+"addon:Fuming Mix Tape":{
+"h":"dd4c5a3e94f6e06b"
+},
+"addon:Furin":{
+"h":"38e6a946f236bf8a"
+},
+"addon:Garden Claw":{
+"h":"6cbdb3f737dd0b88"
+},
+"addon:Garden Rake":{
+"h":"674e379ea3516fd4"
+},
+"addon:Garden of Rot":{
+"h":"a3abb8df8995e8ed"
+},
+"addon:Garish Make-Up Kit":{
+"h":"4c1e2bd38bf17e7b"
+},
+"addon:Gauze Roll":{
+"h":"aabb04872f9f7abd"
+},
+"addon:Gel Dressings":{
+"h":"2d18644c9cb58624"
+},
+"addon:Geographical Readout":{
+"h":"ac80f349e21764d3",
+"n":[
+4.0,
+6.6,
+8.0,
+20.0,
+31.0
+]
+},
+"addon:Gifted Bamboo Comb":{
+"h":"b9090cb5a984c64a"
+},
+"addon:Glass Eye":{
+"h":"fe83d9781a583ea3"
+},
+"addon:Glass Fragment":{
+"h":"7a3b4f00e352bb65"
+},
+"addon:Glowing Concoction":{
+"h":"d1dc05a8942161d0"
+},
+"addon:Glowing Ink":{
+"h":"e54b7901eedfcba5"
+},
+"addon:Gnarled Compass":{
+"h":"495e15b190a4c479"
+},
+"addon:Gold Creek Whiskey":{
+"h":"10f9718badb00770"
+},
+"addon:Good Guy Box":{
+"h":"2d92ebff8d4b48de"
+},
+"addon:Grandma's Heart":{
+"h":"7878b69766e604ac"
+},
+"addon:Greased Throttle":{
+"h":"2d04518dcd9c3c90"
+},
+"addon:Greasy Black Lens":{
+"h":"c67939dd4dd1c7c3"
+},
+"addon:Greasy Paper Plate":{
+"h":"979b67be2a4d3491"
+},
+"addon:Green Dress":{
+"h":"a4f94095661dc449"
+},
+"addon:Green Herb":{
+"h":"32e3a538f73b7dd2"
+},
+"addon:Grim Iron Mask":{
+"h":"cfb0c33764e99655"
+},
+"addon:Grip Wrench":{
+"h":"c60ed798a9220933"
+},
+"addon:Grisly Chains":{
+"h":"c2e49094faa01627",
+"n":[
+3.0,
+7.6,
+9.0,
+70.0
+]
+},
+"addon:Gritty Lump":{
+"h":"b7e4115b6252b544"
+},
+"addon:Gunpowder Tin":{
+"h":"47052eedac9cb5a8"
+},
+"addon:Gutted Supercom":{
+"h":"8160f3f0b4250a7c"
+},
+"addon:Hacksaw":{
+"h":"1eb65f2bb7323958",
+"n":[
+3.0,
+7.0,
+8.0,
+30.0
+]
+},
+"addon:Haddie's Calendar":{
+"h":"bede8f3d0ec39f60"
+},
+"addon:Haematite Seal":{
+"h":"e703b9b74a3954eb"
+},
+"addon:Hair Bow":{
+"h":"6dafb28aeca65f2b"
+},
+"addon:Hair Brush":{
+"h":"c5eadd228f414d9f",
+"n":[
+2.0,
+5.0,
+50.0
+]
+},
+"addon:Hair Spray & Candle":{
+"h":"2696bcde4751fd26"
+},
+"addon:Half Eggshell":{
+"h":"ac6f83c92f517958"
+},
+"addon:Hard Hat":{
+"h":"dd18e58c00121b13"
+},
+"addon:Harpoon Gun":{
+"h":"a1a97280b4a60ee3"
+},
+"addon:Headline Cut-Outs":{
+"h":"9285f0d25677cda5"
+},
+"addon:Healing Poultice":{
+"h":"23399fd7d9a3b010"
+},
+"addon:Healing Salve":{
+"h":"e0bb61c1869cbc38"
+},
+"addon:Heavy Duty Battery":{
+"h":"616c781e4b7cd3c9"
+},
+"addon:Heavy Panting":{
+"h":"44895a07229cda00"
+},
+"addon:Heavy Water":{
+"h":"ba31844188994d2e"
+},
+"addon:Helicopter Stick":{
+"h":"ad6be7316f0dd540"
+},
+"addon:Hellshire Iron":{
+"h":"8451357687601682"
+},
+"addon:Help Wanted Ad":{
+"h":"2c9138584822f474"
+},
+"addon:Heretic's Mark":{
+"h":"12123b2337252cba"
+},
+"addon:Hide's Headphones":{
+"h":"f6691d2ed4cac257"
+},
+"addon:High Stimulus Electrode":{
+"h":"f299109017c9a53a"
+},
+"addon:High-Current Upgrade":{
+"h":"0a81c82abba9d2e2"
+},
+"addon:High-End Sapphire Lens":{
+"h":"a523dc7a0ea66e55"
+},
+"addon:High-Power Floodlight":{
+"h":"79892a6dea42495f"
+},
+"addon:High-Speed Idler Screw":{
+"h":"dcecaf6ab195c43a"
+},
+"addon:Hinami's Umbrella":{
+"h":"25ccb56754cb3bd4"
+},
+"addon:Hologram Generator":{
+"h":"d746dca66ea94c28"
+},
+"addon:Holy Winged Icon":{
+"h":"977e1085bee31439"
+},
+"addon:Homemade Mask":{
+"h":"a93b28f2c3b3413a"
+},
+"addon:Homemade Muffler":{
+"h":"17cb906029af2f56"
+},
+"addon:Honey Locust Thorn":{
+"h":"72569da45aba22b2",
+"n":[
+3.0,
+7.6,
+19.0,
+70.0
+]
+},
+"addon:Honing Stone":{
+"h":"6e0c9228f6d03694"
+},
+"addon:Hyperawareness Spray":{
+"h":"468fdb157eba7239"
+},
+"addon:Hypnotist's Watch":{
+"h":"7def6be03485da37"
+},
+"addon:Impaling Wire":{
+"h":"a9a4b2841275b2e2"
+},
+"addon:Imprinted Aluminum":{
+"h":"5831949f8ab598e8",
+"n":[
+3.0,
+43.0,
+70.0
+]
+},
+"addon:Improvised Cattle Prod":{
+"h":"94bdcf31bdb24e1d"
+},
+"addon:Improvised Detonators":{
+"h":"3e778a01be84e74c"
+},
+"addon:Incensed Ointment":{
+"h":"e6eba99ad13ec4e4"
+},
+"addon:Infantry Belt":{
+"h":"ea8a70d53f00f3fc",
+"n":[
+3.0,
+4.0,
+5.0,
+7.6,
+8.0
+]
+},
+"addon:Infected Emetic":{
+"h":"7ad00864ac3b745b"
+},
+"addon:Inferno Wires":{
+"h":"0848024a7fcb5168"
+},
+"addon:Infrared Upgrade":{
+"h":"9fe82300d9a82587"
+},
+"addon:Ink Egg":{
+"h":"372593e92d92881e"
+},
+"addon:Ink Lion":{
+"h":"e34f5aac29ee83ed"
+},
+"addon:Instructions":{
+"h":"ad98ae6abe4c350d",
+"n":[
+1.0,
+3.6,
+7.0
+]
+},
+"addon:Intense Halogen":{
+"h":"80836398b919c95b"
+},
+"addon:Interlocking Razor":{
+"h":"27f33618d1c77067"
+},
+"addon:Interview Tape":{
+"h":"a3892d55a262e447"
+},
+"addon:Iridescent Amulet":{
+"h":"5701c4a050a6b944"
+},
+"addon:Iridescent Blight Tag":{
+"h":"78e3f98ed3bbf0cc"
+},
+"addon:Iridescent Boat Motor":{
+"h":"444cfb0cc529e700"
+},
+"addon:Iridescent Book of Vile Darkness":{
+"h":"e741c27b25ba1099"
+},
+"addon:Iridescent Button":{
+"h":"fd25507acb9674a6"
+},
+"addon:Iridescent Coin":{
+"h":"4ccc367e6eac1f5a"
+},
+"addon:Iridescent Company Banner":{
+"h":"e14c3de8c9150e23"
+},
+"addon:Iridescent Crystal Shard":{
+"h":"9f09f6bbd79a3d16"
+},
+"addon:Iridescent Engravings":{
+"h":"8c71cbeb19a91a21"
+},
+"addon:Iridescent Eye Patch":{
+"h":"47611c41afb0c06f"
+},
+"addon:Iridescent Family Crest":{
+"h":"45c67822acd00f31"
+},
+"addon:Iridescent Feather":{
+"h":"bd9cef82e64ac3f4"
+},
+"addon:Iridescent Flesh":{
+"h":"7c246e80424c7222"
+},
+"addon:Iridescent Head":{
+"h":"04a4bc93fd66ce4b"
+},
+"addon:Iridescent King":{
+"h":"6f67fd088f75acda"
+},
+"addon:Iridescent Lament Configuration":{
+"h":"1b0d11903bef7fcd"
+},
+"addon:Iridescent OSS Report":{
+"h":"1cd669c08f7a0393"
+},
+"addon:Iridescent Pendant":{
+"h":"cd3c6fca84a61b30"
+},
+"addon:Iridescent Photocard":{
+"h":"aa840c290aad214e"
+},
+"addon:Iridescent Queen":{
+"h":"eceb50746dac60d2"
+},
+"addon:Iridescent Remnant":{
+"h":"ae7df65b4d68010d"
+},
+"addon:Iridescent Ring of Vlad":{
+"h":"71d5928116f6b657"
+},
+"addon:Iridescent Seal":{
+"h":"f3e4109b65a1d071"
+},
+"addon:Iridescent Seal of Metatron":{
+"h":"6f5b170bf5606ec9"
+},
+"addon:Iridescent Soteria Chip":{
+"h":"ca342d147fc20336"
+},
+"addon:Iridescent Stone":{
+"h":"10d1f851889a2dcf"
+},
+"addon:Iridescent Umbrella Badge":{
+"h":"9d2364066f26a0ac"
+},
+"addon:Iridescent Unpublished Manuscript":{
+"h":"12ad74ba85fa0e67"
+},
+"addon:Iridescent Uroboros Vial":{
+"h":"38b51b4d39fe8b5d"
+},
+"addon:Iridescent Videotape":{
+"h":"ca0f04a468377ca5"
+},
+"addon:Iridescent Wheel Handle":{
+"h":"9e7feed3379c91e1"
+},
+"addon:Iridescent Wooden Plank":{
+"h":"c9f35914ce11c10c"
+},
+"addon:Ironworker's Tongs":{
+"h":"7d348f6dbb3d6482"
+},
+"addon:J. Myers Memorial":{
+"h":"1f0b5807fa8a2685",
+"n":[
+3.0,
+5.0,
+40.0,
+1965.0
+]
+},
+"addon:Jailer's Chimes":{
+"h":"4a2da5788f8ef84b"
+},
+"addon:Janjira's Hand":{
+"h":"d2fc087e7e8e6cdc"
+},
+"addon:Jaw Smasher":{
+"h":"6b9952482e5f1a2c"
+},
+"addon:Jenner's Last Breath":{
+"h":"a327fccc2afb3cfc"
+},
+"addon:Jewel Beetle":{
+"h":"8243cc749bb22e26"
+},
+"addon:Jewellery":{
+"h":"4a138d568a96080b"
+},
+"addon:Jewellery Box":{
+"h":"4430ccfb1b2f2e7f"
+},
+"addon:Ji-Woon's Autograph":{
+"h":"cfca562bcc3e058c"
+},
+"addon:Jigsaw's Annotated Plan":{
+"h":"07526177c9685275"
+},
+"addon:Jigsaw's Sketch":{
+"h":"2ec40e18ddac0c73"
+},
+"addon:Jill's Sandwich":{
+"h":"f5c67d0e6c87c79f"
+},
+"addon:Joey's Mix Tape":{
+"h":"7624ec7cf75d53c6"
+},
+"addon:John's Medical File":{
+"h":"06754aa7039fda1a"
+},
+"addon:Jonathan's Skull":{
+"h":"38e907736c46ecb3"
+},
+"addon:Judith's Journal":{
+"h":"4cd48f26bf9c8ea5"
+},
+"addon:Judith's Tombstone":{
+"h":"94a4559326235594"
+},
+"addon:Julie's Mix Tape":{
+"h":"9d7e81776b34d4a0"
+},
+"addon:Jump Rope (Dream Demon)":{
+"h":"850737c31c6dfb29"
+},
+"addon:Jump Rope (Playtime's Over)":{
+"h":"78969beb2e28e94a"
+},
+"addon:Juniper Bonsai":{
+"h":"e858547e144db851"
+},
+"addon:Kaiun Talisman":{
+"h":"8406af9371c4d55c"
+},
+"addon:Kanai-Anzen Talisman":{
+"h":"c2f1e05363888d05"
+},
+"addon:Kane's Helmet":{
+"h":"0da895d93e6deab5",
+"n":[
+3.0,
+7.6,
+33.0,
+70.0
+]
+},
+"addon:Kaneki's Satchel":{
+"h":"964449d3eb3cbd82"
+},
+"addon:Kaneki's Wallet":{
+"h":"50806ed5a93bbfcc"
+},
+"addon:Katana Tsuba":{
+"h":"93dbaec941f43808"
+},
+"addon:Kavanagh's Last Breath":{
+"h":"62ea1ddeaa04ff3b"
+},
+"addon:Kerosene Can":{
+"h":"9ef38286440f9c28"
+},
+"addon:Kid's Ball Glove":{
+"h":"4f0a070f0d7d984f"
+},
+"addon:Kid's Drawing":{
+"h":"602466b8c668b9f2"
+},
+"addon:Killer Doll":{
+"h":"39cce13351d817a3"
+},
+"addon:Killing Part Chords":{
+"h":"dac957efdaf00134"
+},
+"addon:Kintsugi Teacup":{
+"h":"767ffc0a796162f9"
+},
+"addon:Knife Belt Clip":{
+"h":"a0013af2b37b3eb4"
+},
+"addon:Knife Scratches":{
+"h":"6bf5d2411b36ce2c"
+},
+"addon:Knight's Contract":{
+"h":"583840fe6c4a8081"
+},
+"addon:Knitting Needle":{
+"h":"9f3df8dcb3e4d7f2"
+},
+"addon:Knotted Rope":{
+"h":"30506a65241f33d1"
+},
+"addon:Koenrad's Gauntlet":{
+"h":"b0ddda0464d1922e"
+},
+"addon:Lab Photo":{
+"h":"eb367a6ebba04009"
+},
+"addon:Lambert's Star Map":{
+"h":"72b7b3ae13884847"
+},
+"addon:Lantern of Revealing":{
+"h":"a015d6062f19a615"
+},
+"addon:Lapis Lazuli":{
+"h":"4fbb4d191a2ccadd"
+},
+"addon:Larry's Blood":{
+"h":"94e56b8e5aea33ca"
+},
+"addon:Larry's Remains":{
+"h":"fb51e81207a895dc"
+},
+"addon:Last Known Recording":{
+"h":"a5dd7c3913d09956"
+},
+"addon:Last Will":{
+"h":"a77c45b3ad736016"
+},
+"addon:Lasting Perfume":{
+"h":"09925618eecddd9f"
+},
+"addon:Lavalier Microphone":{
+"h":"1de5138ad54d0163"
+},
+"addon:Lead Ring":{
+"h":"11a1a8baaed84d53"
+},
+"addon:Leather Gloves":{
+"h":"5d5fb9c6bb483837"
+},
+"addon:Leather Grip":{
+"h":"0eb5cbe06f6dc237"
+},
+"addon:Leather Harness":{
+"h":"9b42ad7e81612023"
+},
+"addon:Leather Knife Sheath":{
+"h":"99c7fe0c6da649a3"
+},
+"addon:Leather Loop":{
+"h":"a03a960961389b91",
+"n":[
+2.0,
+5.0,
+7.6,
+8.0
+]
+},
+"addon:Leather Strip":{
+"h":"87068ce8912d4500"
+},
+"addon:Lengthened Jaws":{
+"h":"a78fc2f6e785ebc8"
+},
+"addon:Leopard-Print Fabric":{
+"h":"88da10a92f647b74"
+},
+"addon:Leprose Lichen":{
+"h":"2e773802e83b2289"
+},
+"addon:Licker Tongue":{
+"h":"e139911e952b862b"
+},
+"addon:Lifeguard Whistle":{
+"h":"69bc1fc2dca4761f"
+},
+"addon:Light Chassis":{
+"h":"faadd87a60781995"
+},
+"addon:Light Wand":{
+"h":"fcf986e5a85d6321"
+},
+"addon:Limestone Seal":{
+"h":"84e7cf3727ac511f"
+},
+"addon:Lion Fang":{
+"h":"a27079880f176cc8"
+},
+"addon:Lion Medallion":{
+"h":"cdc26aa1000f875e"
+},
+"addon:Liquified Gore":{
+"h":"33248a45bda40c81"
+},
+"addon:Live Wires":{
+"h":"f71d2e3cbee4be17"
+},
+"addon:Lively Crickets":{
+"h":"2409f842c3d2fce0"
+},
+"addon:LoPro Chains":{
+"h":"02684ae7f3f7a4bb"
+},
+"addon:Lock of Hair":{
+"h":"44e2ee7fb67fcb4f"
+},
+"addon:Long Guide Bar":{
+"h":"07ceff8c1155b6be"
+},
+"addon:Long Life Battery":{
+"h":"4b5d7786b0d46ec4"
+},
+"addon:Loose Crank":{
+"h":"d58c6793e023cb16"
+},
+"addon:Loose Screw":{
+"h":"35c7772f82ea777c"
+},
+"addon:Loot Bag":{
+"h":"6c1ddd21940ac0f2"
+},
+"addon:Lorenza's Remains":{
+"h":"9593c5a1be9be5aa",
+"n":[
+4.0,
+9.2,
+41.0
+]
+},
+"addon:Lost Memories Book":{
+"h":"b6548804bbadfc15"
+},
+"addon:Low Amp Filament":{
+"h":"c270cb571a3fa413"
+},
+"addon:Low Kickback Chains":{
+"h":"77a936bd561ae3da"
+},
+"addon:Low-Power Mode":{
+"h":"0253377c14af140b"
+},
+"addon:Luckless Mouse":{
+"h":"be5bd9a43adc9dd6"
+},
+"addon:Lucky Blade":{
+"h":"6d59e040b06d44f9",
+"n":[
+1.0,
+2.0,
+3.0,
+5.0,
+6.0,
+9.5,
+23.0
+]
+},
+"addon:Madeleine's Glove":{
+"h":"17f9216ff42011db"
+},
+"addon:Madeleine's Scarf":{
+"h":"eb29cede070d7f33"
+},
+"addon:Mado's Glove":{
+"h":"e38fe3529f505448"
+},
+"addon:Magical Ticket":{
+"h":"15cc8da4831f1693"
+},
+"addon:Magnetised Manacles":{
+"h":"750efd9165232f93"
+},
+"addon:Maiden Medallion":{
+"h":"6eb0aa35ddc841dd"
+},
+"addon:Makeshift Wrap":{
+"h":"d6f430d47be2ada2"
+},
+"addon:Malthinker's Skull":{
+"h":"b85467f206c161e8"
+},
+"addon:Manna Grass Braid":{
+"h":"1a7dd3982f5b4c02"
+},
+"addon:Mannequin Foot":{
+"h":"078021974e4f26c2"
+},
+"addon:Map of the Realm":{
+"h":"bf30af5230f46aea"
+},
+"addon:Maple Knight":{
+"h":"5b0581a73069d370"
+},
+"addon:Mark of the Adherent":{
+"h":"8c5cc36fd7d398f6"
+},
+"addon:Marked Map":{
+"h":"849df2e1204a411e"
+},
+"addon:Marlinspike":{
+"h":"0dc8731f79a5e7c0"
+},
+"addon:Marshal's Badge":{
+"h":"22c37c51ffdec37b"
+},
+"addon:Marvin's Blood":{
+"h":"95ad2a53da574c86"
+},
+"addon:Matchbox":{
+"h":"acab20f01e1df88e"
+},
+"addon:Matias' Baby Shoes":{
+"h":"5aad692457bb83fa"
+},
+"addon:Medical Scissors":{
+"h":"46ef82b21e52ade5",
+"n":[
+2.0,
+6.0,
+10.0
+]
+},
+"addon:Medusa's Hair":{
+"h":"a022b4dc12fe2491",
+"n":[
+4.0,
+8.0,
+9.2,
+37.0
+]
+},
+"addon:Melodious Murder":{
+"h":"23a3215df1eaf094"
+},
+"addon:Memento Blades":{
+"h":"921593581e4ca4fe"
+},
+"addon:Memorial Flower":{
+"h":"ceb8f4ce0e3a13a8"
+},
+"addon:Metal Spoon":{
+"h":"ef626471a90993d5"
+},
+"addon:Mews' Guts":{
+"h":"f44f9fb08c51022f"
+},
+"addon:Mid-Century Radio":{
+"h":"3bf02883e7f54660"
+},
+"addon:Mike's Phone":{
+"h":"8454d4125670a460"
+},
+"addon:Mikhail's Eye":{
+"h":"e5bbc17a5a08d256"
+},
+"addon:Mint Rag":{
+"h":"63d7b04b5f32f2bc"
+},
+"addon:Mirror Shard":{
+"h":"848b9a1ed9dd6543"
+},
+"addon:Mirror Shards (Omnipresent Evil)":{
+"h":"266f0dc424a4e72a"
+},
+"addon:Mirror Shards (Playtime's Over)":{
+"h":"780879f5b67a3929"
+},
+"addon:Mirror of the Creators":{
+"h":"0f086a7265cda921"
+},
+"addon:Mischief List":{
+"h":"cfb95ddf55695f49"
+},
+"addon:Missing Corkscrew":{
+"h":"a05ed173f5c30971"
+},
+"addon:Misty Day, Remains of Judgement":{
+"h":"b7379b59bebe3ef9"
+},
+"addon:Modified Ammo Belt":{
+"h":"04a89d2b0691d04c"
+},
+"addon:Moonstone Necklace":{
+"h":"33e8f111faec165b"
+},
+"addon:Mortar and Pestle":{
+"h":"27d90c9b9643682d"
+},
+"addon:Mother's Comb":{
+"h":"aaa0a9771c1b7b40"
+},
+"addon:Mother's Glasses":{
+"h":"b5860d5763fd7e2e"
+},
+"addon:Mother's Mirror":{
+"h":"fd2b3d57276fcb63"
+},
+"addon:Mother-Daughter Ring":{
+"h":"9e51fee18c8254f5"
+},
+"addon:Mouldy Electrode":{
+"h":"b40567050c71b395"
+},
+"addon:Moulted Skin":{
+"h":"693edb5b11f55f30"
+},
+"addon:Muddy Sports Day Cap":{
+"h":"dd9bb524f1aa6277"
+},
+"addon:Multipurpose Hatchet":{
+"h":"1dd642422ffafbd5"
+},
+"addon:Mural Sketch":{
+"h":"c64e36a9c00aa359"
+},
+"addon:Mushroom Formula":{
+"h":"1ffc96b724513b2c"
+},
+"addon:Mysterious Elixir":{
+"h":"e4543ce5c2db277f"
+},
+"addon:NE-a Parasite":{
+"h":"73f9b3498eec93bb"
+},
+"addon:Nancy's Masterpiece":{
+"h":"92ce0351d8957f56"
+},
+"addon:Nancy's Sketch":{
+"h":"7d3dcb68a8d64c03"
+},
+"addon:Nanomachine Gel":{
+"h":"2e8d9e8597be3a3a"
+},
+"addon:Neck Tendril":{
+"h":"0b3f6d7d7b484942"
+},
+"addon:Needle & Thread":{
+"h":"3f7905b5e5ff5d80"
+},
+"addon:Never-Sleep Pills":{
+"h":"da95a9687cdf28db"
+},
+"addon:Night Vision Monocular":{
+"h":"b5f65271b1a92028"
+},
+"addon:Notebook of Theories":{
+"h":"750ce874a73bae32"
+},
+"addon:Nutritional Slurry":{
+"h":"095dcb9a7034826c"
+},
+"addon:O Grief, O Lover":{
+"h":"93078ca5246df55d"
+},
+"addon:Oak Haft":{
+"h":"e84fb884a97b910d"
+},
+"addon:Obscure Game Cartridge":{
+"h":"80112d9c017facc9"
+},
+"addon:Obsidian Feather":{
+"h":"c3652be1321bbb5d"
+},
+"addon:Obsidian Goblet":{
+"h":"8f8cf2879315e042"
+},
+"addon:Odd Bulb":{
+"h":"84ef0fdaa0085efe"
+},
+"addon:Off-Brand Motor Oil":{
+"h":"f60225ee53a7e5f0"
+},
+"addon:Office Phone":{
+"h":"7d3bfb96081ad346"
+},
+"addon:Oil Paints":{
+"h":"ce9d77d916e8737d"
+},
+"addon:Oily Coil":{
+"h":"0f3d35fa7cf2f52d"
+},
+"addon:Oily Sap":{
+"h":"5873398dffe9c538"
+},
+"addon:Old Newspaper":{
+"h":"ad5c1440e42d04a6"
+},
+"addon:Olibanum Incense":{
+"h":"6d74b014fef17bab"
+},
+"addon:Olsen's Address Book":{
+"h":"d9c48e1058eb5913"
+},
+"addon:Olsen's Journal":{
+"h":"8c2cacf36b03dfdc"
+},
+"addon:Olsen's Wallet":{
+"h":"796b628a84f26a19"
+},
+"addon:On Target Single":{
+"h":"c8b1a699c1e8aec3"
+},
+"addon:Order of Inquisition":{
+"h":"f01ae15172ee5b3c"
+},
+"addon:Orderly ID":{
+"h":"b67e2bff6650856a"
+},
+"addon:Orderly's Shoe":{
+"h":"89ffa3b86daf77d1"
+},
+"addon:Origami Crane":{
+"h":"ac4b14e6f6c87aca"
+},
+"addon:Original Pain":{
+"h":"d8e668fe38f70b7a"
+},
+"addon:Ornate Horn":{
+"h":"9f7492ee8f01dbe6"
+},
+"addon:Ottomarian Writing":{
+"h":"7e69a005afcae55e"
+},
+"addon:Outdoor Rope":{
+"h":"3de6735e1cd98d32"
+},
+"addon:Outdoor Security Camera":{
+"h":"3be972d021c1edda"
+},
+"addon:Ovomorph":{
+"h":"cb5502719376d5ab"
+},
+"addon:Padded Jaws":{
+"h":"7eb5002fe65c8bfd"
+},
+"addon:Paint Thinner":{
+"h":"9cfdd636b5e265b7"
+},
+"addon:Paper Lantern":{
+"h":"23fbef8a4e3d769b"
+},
+"addon:Parker's Headband":{
+"h":"e58fa1548303d094",
+"n":[
+3.0,
+5.0,
+7.2,
+33.0
+]
+},
+"addon:Party Bottle":{
+"h":"cf802efe8d3e4e24"
+},
+"addon:Party Hat":{
+"h":"38faa83c485a3227"
+},
+"addon:Party Noisemaker":{
+"h":"cd9ca00f2087c47b"
+},
+"addon:Pearl of Power":{
+"h":"1119e49126a1401c"
+},
+"addon:Pig's Eye":{
+"h":"abad192e298c34f7"
+},
+"addon:Pile of Nails":{
+"h":"70f856254c928412"
+},
+"addon:Pill Bottle":{
+"h":"42bef5e9b3444f41"
+},
+"addon:Pillaged Mead":{
+"h":"e0613e1ffdab973a"
+},
+"addon:Pizza Goggles":{
+"h":"bd1bb0b249d27e56"
+},
+"addon:Placebo Tablet":{
+"h":"bf87e6fa0f0fdbbf"
+},
+"addon:Plague Bile":{
+"h":"c7641dc390884e00"
+},
+"addon:Plaid Flannel":{
+"h":"c2b4922feb2e4705"
+},
+"addon:Plant 43 Vines":{
+"h":"212b1867380c8db1"
+},
+"addon:Plastic Bag":{
+"h":"d6d9c034b4dfa343"
+},
+"addon:Pocket Watch (Spencer's Last Breath)":{
+"h":"50df8825fd8a61bb"
+},
+"addon:Pocket Watch (Vampiric Shift)":{
+"h":"70cfb3787bbee52b"
+},
+"addon:Poison Oak Leaves":{
+"h":"e7a5c6a659947951"
+},
+"addon:Polished Electrode":{
+"h":"1521464bd3f2a13d"
+},
+"addon:Polished Maedate":{
+"h":"dc26ae4eef4b7e65"
+},
+"addon:Portable Safe":{
+"h":"cc24a7ae83df0b21"
+},
+"addon:Portable TV":{
+"h":"1b81d9b5cc19e2d6"
+},
+"addon:Potent Extract":{
+"h":"736e1b71cc8ec65e"
+},
+"addon:Potent Tincture":{
+"h":"e234fb4223b6444b"
+},
+"addon:Potion of Speed":{
+"h":"9b79e80990c2ba1e"
+},
+"addon:Powdered Eggshell":{
+"h":"0cbbc938f7c79f78"
+},
+"addon:Powdered Glass":{
+"h":"cccee3cc6a76c701",
+"n":[
+3.0,
+7.6,
+31.0,
+70.0
+]
+},
+"addon:Power Bulb":{
+"h":"8b53b9cb8cd90bf1"
+},
+"addon:Power Drill":{
+"h":"70dbace6240718aa"
+},
+"addon:Prayer Kneeler":{
+"h":"789bc599a125610b"
+},
+"addon:Prayer Tablet Fragment":{
+"h":"f76ca88e2fb4691a"
+},
+"addon:Primer Bulb":{
+"h":"bf35f9689cacc74e"
+},
+"addon:Prison Chain":{
+"h":"d9184380cb55a9cc"
+},
+"addon:Prophylactic Amulet":{
+"h":"1afae0e4995cc9b2"
+},
+"addon:Protective Gloves":{
+"h":"ef42be40697ffcc9"
+},
+"addon:Prototype Claws":{
+"h":"915abffe11ab8278"
+},
+"addon:Prototype Rotor":{
+"h":"6d15b15481913039"
+},
+"addon:Punctured Eyeball":{
+"h":"30565920a3fcbde1"
+},
+"addon:Purple Guy Drawing":{
+"h":"108215d30d130d93"
+},
+"addon:Pussy Willow Catkins":{
+"h":"698d44ca0f9502b9"
+},
+"addon:Pustula Dust":{
+"h":"2bba42c1b1e5a599"
+},
+"addon:Queen's Sceptre":{
+"h":"6d145147646e6a73"
+},
+"addon:R.P.D. Shoulder Walkie":{
+"h":"4ad3a36b03096c5f"
+},
+"addon:Rabbit Remains":{
+"h":"f7cf9b552b0d077c"
+},
+"addon:Rabbit's Foot":{
+"h":"a2db8569d0e8607a"
+},
+"addon:Ragged Engine":{
+"h":"b6a832ca5df9a20e"
+},
+"addon:Randomised Strobes":{
+"h":"fb41912f600e8921"
+},
+"addon:Rat Liver":{
+"h":"3c121eb2de66131e"
+},
+"addon:Rat Poison":{
+"h":"5d2c887b092cb8ad"
+},
+"addon:Rat Tail":{
+"h":"efbaee6d0a3300e8"
+},
+"addon:Raven's Feather":{
+"h":"ad50ade3fe9a5971"
+},
+"addon:Razor Wires":{
+"h":"473ef496c590d42b"
+},
+"addon:Reactive Compound":{
+"h":"e1c9bdcc63adb252"
+},
+"addon:Red Herb":{
+"h":"85e5354c55b1b8ac"
+},
+"addon:Red Moss":{
+"h":"4a336a02ad6248e8"
+},
+"addon:Red Paint Brush":{
+"h":"a98be0205115d1ef"
+},
+"addon:Red Spider Lily":{
+"h":"3fead304010b546f"
+},
+"addon:Red-Headed Centipede":{
+"h":"8546e1a10c90923a"
+},
+"addon:Redhead's Pinkie Finger":{
+"h":"90d4a79bfa2bef4b"
+},
+"addon:Reflective Fragment":{
+"h":"78683c40a20e9a2f"
+},
+"addon:Reiko's Watch":{
+"h":"82820f9a166cda8b"
+},
+"addon:Remote Control":{
+"h":"95d5446b428ad823"
+},
+"addon:Renjiro's Bloody Glove":{
+"h":"e180dd08981ea26f"
+},
+"addon:Restaurant Menu":{
+"h":"b3e7281748192094"
+},
+"addon:Rickety Chain":{
+"h":"3bef9510b88f0b33"
+},
+"addon:Rickety Pinwheel":{
+"h":"55f7405ed46e38c4"
+},
+"addon:Rin's Broken Watch":{
+"h":"35acfd880a413186"
+},
+"addon:Ring Drawing":{
+"h":"a63f133a6877602e"
+},
+"addon:Ring of Spell Storing":{
+"h":"626591de5a807b47"
+},
+"addon:Ring of Telekinesis":{
+"h":"ca80ab7e348368f3",
+"n":[
+2.0,
+9.0,
+10.0,
+36.0
+]
+},
+"addon:Ripley's Watch":{
+"h":"853593ed724023b7"
+},
+"addon:Ripped Curtain":{
+"h":"fa6b952e605d7801",
+"n":[
+2.0,
+9.0,
+40.0,
+60.0
+]
+},
+"addon:Ripper Brace":{
+"h":"12caa232bdb8daa9"
+},
+"addon:Rize's Glasses":{
+"h":"a921c2f41958943d"
+},
+"addon:Robe of Eyes":{
+"h":"5468b2948c1ebddf"
+},
+"addon:Robin Feather":{
+"h":"f0db5b656753f24a"
+},
+"addon:Rope Necklet":{
+"h":"68a1e03c998067ea"
+},
+"addon:Rose Root":{
+"h":"aad2f0df261b2e88"
+},
+"addon:Rose Tonic":{
+"h":"e45bf3e0e7bf788d"
+},
+"addon:Rotten Green Tripe":{
+"h":"887d7d5217c94204"
+},
+"addon:Rotten Pizza":{
+"h":"d37f16ef9b61642e"
+},
+"addon:Rotten Pumpkin":{
+"h":"464d4afd3cc3c133"
+},
+"addon:Rotten Swine":{
+"h":"352a6284dcad897e",
+"n":[
+4.0,
+9.2,
+15.0,
+41.0
+]
+},
+"addon:Rotting Rope":{
+"h":"547f9fa58d63d281"
+},
+"addon:Rubber Gloves":{
+"h":"ab249d64e354ea08"
+},
+"addon:Rubber Grip":{
+"h":"8e0f82807e0a1ed1"
+},
+"addon:Rubbing Oil":{
+"h":"9b46f51104eb6c50"
+},
+"addon:Ruby Circlet":{
+"h":"4748826276ad955a"
+},
+"addon:Rules Set No.2":{
+"h":"d1e2d8fdc2ee60b0"
+},
+"addon:Running Shoes":{
+"h":"4f33340d7dfa7535",
+"n":[
+2.0,
+3.0,
+5.0,
+7.4,
+34.0
+]
+},
+"addon:Rust-Coloured Egg":{
+"h":"64e25223caaf4f70"
+},
+"addon:Rusted Chains":{
+"h":"806f3741a5907e1e"
+},
+"addon:Rusted Jaws":{
+"h":"79b63a0262a9df0d",
+"n":[
+1.0,
+3.0,
+7.6,
+70.0
+]
+},
+"addon:Rusted Needle":{
+"h":"94522f38cd00c8e3"
+},
+"addon:Rusted Spike":{
+"h":"5d2267dbc91f7c4c",
+"n":[
+2.0,
+7.6,
+19.0,
+60.0
+]
+},
+"addon:Rusty Attachments":{
+"h":"661b762a98ae2e11",
+"n":[
+3.0,
+7.6,
+11.0,
+70.0
+]
+},
+"addon:Rusty Flute":{
+"h":"a4b66c1688f846ad"
+},
+"addon:Rusty Head":{
+"h":"87a25c85e8419a0b",
+"n":[
+3.0,
+7.6,
+8.0,
+70.0
+]
+},
+"addon:Rusty Shackles":{
+"h":"74e8f322a718d26d"
+},
+"addon:S.T.A.R.S. Field Combat Manual":{
+"h":"0bc6d34ad66782cb"
+},
+"addon:Sacrificial Knife":{
+"h":"3cb720b8cf8432d0"
+},
+"addon:Sauna Rock":{
+"h":"693daa7927e0185b"
+},
+"addon:Scalped Topknot":{
+"h":"789e2bc32d7eaf4c"
+},
+"addon:Scarlet Egg":{
+"h":"0ae5e81ad3ac9934"
+},
+"addon:Scarred Hand":{
+"h":"fffccd639035111d"
+},
+"addon:Scrapped Tape":{
+"h":"df6a1ef2761ff56d"
+},
+"addon:Scraps":{
+"h":"12c50a9a20c37dd9",
+"n":[
+1.0,
+3.6,
+7.0,
+8.0
+]
+},
+"addon:Scratched Mirror":{
+"h":"e68dab2fe47f7c7a"
+},
+"addon:Scratched Ruler":{
+"h":"3707c23078b49196"
+},
+"addon:Sea-Soaked Cloth":{
+"h":"6bb9512d0c07e32c"
+},
+"addon:Searcher's Skull":{
+"h":"cbea6ed0796e695b"
+},
+"addon:Secondary Coil":{
+"h":"1c6d7e585fb40aac"
+},
+"addon:Security Guard's Badge":{
+"h":"b2e21cb6340b9284"
+},
+"addon:Self Adherent Wrap":{
+"h":"737cc4ac2a9eda13",
+"n":[
+2.0,
+5.0,
+6.0,
+8.0
+]
+},
+"addon:Self-Destruct Bolt":{
+"h":"60e8bc9dde9fe7c5",
+"n":[
+4.0,
+7.2,
+30.0,
+33.0
+]
+},
+"addon:Semiotic Keyboard":{
+"h":"dc34f98b410f9ca5"
+},
+"addon:Senko Hanabi":{
+"h":"596757b3a8c9a5c4"
+},
+"addon:Serotonin Injector":{
+"h":"327dbf38e3232001"
+},
+"addon:Serrated Jaws":{
+"h":"d287cdb84847a450"
+},
+"addon:Serum Vial":{
+"h":"3fd224869240848a"
+},
+"addon:Severed Hands":{
+"h":"cbd9a59a6ebe9b51"
+},
+"addon:Severed Toe":{
+"h":"20c38dbb08d084a2"
+},
+"addon:Severed Tongue":{
+"h":"f984446345d273fc"
+},
+"addon:Sewer Sludge":{
+"h":"a1b6b77c76782746"
+},
+"addon:Sharpened Flint":{
+"h":"a3655ac0595c5a88"
+},
+"addon:Sharpened Mount":{
+"h":"8fc5c9b6eac00fe4"
+},
+"addon:Shattered S.T.A.R.S. Badge":{
+"h":"2db595569f1e3d79"
+},
+"addon:Shattered Syringe":{
+"h":"cdea34cf4a753d74"
+},
+"addon:Shattered Wakizashi":{
+"h":"253c160537491b99"
+},
+"addon:Shattered Wrist Rocket":{
+"h":"586c75397700f81c"
+},
+"addon:Sheep Block":{
+"h":"9c472fbf33cc14ef"
+},
+"addon:Shiawase Amulet":{
+"h":"200e727a237b677b"
+},
+"addon:Shiny Pin":{
+"h":"9daa6c95d4278a40"
+},
+"addon:Shiny Tricycle":{
+"h":"e9a54f8ade9f7511"
+},
+"addon:Ship Figurehead":{
+"h":"38f3a8ec7286b392"
+},
+"addon:Shop Lubricant":{
+"h":"983d8236ae38b006"
+},
+"addon:Shotgun Speakers":{
+"h":"9f35122dcb3332ad"
+},
+"addon:Shredded Gown":{
+"h":"91121244cc7c1142"
+},
+"addon:Shredded Notes":{
+"h":"6b87406eeae55ea6"
+},
+"addon:Shrill Whistle":{
+"h":"fa569f852ca6877a"
+},
+"addon:Sienna's Flesh":{
+"h":"d950d78b5aca1669"
+},
+"addon:Silencing Cloth":{
+"h":"202e6a0080654df9"
+},
+"addon:Silk Pillow":{
+"h":"ab5f664965346641"
+},
+"addon:Silver Bell":{
+"h":"99028871fb8fcfab"
+},
+"addon:Sketch Attempt":{
+"h":"f0a10cfb31db95f8"
+},
+"addon:Skewered Rat":{
+"h":"cacc3ae6c0da54f6"
+},
+"addon:Slashed Backpack":{
+"h":"cacd2c841edb1cd2"
+},
+"addon:Sleeping Bag":{
+"h":"10a14883eb4ffc63"
+},
+"addon:Slice of Frank":{
+"h":"e97be740210bcf9d"
+},
+"addon:Slow-Release Toxin":{
+"h":"ee4f4345c0f34627"
+},
+"addon:Smashed Cassette Deck":{
+"h":"b9db75bd66af004d"
+},
+"addon:Smelly Inner Soles":{
+"h":"9032328f1da69079"
+},
+"addon:Smiley Face Pin":{
+"h":"cf88179e83829c0e"
+},
+"addon:Smoked Snapper":{
+"h":"f0aad92227cbe975"
+},
+"addon:Snake Oil":{
+"h":"66486caaa75dbf22"
+},
+"addon:Socket Swivels":{
+"h":"5995946927fc40f2",
+"n":[
+2.0,
+3.6,
+7.0,
+30.0
+]
+},
+"addon:Soldier's Puttee":{
+"h":"7e28b2fba3fa38a3"
+},
+"addon:Solvent Jug":{
+"h":"f94f81cb467a8dd0"
+},
+"addon:Soma Family Photo":{
+"h":"2ca73d553dc4e56d",
+"n":[
+3.0,
+4.0,
+6.0,
+9.3,
+13.0,
+32.0
+]
+},
+"addon:Soul Chemical":{
+"h":"6cce6f6cb888260e"
+},
+"addon:Soured Milk":{
+"h":"915a7d402b86c957"
+},
+"addon:Spark Plug":{
+"h":"b6e88cff8a90bec2"
+},
+"addon:Spasmodic Breath":{
+"h":"828a182cc7191462"
+},
+"addon:Spattered Handkerchief":{
+"h":"9486ae4f48bfdef1"
+},
+"addon:Spearhead":{
+"h":"579f62abb0d04500"
+},
+"addon:Speed Limiter":{
+"h":"ae5287f8c14f2512"
+},
+"addon:Spent Oxygen Tank":{
+"h":"e5b93dc72d44aec6"
+},
+"addon:Spiked Boots":{
+"h":"a593ea850f01512e"
+},
+"addon:Spiked Collar":{
+"h":"b474e2df7940949c"
+},
+"addon:Spinning Top":{
+"h":"fb1c11bb391e6e17"
+},
+"addon:Spirit of Hartshorn":{
+"h":"ec6b5a03fcdfcee6"
+},
+"addon:Spit Polish Rag":{
+"h":"8812f840d3166401"
+},
+"addon:Splintered Hull":{
+"h":"cb86f4f9a91d8c71"
+},
+"addon:Spoiled Meal":{
+"h":"d4760ab1b0ca679e"
+},
+"addon:Sponge":{
+"h":"3d12564862465747"
+},
+"addon:Spring Clamp":{
+"h":"487ae198ce87d592"
+},
+"addon:Spyglass":{
+"h":"77cff1259934542f"
+},
+"addon:Stab Wounds Study":{
+"h":"71a481a1e12a2109"
+},
+"addon:Staff of Withering":{
+"h":"6a4a53870d046f0f"
+},
+"addon:Stained Glass Mural":{
+"h":"cc0e6aa314f74234"
+},
+"addon:Stale Biscuit":{
+"h":"d82d74614a751e82"
+},
+"addon:Starling Feather":{
+"h":"d791472dc1ddd7a6"
+},
+"addon:Steel Toe Boots":{
+"h":"63a0b24b8eb7c95b"
+},
+"addon:Stereo Remote Mic":{
+"h":"2cf0dc66225682ba"
+},
+"addon:Sticky Lining":{
+"h":"ecaaa2b346df29ca"
+},
+"addon:Sticky Lozenge":{
+"h":"809b776d198dab60"
+},
+"addon:Sticky Pitch":{
+"h":"24a192db013c1fae"
+},
+"addon:Sticky Soda Bottle":{
+"h":"ae610efdb99109cf",
+"n":[
+2.0,
+7.6,
+12.0,
+16.0
+]
+},
+"addon:Still Life Crow":{
+"h":"1361d6507545fb58"
+},
+"addon:Stolen Sketch Book":{
+"h":"e4926ce11a271035"
+},
+"addon:Straight Razor":{
+"h":"4f4192bfb980da92",
+"n":[
+4.0,
+7.6,
+34.0,
+80.0
+]
+},
+"addon:Streamers":{
+"h":"fff7743655fb8a63"
+},
+"addon:Strobing Light":{
+"h":"568cdc9b2648cd1b"
+},
+"addon:Stylish Sunglasses":{
+"h":"70148e0714bf1797"
+},
+"addon:Styptic Agent":{
+"h":"151033192f9d266d"
+},
+"addon:Sulphuric Acid Vial":{
+"h":"3bee405b7cfe348b",
+"n":[
+3.0,
+7.6,
+12.0,
+70.0
+]
+},
+"addon:Summoning Stone":{
+"h":"beeb9d4ab3791d90"
+},
+"addon:Sunglasses":{
+"h":"567b64ddd299ccd1"
+},
+"addon:Supercharge":{
+"h":"e13f31c2c1f1c7fc"
+},
+"addon:Superheated Glass":{
+"h":"4415c706dafde05e"
+},
+"addon:Surgical Suture":{
+"h":"6afc10701a17b41b"
+},
+"addon:Susie's Mix Tape":{
+"h":"e3c091b9fa28068d"
+},
+"addon:Swamp Orchid Necklet":{
+"h":"c2761a029a53d174"
+},
+"addon:Swing Chains":{
+"h":"d5a77aee4c322859"
+},
+"addon:Sylph Feather":{
+"h":"3639e1fe72ff62ff"
+},
+"addon:T-Virus Sample":{
+"h":"c72b06a2dbadbb37"
+},
+"addon:TIR Optic":{
+"h":"331946fa7c5b0cce"
+},
+"addon:Tablet of the Oppressor":{
+"h":"d82cc3ef435414bc"
+},
+"addon:Tacky Earrings":{
+"h":"e053f7c45e1f5124"
+},
+"addon:Taiyaki":{
+"h":"f3c3edd09f6c7d18"
+},
+"addon:Tampered Timer":{
+"h":"ad34067e9e5d2a38"
+},
+"addon:Tape Editing Deck":{
+"h":"e609a9014cc6bfb9"
+},
+"addon:Tar Bottle":{
+"h":"4bcb1626b784b1ff"
+},
+"addon:Tattered Headband":{
+"h":"faec4f2fc3a6b9c5"
+},
+"addon:Tattered Tabard":{
+"h":"d1c61897de6f6f79"
+},
+"addon:Tattoo's Middle Finger":{
+"h":"0fecdf298b2bd68e"
+},
+"addon:Tear-Soaked Tenugui":{
+"h":"14b7a4fd8744ba9b"
+},
+"addon:Telephone":{
+"h":"1baf407acad2f3ee",
+"n":[
+3.0,
+4.0,
+7.0,
+27.0
+]
+},
+"addon:Telephoto Lens":{
+"h":"7cbabe0576ee9967"
+},
+"addon:Tension Spring":{
+"h":"75e9f66114b35626"
+},
+"addon:Tequila Moonrock":{
+"h":"bb9bcc0cbd11b045"
+},
+"addon:The Beast's Marks":{
+"h":"3df82e13197764d5"
+},
+"addon:The Black Goat's Egg":{
+"h":"cb6e774824bc0c1b"
+},
+"addon:The Grease":{
+"h":"22ec29431eefe120"
+},
+"addon:The Legion Pin":{
+"h":"56112294055d5cfe"
+},
+"addon:The Ninth Circle":{
+"h":"3f97aaafce7470a1"
+},
+"addon:The Thompsons' Mix":{
+"h":"a1e918cc12f983ee"
+},
+"addon:Theatre Binoculars":{
+"h":"3ed0cd1534ef2649"
+},
+"addon:Thermal Casing":{
+"h":"750b4fba9cac28f1"
+},
+"addon:Thick Cork Stopper":{
+"h":"bd086c84ed681eed"
+},
+"addon:Thick Tar":{
+"h":"d268db511746645f"
+},
+"addon:Thornton Salt":{
+"h":"1057a82a1babad32"
+},
+"addon:Thorny Nest":{
+"h":"716f2fcddcf2bbbf",
+"n":[
+3.0,
+7.6,
+26.0,
+70.0
+]
+},
+"addon:Thorny Vines":{
+"h":"a0b332d6ca7a02f4"
+},
+"addon:Tilling Blade":{
+"h":"0e1e79169161020d",
+"n":[
+4.0,
+7.6,
+28.0,
+80.0
+]
+},
+"addon:Tin Oil Can":{
+"h":"4590ff7020f6b35a"
+},
+"addon:Tiny Fingernail":{
+"h":"47f6c21a14b0856f"
+},
+"addon:Tiny Scalpel":{
+"h":"77c8d31eef87bf21"
+},
+"addon:Tombstone Piece":{
+"h":"c15051e7466d7e0f"
+},
+"addon:Torn Bookmark":{
+"h":"20d76197788c142b"
+},
+"addon:Torn Novel":{
+"h":"673b47dc5fe00aac"
+},
+"addon:Torture Apparatus":{
+"h":"547f2b75875f3211"
+},
+"addon:Torture Pillar":{
+"h":"0b98f034f1acc53c"
+},
+"addon:Town Watch's Torch":{
+"h":"627f26b994bfcac6"
+},
+"addon:Toxic Waste":{
+"h":"860122f981f1a4e7"
+},
+"addon:Toy Sword":{
+"h":"9652c48d5f8cdb93"
+},
+"addon:Trainer's Book":{
+"h":"fa0a80dab0b71b59"
+},
+"addon:Training Bell":{
+"h":"be8b26ae851df265"
+},
+"addon:Trapper Bag":{
+"h":"df6539dc7773f11c"
+},
+"addon:Trapper Gloves":{
+"h":"e4af99db82103e29"
+},
+"addon:Trapper Sack":{
+"h":"da62b390598eb634"
+},
+"addon:Traveller's Hat":{
+"h":"0d4ad7a8dd2564c6"
+},
+"addon:Treated Blade":{
+"h":"5db069aba462cb6f"
+},
+"addon:Trick Blades":{
+"h":"ec0752c61e41c37f"
+},
+"addon:Trick Pouch":{
+"h":"11d8ac72ebeb5b61"
+},
+"addon:Trickster's Glove":{
+"h":"8cbbc9ba0fbb626f"
+},
+"addon:Tuned Carburettor":{
+"h":"c6efd0415922cd97"
+},
+"addon:Two Nails":{
+"h":"96eef91fee1710c3"
+},
+"addon:Tyrant Gore":{
+"h":"fcd85e8b9e850f95"
+},
+"addon:Uchiwa":{
+"h":"1c6faa0a7e43f158"
+},
+"addon:Ultrasonic Sensor":{
+"h":"eefdcb3ff96d951e"
+},
+"addon:Ultrasonic Speaker":{
+"h":"5fd049d3a854485f"
+},
+"addon:Umbra Salts":{
+"h":"cbc2fd1884ff3c3d"
+},
+"addon:Undying Flame":{
+"h":"cac36bb86ebbaf6f"
+},
+"addon:Unfinished Map":{
+"h":"26761f7992d3e9bc"
+},
+"addon:Unicorn Block":{
+"h":"1684881ae493ab15"
+},
+"addon:Unicorn Medallion":{
+"h":"e0d244de73088393"
+},
+"addon:Unique Wedding Ring":{
+"h":"c6bb432747a6eb07"
+},
+"addon:Unknown Egg":{
+"h":"6684dda14af11b0d"
+},
+"addon:Untitled Agony":{
+"h":"21ae41c9269d348b",
+"n":[
+1.5,
+2.0,
+15.0,
+26.0
+]
+},
+"addon:Upside Down Resin":{
+"h":"608032f6e775ad64"
+},
+"addon:Uroboros Tendril":{
+"h":"0de1e7747dcdbe27"
+},
+"addon:Uroboros Virus":{
+"h":"de8a796087e77a6f"
+},
+"addon:Utility Blades":{
+"h":"420bd93c5c618481"
+},
+"addon:VCR":{
+"h":"8cbab1bd35a41165"
+},
+"addon:VHS Porn":{
+"h":"4cf148c1897edb22"
+},
+"addon:Valtiel Sect Photograph":{
+"h":"774aa7804a13cec0"
+},
+"addon:Vanishing Box":{
+"h":"682302aa6da2634c"
+},
+"addon:Vanity Mirror":{
+"h":"69982b4c85fe016b"
+},
+"addon:Vegetable Oil":{
+"h":"fa9d5a35f2ca19c6"
+},
+"addon:Velvet Fabric":{
+"h":"d36ea14f5ebc69f7"
+},
+"addon:Venomous Concoction":{
+"h":"4e9b99dafe82f322"
+},
+"addon:Vermilion Webcap":{
+"h":"7966c25f6a06997d"
+},
+"addon:Vibrant Obituary":{
+"h":"53b1339ffab36d2e"
+},
+"addon:Victim's Detailed Routine":{
+"h":"fc5e66d7d693fadf"
+},
+"addon:Victim's Map":{
+"h":"c8722a5ced3d209a"
+},
+"addon:Victor's Razor Blade":{
+"h":"36971e0e36f20c58"
+},
+"addon:Victor's Soldier":{
+"h":"5df3847e19f03a5c"
+},
+"addon:Victoria's Eye":{
+"h":"97810ff2617018b4"
+},
+"addon:Video Conference Device":{
+"h":"0ac9004e6b620a89"
+},
+"addon:Video Tape":{
+"h":"5b44fe2d6be376af"
+},
+"addon:Videotape Copy":{
+"h":"8efe9de7c70d8563"
+},
+"addon:Vigo's Journal":{
+"h":"60aef6c9ca671bfc"
+},
+"addon:Vile Emetic":{
+"h":"3d6b28d48f588b60"
+},
+"addon:Violet Waxcap":{
+"h":"30158518ac5dc4dc"
+},
+"addon:Viscous Webbing":{
+"h":"be12137c8850c226"
+},
+"addon:Visitor Wristband":{
+"h":"228147c9647b649f"
+},
+"addon:Vital Targeting Processor":{
+"h":"95d57fceacb5548c",
+"n":[
+2.0,
+3.0,
+8.3,
+31.0
+]
+},
+"addon:Volcanic Stone":{
+"h":"5d59eaf21a0a5ec6"
+},
+"addon:Vorpal Sword":{
+"h":"00c4d88e784ff8e9"
+},
+"addon:Wacky Jacks":{
+"h":"ee704d0e3ce6291c"
+},
+"addon:Waiting For You Watch":{
+"h":"4b220424ec50347e"
+},
+"addon:Wakizashi Saya":{
+"h":"5727ff17d9a35891"
+},
+"addon:Walleye's Matchbook":{
+"h":"8da4ed9d93c504a2"
+},
+"addon:Wanted Poster":{
+"h":"601539e0d9d25200"
+},
+"addon:War Helmet":{
+"h":"788b023afe2549ef"
+},
+"addon:Warden's Keys":{
+"h":"1c7aba100ac1fb52"
+},
+"addon:Warg's Fang":{
+"h":"1ee482b2c30681fe"
+},
+"addon:Waterlogged Shoe":{
+"h":"6882f3a4f5b8bbd6",
+"n":[
+4.73,
+5.0,
+6.0,
+7.5,
+9.0
+]
+},
+"addon:Waterskin":{
+"h":"8a6ee92daaa14663"
+},
+"addon:Wax Brick":{
+"h":"55670771623fb37a"
+},
+"addon:Wax Doll":{
+"h":"d3723c5387108a1c"
+},
+"addon:Weighted Head":{
+"h":"a6b6fe9a4f1841d2"
+},
+"addon:Weighty Rattle":{
+"h":"59626bc947e1636d"
+},
+"addon:Well Stone":{
+"h":"b826cd027b563b36"
+},
+"addon:Well Water":{
+"h":"541b8d3964010c75"
+},
+"addon:White Hair Ribbon":{
+"h":"6b038336235ca352"
+},
+"addon:White Nit Comb":{
+"h":"1d438a731ae58e28"
+},
+"addon:White Wolf Medallion":{
+"h":"aea64081470ba026"
+},
+"addon:Wide Lens":{
+"h":"077711cc03059a33"
+},
+"addon:Willow Wreath":{
+"h":"b8bb383d86db81cb"
+},
+"addon:Winged Boots":{
+"h":"e2f876748c93c789"
+},
+"addon:Wire Spool":{
+"h":"ea43fb46bcc2754e",
+"n":[
+2.0,
+3.6,
+7.0,
+12.0
+]
+},
+"addon:Wooden Fox":{
+"h":"43814f7dcb94be74"
+},
+"addon:Wooden Horse":{
+"h":"9effdb7392c862c4"
+},
+"addon:Wooden Oni Mask":{
+"h":"e6977fddeab0dcab"
+},
+"addon:Wooden Plank":{
+"h":"04cb9406982064fc"
+},
+"addon:Wool Shirt":{
+"h":"f11b7b85fb975a9e"
+},
+"addon:Workshop Grease":{
+"h":"59846d26749abae4"
+},
+"addon:Worry Stone":{
+"h":"8e3a0d9d3fad2037"
+},
+"addon:Worship Tablet":{
+"h":"a50659c4301036a5",
+"n":[
+4.0,
+4.4,
+15.0,
+100.0
+]
+},
+"addon:Wriggling Maggots":{
+"h":"75704f6592d203dc"
+},
+"addon:Wriggling Parasite":{
+"h":"2cfa4e88cd4d057e"
+},
+"addon:Yakuyoke Amulet":{
+"h":"301c43e49268d66c"
+},
+"addon:Yamaoka Sashimono":{
+"h":"0faba0cdce583110"
+},
+"addon:Yamori's Mask":{
+"h":"0eae9571ffc1162d"
+},
+"addon:Yardstick":{
+"h":"20cfda7eb3adc7e5"
+},
+"addon:Yellowed Cloth":{
+"h":"de087a7708ed1e3d"
+},
+"addon:Yoichi's Fishing Net":{
+"h":"59f82cfa4bd4a58b"
+},
+"addon:Young Coconut":{
+"h":"0c032362ee369795"
+},
+"addon:Zombie Heart":{
+"h":"da7ac5475335f072"
+},
+"addon:Zōri":{
+"h":"4abbf0ffe91754c5"
+},
+"item:Alex's Toolbox":{
+"h":"aa20f67fd24fa755",
+"n":[
+4.0,
+7.0,
+8.0,
+10.0,
+18.0,
+100.0
+]
+},
+"item:All Hallows' Eve Lunchbox":{
+"h":"1d6d04ea080cf269",
+"n":[
+6.0,
+6.7,
+8.0,
+24.0,
+33.0,
+40.0
+]
+},
+"item:Anniversary Flashlight":{
+"h":"0bb7611a8babeeb3"
+},
+"item:Anniversary Med-Kit":{
+"h":"3e1bc6f5cf43df73",
+"n":[
+6.0,
+6.7,
+8.0,
+24.0,
+33.0,
+40.0,
+100.0
+]
+},
+"item:Anniversary Toolbox":{
+"h":"b4fd5ee35bc66286",
+"n":[
+7.0,
+8.0,
+32.0,
+50.0
+]
+},
+"item:Annotated Map":{
+"h":"de679eb19c341925"
+},
+"item:Apprentice's Fog Vial":{
+"h":"347022371f97181b"
+},
+"item:Artisan's Fog Vial":{
+"h":"d20f7dc5ab8e4d20"
+},
+"item:Banquet Flashlight":{
+"h":"8aa3c108f6524136"
+},
+"item:Banquet Med-Kit":{
+"h":"412bb0cabfbb430b",
+"n":[
+6.0,
+8.0,
+10.0,
+24.0,
+33.0,
+40.0
+]
+},
+"item:Banquet Toolbox":{
+"h":"a2b7a31747351e80",
+"n":[
+7.0,
+8.0,
+10.0,
+32.0,
+50.0
+]
+},
+"item:Bloodsense Map":{
+"h":"3e15da17048135cf"
+},
+"item:Broken Key":{
+"h":"ae00928672411143"
+},
+"item:Camping Aid Kit":{
+"h":"ce072231cde21790",
+"n":[
+1.0,
+6.0,
+6.7,
+24.0,
+33.0,
+35.0
+]
+},
+"item:Commodious Toolbox":{
+"h":"6b73d3d35c8df898",
+"n":[
+3.0,
+7.0,
+8.0,
+32.0,
+50.0
+]
+},
+"item:Cryptic Map":{
+"h":"48021a40cd5dc889"
+},
+"item:Dull Key":{
+"h":"5d00d7551b3f6458"
+},
+"item:Emergency Med-Kit":{
+"h":"84d4930f9dc90b03",
+"n":[
+3.0,
+6.0,
+6.7,
+24.0,
+33.0,
+45.0
+]
+},
+"item:Engineer's Toolbox":{
+"h":"aa246729a02b685f",
+"n":[
+4.0,
+7.0,
+8.0,
+10.0,
+16.0,
+100.0
+]
+},
+"item:Festive Toolbox":{
+"h":"9399d5f7f78c5de2",
+"n":[
+7.0,
+8.0,
+32.0,
+50.0
+]
+},
+"item:First Aid Kit":{
+"h":"fefe5c29003c3445",
+"n":[
+2.0,
+6.0,
+6.7,
+24.0,
+33.0,
+40.0
+]
+},
+"item:Flashlight":{
+"h":"d84e34245b34da43"
+},
+"item:Masquerade Flashlight":{
+"h":"1fc4c1da31477a29"
+},
+"item:Masquerade Med-Kit":{
+"h":"92b73030c5ea3962",
+"n":[
+6.0,
+6.7,
+8.0,
+24.0,
+33.0,
+40.0,
+100.0
+]
+},
+"item:Masquerade Toolbox":{
+"h":"13b6c585ae30a6a7",
+"n":[
+7.0,
+8.0,
+32.0,
+50.0
+]
+},
+"item:Mechanic's Toolbox":{
+"h":"803f5486b0884681",
+"n":[
+3.0,
+7.0,
+8.0,
+16.0,
+25.0,
+75.0
+]
+},
+"item:Ranger Med-Kit":{
+"h":"01d4dafdc45254bc",
+"n":[
+4.0,
+6.0,
+6.7,
+24.0,
+33.0,
+50.0,
+3994723.0
+]
+},
+"item:Scribbled Map":{
+"h":"17e608690cf79362"
+},
+"item:Skeleton Key":{
+"h":"7e70ff5700acce81"
+},
+"item:Sport Flashlight":{
+"h":"b8b218d49353fe85"
+},
+"item:Toolbox":{
+"h":"32ed35c38060ca85",
+"n":[
+2.0,
+7.0,
+8.0,
+15.0,
+20.0,
+50.0
+]
+},
+"item:Utility Flashlight":{
+"h":"381181eb80491b47"
+},
+"item:Vigo's Fog Vial":{
+"h":"f15af95185ca162e"
+},
+"item:Will O' Wisp":{
+"h":"9f1b180765f5d2a6"
+},
+"item:Worn-Out Tools":{
+"h":"29f2101d4f94e5b3",
+"n":[
+1.0,
+7.0,
+10.0,
+16.0,
+50.0
+]
+},
+"killer:The Animatronic":{
+"h":"cd6e0d66f39bf9f0",
+"n":[
+4.4,
+4.6,
+24.0,
+58.0
+]
+},
+"killer:The Artist":{
+"h":"145979bac7d38298",
+"n":[
+2.0,
+4.6,
+32.0,
+34.0,
+51.0
+]
+},
+"killer:The Blight":{
+"h":"378c18563f978e6e",
+"n":[
+4.0,
+4.4,
+9.2,
+26.0,
+40.0,
+48.0
+]
+},
+"killer:The Cannibal":{
+"h":"02795a184f37385d",
+"n":[
+2.0,
+4.6,
+5.35,
+17.0,
+32.0
+]
+},
+"killer:The Cenobite":{
+"h":"5743a6d131801f02",
+"n":[
+4.0,
+4.6,
+32.0
+]
+},
+"killer:The Clown":{
+"h":"3836cd2442046b41",
+"n":[
+2.0,
+2.3,
+4.6,
+8.0,
+32.0,
+46.0
+]
+},
+"killer:The Dark Lord":{
+"h":"169b30a848ff314f",
+"n":[
+2.0,
+4.6,
+6.5,
+32.0,
+48.0,
+54.0
+]
+},
+"killer:The Deathslinger":{
+"h":"255a2e056d9d2958",
+"n":[
+3.0,
+4.4,
+15.0,
+32.0,
+47.0
+]
+},
+"killer:The Demogorgon":{
+"h":"6eb0fd40ad6bfdcc",
+"n":[
+3.0,
+3.86,
+4.6,
+13.0,
+18.4,
+32.0
+]
+},
+"killer:The Doctor":{
+"h":"14c58732bd5690bb",
+"n":[
+2.99,
+3.0,
+3.08,
+4.0,
+4.6,
+32.0,
+46.0
+]
+},
+"killer:The Dredge":{
+"h":"616945f6da276685",
+"n":[
+2.0,
+4.6,
+32.0,
+36.0,
+51.0
+]
+},
+"killer:The Executioner":{
+"h":"9600f15361ae8a9a",
+"n":[
+4.0,
+4.2,
+4.6,
+24.0,
+32.0
+]
+},
+"killer:The First":{
+"h":"4737f522b0e5d4c6",
+"n":[
+1.0,
+4.4,
+32.0,
+61.0
+]
+},
+"killer:The Ghost Face":{
+"h":"a3a2357458604cb6",
+"n":[
+3.0,
+4.0,
+4.6,
+12.0,
+24.0
+]
+},
+"killer:The Ghoul":{
+"h":"920687489b612f95",
+"n":[
+4.6,
+40.0,
+56.0
+]
+},
+"killer:The Good Guy":{
+"h":"45edd4b98e25fe34",
+"n":[
+2.0,
+4.4,
+32.0,
+45.0
+]
+},
+"killer:The Hag":{
+"h":"bd62e6b730168c87",
+"n":[
+3.0,
+4.0,
+4.4,
+24.0,
+46.0
+]
+},
+"killer:The Hillbilly":{
+"h":"b2e5d0ca515546cd",
+"n":[
+2.0,
+3.0,
+4.6,
+10.12,
+40.0
+]
+},
+"killer:The Houndmaster":{
+"h":"58f2d4d9c2bce71c",
+"n":[
+2.0,
+4.6,
+6.0,
+32.0,
+55.0
+]
+},
+"killer:The Huntress":{
+"h":"49ba16d4b8a3f418",
+"n":[
+2.0,
+3.08,
+4.4,
+5.0,
+20.0,
+45.0
+]
+},
+"killer:The Judgment":{
+"h":"b3221a8b4b48e3a5",
+"n":[
+4.4,
+32.0,
+65.0
+]
+},
+"killer:The Knight":{
+"h":"976508d8c1e90737",
+"n":[
+2.0,
+4.6,
+15.0,
+32.0,
+38.0,
+51.0
+]
+},
+"killer:The Krasue":{
+"h":"9f44193eac1f5190",
+"n":[
+2.0,
+4.6,
+4.8,
+7.0,
+32.0,
+40.0,
+60.0
+]
+},
+"killer:The Legion":{
+"h":"6eb74eac35b1bba0",
+"n":[
+1.0,
+4.6,
+5.2,
+10.0,
+32.0,
+40.0,
+47.0
+]
+},
+"killer:The Lich":{
+"h":"205e6b98ca2d81b5",
+"n":[
+2.0,
+4.6,
+8.0,
+32.0,
+52.0
+]
+},
+"killer:The Mastermind":{
+"h":"7409f8664f56dfec",
+"n":[
+2.0,
+4.6,
+37.0,
+40.0
+]
+},
+"killer:The Nemesis":{
+"h":"289b5526700f9bc3",
+"n":[
+3.0,
+3.8,
+4.0,
+4.6,
+29.0,
+32.0
+]
+},
+"killer:The Nightmare":{
+"h":"65e6b32e091b77f7",
+"n":[
+2.0,
+4.0,
+4.6,
+6.0,
+32.0
+]
+},
+"killer:The Nurse":{
+"h":"696ad087dd4c71de",
+"n":[
+1.0,
+3.85,
+4.0,
+13.33,
+32.0
+]
+},
+"killer:The Oni":{
+"h":"d0d48bc93bf7332f",
+"n":[
+3.45,
+4.0,
+4.6,
+7.82,
+14.0,
+32.0,
+47.0
+]
+},
+"killer:The Onryō":{
+"h":"48375c2901cbfdcc",
+"n":[
+3.0,
+4.6,
+24.0,
+35.0
+]
+},
+"killer:The Pig":{
+"h":"1daa907b0a059b0e",
+"n":[
+3.0,
+4.0,
+4.6,
+7.0,
+7.1,
+24.0
+]
+},
+"killer:The Plague":{
+"h":"bb618b4b2c0b9710",
+"n":[
+3.0,
+4.6,
+11.0,
+32.0,
+47.0
+]
+},
+"killer:The Shape":{
+"h":"6970700af20c0ca6",
+"n":[
+2.0,
+4.2,
+4.6,
+16.0,
+32.0
+]
+},
+"killer:The Singularity":{
+"h":"4cd2065bb75aa0dc",
+"n":[
+3.0,
+4.6,
+13.0,
+32.0,
+40.0
+]
+},
+"killer:The Skull Merchant":{
+"h":"7ba23ea8f31af0da",
+"n":[
+3.0,
+4.6,
+24.0,
+39.0,
+51.0
+]
+},
+"killer:The Slasher":{
+"h":"69de9ef486fb1f6d",
+"n":[
+4.4,
+8.0,
+32.0,
+63.0
+]
+},
+"killer:The Spirit":{
+"h":"30ea50315965a720",
+"n":[
+3.0,
+4.4,
+7.04,
+9.0,
+24.0,
+46.0
+]
+},
+"killer:The Terrifier":{
+"h":"d06b23b058074bc6",
+"n":[
+4.6,
+32.0,
+66.0
+]
+},
+"killer:The Trapper":{
+"h":"0fab62734227c0dc",
+"n":[
+1.0,
+4.6,
+32.0
+]
+},
+"killer:The Trickster":{
+"h":"b2cf03718836d72c",
+"n":[
+0.0,
+2.0,
+3.86,
+4.4,
+24.0,
+28.0,
+44.0,
+48.0,
+62.0
+]
+},
+"killer:The Twins":{
+"h":"41f945a8f5af9d0d",
+"n":[
+4.0,
+4.6,
+6.0,
+12.0,
+14.0,
+18.0,
+27.0,
+32.0,
+48.0
+]
+},
+"killer:The Unknown":{
+"h":"5c235d7dd6f8f3df",
+"n":[
+2.0,
+4.6,
+32.0,
+50.0
+]
+},
+"killer:The Wraith":{
+"h":"b1237e083f945da2",
+"n":[
+1.0,
+2.0,
+4.6,
+6.0,
+32.0
+]
+},
+"killer:The Xenomorph":{
+"h":"f8a2b372cf20bff9",
+"n":[
+2.0,
+4.6,
+24.0,
+32.0,
+44.0
+]
+},
+"perk:Adrenaline":{
+"h":"36b466899011f0b0",
+"n":[
+1.0,
+2.0,
+3.0,
+4.0,
+10.1,
+40.0,
+50.0,
+60.0
+]
+},
+"perk:Agitation":{
+"h":"e9fdc18036d9d9f0",
+"n":[
+1.0,
+3.0,
+4.0,
+10.2,
+12.0,
+14.0,
+16.0,
+18.0,
+40.0
+]
+},
+"perk:Appraisal":{
+"h":"ca28cfca81d34f70"
+},
+"perk:Babysitter":{
+"h":"d9b509b1fb4ac829",
+"n":[
+1.0,
+8.0,
+9.0,
+10.0,
+19.0,
+20.0,
+25.0,
+30.0
+]
+},
+"perk:Background Player":{
+"h":"5844780fe4e2f950",
+"n":[
+1.0,
+3.0,
+5.0,
+8.0,
+10.0,
+20.0,
+25.0,
+30.0,
+36.0,
+40.0,
+50.0
+]
+},
+"perk:Bada Bada Boom":{
+"h":"7244575fae60e442",
+"n":[
+1.0,
+6.0,
+9.4,
+20.0,
+30.0,
+40.0,
+50.0,
+60.0
+]
+},
+"perk:Balanced Landing":{
+"h":"34452713c0b4f9b0",
+"n":[
+1.0,
+3.0,
+3.4,
+5.0,
+30.0,
+40.0,
+50.0,
+60.0,
+75.0
+]
+},
+"perk:Bamboozle":{
+"h":"c937234a0e9aa257",
+"n":[
+1.0,
+2.0,
+2.5,
+4.0,
+5.0,
+8.0,
+10.0,
+12.0,
+15.0,
+16.0,
+30.0
+]
+},
+"perk:Batteries Included":{
+"h":"e53d09714dd46c1f",
+"n":[
+1.0,
+2.0,
+3.0,
+5.0,
+9.0,
+16.0,
+34.0,
+40.0
+]
+},
+"perk:Better than New":{
+"h":"f6e4e580074896ed",
+"n":[
+1.0,
+4.0,
+10.2,
+30.0,
+33.0,
+40.0,
+45.0,
+50.0
+]
+},
+"perk:Blast Mine":{
+"h":"8aaee0c79051d884"
+},
+"perk:Blood Pact":{
+"h":"9da74802bfa4458c",
+"n":[
+1.0,
+2.0,
+4.0,
+5.0,
+6.0,
+7.0,
+10.2,
+16.0,
+22.0,
+35.0
+]
+},
+"perk:Boon: Circle of Healing":{
+"h":"b4908253f06cc150",
+"n":[
+1.0,
+2.0,
+4.0,
+6.7,
+28.0,
+35.0,
+50.0,
+75.0,
+100.0
+]
+},
+"perk:Boon: Dark Theory":{
+"h":"bd814e2676d69aec",
+"n":[
+1.0,
+2.0,
+3.0,
+4.0,
+8.7,
+30.0,
+40.0
+]
+},
+"perk:Boon: Exponential":{
+"h":"6bf052bcad1736a5",
+"n":[
+1.0,
+3.0,
+4.0,
+5.4,
+29.0,
+40.0,
+90.0,
+95.0,
+100.0
+]
+},
+"perk:Boon: Illumination":{
+"h":"000ec2629b8e6bab",
+"n":[
+1.0,
+2.0,
+4.0,
+10.2,
+35.0,
+40.0,
+150.0,
+175.0,
+200.0
+]
+},
+"perk:Boon: Steadfast":{
+"h":"46d4e7ea1af74c69",
+"n":[
+1.0,
+2.0,
+3.0,
+4.0,
+8.0,
+9.0,
+10.0,
+40.0,
+50.0,
+54.0
+]
+},
+"perk:Borrowed Time":{
+"h":"45324439c66437e4"
+},
+"perk:Botany Knowledge":{
+"h":"15b559752f7722eb",
+"n":[
+1.0,
+2.0,
+3.0,
+4.0,
+9.0,
+30.0,
+35.0,
+40.0,
+50.0
+]
+},
+"perk:Bound by Obsession":{
+"h":"7e35492932fa69c3",
+"n":[
+1.0,
+2.0,
+4.0,
+6.0,
+8.0,
+9.0,
+10.0,
+10.2,
+30.0,
+35.0
+]
+},
+"perk:Breakout":{
+"h":"789adfc4b8c49fbe",
+"n":[
+1.0,
+3.0,
+4.0,
+5.0,
+6.0,
+8.0,
+8.7,
+10.0,
+20.0,
+25.0,
+40.0
+]
+},
+"perk:Brutal Strength":{
+"h":"9b23e9ef5860093b",
+"n":[
+1.0,
+2.0,
+4.0,
+10.0,
+15.0,
+20.0,
+35.0
+]
+},
+"perk:Buckle Up":{
+"h":"39f8a206cb46d4f7",
+"n":[
+1.0,
+2.0,
+3.0,
+4.0,
+5.0,
+8.0,
+17.0,
+35.0,
+50.0
+]
+},
+"perk:Call of Brine":{
+"h":"8cdc8663944d24e5",
+"n":[
+1.0,
+2.0,
+4.0,
+10.1,
+27.0,
+35.0,
+90.0,
+130.0,
+140.0,
+150.0
+]
+},
+"perk:Calm Spirit":{
+"h":"08a5876086dcbb3e",
+"n":[
+1.0,
+2.0,
+4.0,
+8.0,
+9.0,
+10.0,
+10.2,
+35.0
+]
+},
+"perk:Champion of Light":{
+"h":"7eaea28138622d96",
+"n":[
+1.0,
+6.0,
+9.0,
+20.0,
+30.0,
+40.0,
+50.0,
+60.0
+]
+},
+"perk:Chemical Trap":{
+"h":"9cbd5f1d187060e8",
+"n":[
+1.0,
+4.0,
+8.2,
+20.0,
+30.0,
+39.0,
+40.0,
+50.0,
+60.0
+]
+},
+"perk:Corrective Action":{
+"h":"1f14d54bed76a218"
+},
+"perk:Corrupt Intervention":{
+"h":"951189f9c2e8abb7",
+"n":[
+1.0,
+3.0,
+3.7,
+6.1,
+15.0,
+30.0,
+80.0,
+100.0,
+120.0
+]
+},
+"perk:Coulrophobia":{
+"h":"89370832571319b8",
+"n":[
+1.0,
+2.0,
+4.0,
+10.1,
+12.0,
+20.0,
+25.0,
+30.0,
+35.0,
+50.0
+]
+},
+"perk:Counterforce":{
+"h":"6ef542a5f67fae70",
+"n":[
+1.0,
+9.0,
+10.0,
+12.0,
+14.0,
+25.0,
+26.0,
+30.0,
+125.0
+]
+},
+"perk:Dark Arrogance":{
+"h":"b38727b8f7e9a52e",
+"n":[
+1.0,
+3.0,
+4.0,
+10.0,
+10.2,
+15.0,
+20.0,
+25.0,
+36.0,
+40.0
+]
+},
+"perk:Dead Man's Switch":{
+"h":"c35eee91818adf44",
+"n":[
+1.0,
+2.0,
+10.2,
+19.0,
+30.0,
+35.0,
+40.0
+]
+},
+"perk:Deadlock / No Holds Barred":{
+"h":"c85d5b9d631d14c9",
+"n":[
+1.0,
+9.0,
+15.0,
+20.0,
+25.0,
+30.0
+]
+},
+"perk:Desperate Measures":{
+"h":"c3d84873e9f41716",
+"n":[
+1.0,
+2.0,
+4.0,
+9.0,
+16.0,
+18.0,
+20.0,
+23.0,
+35.0,
+64.0,
+72.0,
+80.0
+]
+},
+"perk:Distressing":{
+"h":"3b8a2fed2cb80689",
+"n":[
+1.0,
+4.0,
+6.0,
+7.0,
+8.0,
+8.4,
+30.0
+]
+},
+"perk:Do No Harm":{
+"h":"83813f089e18ecb1",
+"n":[
+1.0,
+2.0,
+3.0,
+4.0,
+5.0,
+6.0,
+10.0,
+10.2,
+30.0,
+35.0,
+40.0,
+46.0,
+60.0,
+70.0,
+80.0
+]
+},
+"perk:Down to the Last":{
+"h":"11c153da9b21f31a",
+"n":[
+1.0,
+3.0,
+6.0,
+8.0,
+10.0,
+10.2,
+30.0
+]
+},
+"perk:Dramaturgy":{
+"h":"70d07b4528c4c897",
+"n":[
+0.5,
+1.0,
+2.0,
+7.1,
+12.0,
+25.0,
+30.0,
+38.0,
+40.0,
+50.0,
+60.0
+]
+},
+"perk:Duty of Care":{
+"h":"3d6cd85e51b1c94f",
+"n":[
+1.0,
+2.0,
+4.0,
+5.0,
+6.0,
+8.7,
+12.0,
+25.0,
+35.0,
+46.0
+]
+},
+"perk:Dying Light / Cull the Weak":{
+"h":"e3be207c0dcc9d44",
+"n":[
+1.0,
+2.0,
+2.5,
+3.0,
+4.0,
+5.0,
+11.0,
+22.0,
+27.5,
+33.0,
+40.0
+]
+},
+"perk:Déjà Vu":{
+"h":"6c4dcf0adc30ed3b",
+"n":[
+1.0,
+3.0,
+4.0,
+5.0,
+6.0,
+9.1
+]
+},
+"perk:Empathic Connection":{
+"h":"41944ebab4887496",
+"n":[
+1.0,
+2.0,
+4.0,
+10.2,
+30.0,
+35.0,
+40.0
+]
+},
+"perk:Eruption":{
+"h":"11c9445aaebc2e95",
+"n":[
+1.0,
+3.0,
+6.6,
+8.0,
+10.0,
+12.0,
+24.0,
+30.0,
+40.0
+]
+},
+"perk:Fast Track":{
+"h":"a27c7fc566c1daca",
+"n":[
+1.0,
+2.0,
+3.0,
+5.0,
+6.0,
+9.0,
+9.6,
+25.0,
+30.0
+]
+},
+"perk:Finesse":{
+"h":"a7263bee53add9dd",
+"n":[
+1.0,
+8.1,
+20.0,
+30.0,
+35.0,
+40.0,
+43.0
+]
+},
+"perk:Fire Up":{
+"h":"b20219c05ff29f5b",
+"n":[
+1.0,
+2.0,
+4.0,
+5.0,
+6.0,
+7.0,
+8.0,
+10.0,
+10.2,
+30.0,
+35.0,
+40.0
+]
+},
+"perk:Fixated":{
+"h":"54470df8853ec267",
+"n":[
+1.0,
+2.0,
+4.0,
+7.3,
+10.0,
+15.0,
+18.0,
+20.0,
+35.0
+]
+},
+"perk:Flow State":{
+"h":"9aea62dba315a50e",
+"n":[
+1.0,
+4.0,
+5.0,
+10.2,
+13.0,
+14.0,
+15.0,
+30.0,
+52.0
+]
+},
+"perk:Forced Hesitation":{
+"h":"03d3885a07075992",
+"n":[
+1.0,
+2.0,
+7.0,
+10.0,
+13.0,
+16.0,
+20.0,
+30.0,
+32.0,
+35.0,
+40.0
+]
+},
+"perk:Forever Entwined":{
+"h":"d212c581a7c49845",
+"n":[
+1.0,
+2.0,
+4.0,
+5.0,
+6.0,
+7.0,
+8.0,
+8.6,
+24.0,
+28.0,
+32.0,
+35.0,
+39.0
+]
+},
+"perk:Friendly Competition":{
+"h":"4a29cc53880e69ee",
+"n":[
+1.0,
+10.0,
+10.2,
+30.0,
+35.0,
+80.0,
+85.0,
+90.0
+]
+},
+"perk:Fruits of Your Labor":{
+"h":"c0cac3c4e263cb2b"
+},
+"perk:Funny Business":{
+"h":"fc0c2e33b87faea9",
+"n":[
+1.0,
+2.0,
+3.0,
+4.0,
+5.0,
+10.0,
+30.0,
+40.0,
+45.0,
+50.0,
+60.0
+]
+},
+"perk:Furtive Chase":{
+"h":"a417a9eda520395c",
+"n":[
+1.0,
+3.0,
+8.7,
+10.0,
+14.0,
+16.0,
+18.0,
+40.0
+]
+},
+"perk:Game Afoot":{
+"h":"f42c6559b62e8cfb",
+"n":[
+1.0,
+3.0,
+8.0,
+9.0,
+10.0,
+10.2,
+31.0,
+40.0
+]
+},
+"perk:Grim Embrace":{
+"h":"e3a3dbb1d69c3614",
+"n":[
+1.0,
+3.0,
+4.0,
+6.0,
+8.0,
+10.0,
+16.0,
+26.0,
+30.0,
+40.0
+]
+},
+"perk:Haywire":{
+"h":"858671d98109bbc7"
+},
+"perk:Help Wanted":{
+"h":"99e897ec90c00fb3",
+"n":[
+1.0,
+3.0,
+10.2,
+25.0,
+30.0,
+40.0,
+70.0,
+80.0,
+90.0,
+150.0
+]
+},
+"perk:Hex: Crowd Control":{
+"h":"5a8ba2ff30863fca",
+"n":[
+1.0,
+2.0,
+4.0,
+5.0,
+6.0,
+7.0,
+9.5,
+15.0,
+23.0,
+24.0,
+35.0
+]
+},
+"perk:Hex: Devour Hope":{
+"h":"acbafe0114b68ea0",
+"n":[
+1.0,
+2.0,
+2.6,
+3.0,
+4.0,
+5.0,
+6.0,
+10.0,
+24.0,
+40.0
+]
+},
+"perk:Hex: Hive Mind":{
+"h":"8c9fb9e609666479"
+},
+"perk:Hex: Huntress Lullaby":{
+"h":"b938b3af744594f6"
+},
+"perk:Hex: No One Escapes Death":{
+"h":"07ea69aea521132b",
+"n":[
+1.0,
+2.0,
+3.0,
+4.0,
+6.1,
+24.0,
+30.0
+]
+},
+"perk:Hex: Nothing but Misery":{
+"h":"d23cf2370080acec",
+"n":[
+1.0,
+4.0,
+5.0,
+8.6,
+10.0,
+12.5,
+15.0,
+30.0,
+39.0
+]
+},
+"perk:Hex: Pentimento":{
+"h":"e9281ccd6cf619fc",
+"n":[
+1.0,
+2.0,
+3.0,
+4.0,
+5.0,
+8.7,
+16.0,
+20.0,
+24.0,
+26.0,
+28.0,
+32.0,
+40.0,
+1961.0
+]
+},
+"perk:Hex: Ruin":{
+"h":"9e4cd80d197eb371",
+"n":[
+1.0,
+2.0,
+4.0,
+6.0,
+9.2,
+35.0,
+100.0,
+125.0,
+150.0
+]
+},
+"perk:Hex: Scared to Death":{
+"h":"9a95924eb81594be",
+"n":[
+1.0,
+3.0,
+4.0,
+11.0,
+12.0,
+13.0,
+30.0,
+43.0
+]
+},
+"perk:Hex: Under Your Thumb":{
+"h":"43129f9560df668e",
+"n":[
+1.0,
+4.0,
+15.0,
+20.0,
+25.0,
+30.0,
+32.0,
+44.0
+]
+},
+"perk:Hex: Wretched Fate":{
+"h":"57c9d016eca415dc"
+},
+"perk:Hope":{
+"h":"1e362bc77bd6e615",
+"n":[
+1.0,
+3.0,
+4.0,
+5.0,
+9.2
+]
+},
+"perk:Hyperfocus":{
+"h":"729b170d8ff0379a",
+"n":[
+1.0,
+2.0,
+3.0,
+4.0,
+6.0,
+6.2,
+10.0,
+20.0,
+24.0,
+30.0,
+33.0,
+40.0,
+60.0,
+120.0,
+180.0
+]
+},
+"perk:Invocation: Weaving Spiders":{
+"h":"c76e5f0778e0bc04",
+"n":[
+1.0,
+8.0,
+9.0,
+10.0,
+30.0,
+41.0
+]
+},
+"perk:Iron Maiden":{
+"h":"d7fb4fd8091deeff",
+"n":[
+1.0,
+3.0,
+4.0,
+4.5,
+14.0,
+30.0,
+40.0,
+50.0
+]
+},
+"perk:Knock Out":{
+"h":"6e98ba68df380734",
+"n":[
+1.0,
+2.0,
+3.0,
+4.0,
+6.0,
+9.0,
+10.0,
+10.2,
+20.0,
+30.0
+]
+},
+"perk:Lay Waste":{
+"h":"8d2993dd22a4fe17"
+},
+"perk:Leader":{
+"h":"dd8206937bc7c5d2",
+"n":[
+1.0,
+2.5,
+3.0,
+4.0,
+10.0,
+15.0,
+20.0,
+25.0,
+30.0,
+40.0
+]
+},
+"perk:Leverage":{
+"h":"bd5b22747c816089",
+"n":[
+1.0,
+2.0,
+4.0,
+9.2,
+20.0,
+25.0,
+30.0,
+31.0,
+35.0,
+60.0
+]
+},
+"perk:Lithe":{
+"h":"3bf501172148a67c",
+"n":[
+1.0,
+2.0,
+2.6,
+3.0,
+9.0,
+35.0,
+40.0,
+50.0,
+60.0
+]
+},
+"perk:Machine Learning":{
+"h":"1073df4fb2e93993",
+"n":[
+1.0,
+3.0,
+8.0,
+10.2,
+13.0,
+32.0,
+40.0,
+50.0,
+60.0
+]
+},
+"perk:Made for This":{
+"h":"1a0fb198fc6728a7",
+"n":[
+1.0,
+2.0,
+3.0,
+4.0,
+6.0,
+7.4,
+8.0,
+10.0,
+35.0,
+37.0
+]
+},
+"perk:Merciless Storm":{
+"h":"df2d088b7972fbe4"
+},
+"perk:No Mither":{
+"h":"458d22bf15cdf8f3",
+"n":[
+1.0,
+3.0,
+4.0,
+9.2,
+10.0,
+15.0,
+20.0,
+25.0,
+40.0
+]
+},
+"perk:No One Left Behind":{
+"h":"a3204cf3554acdfd",
+"n":[
+1.0,
+4.0,
+5.0,
+10.0,
+10.2,
+15.0,
+20.0,
+80.0,
+90.0,
+100.0
+]
+},
+"perk:Oppression":{
+"h":"cd89943f8c3fc6f8"
+},
+"perk:Overcharge":{
+"h":"f6fc3928d5d82b98",
+"n":[
+1.0,
+2.0,
+3.0,
+4.0,
+6.7,
+7.0,
+30.0,
+40.0,
+85.0,
+130.0
+]
+},
+"perk:Overzealous (Dull Totem)":{
+"h":"0d410f5fbcb61654",
+"n":[
+1.0,
+2.0,
+3.0,
+4.0,
+6.7,
+8.0,
+9.0,
+10.0,
+16.0,
+18.0,
+20.0,
+31.0,
+40.0
+]
+},
+"perk:Overzealous (Hex Totem)":{
+"h":"0d410f5fbcb61654",
+"n":[
+1.0,
+2.0,
+3.0,
+4.0,
+6.7,
+8.0,
+9.0,
+10.0,
+16.0,
+18.0,
+20.0,
+31.0,
+40.0
+]
+},
+"perk:Pharmacy":{
+"h":"41a7fd1227b26400",
+"n":[
+1.0,
+2.0,
+4.0,
+10.2,
+11.0,
+12.0,
+35.0,
+75.0,
+100.0,
+125.0
+]
+},
+"perk:Plot Twist":{
+"h":"eb2b8786554fe760",
+"n":[
+1.0,
+2.0,
+3.0,
+4.0,
+9.2,
+25.0,
+38.0,
+40.0,
+50.0
+]
+},
+"perk:Plunderer's Instinct":{
+"h":"fb038e4e07367430",
+"n":[
+1.0,
+4.0,
+10.2,
+50.0,
+150.0,
+175.0,
+200.0
+]
+},
+"perk:Pop Goes the Weasel":{
+"h":"db9fc58b34a1c93d",
+"n":[
+1.0,
+3.0,
+9.5,
+12.0,
+15.0,
+20.0,
+35.0,
+40.0,
+45.0
+]
+},
+"perk:Potential Energy":{
+"h":"320b6c1632c6855c"
+},
+"perk:Prove Thyself":{
+"h":"2866ed33c2c56c85",
+"n":[
+1.0,
+2.0,
+4.0,
+6.0,
+7.1,
+8.0,
+10.0,
+18.0,
+24.0,
+30.0,
+35.0
+]
+},
+"perk:Quick Gambit":{
+"h":"98b9f5ca86d76277"
+},
+"perk:Rampage":{
+"h":"849ebb1827823850",
+"n":[
+1.0,
+3.0,
+13.0,
+20.0,
+25.0,
+30.0,
+40.0,
+43.0
+]
+},
+"perk:Rapid Brutality":{
+"h":"f1cea7a540736435",
+"n":[
+1.0,
+5.0,
+7.2,
+8.0,
+9.0,
+10.0,
+30.0,
+33.0
+]
+},
+"perk:Repressed Alliance":{
+"h":"2ce57cc017a06b2a"
+},
+"perk:Resilience":{
+"h":"39581ad1d3e50b36",
+"n":[
+1.0,
+4.0,
+7.0,
+8.0,
+9.0,
+10.2
+]
+},
+"perk:Road Life":{
+"h":"98c36f46fb883a7d"
+},
+"perk:Saboteur":{
+"h":"c765e75155846050",
+"n":[
+1.0,
+3.0,
+4.0,
+7.1,
+30.0,
+40.0,
+56.0,
+60.0,
+65.0,
+70.0
+]
+},
+"perk:Scourge Hook: Pain Resonance":{
+"h":"6def502e24ad76d2",
+"n":[
+1.0,
+2.0,
+4.0,
+8.0,
+10.0,
+15.0,
+20.0,
+26.0,
+35.0
+]
+},
+"perk:Scourge Hook: Weeping Wounds":{
+"h":"a63e5941a7c429d8",
+"n":[
+1.0,
+3.0,
+4.0,
+9.0,
+10.0,
+13.0,
+16.0,
+25.0,
+40.0,
+90.0
+]
+},
+"perk:See How They Run":{
+"h":"598df867711ea4af",
+"n":[
+1.0,
+2.0,
+3.0,
+3.7,
+4.0,
+5.0,
+9.0,
+10.0,
+12.0,
+15.0,
+35.0
+]
+},
+"perk:Self-Care":{
+"h":"24d6e6d5a77f261f"
+},
+"perk:Shadowborn":{
+"h":"21d2bce4a40ce9a0",
+"n":[
+1.0,
+2.0,
+3.0,
+4.0,
+6.0,
+7.5,
+8.0,
+10.0,
+40.0
+]
+},
+"perk:Slippery Meat":{
+"h":"c4fac583c800fa38",
+"n":[
+1.0,
+4.0,
+5.0,
+10.2,
+90.0,
+95.0,
+100.0
+]
+},
+"perk:Sloppy Butcher":{
+"h":"c7167a1274179a5f",
+"n":[
+1.0,
+2.0,
+4.0,
+7.6,
+25.0,
+50.0,
+70.0,
+75.0,
+80.0,
+90.0,
+100.0
+]
+},
+"perk:Smash Hit":{
+"h":"e5f3bcdd997886c2",
+"n":[
+1.0,
+2.0,
+4.0,
+7.1,
+20.0,
+25.0,
+30.0,
+35.0,
+50.0
+]
+},
+"perk:Solidarity":{
+"h":"30e8dc49e501c5aa"
+},
+"perk:Specialist":{
+"h":"45713a7b9c7ffdbd",
+"n":[
+1.0,
+2.0,
+3.0,
+4.0,
+6.0,
+8.1,
+9.0,
+12.0,
+18.0,
+24.0,
+40.0,
+43.0
+]
+},
+"perk:Spine Chill":{
+"h":"2ccabe3b5ddce707",
+"n":[
+1.0,
+10.0,
+10.2,
+12.0,
+30.0,
+35.0,
+40.0
+]
+},
+"perk:Sprint Burst":{
+"h":"e785b02df8479444",
+"n":[
+1.0,
+2.0,
+10.1,
+35.0,
+40.0,
+50.0,
+60.0
+]
+},
+"perk:Stake Out":{
+"h":"8ab23652bde1b272"
+},
+"perk:Strength in Shadows":{
+"h":"e2c6162130f64de1"
+},
+"perk:Superior Anatomy":{
+"h":"8b67ca46cd02f19f",
+"n":[
+1.0,
+4.0,
+10.0,
+10.2,
+12.0,
+20.0,
+29.0,
+30.0,
+35.0,
+40.0
+]
+},
+"perk:Surge":{
+"h":"d74fcdd40c566916",
+"n":[
+1.0,
+4.0,
+6.0,
+6.1,
+7.0,
+8.0,
+17.0,
+30.0,
+32.0
+]
+},
+"perk:Teamwork: Full Circuit":{
+"h":"1c6de1c9d1599ad7",
+"n":[
+1.0,
+3.0,
+4.0,
+5.0,
+9.4,
+15.0,
+20.0,
+25.0,
+40.0,
+50.0
+]
+},
+"perk:Teamwork: Power of Two":{
+"h":"0ffd7e8efc0ac515",
+"n":[
+1.0,
+2.0,
+3.0,
+4.0,
+5.0,
+8.0,
+8.3,
+12.0,
+16.0,
+35.0
+]
+},
+"perk:Teamwork: Soft-Spoken":{
+"h":"7052c1d3b7e59c33",
+"n":[
+1.0,
+3.0,
+4.0,
+5.0,
+9.4,
+15.0,
+20.0,
+25.0,
+40.0,
+51.0
+]
+},
+"perk:Tenacity":{
+"h":"7ce7503108b50a47",
+"n":[
+1.0,
+4.0,
+9.3,
+12.0,
+30.0,
+40.0,
+50.0,
+75.0
+]
+},
+"perk:Thanatophobia":{
+"h":"59b163f0fe27110c",
+"n":[
+1.0,
+1.5,
+2.0,
+3.0,
+4.0,
+6.0,
+6.1,
+8.0,
+12.0,
+16.0,
+18.0,
+20.0,
+35.0
+]
+},
+"perk:Thrilling Tremors":{
+"h":"c465d4a59b611139"
+},
+"perk:Turn Back the Clock":{
+"h":"7ae03bb5cd6897c4",
+"n":[
+1.0,
+9.4,
+10.0,
+20.0,
+30.0,
+40.0,
+42.0,
+50.0,
+60.0
+]
+},
+"perk:Unbound":{
+"h":"c639d42067157328",
+"n":[
+1.0,
+5.0,
+9.0,
+10.2,
+25.0,
+26.0,
+28.0,
+30.0,
+35.0,
+1979.0
+]
+},
+"perk:Unbreakable":{
+"h":"5cbd516fbfd53171",
+"n":[
+1.0,
+1.4,
+3.0,
+4.0,
+8.0,
+25.0,
+30.0,
+35.0,
+40.0
+]
+},
+"perk:Undone":{
+"h":"4aae881ab087dfaa",
+"n":[
+1.0,
+2.0,
+3.0,
+4.0,
+6.0,
+10.0,
+10.2,
+12.0,
+20.0,
+30.0,
+35.0,
+40.0,
+1943.0
+]
+},
+"perk:Unrelenting":{
+"h":"54308ba038979c05",
+"n":[
+1.0,
+4.0,
+10.0,
+10.2,
+30.0,
+35.0,
+40.0
+]
+},
+"perk:Urban Evasion":{
+"h":"00ef98fc4976520b",
+"n":[
+1.0,
+2.0,
+4.0,
+5.0,
+35.0,
+90.0,
+95.0,
+100.0
+]
+},
+"perk:Vigil":{
+"h":"0e2366e4100bfc66"
+},
+"perk:Wake Up!":{
+"h":"824a57cd86268da1",
+"n":[
+1.0,
+2.0,
+4.0,
+8.0,
+8.5,
+9.0,
+10.0,
+11.0,
+24.0,
+30.0,
+68.0,
+69.0,
+70.0,
+128.0
+]
+},
+"perk:We'll Make It":{
+"h":"ebb7c7bfe5deac6d",
+"n":[
+1.0,
+10.2,
+70.0,
+80.0,
+90.0,
+100.0
+]
+},
+"perk:We're Gonna Live Forever":{
+"h":"bc9d3fafeb23d172",
+"n":[
+1.0,
+6.0,
+8.0,
+8.3,
+10.0,
+30.0,
+100.0
+]
+},
+"perk:Wide Open Throttle":{
+"h":"4cf851e0e99f3797",
+"n":[
+1.0,
+3.0,
+4.0,
+10.0,
+12.5,
+15.0,
+30.0,
+53.0,
+60.0
+]
+},
+"perk:Windows of Opportunity":{
+"h":"cfd7e7c5c316bed5",
+"n":[
+1.0,
+2.0,
+10.0,
+13.0,
+24.0,
+30.0,
+35.0,
+40.0
+]
+}
+},
+"perks":[
+"A Nurse's Calling",
+"A Place For Us",
+"Ace in the Hole",
+"Adrenaline",
+"Aftercare",
+"Agitation",
+"Alert",
+"Alien Instinct",
+"All-Shaking Thunder",
+"Any Means Necessary",
+"Apocalyptic Ingenuity",
+"Appraisal",
+"Artefact Hunter",
+"Autodidact",
+"Awakened Awareness",
+"Babysitter",
+"Background Player",
+"Bada Bada Boom",
+"Balanced Landing",
+"Bamboozle",
+"Barbecue & Chilli",
+"Bardic Inspiration",
+"Batteries Included",
+"Beast of Prey",
+"Best Gift Ever",
+"Better Together",
+"Better than New",
+"Bite the Bullet",
+"Bitter Murmur",
+"Blast Mine",
+"Blood Echo",
+"Blood Pact",
+"Blood Rush",
+"Blood Warden",
+"Bloodhound",
+"Boil Over",
+"Bond",
+"Boon: Circle of Healing",
+"Boon: Dark Theory",
+"Boon: Exponential",
+"Boon: Illumination",
+"Boon: Shadow Step",
+"Boon: Steadfast",
+"Borrowed Time",
+"Botany Knowledge",
+"Bound by Obsession",
+"Breakdown",
+"Breakout",
+"Brutal Strength",
+"Buckle Up",
+"Built to Last",
+"Call of Brine",
+"Calm Spirit",
+"Camaraderie",
+"Celestial Witness",
+"Champion of Light",
+"Change of Plan",
+"Chemical Trap",
+"Clairvoyance",
+"Clean Break",
+"Come and Get Me!",
+"Conviction",
+"Corrective Action",
+"Corrupt Intervention",
+"Coulrophobia",
+"Counterforce",
+"Coup de Grâce",
+"Cross-Examination",
+"Cruel Limits",
+"Cull the Weak",
+"Cut Loose",
+"Dance With Me",
+"Dark Arrogance",
+"Dark Devotion",
+"Dark Sense",
+"Darkness Revealed",
+"Dead Hard",
+"Dead Man's Switch",
+"Deadline",
+"Deadlock",
+"Deathbound",
+"Deception",
+"Decisive Strike",
+"Deerstalker",
+"Deliverance",
+"Desperate Measures",
+"Detective's Hunch",
+"Discordance",
+"Dissolution",
+"Distortion",
+"Distressing",
+"Diversion",
+"Do No Harm",
+"Dominance",
+"Down to the Last",
+"Dragon's Grip",
+"Dramaturgy",
+"Duty of Care",
+"Dying Light",
+"Déjà Vu",
+"Empathic Connection",
+"Empathy",
+"Enduring",
+"Eruption",
+"Extrasensory Perception",
+"Exultation",
+"Eyes of Belmont",
+"Fast Track",
+"Finesse",
+"Fire Up",
+"Five Moves Ahead",
+"Fixated",
+"Flashbang",
+"Flip-Flop",
+"Flow State",
+"Fogwise",
+"For the People",
+"Forced Hesitation",
+"Forced Penance",
+"Forever Entwined",
+"Franklin's Demise",
+"Friendly Competition",
+"Friends 'til the End",
+"Fruits of Your Labor",
+"Funny Business",
+"Furtive Chase",
+"Game Afoot",
+"Gearhead",
+"Genetic Limits",
+"Ghost Notes",
+"Grim Embrace",
+"Hardened",
+"Haywire",
+"Head On",
+"Help Wanted",
+"Hex: Blood Favour",
+"Hex: Crowd Control",
+"Hex: Devour Hope",
+"Hex: Face the Darkness",
+"Hex: Fortune's Fool",
+"Hex: Haunted Ground",
+"Hex: Hive Mind",
+"Hex: Huntress Lullaby",
+"Hex: No One Escapes Death",
+"Hex: Nothing but Misery",
+"Hex: Overture of Doom",
+"Hex: Pentimento",
+"Hex: Plaything",
+"Hex: Retribution",
+"Hex: Ruin",
+"Hex: Scared to Death",
+"Hex: The Third Seal",
+"Hex: Thrill of the Hunt",
+"Hex: Two Can Play",
+"Hex: Under Your Thumb",
+"Hex: Undying",
+"Hex: Wretched Fate",
+"Hoarder",
+"Hope",
+"Hubris",
+"Human Greed",
+"Hyperfocus",
+"Hysteria",
+"I'm All Ears",
+"In the Dark",
+"Infectious Fright",
+"Inner Focus",
+"Inner Strength",
+"Insidious",
+"Invocation: Treacherous Crows",
+"Invocation: Weaving Spiders",
+"Iron Grasp",
+"Iron Maiden",
+"Iron Will",
+"Keep Them Waiting",
+"Kill Spree",
+"Kindred",
+"Knock Out",
+"Languid Touch",
+"Last Stand",
+"Last Standing",
+"Laughingstock",
+"Lay Waste",
+"Leader",
+"Left Behind",
+"Lend a Hand",
+"Lethal Pursuer",
+"Leverage",
+"Light-Footed",
+"Lightborn",
+"Lightweight",
+"Lithe",
+"Low Profile",
+"Lucky Break",
+"Lucky Star",
+"Machine Learning",
+"Mad Grit",
+"Made for This",
+"Make Your Choice",
+"Merciless Storm",
+"Mettle of Man",
+"Mindbreaker",
+"Mirrored Illusion",
+"Moment of Glory",
+"Monitor & Abuse",
+"Nemesis",
+"No Holds Barred",
+"No Mither",
+"No One Left Behind",
+"No Quarter",
+"No Way Out",
+"None Are Free",
+"Nowhere to Hide",
+"Object of Obsession",
+"Off the Record",
+"One-Two-Three-Four!",
+"Open-Handed",
+"Oppression",
+"Overcharge",
+"Overcome",
+"Overconfidence",
+"Overwhelming Presence",
+"Overzealous",
+"Parental Guidance",
+"Phantom Fear",
+"Pharmacy",
+"Play with Your Food",
+"Plot Twist",
+"Plunderer's Instinct",
+"Poised",
+"Pop Goes the Weasel",
+"Potential Energy",
+"Power Struggle",
+"Predator",
+"Premonition",
+"Prove Thyself",
+"Quick & Quiet",
+"Quick Gambit",
+"Rampage",
+"Rancor",
+"Rapid Brutality",
+"Rapid Response",
+"Ravenous",
+"Reactive Healing",
+"Reassurance",
+"Red Herring",
+"Remember Me",
+"Repressed Alliance",
+"Residual Manifest",
+"Resilience",
+"Resurgence",
+"Road Life",
+"Rookie Spirit",
+"Saboteur",
+"Salvation's Cry",
+"Save the Best for Last",
+"Scavenger",
+"Scene Partner",
+"Scourge Hook: Floods of Rage",
+"Scourge Hook: Gift of Pain",
+"Scourge Hook: Hangman's Trick",
+"Scourge Hook: Jagged Compass",
+"Scourge Hook: Monstrous Shrine",
+"Scourge Hook: Pain Resonance",
+"Scourge Hook: Weeping Wounds",
+"Second Wind",
+"Secret Project",
+"See How They Run",
+"Self-Care",
+"Self-Preservation",
+"Septic Touch",
+"Shadowborn",
+"Shared Trauma",
+"Shattered Hope",
+"Shoulder the Burden",
+"Silent Shadow",
+"Slippery Meat",
+"Sloppy Butcher",
+"Small Game",
+"Smash Hit",
+"Sole Survivor",
+"Solidarity",
+"Soul Guard",
+"Specialist",
+"Spies from the Shadows",
+"Spine Chill",
+"Spirit Fury",
+"Sprint Burst",
+"Stake Out",
+"Starstruck",
+"Still Sight",
+"Streetwise",
+"Strength in Shadows",
+"Stridor",
+"Superior Anatomy",
+"Surge",
+"Surveillance",
+"THWACK!",
+"Teamwork: Collective Stealth",
+"Teamwork: Full Circuit",
+"Teamwork: Power of Two",
+"Teamwork: Soft-Spoken",
+"Teamwork: Throw Down",
+"Teamwork: Toughen Up",
+"Technician",
+"Tenacity",
+"Terminus",
+"Territorial Imperative",
+"Thanatophobia",
+"This Is Not Happening",
+"Thrilling Tremors",
+"Tinkerer",
+"Tough Runner",
+"Trail of Torment",
+"Troubleshooter",
+"Turn Back the Clock",
+"Ultimate Weapon",
+"Unbound",
+"Unbreakable",
+"Underperform",
+"Undone",
+"Unforeseen",
+"Unnerving Presence",
+"Unrelenting",
+"Up the Ante",
+"Urban Evasion",
+"Valkyrie's Rage",
+"Vigil",
+"Visionary",
+"Wake Up!",
+"Wandering Eye",
+"We See You",
+"We'll Make It",
+"We're Gonna Live Forever",
+"Weave Attunement",
+"Whispers",
+"Wicked",
+"Wide Open Throttle",
+"Will to Live",
+"Windows of Opportunity",
+"Wiretap",
+"Zanshin Tactics"
+]
+}

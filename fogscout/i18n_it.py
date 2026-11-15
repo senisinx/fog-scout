@@ -2163,8 +2163,6 @@ T = {
         'Killer: recupero dopo gli attacchi',
     'Kriechen':
         'Strisciando',
-    'Tokens der Survivor-Perks':
-        'Gettoni dei perk dei sopravvissuti',
     'Tokens des Perks':
         'gettoni del perk',
     'Mit Diminishing Returns: {on} · ohne: {off} ({what}).':
@@ -2305,6 +2303,8 @@ T = {
         "1 = i sopravvissuti subiscono l'effetto dopo la cura",
     'nur {name} zählt':
         'conta solo {name}',
+    'Tokens':
+        'Gettoni',
     'Claude hat unverständlich geantwortet.':
         'Claude ha dato una risposta illeggibile.',
     'Claude ist nicht erreichbar – keine Internetverbindung?':

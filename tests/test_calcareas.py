@@ -570,8 +570,10 @@ def test_the_page_shows_one_area_and_only_the_builds_of_the_team(app_root):
         assert "Prove Thyself" not in values
         kbox = app.calc_perk_boxes[16][0]
         assert "Coulrophobia" in kbox.cget("values") and "Pop Goes the Weasel" not in kbox.cget("values")
-        # the assumptions of the Generators are away, the Tokens are asked
-        assert not shown(app, app.calc_opt_rows["kicks"]) and shown(app, app.calc_opt_rows["stacks"])
+        # the assumptions of the Generators are away; 1.55: the Tokens are asked per build, and only for a build
+        # with a perk that counts some
+        assert not shown(app, app.calc_opt_rows["kicks"]) and "stacks" not in app.calc_opt_rows
+        assert not shown(app, app.calc_tokens[0][0])
         assert not shown(app, app.calc_effects_frame)
         t = app.calc_tree
         assert list(t.cget("columns")) == ["base", "now", "speed"]
@@ -627,7 +629,7 @@ def test_the_page_shows_one_area_and_only_the_builds_of_the_team(app_root):
         # back to the Generators: their assumptions and table are there again
         app.calc_area_var.set("Reparieren (Generatoren)")
         app._calc_changed()
-        assert shown(app, app.calc_opt_rows["kicks"]) and not shown(app, app.calc_opt_rows["stacks"])
+        assert shown(app, app.calc_opt_rows["kicks"]) and not shown(app, app.calc_tokens[0][0])
         assert shown(app, app.calc_effects_frame)
         assert list(t.cget("columns")) == ["calm", "killer"] and list(t.get_children()) == ["k1", "k2", "all", "split"]
         assert "Prove Thyself" in app.calc_perk_boxes[0][0].cget("values")
@@ -648,6 +650,118 @@ def test_the_page_shows_one_area_and_only_the_builds_of_the_team(app_root):
         app.quit()
 
 
+def test_tokens_count_per_survivor_and_a_timed_speed_says_its_metres():
+    """1.55: every Survivor has their own number of Tokens (before: one choice for the whole team) – also where
+    the perk acts on somebody else; and a speed modifier that lasts some seconds is worth base speed × its share
+    of the factor × seconds in metres."""
+    assert line("objects", "bless", [S(("Flow State",), stacks=0.0)]).mult == pytest.approx(1.15)
+    assert line("objects", "bless", [S(("Flow State",), stacks=1.0)], scen=Sc(stacks=0.0)).mult == pytest.approx(1.75)
+    assert line("objects", "bless", [S(("Flow State",))], scen=Sc(stacks=0.0)).mult == pytest.approx(1.15)   # as before
+    team = [S(("Flow State",), stacks=1.0), S(("Flow State",), stacks=0.5)]
+    assert [line("objects", "bless", team, subject=i).mult for i in (0, 1)] == [pytest.approx(1.75), pytest.approx(1.3)]
+    for share, want in ((0.0, 1.1), (1.0, 1.6)):                      # the owner's Tokens, whoever opens the gate
+        team = [S(("Down to the Last",), stacks=share), S(stacks=1.0 - share)]
+        assert line("objects", "gate", team, subject=1).mult == pytest.approx(want)
+    run = line("move", "run", [S(("Sprint Burst", "Hope"))])
+    burst, hope = run.parts
+    assert g.metres(run, burst) == pytest.approx(4.0 * 0.5 * 2) and g.metres(run, hope) is None    # 4 m in 2 s
+    crawl = line("move", "crawl", [S(("Hope",))])
+    assert all(g.metres(crawl, p) is None for p in crawl.parts)
+    slowed = line("move", "run", [S(("Sprint Burst",))], K(("Forced Hesitation",)))
+    burst, slow = slowed.parts
+    assert g.metres(slowed, burst) == pytest.approx(4.0 * 0.5 * 0.8 * 2)                # with the Killer's −20 %
+    assert g.metres(slowed, slow) == pytest.approx(-4.0 * 1.5 * 0.2 * slow.seconds)
+    both = line("move", "run", [S(("Lithe", "Sprint Burst"))])
+    assert [g.metres(both, p) for p in both.parts] == [pytest.approx(6.0), None]        # the one that counts
+    assert g.metres(line("heal", "heal_other", [S(("Botany Knowledge",))]),
+                    line("heal", "heal_other", [S(("Botany Knowledge",))]).parts[0]) is None    # a time, no speed
+
+
+def test_the_page_asks_tokens_per_build_and_counts_only_where_a_perk_has_them(app_root):
+    """1.55: the Token line of a build is there only while one of its perks counts Tokens (and says which); a
+    Killer perk without a count has no "Anzahl" beside it; the breakdown gives a timed Haste in metres; an entry
+    saved before 1.55 takes the one choice all Survivors shared."""
+    from fogscout.app import App
+    calc = {"area": "objects", "n": 2, "stacks": 50, "killer": ["Fire Up", "Brutal Strength"], "counts": {},
+            "survivors": [[["Flow State", "Counterforce"], "", []], [["Resilience"], "", [], 0]]}
+    (app_root / "settings.json").write_text(json.dumps({"welcome_seen": True, "calc": calc}), encoding="utf-8")
+    app = App(str(app_root), simulate=str(app_root / "sim"))
+    try:
+        (row0, var0, names0), (row1, var1, _n1) = app.calc_tokens[:2]
+        assert shown(app, row0) and names0.get() == "Flow State, Counterforce" and not shown(app, row1)
+        assert var0.get() == "die Hälfte" and var1.get() == "eine"            # the old shared choice / its own
+        t = app.calc_tree
+        assert t.item("0:bless", "values")[2] == "130 %"                       # 2 of 5 Tokens
+        var0.set("alle")
+        app._calc_changed()
+        assert t.item("0:bless", "values")[2] == "175 %"
+        assert app.settings.get("calc")["survivors"][0][3] == 100 and app.settings.get("calc")["survivors"][1][3] == 0
+        assert "stacks" not in app.calc_opt_rows
+        app.calc_n_var.set("1")
+        app.calc_surv[0][0][0].set(app_calc.NONE)
+        app.calc_surv[0][0][1].set(app_calc.NONE)
+        app._calc_changed()
+        assert not shown(app, row0)                                            # no perk with Tokens left
+        # the Killer's counts: Fire Up has Tokens, Brutal Strength counts nothing, an empty place neither
+        assert [shown(app, b) for b in app.calc_count_boxes] == [True, False, False, False]
+        app.calc_area_var.set("Bewegung (Haste, Hindered)")
+        app.calc_surv[0][0][0].set("Sprint Burst")
+        app._calc_changed()
+        b = app.calc_parts_tree
+        top = next(i for i in b.get_children() if "Rennen" in b.item(i, "text"))
+        assert [(b.item(i, "text"), b.item(i, "values")[3]) for i in b.get_children(top)] == [
+            ("Sprint Burst", "nach Auslösung · 2 s lang · +4 m")]
+        app._calc_reset()
+        assert var0.get() == "alle" and var1.get() == "alle"
+    finally:
+        app.quit()
+
+
+def test_the_result_stands_beside_the_choices_on_a_wide_page(app_root):
+    """1.55 (user's yes to "Ergebnis neben die Eingaben" – it began 900 px down the page): two columns from
+    BESIDE_FROM px on, what is chosen on the left, what comes of it on the right (at most BESIDE_MAX wide, so
+    the rest goes to the choices, which grow up to PERK_MAX); below each other on a narrow page, as before."""
+    from PySide6.QtWidgets import QApplication, QComboBox
+    from fogscout.app import App
+    from fogscout import qt_pages
+    calc = {"area": "heal", "n": 2, "survivors": [[["Botany Knowledge"], "Ranger Med-Kit", []], [[], "", []]],
+            "killer": [], "counts": {}}
+    (app_root / "settings.json").write_text(json.dumps({"welcome_seen": True, "calc": calc}), encoding="utf-8")
+    app = App(str(app_root), simulate=str(app_root / "sim"))
+    try:
+        q = app.qt
+        q.resize(2000, 1000)
+        q.show()
+        q.show_page("calc")
+        app._poll()
+        app._qt_refresh(force=True)
+        for _i in range(6):
+            QApplication.processEvents()
+        page = q._page("calc")
+        sb = page.findChild(qt_pages.SideBySide, "beside")
+        left, right = sb.cards
+        widget = lambda w: page.controls[str(w)][1]
+        assert left.isAncestorOf(widget(app.calc_perk_boxes[0][0])) and left.isAncestorOf(widget(app.calc_dr_box))
+        assert right.isAncestorOf(widget(app.calc_tree)) and right.isAncestorOf(widget(app.calc_parts_tree))
+        sb.arrange(app_calc.BESIDE_FROM)
+        assert sb.beside() and right.maximumWidth() == qt_pages.BESIDE_MAX
+        sb.arrange(app_calc.BESIDE_FROM - 1)
+        assert not sb.beside() and right.maximumWidth() > 10000                # below each other: the full width
+        # the choices: a name's width at least, more where the row has room, never past the limit
+        box = widget(app.calc_perk_boxes[0][0])
+        assert isinstance(box, QComboBox)
+        assert box.minimumWidth() == app_calc.PERK_PX and box.maximumWidth() == app_calc.PERK_MAX == box._grow_to
+        sb.arrange(sb.width())
+        for _i in range(6):
+            QApplication.processEvents()
+        if sb.beside() and left.width() > 1300:                                # the screen of this machine allows it
+            assert box.width() == app_calc.PERK_MAX
+        # every card can still be moved within its column, and the cards are the same eight
+        assert len(page.columns) == 2 and [len(c.cards) for c in page.columns] == [4, 4]
+    finally:
+        app.quit()
+
+
 def test_the_breakdown_names_a_chosen_perk_that_does_not_count(app_root):
     """1.54.1 (review): of two Exhaustion perks – or Mangled from a perk and an add-on – only one counts. The
     other was missing from the breakdown, as if the choice had been lost; now its row says beside which it
@@ -662,7 +776,7 @@ def test_the_breakdown_names_a_chosen_perk_that_does_not_count(app_root):
         top = next(i for i in b.get_children() if "Rennen" in b.item(i, "text"))
         rows = [(b.item(i, "text"),) + tuple(b.item(i, "values")) for i in b.get_children(top)]
         # both +50 %: the one named first counts (they never run at once – Exhausted)
-        assert rows == [("Lithe", "+50 %", "100 %", "+50 %", "nach Auslösung · 3 s lang"),
+        assert rows == [("Lithe", "+50 %", "100 %", "+50 %", "nach Auslösung · 3 s lang · +6 m"),   # 1.55: its metres
                         ("Sprint Burst", "+50 %", "0 %", "—", "nur Lithe zählt")]
     finally:
         app.quit()
@@ -731,7 +845,7 @@ def test_the_page_takes_a_killer_its_add_ons_and_the_items_add_ons(app_root):
         want = 16 / (1 + 0.5 + 0.25 + 0.15 + 0.10)
         assert t.item("0:heal_other", "values")[1] == f"{want:.2f} s"
         assert app.settings.get("calc")["survivors"][0] == [["Botany Knowledge"], "Ranger Med-Kit",
-                                                             ["Abdominal Dressing", "Medical Scissors"]]
+                                                             ["Abdominal Dressing", "Medical Scissors"], 100]
         app.calc_surv[0][1].set("Toolbox")
         app._calc_changed()
         assert iadd.get() == app_calc.NONE and "Socket Swivels" in ibox.cget("values")
@@ -756,7 +870,7 @@ def test_the_page_takes_a_killer_its_add_ons_and_the_items_add_ons(app_root):
         assert not ibox.instate(["disabled"]) and list(ibox.cget("values"))[1:] == g.item_addon_names(D, "Flashlight")
         iadd.set("Battery")
         app._calc_changed()
-        assert app.settings.get("calc")["survivors"][0][1:] == ["Flashlight", ["Battery"]]
+        assert app.settings.get("calc")["survivors"][0][1:] == ["Flashlight", ["Battery"], 100]
         assert app.calc_plain_var.get() == "Ohne berechenbare Wirkung: Survivor 1: Flashlight, Battery."
         app.calc_surv[0][1].set("Toolbox")
         app._calc_changed()

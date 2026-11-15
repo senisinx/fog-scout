@@ -1680,8 +1680,6 @@ EN = {
         'Killer: recovery after attacks',
     'Kriechen':
         'Crawling',
-    'Tokens der Survivor-Perks':
-        'Tokens of the survivor perks',
     'Tokens des Perks':
         'tokens of the perk',
     'Mit Diminishing Returns: {on} · ohne: {off} ({what}).':
@@ -1822,6 +1820,8 @@ EN = {
         '1 = the survivors suffer from the effect after being healed',
     'nur {name} zählt':
         'only {name} counts',
+    'Tokens':
+        'Tokens',
     'Claude hat unverständlich geantwortet.': 'Claude gave an answer that could not be read.',
     'Claude ist nicht erreichbar – keine Internetverbindung?': 'Claude cannot be reached – no internet connection?',
     'Claude: Zu viele Anfragen – gleich noch einmal versuchen.': 'Claude: too many requests – try again in a moment.',

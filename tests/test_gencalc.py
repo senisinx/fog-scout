@@ -157,7 +157,7 @@ def test_the_page_shows_the_times_of_the_builds_and_keeps_them(app_root):
         app._calc_changed()
         assert list(t.get_children()) == ["k1", "k2", "k3", "k4", "all", "split"]
         saved = app.settings.get("calc")
-        assert saved["n"] == 4 and saved["survivors"][0] == [["Prove Thyself", "Resilience"], "Toolbox", []]
+        assert saved["n"] == 4 and saved["survivors"][0] == [["Prove Thyself", "Resilience"], "Toolbox", [], 100]
         assert "0.85" not in app.calc_rates_var.get() and app.calc_rates_var.get()
         # the Killer perk picked sets its usual count
         app.calc_kill[1][0].set("Thanatophobia")
@@ -166,14 +166,16 @@ def test_the_page_shows_the_times_of_the_builds_and_keeps_them(app_root):
         app.calc_dr_var.set(False)
         app._calc_changed()
         assert app.settings.get("calc")["diminishing"] is False
-        # 1.51.1: what the chosen perks do, each once; a perk without a count greys its count out; reset
+        # 1.51.1: what the chosen perks do, each once; reset. 1.55: a perk without a count has no count beside it
+        # (the box was greyed before – four of them stood beside empty places)
         text = app.calc_effects_var.get()
         assert "Prove Thyself – +10 % Tempo je weiterem Survivor" in text and text.count("Resilience") == 1
         assert "Pop Goes the Weasel – ein Kick nimmt 20 % statt 5 %" in text and "Toolbox – +50 % Tempo" in text
-        assert not app.calc_count_boxes[0].instate(["disabled"])              # Pop: kicks with the perk
+        from fogscout import app_qt
+        assert app_qt.ui_shown(app.calc_count_boxes[0])                       # Pop: kicks with the perk
         app.calc_kill[2][0].set("Call of Brine")
         app._calc_killer_picked(2)
-        assert app.calc_count_boxes[2].instate(["disabled"]) and app.calc_count_boxes[3].instate(["disabled"])
+        assert not app_qt.ui_shown(app.calc_count_boxes[2]) and not app_qt.ui_shown(app.calc_count_boxes[3])
         app._calc_reset()
         assert [v.get() for v in vars_] == [app_calc.NONE] * 4 and tool.get() == app_calc.NONE
         assert app.settings.get("calc")["killer"] == [] and app.calc_dr_var.get() is True

@@ -2163,8 +2163,6 @@ T = {
         '살인마: 공격 후 회복',
     'Kriechen':
         '기어가기',
-    'Tokens der Survivor-Perks':
-        '생존자 퍽의 토큰',
     'Tokens des Perks':
         '퍽의 토큰',
     'Mit Diminishing Returns: {on} · ohne: {off} ({what}).':
@@ -2305,6 +2303,8 @@ T = {
         '1 = 생존자가 치료 후 효과를 받는 중',
     'nur {name} zählt':
         '{name}만 적용',
+    'Tokens':
+        '토큰',
     'Claude hat unverständlich geantwortet.':
         'Claude의 답변을 읽을 수 없습니다.',
     'Claude ist nicht erreichbar – keine Internetverbindung?':
