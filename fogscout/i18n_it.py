@@ -5982,7 +5982,7 @@ T = {
     'Noch keine Runden mit Ergebnis von der Stats-Seite in dieser Auswahl – Kills und Entkommen kommen von dort (Einstellungen → Match-Daten).':
         'Ancora nessun round con un risultato dalla pagina delle statistiche in questa selezione – uccisioni e fughe arrivano da lì (Impostazioni → Dati partita).',
     '{n}. Runde':
-        'Round {n}',
+        '{n}° round',
     'ab der {n}. Runde':
         'Dal round {n} in poi',
     'Noch keine Survivor-Matches mit Gesamtdauer in dieser Auswahl – die Stats-Seite liefert sie ab Userscript Version 3 (Einstellungen → Match-Daten → Offizielle Match-Daten → „Userscript kopieren“).':

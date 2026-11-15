@@ -228,7 +228,7 @@ SAME_IN = {
            "Clip: {start} – {end} ({length} s)", "FARMING ", "Farming", "Farming?", "File", "Focus",
            "Fog Scout · Editor", "GPU max", "Gamepad", "Hong Kong", "Hot spot", "Hot spot max", "Hotkey: {keys}",
            "Hotkey {action}: {keys}.", "INFO", "Info", "Iri", "Killer", "Killer · {killer}", "Layout {n} ({p})",
-           "Main", "Mumbai", "Oceania", "Overlay", "Password", "Perk", "Ping (ms)", "Realm", "Server", "Singapore",
+           "Main", "Mumbai", "Oceania", "Overlay", "Password", "Perk", "Ping (ms)", "Ping {lo}–{hi} ms", "Realm", "Server", "Singapore",
            "Sydney", "Timeline", "Tokyo", "Volume", "Zoom", "h", "hot spot max {v} °C", "lobby/menu", "no",
            "ping {ms} ms", "{n} s", "{n}× farming", "Ø {ping} ms"},
     "ru": KEY_CAPS, "zh": KEY_CAPS, "ja": KEY_CAPS, "ko": KEY_CAPS}

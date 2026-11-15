@@ -5968,7 +5968,7 @@ T = {
     'Ping unter {n} ms':
         'Ping {n} ms 未満',
     'Ping {lo}–{hi} ms':
-        'Ping {lo}–{hi} ms',
+        'Ping {lo}～{hi} ms',
     'Ping über {n} ms':
         'Ping {n} ms 超',
     'mit Aussetzern':

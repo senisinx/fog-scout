@@ -5966,11 +5966,11 @@ T = {
     'Noch keine Runden mit Ping oder Aussetzern und einem Ergebnis von der Stats-Seite in dieser Auswahl – dafür auf der Seite Server „Verbundener Spielserver“ einschalten.':
         '此筛选中还没有带 Ping 或中断记录且有统计页面结果的对局——请在“服务器”页面开启“已连接的游戏服务器”。',
     'Ping unter {n} ms':
-        'Ping 低于 {n} ms',
+        '延迟低于 {n} 毫秒',
     'Ping {lo}–{hi} ms':
-        'Ping {lo}–{hi} ms',
+        '延迟 {lo}–{hi} 毫秒',
     'Ping über {n} ms':
-        'Ping 高于 {n} ms',
+        '延迟高于 {n} 毫秒',
     'mit Aussetzern':
         '有中断',
     'ohne Aussetzer':
