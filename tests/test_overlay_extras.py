@@ -71,10 +71,19 @@ def test_the_long_lobby_line_wraps_only_when_it_does_not_fit_at_the_smallest_tex
         assert ov.render(ov.fit_room(ov.fit_width(518, 518, avail), 1400))[0] == w
         short, _a, (ws, _hs) = _fit_waiting_card(style, SHORT)
         assert not short._wait_wrap and short._waiting_shown() == tuple(SHORT) and ws <= avail
-    classic, _a, _s = _fit_waiting_card("classic", LONG)
-    assert classic._wait_wrap and classic._waiting_shown() == ("Warte auf Map", "Suche läuft: 00:05",
-                                                               "Farming · Krankenschwester")
-    assert classic.text_height > 40                     # two lines: larger text than the smallest one fits again
+    classic, avail, _s = _fit_waiting_card("classic", LONG)
+    # whether one line is too wide even at the smallest text depends on the system's fonts (measured on Linux:
+    # 494 px in 406; Windows renders narrower) – the rule is checked, not one font's numbers
+    one = _fit_waiting_card("classic", LONG)[0]
+    one.set_waiting(LONG)
+    one.text_height = 40
+    too_wide = one.render(40, push=False)[0] > avail
+    assert classic._wait_wrap == too_wide
+    if too_wide:
+        assert classic._waiting_shown() == ("Warte auf Map", "Suche läuft: 00:05", "Farming · Krankenschwester")
+        assert classic.text_height > 40                 # two lines: larger text than the smallest one fits again
+    else:
+        assert classic._waiting_shown() == tuple(LONG)
     # set_waiting alone (no fit this tick, e.g. an own place) draws the line as set
     classic.set_waiting(LONG)
     assert classic._waiting_shown() == tuple(LONG)
