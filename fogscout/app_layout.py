@@ -331,9 +331,11 @@ class LayoutMemory:
             self.inputs_on_var.set(on)
             self._inputs_on_changed()
 
-    def _cell_box(self, name, col, row):
-        """(x, y) in game pixels of ``name`` at the quick place (col, row) – corners and edges keep the margin."""
-        data = self._preview_data()
+    def _cell_box(self, name, col, row, data=None):
+        """(x, y) in game pixels of ``name`` at the quick place (col, row) – corners and edges keep the margin.
+        ``data``: the look at the preview to measure in (1.53: the same one the caller took the place from – the
+        sample picture arrives from a thread, and a second look may show the element in another size)."""
+        data = data or self._preview_data()
         size = {n: (w, h) for n, _x, _y, w, h in data["layers"]}.get(name)
         if size is None:
             return None
@@ -358,7 +360,7 @@ class LayoutMemory:
             tol = max(2.0, data["screen"][1] * CELL_TOL)
             for c in range(3):
                 for r in range(3):
-                    box = self._cell_box(name, c, r) if at else None
+                    box = self._cell_box(name, c, r, data) if at else None
                     if box and abs(box[0] - at[0]) <= tol and abs(box[1] - at[1]) <= tol:
                         cell = (c, r)
         return {"name": name, "cell": cell, "enabled": not self._el_locked(name)}

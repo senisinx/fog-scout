@@ -2101,8 +2101,6 @@ T = {
         'Разбор по источникам',
     'Ausgangstor öffnen':
         'Открыть ворота',
-    'Bedingte Perks zählen als aktiv (z. B. Resilience = verletzt, Hope = Tore mit Strom); die Bedingung steht in der Aufschlüsselung. Ein Werkzeugkasten wirkt beim Reparieren, ein Med-Kit beim Heilen anderer.':
-        'Условные перки считаются активными (например, Resilience = ранен, Hope = ворота запитаны); условие указано в разборе. Ящик с инструментами действует при починке, аптечка – при лечении других.',
     'Bedingung':
         'Условие',
     'Befreien':
@@ -2281,6 +2279,26 @@ T = {
         '«Запомнить как билд A» фиксирует текущий выбор; затем таблица показывает каждое изменение рядом.',
     'Tempo (relativ)':
         'Относительная скорость',
+    '+{n} Ladungen im Werkzeugkasten':
+        '+{n} зарядов в ящике с инструментами',
+    '+{p} % Tempo mit dem Werkzeugkasten (Add-on: zählt voll)':
+        '+{p} % к скорости с ящиком с инструментами (улучшение: считается полностью)',
+    'Add-on: 100 %':
+        'улучшение: 100 %',
+    'Add-ons':
+        'Улучшения',
+    'Add-ons: aufgeführt sind die, deren Wirkung der Rechner berechnen kann (Haste, Hindered, Mangled, Aktionstempo). Die Kraft selbst zählt nur dort mit, wo ein gewähltes Add-on sie verstärkt.':
+        'Улучшения: показаны те, чьё действие калькулятор может рассчитать (Haste, Hindered, Mangled, скорость действий). Сама сила учитывается только там, где её усиливает выбранное улучшение.',
+    'Bedingte Perks zählen als aktiv (z. B. Resilience = verletzt, Hope = Tore mit Strom); die Bedingung steht in der Aufschlüsselung. Ein Werkzeugkasten wirkt beim Reparieren und Sabotieren, ein Med-Kit beim Heilen; Add-ons zählen voll (keine Diminishing Returns).':
+        'Условные перки считаются активными (например, Resilience = ранен, Hope = ворота запитаны); условие указано в разборе. Ящик с инструментами действует при починке и саботаже, аптечка – при лечении; улучшения считаются полностью (без убывающей отдачи).',
+    'Für diesen Killer kennt der Rechner kein Add-on mit berechenbarer Wirkung.':
+        'Для этого убийцы калькулятор не знает улучшений с рассчитываемым действием.',
+    'Grundgeschwindigkeit':
+        'Базовая скорость',
+    'keine regulären Skill Checks, solange der Werkzeugkasten läuft':
+        'нет обычных проверок реакции, пока работает ящик с инструментами',
+    '+ {n} weitere':
+        '+ ещё {n}',
     'Update gesperrt: OBS nimmt gerade auf – der Neustart würde die Aufnahme beenden. Aufnahme stoppen, dann noch einmal auf „Aktualisieren und neu starten“ klicken.':
         'Обновление заблокировано: OBS ведёт запись – перезапуск прервал бы её. Остановите запись и снова нажмите «Обновить и перезапустить».',
     'Claude hat unverständlich geantwortet.':

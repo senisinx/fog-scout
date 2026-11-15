@@ -1,12 +1,14 @@
 """Perk pictures for the calculator's choices (pure, 1.52): finds a picture file for a perk name in the user's
 folder ``<data folder>/perk_icons`` (the user's own pictures come first) and in the program's own folder
-``fogscout/perkicons`` (the perks of perkdata.json, 64 px, from the Dead by Daylight Wiki – see THIRD_PARTY.md;
-Saru: "Wiki ist in Ordnung") – files named like the perk ("Prove Thyself.png") or like the game's icons
-("iconPerks_proveThyself.png", "T_UI_iconsPerks_Rampage.png"), in sub-folders too. Only these two folders are read,
+``fogscout/perkicons`` (the perks, items and add-ons of perkdata.json, 64 px, from the Dead by Daylight Wiki – see
+THIRD_PARTY.md; Saru: "Wiki ist in Ordnung", and "ja" for items and add-ons) – files named like the perk
+("Prove Thyself.png") or like the game's icons ("iconPerks_proveThyself.png", "T_UI_iconsPerks_Rampage.png",
+"IconAddon_scraps.png", "IconItems_toolbox.png"), in sub-folders too. Only these two folders are read,
 never the game's files (hard rule); nothing is written."""
 from __future__ import annotations
 
 import os
+import re
 import unicodedata
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -16,17 +18,15 @@ EXTS = (".png", ".webp")
 MAX_FILES = 3000                      # a folder with more is not an icon folder
 MAX_BYTES = 2 * 1024 * 1024           # a picture larger than this is not an icon
 PREFIXES = ("hex", "boon", "scourgehook", "teamwork", "invocation")       # some packs name the file without it
-LEADS = ("tuiiconsperks", "tuiiconperks", "iconsperks", "iconperks")       # how the game and the wiki begin a name
+# how the game and the wiki begin a file name: "iconPerks_", "T_UI_iconsPerks_", "IconAddon_", "IconItems_" – only
+# with the underscore, or "IconAddon_scraps" would lose the s of its name
+LEAD = re.compile(r"^(?:t_ui_)?icons?(?:perks|addons?|items)_", re.IGNORECASE)
 
 
 def key(text: str) -> str:
     """"Boon: Circle of Healing" and "iconPerks_boonCircleOfHealing" → "booncircleofhealing"."""
     plain = unicodedata.normalize("NFKD", str(text)).encode("ascii", "ignore").decode("ascii").lower()
-    out = "".join(c for c in plain if c.isalnum())
-    for lead in LEADS:                                     # "T_UI_iconsPerks_", "IconsPerks_", "iconPerks_"
-        if out.startswith(lead) and len(out) > len(lead):
-            return out[len(lead):]
-    return out
+    return "".join(c for c in LEAD.sub("", plain, count=1) if c.isalnum())
 
 
 def folders(data_dir: str) -> list:

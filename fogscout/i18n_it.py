@@ -2101,8 +2101,6 @@ T = {
         'Dettaglio',
     'Ausgangstor öffnen':
         "Aprire il cancello d'uscita",
-    'Bedingte Perks zählen als aktiv (z. B. Resilience = verletzt, Hope = Tore mit Strom); die Bedingung steht in der Aufschlüsselung. Ein Werkzeugkasten wirkt beim Reparieren, ein Med-Kit beim Heilen anderer.':
-        'I perk condizionali contano come attivi (es. Resilience = ferito, Hope = cancelli alimentati); la condizione è indicata nel dettaglio. Una cassetta degli attrezzi agisce durante la riparazione, un kit medico curando gli altri.',
     'Bedingung':
         'Condizione',
     'Befreien':
@@ -2281,6 +2279,26 @@ T = {
         '«Memorizza come build A» fissa la scelta attuale; poi la tabella mostra ogni modifica accanto.',
     'Tempo (relativ)':
         'Velocità relativa',
+    '+{n} Ladungen im Werkzeugkasten':
+        '+{n} cariche nella cassetta degli attrezzi',
+    '+{p} % Tempo mit dem Werkzeugkasten (Add-on: zählt voll)':
+        '+{p} % di velocità con la cassetta degli attrezzi (accessorio: conta per intero)',
+    'Add-on: 100 %':
+        'accessorio: 100 %',
+    'Add-ons':
+        'Accessori',
+    'Add-ons: aufgeführt sind die, deren Wirkung der Rechner berechnen kann (Haste, Hindered, Mangled, Aktionstempo). Die Kraft selbst zählt nur dort mit, wo ein gewähltes Add-on sie verstärkt.':
+        "Accessori: sono elencati quelli il cui effetto il calcolatore può calcolare (Haste, Hindered, Mangled, velocità d'azione). Il potere stesso conta solo dove un accessorio scelto lo rafforza.",
+    'Bedingte Perks zählen als aktiv (z. B. Resilience = verletzt, Hope = Tore mit Strom); die Bedingung steht in der Aufschlüsselung. Ein Werkzeugkasten wirkt beim Reparieren und Sabotieren, ein Med-Kit beim Heilen; Add-ons zählen voll (keine Diminishing Returns).':
+        'I perk condizionali contano come attivi (es. Resilience = ferito, Hope = cancelli alimentati); la condizione è indicata nel dettaglio. Una cassetta degli attrezzi agisce riparando e sabotando, un kit medico curando; gli accessori contano per intero (nessun rendimento decrescente).',
+    'Für diesen Killer kennt der Rechner kein Add-on mit berechenbarer Wirkung.':
+        'Per questo killer il calcolatore non conosce accessori con un effetto calcolabile.',
+    'Grundgeschwindigkeit':
+        'Velocità base',
+    'keine regulären Skill Checks, solange der Werkzeugkasten läuft':
+        'nessuna prova di abilità normale finché dura la cassetta degli attrezzi',
+    '+ {n} weitere':
+        '+ altri {n}',
     'Update gesperrt: OBS nimmt gerade auf – der Neustart würde die Aufnahme beenden. Aufnahme stoppen, dann noch einmal auf „Aktualisieren und neu starten“ klicken.':
         'Aggiornamento bloccato: OBS sta registrando – il riavvio interromperebbe la registrazione. Ferma la registrazione, poi fai di nuovo clic su «Aggiorna e riavvia».',
     'Claude hat unverständlich geantwortet.':

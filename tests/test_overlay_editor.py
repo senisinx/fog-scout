@@ -192,3 +192,37 @@ def test_focus_ends_when_the_overlay_page_is_left(app_root):
         assert not app._editor_focus and calls[-1] is False
     finally:
         app.quit()
+
+
+def test_the_quick_place_is_read_from_one_look_at_the_preview(app_root):
+    """1.53 (CI failure "assert None == (1, 0)" in the test above): the preview's sample picture is loaded in a
+    thread. ``_anchors_data`` took the element's place from one look at the preview and the size for the nine
+    quick places from later looks – when the picture arrived in between (the map grows from its lines alone to
+    the whole card), place and size did not fit and the grid showed no cell. Now one look serves both."""
+    import threading
+    app = _app(app_root)
+    try:
+        app._preview_data()
+        for t in threading.enumerate():                    # the sample picture is there
+            if t.name == "preview-sample":
+                t.join(20)
+        real = app._preview_pic
+        assert real is not None
+        app._preview_pic, app._preview_token = None, object()             # as if the thread were still loading
+        app._select("map")
+        app._anchor_cell(("cell", 1, 0))
+        assert app._anchors_data()["cell"] == (1, 0)
+        look, calls = app._preview_data, []
+
+        def arriving():
+            """The picture arrives after the first look of the call."""
+            calls.append(1)
+            data = look()
+            app._preview_pic = real
+            return data
+        app._preview_data = arriving
+        assert app._anchors_data()["cell"] == (1, 0) and len(calls) == 1
+        app._preview_data = look
+        assert _layer(app, "map")[2] > 300 and app._anchors_data()["cell"] == (1, 0)    # and with the picture
+    finally:
+        app.quit()

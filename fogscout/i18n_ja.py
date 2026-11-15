@@ -2101,8 +2101,6 @@ T = {
         '内訳',
     'Ausgangstor öffnen':
         '脱出ゲートを開ける',
-    'Bedingte Perks zählen als aktiv (z. B. Resilience = verletzt, Hope = Tore mit Strom); die Bedingung steht in der Aufschlüsselung. Ein Werkzeugkasten wirkt beim Reparieren, ein Med-Kit beim Heilen anderer.':
-        '条件付きパークは発動中として計算します（例：Resilience = 負傷、Hope = ゲート通電）。条件は内訳に表示されます。工具箱は修理時、医療キットは他者の治療時に効きます。',
     'Bedingung':
         '条件',
     'Befreien':
@@ -2281,6 +2279,26 @@ T = {
         '「ビルドAとして記憶」で現在の選択を保存すると、以後の変更が表に並べて表示されます。',
     'Tempo (relativ)':
         '相対速度',
+    '+{n} Ladungen im Werkzeugkasten':
+        '工具箱のチャージ +{n}',
+    '+{p} % Tempo mit dem Werkzeugkasten (Add-on: zählt voll)':
+        '工具箱使用時の速度 +{p} %（アドオン：全額計上）',
+    'Add-on: 100 %':
+        'アドオン：100 %',
+    'Add-ons':
+        'アドオン',
+    'Add-ons: aufgeführt sind die, deren Wirkung der Rechner berechnen kann (Haste, Hindered, Mangled, Aktionstempo). Die Kraft selbst zählt nur dort mit, wo ein gewähltes Add-on sie verstärkt.':
+        'アドオン：計算機で効果を計算できるもの（Haste、Hindered、Mangled、アクション速度）だけを表示します。能力そのものは、選んだアドオンが強化する場合にのみ計上されます。',
+    'Bedingte Perks zählen als aktiv (z. B. Resilience = verletzt, Hope = Tore mit Strom); die Bedingung steht in der Aufschlüsselung. Ein Werkzeugkasten wirkt beim Reparieren und Sabotieren, ein Med-Kit beim Heilen; Add-ons zählen voll (keine Diminishing Returns).':
+        '条件付きパークは発動中として計算します（例：Resilience = 負傷、Hope = ゲート通電）。条件は内訳に表示されます。工具箱は修理とフック破壊時、医療キットは治療時に効きます。アドオンは全額計上されます（効果逓減なし）。',
+    'Für diesen Killer kennt der Rechner kein Add-on mit berechenbarer Wirkung.':
+        'このキラーには、計算できる効果を持つアドオンがありません。',
+    'Grundgeschwindigkeit':
+        '基本速度',
+    'keine regulären Skill Checks, solange der Werkzeugkasten läuft':
+        '工具箱の使用中は通常のスキルチェックなし',
+    '+ {n} weitere':
+        '+ 他{n}件',
     'Update gesperrt: OBS nimmt gerade auf – der Neustart würde die Aufnahme beenden. Aufnahme stoppen, dann noch einmal auf „Aktualisieren und neu starten“ klicken.':
         'アップデートはロック中です：OBSが録画中です。再起動すると録画が終了します。録画を停止してから、もう一度「アップデートして再起動」をクリックしてください。',
     'Claude hat unverständlich geantwortet.':
