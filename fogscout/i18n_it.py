@@ -2287,12 +2287,8 @@ T = {
         'accessorio: 100 %',
     'Add-ons':
         'Accessori',
-    'Add-ons: aufgeführt sind die, deren Wirkung der Rechner berechnen kann (Haste, Hindered, Mangled, Aktionstempo). Die Kraft selbst zählt nur dort mit, wo ein gewähltes Add-on sie verstärkt.':
-        "Accessori: sono elencati quelli il cui effetto il calcolatore può calcolare (Haste, Hindered, Mangled, velocità d'azione). Il potere stesso conta solo dove un accessorio scelto lo rafforza.",
     'Bedingte Perks zählen als aktiv (z. B. Resilience = verletzt, Hope = Tore mit Strom); die Bedingung steht in der Aufschlüsselung. Ein Werkzeugkasten wirkt beim Reparieren und Sabotieren, ein Med-Kit beim Heilen; Add-ons zählen voll (keine Diminishing Returns).':
         'I perk condizionali contano come attivi (es. Resilience = ferito, Hope = cancelli alimentati); la condizione è indicata nel dettaglio. Una cassetta degli attrezzi agisce riparando e sabotando, un kit medico curando; gli accessori contano per intero (nessun rendimento decrescente).',
-    'Für diesen Killer kennt der Rechner kein Add-on mit berechenbarer Wirkung.':
-        'Per questo killer il calcolatore non conosce accessori con un effetto calcolabile.',
     'Grundgeschwindigkeit':
         'Velocità base',
     'keine regulären Skill Checks, solange der Werkzeugkasten läuft':
@@ -2301,6 +2297,12 @@ T = {
         '+ altri {n}',
     'Update gesperrt: OBS nimmt gerade auf – der Neustart würde die Aufnahme beenden. Aufnahme stoppen, dann noch einmal auf „Aktualisieren und neu starten“ klicken.':
         'Aggiornamento bloccato: OBS sta registrando – il riavvio interromperebbe la registrazione. Ferma la registrazione, poi fai di nuovo clic su «Aggiorna e riavvia».',
+    'Add-ons: alle des gewählten Killers. Berechnet werden die mit Haste, Hindered, Mangled oder Aktionstempo; die Kraft selbst zählt nur dort mit, wo ein gewähltes Add-on sie verstärkt.':
+        "Accessori: tutti quelli del killer scelto. Vengono calcolati quelli con Haste, Hindered, Mangled o velocità d'azione; il potere stesso conta solo dove un accessorio scelto lo rafforza.",
+    'Ohne berechenbare Wirkung: {names}.':
+        'Senza un effetto calcolabile: {names}.',
+    '1 = die Survivor leiden nach dem Heilen unter dem Effekt':
+        "1 = i sopravvissuti subiscono l'effetto dopo la cura",
     'Claude hat unverständlich geantwortet.':
         'Claude ha dato una risposta illeggibile.',
     'Claude ist nicht erreichbar – keine Internetverbindung?':

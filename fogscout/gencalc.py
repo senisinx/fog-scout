@@ -51,6 +51,9 @@ class Data:
     killers: dict = field(default_factory=dict)      # "The Trapper" -> {"speed", "mode", "alt"}
     killer_addons: dict = field(default_factory=dict)    # name -> {"killer", "effects"} (those that can be calculated)
     item_addons: dict = field(default_factory=dict)      # name -> {"item": "toolbox"/"medkit", "repair", "charges", …}
+    killer_addon_lists: dict = field(default_factory=dict)   # Killer -> every add-on of the power (20 names)
+    item_addon_lists: dict = field(default_factory=dict)     # kind of item -> every add-on that fits it
+    items: dict = field(default_factory=dict)                # kind -> the items without a speed of their own
 
 
 def load(path: str = FILE) -> Data:
@@ -62,7 +65,9 @@ def load(path: str = FILE) -> Data:
                 {a["id"]: a for a in raw.get("areas", [])}, {e["name"]: e for e in raw.get("perks", [])},
                 {e["name"]: e for e in raw.get("medkits", [])}, list(raw.get("not_modelled_areas", [])),
                 {e["name"]: e for e in raw.get("killers", [])}, {e["name"]: e for e in raw.get("killer_addons", [])},
-                {e["name"]: e for e in raw.get("item_addons", [])})
+                {e["name"]: e for e in raw.get("item_addons", [])},
+                dict(raw.get("killer_addon_lists", {})), dict(raw.get("item_addon_lists", {})),
+                dict(raw.get("items", {})))
 
 
 @dataclass
@@ -72,6 +77,7 @@ class Survivor:
     part: bool = False                # Brand New Part on the toolbox (used on the Generator)
     medkit: str = ""                  # a name from Data.medkits, "" = none (healing others)
     addons: tuple = ()                # names from Data.item_addons (only those of the item in hand count)
+    item: str = ""                    # another item in hand (flashlight, key, map, fog vial): no speed of its own
 
 
 @dataclass
@@ -203,16 +209,26 @@ def _hyper(data: Data, team, great: float) -> list:
     return out
 
 
+def item_kind(data: Data, item: str) -> str:
+    """"toolbox", "medkit", "flashlight", "key", "map", "fogvial" – or "" for no item."""
+    if item in data.toolboxes:
+        return "toolbox"
+    if item in data.medkits:
+        return "medkit"
+    return next((kind for kind, names in data.items.items() if item in names), "")
+
+
+def _two(chosen, allowed) -> list:
+    """The add-ons that are in the two places: of those chosen the first two that fit, each once."""
+    return [n for n in dict.fromkeys(chosen) if n in allowed][:2]
+
+
 def item_addons(data: Data, s: Survivor) -> list:
-    """The add-on entries of ``s`` that fit the item in hand (a toolbox's on a toolbox, a med-kit's on a med-kit;
-    each once, two at most – the game has two places)."""
+    """The add-on entries of ``s`` that count: of the two add-ons that fit the item in hand (a toolbox's on a
+    toolbox, a med-kit's on a med-kit) those with an effect the calculator knows."""
     kind = "toolbox" if s.toolbox in data.toolboxes else "medkit" if s.medkit in data.medkits else ""
-    out = []
-    for name in dict.fromkeys(s.addons):
-        e = data.item_addons.get(name)
-        if e and e["item"] == kind and len(out) < 2:
-            out.append(e)
-    return out
+    fit = data.item_addon_lists.get(kind, ())
+    return [data.item_addons[n] for n in _two(s.addons, fit) if n in data.item_addons]
 
 
 def tool_charges(data: Data, s: Survivor) -> float:
@@ -581,24 +597,35 @@ def _holds(data: Data, s: Survivor, item) -> bool:
 
 
 def killer_addons(data: Data, killer: Killer) -> list:
-    """The add-on entries that count: of the chosen Killer, each once, two at most."""
-    out = []
-    for name in dict.fromkeys(killer.addons):
-        e = data.killer_addons.get(name)
-        if e and e["killer"] == killer.name and len(out) < 2:
-            out.append(e)
-    return out
+    """The add-on entries that count: of the two add-ons of the chosen Killer those with an effect the calculator
+    knows (an add-on without one still takes its place)."""
+    fit = data.killer_addon_lists.get(killer.name, ())
+    return [data.killer_addons[n] for n in _two(killer.addons, fit) if n in data.killer_addons]
 
 
 def killer_addon_names(data: Data, killer_name: str) -> list:
-    """The add-ons of a Killer the calculator knows (those with a speed it can compute), sorted."""
-    return sorted((n for n, e in data.killer_addons.items() if e["killer"] == killer_name), key=str.lower)
+    """Every add-on of a Killer's power (1.54: also those the calculator cannot work out), sorted."""
+    return sorted(data.killer_addon_lists.get(killer_name, ()), key=str.lower)
 
 
 def item_addon_names(data: Data, item: str) -> list:
-    """The add-ons that fit an item name (a toolbox or a med-kit), sorted; [] for no item."""
-    kind = "toolbox" if item in data.toolboxes else "medkit" if item in data.medkits else ""
-    return sorted((n for n, e in data.item_addons.items() if e["item"] == kind), key=str.lower)
+    """Every add-on that fits an item name (toolbox, med-kit, flashlight, key, map, fog vial), sorted."""
+    return sorted(data.item_addon_lists.get(item_kind(data, item), ()), key=str.lower)
+
+
+def item_names(data: Data) -> list:
+    """Every item a Survivor can carry: toolboxes, med-kits, then those without a speed of their own."""
+    return list(data.toolboxes) + list(data.medkits) + [n for kind in ("flashlight", "key", "map", "fogvial")
+                                                        for n in data.items.get(kind, ())]
+
+
+def plain_addons(data: Data, item: str = "", addons=(), killer: Killer | None = None) -> list:
+    """The chosen add-ons (of an item, or of the Killer) that are in a place but change nothing the calculator
+    works out."""
+    if killer is not None:
+        fit, known = data.killer_addon_lists.get(killer.name, ()), data.killer_addons
+        return [n for n in _two(killer.addons, fit) if n not in known]
+    return [n for n in _two(addons, data.item_addon_lists.get(item_kind(data, item), ())) if n not in data.item_addons]
 
 
 def area_rows(data: Data, area_id: str, killer: Killer | None = None) -> list:
@@ -681,7 +708,10 @@ def modifiers(data: Data, area_id: str, row: dict, subject: int, team, killer: K
     for part, group in found:                             # of one group (Exhaustion perks) only the strongest
         if group:
             best = groups.get(group)
-            if best is None or abs(part.value) > abs(best.value):
+            if best is None or abs(part.value) > abs(best.value) or \
+                    (abs(part.value) == abs(best.value) and part.exempt and not best.exempt):
+                # the strongest; of two equal ones the add-on's (Mangled from a perk and an add-on: the effect is
+                # there once, and an add-on's is never lowered)
                 groups[group] = part
         else:
             parts.append(part)
@@ -708,6 +738,20 @@ def factor(parts) -> float:
     return out
 
 
+def _can(data: Data, s: Survivor, row: dict) -> bool:
+    """The Survivor can do what the row is about with what is in hand: healing oneself needs the med-kit,
+    sabotage the toolbox (or Saboteur) – with another item in hand the row is left out. Empty hands: the row
+    stays (the item it needs is assumed)."""
+    needs = row.get("needs", "")
+    if not needs:
+        return True
+    held = "toolbox" if s.toolbox in data.toolboxes else "medkit" if s.medkit in data.medkits else \
+        "other" if s.item else ""
+    if held in ("", needs):
+        return True
+    return needs == "toolbox" and "Saboteur" in s.perks
+
+
 def area_lines(data: Data, area_id: str, team, killer: Killer | None = None, scen: Scenario | None = None) -> list:
     """Every row of the area for every subject (each Survivor of ``team``, or the Killer)."""
     area = data.areas.get(area_id)
@@ -719,6 +763,8 @@ def area_lines(data: Data, area_id: str, team, killer: Killer | None = None, sce
     rows = area_rows(data, area_id, killer)
     for subject in subjects:
         for row in rows:
+            if subject != KILLER and not _can(data, team[subject], row):
+                continue
             parts = modifiers(data, area_id, row, subject, team, killer, scen)
             mult = factor(parts)
             base = row.get("base")
@@ -782,7 +828,7 @@ def suggest(data: Data, area_id: str, team, killer: Killer | None = None, scen: 
     killer_area = data.areas[area_id]["side"] == "K"
     free, seen = [], set()
     for i, s in enumerate(team):                          # equal builds: the perk is tried on the first only
-        build = (tuple(s.perks), s.toolbox, s.part, s.medkit, tuple(s.addons))
+        build = (tuple(s.perks), s.toolbox, s.part, s.medkit, tuple(s.addons), s.item)
         if len(s.perks) < slots and build not in seen:
             seen.add(build)
             free.append(i)

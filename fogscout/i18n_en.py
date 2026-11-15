@@ -1804,12 +1804,8 @@ EN = {
         'add-on: 100 %',
     'Add-ons':
         'Add-ons',
-    'Add-ons: aufgeführt sind die, deren Wirkung der Rechner berechnen kann (Haste, Hindered, Mangled, Aktionstempo). Die Kraft selbst zählt nur dort mit, wo ein gewähltes Add-on sie verstärkt.':
-        'Add-ons: listed are those whose effect the calculator can work out (Haste, Hindered, Mangled, action speed). The power itself only counts where a chosen add-on strengthens it.',
     'Bedingte Perks zählen als aktiv (z. B. Resilience = verletzt, Hope = Tore mit Strom); die Bedingung steht in der Aufschlüsselung. Ein Werkzeugkasten wirkt beim Reparieren und Sabotieren, ein Med-Kit beim Heilen; Add-ons zählen voll (keine Diminishing Returns).':
         'Conditional perks count as active (e.g. Resilience = injured, Hope = gates powered); the condition is shown in the breakdown. A toolbox acts while repairing and sabotaging, a med-kit while healing; add-ons count fully (no diminishing returns).',
-    'Für diesen Killer kennt der Rechner kein Add-on mit berechenbarer Wirkung.':
-        'For this killer the calculator knows no add-on with an effect it can work out.',
     'Grundgeschwindigkeit':
         'Base speed',
     'keine regulären Skill Checks, solange der Werkzeugkasten läuft':
@@ -1818,6 +1814,12 @@ EN = {
         '+ {n} more',
     'Update gesperrt: OBS nimmt gerade auf – der Neustart würde die Aufnahme beenden. Aufnahme stoppen, dann noch einmal auf „Aktualisieren und neu starten“ klicken.':
         'Update locked: OBS is recording – the restart would end the recording. Stop the recording, then click “Update and restart” again.',
+    'Add-ons: alle des gewählten Killers. Berechnet werden die mit Haste, Hindered, Mangled oder Aktionstempo; die Kraft selbst zählt nur dort mit, wo ein gewähltes Add-on sie verstärkt.':
+        'Add-ons: all of the chosen killer. Worked out are those with Haste, Hindered, Mangled or an action speed; the power itself only counts where a chosen add-on strengthens it.',
+    'Ohne berechenbare Wirkung: {names}.':
+        'Without an effect the calculator works out: {names}.',
+    '1 = die Survivor leiden nach dem Heilen unter dem Effekt':
+        '1 = the survivors suffer from the effect after being healed',
     'Claude hat unverständlich geantwortet.': 'Claude gave an answer that could not be read.',
     'Claude ist nicht erreichbar – keine Internetverbindung?': 'Claude cannot be reached – no internet connection?',
     'Claude: Zu viele Anfragen – gleich noch einmal versuchen.': 'Claude: too many requests – try again in a moment.',

@@ -114,7 +114,10 @@ def test_a_perk_acts_only_on_its_rows_and_on_the_right_survivors():
     assert line("objects", "bless", flow, scen=Sc(stacks=0.5)).mult == pytest.approx(1 + 0.15 * 2)
     assert line("objects", "bless", flow, scen=Sc(stacks=0.0)).mult == pytest.approx(1.15)
     assert line("objects", "gate", [S(("Wake Up!",))]).mult == pytest.approx(1.7)        # 10 % + 4 · 15 %
-    assert line("objects", "cleanse", [S(("Counterforce",))], scen=Sc(stacks=0.0)).mult == pytest.approx(2.5)
+    # Counterforce: the wiki says it raises the default cleansing speed *to* 125 % (not by 125 %, as 1.52 had it),
+    # and +25 % for every totem cleansed
+    assert line("objects", "cleanse", [S(("Counterforce",))], scen=Sc(stacks=0.0)).result == pytest.approx(14 / 1.5)
+    assert line("objects", "cleanse", [S(("Counterforce",))]).mult == pytest.approx(1 + 0.25 + 4 * 0.25)
 
 
 def test_the_killers_own_actions_and_what_survivors_do_to_them():
@@ -248,7 +251,7 @@ def test_a_killers_add_ons_count_fully_and_only_for_their_killer():
     # Mangled is one status effect: from a perk and an add-on it counts once (−20 % healing speed)
     nurse = K(("Sloppy Butcher", "Coulrophobia"), name="The Nurse", addons=("Fragile Wheeze",))
     ln = line("heal", "heal_other", [S()], nurse)
-    assert ln.mult == pytest.approx(0.7 * (1 - 0.2 * 0.5)) and len(ln.parts) == 2
+    assert ln.mult == pytest.approx(0.7 * 0.8) and len(ln.parts) == 2               # the add-on's: not ranked
     only = line("heal", "heal_other", [S()], K(name="The Nurse", addons=("Fragile Wheeze",)))
     assert only.result == pytest.approx(16 / 0.8) and only.parts[0].exempt and only.parts[0].seconds == 70
     # an add-on that helps both sides (The Animatronic's poster)
@@ -256,9 +259,20 @@ def test_a_killers_add_ons_count_fully_and_only_for_their_killer():
     assert line("k_action", "kvault", [S()], party, subject=g.KILLER).result == pytest.approx(1.7 / 1.2)
     assert line("vault", "window_fast", [S()], party).result == pytest.approx(0.5 / 1.2)
     assert line("move", "run", [S()], party).result == pytest.approx(4.48)
-    assert g.killer_addon_names(D, "The Clown") == ["Cheap Gin Bottle", "Flask of Bleach", "Sticky Soda Bottle",
-                                                    "Sulphuric Acid Vial"]
-    assert g.killer_addon_names(D, "The Plague") == ["Worship Tablet"] and g.killer_addon_names(D, "") == []
+    # 1.54 (Saru: "Alle Addon sollen verfügbar sein für jeden Killer und Surv."): every add-on of the power is
+    # offered, 20 for each of the 45 Killers; one the calculator cannot work out takes its place and adds nothing
+    clown_all = g.killer_addon_names(D, "The Clown")
+    assert len(clown_all) == 20 and clown_all == sorted(clown_all, key=str.lower)
+    assert {"Cheap Gin Bottle", "Flask of Bleach", "Sticky Soda Bottle", "Sulphuric Acid Vial",
+            "Robin Feather"} <= set(clown_all)
+    assert all(len(g.killer_addon_names(D, name)) == 20 for name in D.killers) and g.killer_addon_names(D, "") == []
+    assert '"Shadow Dance" - Blood' in g.killer_addon_names(D, "The Wraith")            # a name with quotes
+    full = K(name="The Clown", addons=("Robin Feather", "Cheap Gin Bottle", "Sticky Soda Bottle"))
+    assert g.killer_addons(D, full) == [D.killer_addons["Cheap Gin Bottle"]]            # the third has no place
+    assert g.plain_addons(D, killer=full) == ["Robin Feather"]
+    assert line("k_move", "kbase", [S()], full, subject=g.KILLER).mult == pytest.approx(1.17)
+    cloaked = K(name="The Wraith", addons=('"Shadow Dance" - Blood',))
+    assert line("k_action", "break", [S()], cloaked, subject=g.KILLER).result == pytest.approx(2.34 / 1.6)
 
 
 def test_items_and_their_add_ons_for_healing_sabotage_and_repairing():
@@ -305,9 +319,57 @@ def test_items_and_their_add_ons_for_healing_sabotage_and_repairing():
     # the event toolboxes and med-kits have the values of their twins (wiki "Toolboxes", "Med-Kits")
     assert D.toolboxes["Festive Toolbox"] == {**D.toolboxes["Commodious Toolbox"], "name": "Festive Toolbox"}
     assert D.medkits["Anniversary Med-Kit"]["bonus"] == D.medkits["First Aid Kit"]["bonus"] == 0.40
-    assert g.item_addon_names(D, "Ranger Med-Kit") == ["Abdominal Dressing", "Butterfly Tape", "Medical Scissors",
-                                                       "Self Adherent Wrap"]
-    assert "Socket Swivels" in g.item_addon_names(D, "Toolbox") and g.item_addon_names(D, "") == []
+    kit = g.item_addon_names(D, "Ranger Med-Kit")
+    assert len(kit) == 13 and {"Abdominal Dressing", "Butterfly Tape", "Medical Scissors", "Self Adherent Wrap",
+                               "Bandages", "Styptic Agent"} <= set(kit)
+    assert len(g.item_addon_names(D, "Toolbox")) == 11 and g.item_addon_names(D, "") == []
+    # 1.54: every item with its add-ons – those without a speed of their own are offered and change nothing
+    assert g.item_kind(D, "Flashlight") == "flashlight" and len(g.item_addon_names(D, "Flashlight")) == 13
+    assert [len(g.item_addon_names(D, n)) for n in ("Skeleton Key", "Cryptic Map", "Vigo's Fog Vial")] == [5, 5, 5]
+    assert {"Flashlight", "Skeleton Key", "Cryptic Map", "Vigo's Fog Vial", "Toolbox", "Ranger Med-Kit",
+            "Banquet Toolbox"} <= set(g.item_names(D)) and len(g.item_names(D)) == len(set(g.item_names(D)))
+    wrapped = S(medkit="First Aid Kit", addons=("Bandages", "Medical Scissors", "Abdominal Dressing"))
+    assert g.item_addons(D, wrapped) == [D.item_addons["Medical Scissors"]]         # Bandages takes a place
+    assert g.plain_addons(D, "First Aid Kit", wrapped.addons) == ["Bandages"]
+    assert g.plain_addons(D, "Flashlight", ("Battery", "Socket Swivels")) == ["Battery"]
+
+
+def test_a_row_is_left_out_when_the_item_in_hand_cannot_do_it():
+    """1.54 (review): healing oneself needs the med-kit, sabotage the toolbox or Saboteur – with another item in
+    hand the row is not shown; with empty hands it stays (the item it needs is assumed)."""
+    def rows(area, s):
+        return [ln.row for ln in g.area_lines(D, area, [s])]
+    assert "heal_self" in rows("heal", S()) and "heal_self" in rows("heal", S(medkit="First Aid Kit"))
+    assert "heal_self" not in rows("heal", S(toolbox="Toolbox")) and "heal_self" not in rows("heal",
+                                                                                           S(item="Flashlight"))
+    assert rows("heal", S(toolbox="Toolbox")) == ["heal_other", "heal_dying", "recover"]
+    assert "sabotage" in rows("hook", S()) and "sabotage" in rows("hook", S(toolbox="Toolbox"))
+    assert rows("hook", S(medkit="First Aid Kit")) == ["unhook"] and rows("hook", S(item="Skeleton Key")) == ["unhook"]
+    assert rows("hook", S(("Saboteur",), medkit="First Aid Kit")) == ["unhook", "sabotage"]
+    two = g.area_lines(D, "heal", [S(toolbox="Toolbox"), S()])
+    assert [(ln.subject, ln.row) for ln in two if ln.row == "heal_self"] == [(1, "heal_self")]
+
+
+def test_mangled_from_a_perk_and_an_add_on_counts_the_same_in_either_order():
+    """1.54 (review): the effect is there once; the add-on's is never lowered by diminishing returns – whichever
+    of the two the build names first."""
+    nurse = K(("Coulrophobia", "Sloppy Butcher"), name="The Nurse", addons=("Fragile Wheeze",))
+    ln = line("heal", "heal_other", [S()], nurse)
+    assert ln.mult == pytest.approx(0.7 * 0.8)
+    assert [(p.source, p.exempt) for p in ln.parts] == [("Coulrophobia", False), ("Fragile Wheeze", True)]
+    perk_only = line("heal", "heal_other", [S()], K(("Coulrophobia", "Sloppy Butcher")))
+    assert perk_only.mult == pytest.approx(0.7 * (1 - 0.2 * 0.5))                  # a perk's is ranked
+
+
+def test_weeping_wounds_slows_repairing_too():
+    """1.54 (review; wiki: "Reduces their Action speeds for Healing and Repairing by 16 %"): it was in the
+    healing area only."""
+    s = S()
+    assert g.speed(D, s, [s], K(("Scourge Hook: Weeping Wounds",)), Sc()) == pytest.approx(0.84)
+    assert g.speed(D, s, [s], K(("Scourge Hook: Weeping Wounds",), {"Scourge Hook: Weeping Wounds": 0}),
+                   Sc()) == pytest.approx(1.0)
+    assert line("heal", "heal_other", [s], K(("Scourge Hook: Weeping Wounds",))).mult == pytest.approx(0.84)
+    assert "Scourge Hook: Weeping Wounds" in g.perk_names(D, "K", "repair")
 
 
 def test_the_add_on_lists_of_the_data_file_fit_the_calculator():
@@ -319,12 +381,20 @@ def test_the_add_on_lists_of_the_data_file_fit_the_calculator():
     for e in raw["killer_addons"]:
         assert e["killer"] in D.killers and e["effects"], e["name"]
         for f in e["effects"]:
-            assert set(f["tags"]) <= tags and f["to"] in ("self", "enemy") and abs(f["value"]) <= 0.5, e["name"]
+            assert set(f["tags"]) <= tags and f["to"] in ("self", "enemy") and abs(f["value"]) <= 0.6, e["name"]
             assert f.get("when", "") in set(app_calc.WHEN) | {""}, e["name"]
     for e in raw["item_addons"]:
         assert e["item"] in ("toolbox", "medkit"), e["name"]
         assert sum(k in e for k in ("repair", "charges", "part", "no_checks", "sabotage", "heal")) == 1, e["name"]
     assert all({"name", "bonus", "charges", "sabotage"} <= set(t) for t in raw["toolboxes"])
+    # the full lists: 20 add-ons for each Killer, every one with an effect is in its Killer's or item's list
+    assert set(raw["killer_addon_lists"]) == set(D.killers)
+    assert all(len(v) == len(set(v)) == 20 for v in raw["killer_addon_lists"].values())
+    assert all(e["name"] in raw["killer_addon_lists"][e["killer"]] for e in raw["killer_addons"])
+    assert all(e["name"] in raw["item_addon_lists"][e["item"]] for e in raw["item_addons"])
+    every = [n for v in raw["killer_addon_lists"].values() for n in v] + \
+        [n for v in raw["item_addon_lists"].values() for n in v]
+    assert len(every) == len(set(every)) == 952                 # no name twice: one list never offers another's
     assert not set(D.not_modelled_areas) & (set(D.killer_addons) | set(D.item_addons))
 
 
@@ -367,29 +437,63 @@ def test_perk_pictures_are_found_by_the_perks_name_or_the_packs_file_name(tmp_pa
     # the beginning goes only with its underscore: "IconAddon_scraps" must not lose the s of its name
     assert perkicons.key("IconAddon_scraps") == "scraps" and perkicons.key("IconItems_toolbox") == "toolbox"
     assert perkicons.key("Iconoclast") == "iconoclast"
+    assert perkicons.key("Jump Rope (Dream Demon)") == "jumpropedreamdemon"
+    assert perkicons.candidates("Jump Rope (Dream Demon)")[:2] == ["jumpropedreamdemon", "jumprope"]
+    # 1.54: a perk and an add-on of one name never take each other's picture; a plainly named file serves both
+    twins = tmp_path / "twins"
+    twins.mkdir()
+    for name in ("iconPerks_twin.png", "IconAddon_twin.png", "IconItems_lamp.png", "Plain Name.png"):
+        (twins / name).write_bytes(b"x")
+    both = perkicons.Index([str(twins)])
+    assert both.find("Twin", "perks").endswith("iconPerks_twin.png")
+    assert both.find("Twin", "addon").endswith("IconAddon_twin.png") and both.find("Twin", "items") is None
+    assert both.find("Lamp", "items").endswith("IconItems_lamp.png") and both.find("Lamp", "perks") is None
+    assert both.find("Lamp").endswith("IconItems_lamp.png")                       # any kind when none is asked
+    assert both.finder("addon")("Plain Name").endswith("Plain Name.png") and both.find("Plain Name", "perks")
+    assert [perkicons.kind_of(n) for n in ("T_UI_iconsPerks_x", "IconAddon_x", "iconItems_x", "Prove Thyself")] == \
+        ["perks", "addon", "items", ""]
+    # the user's own picture comes first, however it is named (the program's own folder is the second one)
+    mine, shipped = tmp_path / "mine", tmp_path / "shipped"
+    mine.mkdir()
+    shipped.mkdir()
+    (mine / "Twin.png").write_bytes(b"x")
+    (shipped / "iconPerks_twin.png").write_bytes(b"x")
+    (shipped / "iconPerks_other.png").write_bytes(b"x")
+    order = perkicons.Index([str(mine), str(shipped)])
+    assert order.find("Twin", "perks").endswith(os.path.join("mine", "Twin.png"))
+    assert order.find("Other", "perks").endswith("iconPerks_other.png")
     empty = perkicons.Index([str(tmp_path / "nothing")])
     assert not empty.any() and empty.find("Botany Knowledge") is None
     assert perkicons.folders("D") == [os.path.join("D", perkicons.USER_FOLDER),
                                       os.path.join(perkicons.HERE, perkicons.FOLDER)]
 
 
+# what the wiki has no picture for that can be told apart by its name (1.54) – these entries stand without one
+NO_PICTURE = {("addon", "Anti-Exhaustion Syringe"), ("addon", "Misty Day, Remains of Judgement"),
+              ("addon", "Mysterious Elixir"), ("addon", "Spattered Handkerchief"), ("addon", "Vorpal Sword"),
+              ("items", "Annotated Map"), ("items", "Banquet Flashlight"), ("items", "Banquet Med-Kit"),
+              ("items", "Banquet Toolbox"), ("items", "Scribbled Map")}
+
+
 def test_every_perk_of_the_calculator_has_its_picture_in_the_program():
     """Saru: "Wiki ist in Ordnung" – the pictures come with the program (64 px PNG from the Dead by Daylight Wiki,
-    THIRD_PARTY.md): one for every perk of perkdata.json and (1.53, "ja") for every item and add-on, each of its
-    own kind, nothing else in the folder, each a small picture."""
+    THIRD_PARTY.md): one for every perk of perkdata.json and (1.53/1.54, "ja") for every item and every add-on,
+    each of its own kind – but for the ten the wiki has none for; nothing else in the folder, each a small
+    picture."""
     from PIL import Image
     folder = os.path.join(perkicons.HERE, perkicons.FOLDER)
     index = perkicons.Index([folder])
-    perks = set(D.survivor) | set(D.killer) | set(D.perks)
-    others = set(D.toolboxes) | set(D.medkits) | set(D.item_addons) | set(D.killer_addons)
-    names = perks | others
-    assert not perks & others and [n for n in sorted(names) if index.find(n) is None] == []
-    assert all("perks_" in os.path.basename(index.find(n)).lower() for n in perks)
-    kind = [os.path.basename(index.find(n)).lower().removeprefix("t_ui_") for n in sorted(others)]
-    assert all(k.startswith(("iconaddon_", "iconitems_")) for k in kind)
-    used = {index.find(part) for n in names for part in n.split(" / ")} - {None}
+    want = [(n, "perks") for n in set(D.survivor) | set(D.killer) | set(D.perks)] + \
+        [(n, "items") for n in g.item_names(D)] + \
+        [(n, "addon") for v in list(D.killer_addon_lists.values()) + list(D.item_addon_lists.values()) for n in v]
+    assert len(want) == len(set(want)) == 1100
+    assert {(kind, n) for n, kind in want if index.find(n, kind) is None} == NO_PICTURE
+    for n, kind in want:                                      # a picture is of the kind asked for
+        path = index.find(n, kind)
+        assert path is None or perkicons.kind_of(os.path.basename(path)) == kind, n
+    used = {index.find(part, kind) for n, kind in want for part in n.split(" / ")} - {None}
     files = sorted(os.listdir(folder))
-    assert sorted(os.path.basename(p) for p in used) == files and len(files) > 190
+    assert sorted(os.path.basename(p) for p in used) == files and len(files) > 1000
     for name in files:
         path = os.path.join(folder, name)
         assert name.endswith(".png") and os.path.getsize(path) < 16 * 1024, name
@@ -551,8 +655,9 @@ def test_the_page_takes_a_killer_its_add_ons_and_the_items_add_ons(app_root):
         assert add1.get() == "Cheap Gin Bottle" and add2.get() == app_calc.NONE
         from fogscout import app_qt
         st = app_qt.ui_state(box1)                                   # the add-ons' pictures go to the page
-        assert st["icons"][0] is None and all("iconAddon_" in os.path.basename(p) or "IconAddon_" in
-                                              os.path.basename(p) for p in st["icons"][1:])
+        named = [p for p in st["icons"][1:] if p]
+        assert st["icons"][0] is None and len(named) >= 19 and all("addon_" in os.path.basename(p).lower()
+                                                                  for p in named)
         assert list(box1.cget("values")) == [app_calc.NONE] + g.killer_addon_names(D, "The Clown")
         assert list(t.get_children()) == [f"{g.KILLER}:kbase", f"{g.KILLER}:kalt0", f"{g.KILLER}:carry"]
         assert t.item(f"{g.KILLER}:kbase", "text") == "Grundgeschwindigkeit"
@@ -576,9 +681,14 @@ def test_the_page_takes_a_killer_its_add_ons_and_the_items_add_ons(app_root):
         app.calc_killer_var.set("The Trapper")
         app._calc_changed()
         assert not box1.instate(["disabled"])
-        app.calc_killer_var.set("The Cenobite")                         # no add-on the calculator can work out
+        app.calc_killer_var.set("The Cenobite")                         # 1.54: every Killer has all 20 add-ons
         app._calc_changed()
-        assert box1.instate(["disabled"]) and "kein Add-on" in app.calc_killer_hint.get()
+        assert not box1.instate(["disabled"]) and len(box1.cget("values")) == 21
+        assert "Ohne berechenbare Wirkung" not in app.calc_killer_hint.get()
+        add1.set(g.killer_addon_names(D, "The Cenobite")[0])           # none of them changes a speed
+        app._calc_changed()
+        assert add1.get() != app_calc.NONE and app.settings.get("calc")["killer_addons"] == [add1.get()]
+        assert f"Ohne berechenbare Wirkung: {add1.get()}." in app.calc_killer_hint.get()
         app.calc_killer_var.set(app_calc.NONE)
         app._calc_changed()
         assert list(t.get_children())[0] == f"{g.KILLER}:k460" and app.settings.get("calc")["killer_name"] == ""
@@ -611,6 +721,23 @@ def test_the_page_takes_a_killer_its_add_ons_and_the_items_add_ons(app_root):
         app.calc_surv[0][1].set(app_calc.NONE)
         app._calc_changed()
         assert ibox.instate(["disabled"]) and iadd.get() == app_calc.NONE
+        # 1.54: a flashlight and its add-ons can be chosen; the page says that they change nothing it works out
+        app.calc_surv[0][1].set("Flashlight")
+        app._calc_changed()
+        assert not ibox.instate(["disabled"]) and list(ibox.cget("values"))[1:] == g.item_addon_names(D, "Flashlight")
+        iadd.set("Battery")
+        app._calc_changed()
+        assert app.settings.get("calc")["survivors"][0][1:] == ["Flashlight", ["Battery"]]
+        assert app.calc_plain_var.get() == "Ohne berechenbare Wirkung: Survivor 1: Flashlight, Battery."
+        app.calc_surv[0][1].set("Toolbox")
+        app._calc_changed()
+        iadd.set("Spring Clamp")
+        iadd2.set("Socket Swivels")
+        app._calc_changed()
+        assert app.calc_plain_var.get() == "Ohne berechenbare Wirkung: Survivor 1: Spring Clamp."
+        iadd.set(app_calc.NONE)
+        app._calc_changed()
+        assert app.calc_plain_var.get() == ""
         app.calc_killer_var.set("The Clown")
         app._calc_reset()
         assert app.calc_killer_var.get() == app_calc.NONE and app.settings.get("calc")["killer_addons"] == []
