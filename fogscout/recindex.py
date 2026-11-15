@@ -168,10 +168,35 @@ def expired_farming(recs: list[Recording], days: int, now: float) -> list[Record
     return [r for r in recs if r.farming and not r.keep and not r.marks and r.t < limit]
 
 
-def prune_farming(folder: str, recs: list[Recording], days: int, now: float | None = None):
+def protected_paths(folder: str, protect) -> set:
+    """1.56 (audit E-1): ``protect`` (index names relative to ``folder`` or absolute paths – files queued for
+    upload or open in an editor) as normalised absolute paths."""
+    out = set()
+    for n in protect or ():
+        p = n if os.path.isabs(n) else rel_path(folder, n)
+        if p:
+            out.add(os.path.normcase(os.path.abspath(p)))
+    return out
+
+
+def in_use(folder: str, r: Recording, paths: set) -> bool:
+    """1.56: one of ``r``'s files (the recording, its pre-roll) is among ``paths`` (protected_paths)."""
+    if not paths:
+        return False
+    for n in (r.file, r.pre):
+        p = rel_path(folder, n) if n else None
+        if p and os.path.normcase(os.path.abspath(p)) in paths:
+            return True
+    return False
+
+
+def prune_farming(folder: str, recs: list[Recording], days: int, now: float | None = None, protect=()):
     """Delete the expired farming recordings (``expired_farming``) – only files named in the index, only inside
-    ``folder``. Returns (entries left, files deleted)."""
-    gone = expired_farming(recs, days, time.time() if now is None else now)
+    ``folder``; 1.56: never one in ``protect`` (queued for upload, open in an editor – ``protected_paths``; it
+    goes on a later look). Returns (entries left, files deleted)."""
+    paths = protected_paths(folder, protect)
+    gone = [r for r in expired_farming(recs, days, time.time() if now is None else now)
+            if not in_use(folder, r, paths)]
     deleted = []
     for r in gone:
         for n, ok in own_files(r):
@@ -198,10 +223,10 @@ def prune_rank(r: Recording) -> int:
 
 
 def prune(folder: str, recs: list[Recording], limit: int, reserve: int = RESERVE,
-          free=None) -> tuple[list[Recording], list[str]]:
+          free=None, protect=()) -> tuple[list[Recording], list[str]]:
     """Keep the folder's recordings under ``limit`` bytes (0 = the whole drive) and ``reserve`` bytes free on
     the drive: delete not-kept ones of the index in ``prune_rank`` order (farming/short first, marked last,
-    oldest first) – only files named in it, only inside ``folder``.
+    oldest first) – only files named in it, only inside ``folder``; 1.56: never one in ``protect`` (like kept).
     Entries whose files are gone drop out. ``free`` = bytes free now (measured when None).
     Returns (entries left, files deleted)."""
     left, deleted = [], []
@@ -217,7 +242,9 @@ def prune(folder: str, recs: list[Recording], limit: int, reserve: int = RESERVE
         except OSError:
             free = reserve
     total = sum(r.size for r in left)
-    for r in sorted([r for r in left if not r.keep], key=lambda r: (prune_rank(r), r.t)):
+    paths = protected_paths(folder, protect)
+    for r in sorted([r for r in left if not r.keep and not in_use(folder, r, paths)],
+                    key=lambda r: (prune_rank(r), r.t)):
         if (limit <= 0 or total <= limit) and free >= reserve:
             break
         for n, ok in own_files(r):
