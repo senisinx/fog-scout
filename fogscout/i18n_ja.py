@@ -2163,8 +2163,6 @@ T = {
         'キラー：攻撃後の硬直',
     'Kriechen':
         '這いずり',
-    'Tokens der Survivor-Perks':
-        'サバイバーのパークのトークン',
     'Tokens des Perks':
         'パークのトークン',
     'Mit Diminishing Returns: {on} · ohne: {off} ({what}).':
@@ -2305,6 +2303,8 @@ T = {
         '1 = サバイバーが治療後に効果を受けている',
     'nur {name} zählt':
         '{name} のみ有効',
+    'Tokens':
+        'トークン',
     'Claude hat unverständlich geantwortet.':
         'Claude の回答を読み取れませんでした。',
     'Claude ist nicht erreichbar – keine Internetverbindung?':

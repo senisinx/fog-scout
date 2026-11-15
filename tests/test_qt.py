@@ -829,6 +829,44 @@ def test_a_wrapping_row_works_its_height_out_once_and_again_when_something_in_it
     assert grid.heightForWidth(230) == grid._place(QRect(0, 0, 230, 0), False) < two_rows
 
 
+def test_a_row_hands_its_spare_width_to_the_controls_that_may_grow(qapp, keep):
+    """1.55 (review: the calculator's choices cut most names, with 800 px free beside them): what is left of a
+    row's width goes to the controls with a limit to grow to – equally, none past its limit, nothing when the
+    row wraps – and a row without such a control is laid out as before."""
+    from PySide6.QtCore import QRect
+    from PySide6.QtWidgets import QComboBox, QPushButton, QWidget
+    from fogscout.qt_layouts import FlowRow
+    host = keep(QWidget())
+    row = FlowRow(host)
+    boxes = [QComboBox() for _i in range(2)]
+    for b, top in zip(boxes, (260, 220)):
+        b.setFixedWidth(170)
+        b.setMaximumWidth(top)
+        b._grow_to = top
+        row.addWidget(b)
+    button = QPushButton("Knopf")
+    row.addWidget(button)
+    natural = row.sizeHint().width()
+    host.resize(natural, 100)
+    row.setGeometry(QRect(0, 0, natural, 100))
+    assert [b.width() for b in boxes] == [170, 170] and button.width() == button.sizeHint().width()
+    row.setGeometry(QRect(0, 0, natural + 60, 100))                            # 60 px spare: 30 each
+    assert [b.width() for b in boxes] == [200, 200] and button.width() == button.sizeHint().width()
+    row.setGeometry(QRect(0, 0, natural + 120, 100))                           # the second stops at its limit
+    assert [b.width() for b in boxes] == [240, 220]
+    row.setGeometry(QRect(0, 0, natural + 2000, 100))
+    assert [b.width() for b in boxes] == [260, 220] and boxes[1].x() == boxes[0].x() + 260 + 8
+    assert row.heightForWidth(natural + 2000) == row.heightForWidth(natural)   # one line either way
+    row.setGeometry(QRect(0, 0, 300, 200))                                     # too narrow: wraps, nobody grows
+    assert [b.width() for b in boxes] == [170, 170] and boxes[1].y() > boxes[0].y()
+    plain = FlowRow(keep(QWidget()))
+    others = [QPushButton(f"Knopf {i}") for i in range(3)]
+    for b in others:
+        plain.addWidget(b)
+    plain.setGeometry(QRect(0, 0, plain.sizeHint().width() + 500, 100))
+    assert [b.width() for b in others] == [b.sizeHint().width() for b in others]   # no limit set: as before
+
+
 def test_narrow_window_wraps_instead_of_cutting_off(qapp, keep):
     """1.59.1 (user's screenshots): rows of controls wrap, tiles take fewer columns, tick box texts wrap, the
     navigation shows only icons – nothing wider than the window."""
@@ -2870,6 +2908,44 @@ def test_the_play_button_of_an_overview_round_shows_only_with_a_recording(qapp, 
     rows[0].show_round(overview.RoundRow("Coal Tower", "Nurse", 10.0, "/r/b.mkv"))
     rows[0].play.click()
     assert posted == [("ov_round", 10.0), ("ov_recording", 10.0)]
+
+
+def test_a_hint_works_its_height_out_once_per_width_and_again_for_another_text_or_font(qapp, keep):
+    """1.55 (measured: Qt lays a wrapping text out anew for every question – 75 µs for a long hint, asked 1 700
+    times while the calculator's page was first shown): the height is kept per width. It must never outlive the
+    text or the font it was worked out for."""
+    from PySide6.QtWidgets import QLabel, QVBoxLayout, QWidget
+    from fogscout import qt_pages
+    host = keep(QWidget())
+    lay = QVBoxLayout(host)
+    hint = qt_pages.HintLabel()
+    lay.addWidget(hint)
+    hint.setText("Ein Hinweis, der so lang ist, dass er in einem schmalen Fenster über mehrere Zeilen läuft. " * 3)
+    host.resize(500, 400)
+    host.show()
+    qapp.processEvents()
+    fresh = lambda w: QLabel.heightForWidth(hint, min(w, hint._cap()) if hint._capped else w)
+    asked = []
+    real = QLabel.heightForWidth
+    try:
+        qt_pages.QLabel.heightForWidth = lambda self, w: asked.append(w) or real(self, w)
+        first = hint.heightForWidth(300)
+        assert [hint.heightForWidth(300) for _i in range(40)] == [first] * 40 and asked == [300]
+    finally:
+        qt_pages.QLabel.heightForWidth = real
+    assert first == fresh(300) > hint.heightForWidth(480) == fresh(480)        # narrower: more lines
+    hint.setText("Kurz.")
+    assert hint.heightForWidth(300) == fresh(300) < first                      # another text: at once
+    hint.setText("Ein Hinweis, der so lang ist, dass er in einem schmalen Fenster über mehrere Zeilen läuft. " * 3)
+    assert hint.heightForWidth(300) == first
+    font = hint.font()
+    font.setPixelSize(font.pixelSize() * 2 if font.pixelSize() > 0 else 30)
+    hint.setFont(font)
+    qapp.processEvents()
+    assert hint.heightForWidth(300) == fresh(300) > first                      # another font: worked out again
+    for w in range(200, 240):                                                  # a window being dragged
+        assert hint.heightForWidth(w) == fresh(w)
+    assert len(hint._heights) <= 9
 
 
 def test_a_long_hint_on_its_own_line_wraps_at_a_readable_width_and_shows_every_line(qapp, keep):

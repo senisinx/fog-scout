@@ -2163,8 +2163,6 @@ T = {
         '杀手：攻击后的恢复',
     'Kriechen':
         '爬行',
-    'Tokens der Survivor-Perks':
-        '逃生者技能的标记数',
     'Tokens des Perks':
         '该技能的标记数',
     'Mit Diminishing Returns: {on} · ohne: {off} ({what}).':
@@ -2305,6 +2303,8 @@ T = {
         '1 = 逃生者在被治愈后受到该效果影响',
     'nur {name} zählt':
         '仅 {name} 计入',
+    'Tokens':
+        '标记',
     'Claude hat unverständlich geantwortet.':
         'Claude 给出的回答无法读取。',
     'Claude ist nicht erreichbar – keine Internetverbindung?':

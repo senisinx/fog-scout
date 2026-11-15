@@ -32,6 +32,25 @@ def _natural(item) -> int:
     return item.sizeHint().width()
 
 
+def _grown(items, widths, spare: int) -> list:
+    """1.55: the room left in a row goes to the items that may grow (a widget's ``_grow_to`` – the calculator's
+    choices, whose names are longer than the box), shared equally, none past its limit."""
+    widths = list(widths)
+    limits = [getattr(it.widget(), "_grow_to", 0) if it.widget() is not None else 0 for it in items]
+    while spare > 0:
+        able = [i for i, top in enumerate(limits) if top > widths[i]]
+        if not able:
+            break
+        step = max(1, spare // len(able))
+        for i in able:
+            add = min(step, limits[i] - widths[i], spare)
+            widths[i] += add
+            spare -= add
+            if spare <= 0:
+                break
+    return widths
+
+
 class _Layout(QLayout):
     def __init__(self, parent=None, spacing=8):
         super().__init__(parent)
@@ -121,6 +140,8 @@ class FlowRow(_Layout):
             x += w + self._gap
         lines.append(line)
         one_line = total <= rect.width()
+        if one_line and total < rect.width():
+            widths = _grown(items, widths, rect.width() - total)
         n_right = min(self.right, len(items)) if one_line else 0
         y = rect.y()
         for line in ([[(it, w) for it, w in zip(items, widths)]] if one_line else lines):

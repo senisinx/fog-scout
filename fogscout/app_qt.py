@@ -84,6 +84,8 @@ def ui_layout(w, reg: dict):
             node["note"] = True
         if getattr(w, "_dbdms_px", None):            # 1.51: a choice of fixed width (the calculator's perk rows)
             node["px"] = int(w._dbdms_px)
+        if getattr(w, "_dbdms_px_max", None):        # 1.55: … that grows to this width where its row has room
+            node["px_max"] = int(w._dbdms_px_max)
         if getattr(w, "_dbdms_fold", None):          # 1.38.13: shut behind a fold (qt_pages.make_fold)
             node["fold"] = w._dbdms_fold
         if isinstance(w, ui.Treeview):           # packed without expand: as tall as its rows (server regions)
@@ -117,8 +119,11 @@ def ui_layout(w, reg: dict):
         return None
     reg[key] = w
     kind = "card" if isinstance(w, ui.LabelFrame) else "box"
-    return {"kind": kind, "key": key, "side": _side(w), "children": nodes, "grid": grid,
+    node = {"kind": kind, "key": key, "side": _side(w), "children": nodes, "grid": grid,
             "row": not grid and any(n["side"] in ("left", "right") for n in nodes)}
+    if getattr(w, "_dbdms_beside", None) and len(nodes) == 2:    # 1.55: two columns beside each other on a wide
+        node["beside"] = int(w._dbdms_beside)                    # page (the calculator: choices | result)
+    return node
 
 
 def ui_state(w) -> dict:

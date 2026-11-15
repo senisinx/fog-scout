@@ -2163,8 +2163,6 @@ T = {
         'Убийца: восстановление после атак',
     'Kriechen':
         'Ползком',
-    'Tokens der Survivor-Perks':
-        'Жетоны перков выживших',
     'Tokens des Perks':
         'жетоны перка',
     'Mit Diminishing Returns: {on} · ohne: {off} ({what}).':
@@ -2305,6 +2303,8 @@ T = {
         '1 = выжившие под действием эффекта после лечения',
     'nur {name} zählt':
         'учитывается только {name}',
+    'Tokens':
+        'Жетоны',
     'Claude hat unverständlich geantwortet.':
         'Ответ Claude не удалось прочитать.',
     'Claude ist nicht erreichbar – keine Internetverbindung?':

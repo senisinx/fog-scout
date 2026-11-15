@@ -582,6 +582,7 @@ class HintLabel(QLabel):
         self.setProperty("class", cls)
         self.setWordWrap(True)
         self._capped = None                       # None = not decided yet (first show), then True/False
+        self._heights, self._heights_of = {}, None    # 1.55: width -> height of the text they were worked out for
 
     def _cap(self) -> int:
         return self.fontMetrics().averageCharWidth() * HINT_CHARS
@@ -601,11 +602,29 @@ class HintLabel(QLabel):
 
     def changeEvent(self, e):
         super().changeEvent(e)
-        if self._capped and e.type() in (QEvent.FontChange, QEvent.StyleChange):
-            self.setMaximumWidth(self._cap())          # zoom: the cap follows the font
+        if e.type() in (QEvent.FontChange, QEvent.StyleChange):
+            self._heights = {}                         # another font or sheet: other heights
+            if self._capped:
+                self.setMaximumWidth(self._cap())      # zoom: the cap follows the font
+
+    def event(self, e):
+        if e.type() in (QEvent.Polish, QEvent.DynamicPropertyChange, QEvent.ContentsRectChange):
+            self._heights = {}                         # the sheet's font and margins arrive with these
+        return super().event(e)
 
     def heightForWidth(self, w: int) -> int:
-        return super().heightForWidth(min(w, self._cap()) if self._capped else w)
+        # 1.55 (measured: Qt lays the text out anew for every question, 75 µs for a long hint – the calculator's
+        # page asked 1 700 times while it was first shown): kept per width for the text and font of now
+        w = min(w, self._cap()) if self._capped else w
+        text = self.text()
+        if text != self._heights_of:
+            self._heights, self._heights_of = {}, text
+        h = self._heights.get(w)
+        if h is None:
+            if len(self._heights) > 8:                 # a window being dragged asks for many widths
+                self._heights.clear()
+            h = self._heights[w] = super().heightForWidth(w)
+        return h
 
 
 def _holder(layout, w):
@@ -1150,11 +1169,12 @@ class SideBySide(QWidget):
 
     BESIDE_FROM = 820                 # px (logical): from this width the cards sit side by side
 
-    def __init__(self, beside_from=None, weights=(3, 2)):
+    def __init__(self, beside_from=None, weights=(3, 2), side_max=0):
         super().__init__()
         if beside_from:
             self.BESIDE_FROM = beside_from
         self.weights = weights               # share of the width: first card, the others
+        self.side_max = side_max             # 1.55: beside, the others are at most this wide (0 = no limit)
         self.box = QBoxLayout(QBoxLayout.TopToBottom, self)
         self.box.setContentsMargins(0, 0, 0, 0)
         self.box.setSpacing(10)
@@ -1179,6 +1199,8 @@ class SideBySide(QWidget):
             self.box.setDirection(want)
             for i, card in enumerate(self.cards):       # beside: the short card hangs at the top, not stretched
                 self.box.setAlignment(card, Qt.AlignTop if want == QBoxLayout.LeftToRight and i else Qt.Alignment())
+                if i and self.side_max:
+                    card.setMaximumWidth(self.side_max if want == QBoxLayout.LeftToRight else 16777215)   # QWIDGETSIZE_MAX
             self.updateGeometry()
 
 
@@ -1544,6 +1566,8 @@ def _one_line_width(label) -> int:
 GRID_CELL_W = 520                # 1.8.8: a cell of a FormPage grid (hotkeys: name … key) is not wider
 HOST_BESIDE_FROM = 1000          # 1.8.8: table + clip preview side by side from this page width
 
+BESIDE_MAX = 920                  # 1.55: width of the second column of a "beside" box at most (the calculator's
+                                  # breakdown shows all its columns at this width)
 FLOW_KINDS = ("button", "combo", "check", "radio", "label", "entry", "value", "big")   # rows of these may wrap
 
 
@@ -1619,6 +1643,25 @@ class AutoPage(QWidget, _Arranged):
                     column[0].add(column[1], holder, hrow)
                 else:
                     lay.addWidget(holder, 1 if top and _grows(n) else 0)
+                self.controls[key] = (kind, holder, None)
+                return
+            if n.get("beside"):
+                # 1.55 (user: the result beside the choices): two columns of cards side by side from this page
+                # width on (times the text zoom – the choices grow with it), below each other on a narrower page
+                # the first column as wide as its rows are in one line, the second takes the rest up to
+                # BESIDE_MAX; what is left after that goes to the first (its choices grow, FlowRow)
+                zoom = qt_theme.current_zoom()
+                sb = SideBySide(round(n["beside"] * zoom), weights=(0, 1), side_max=round(BESIDE_MAX * zoom))
+                sb.setObjectName("beside")
+                for c in kids:
+                    wrap = QWidget()
+                    wl = QVBoxLayout(wrap)
+                    wl.setContentsMargins(0, 0, 0, 0)
+                    self._build(c, wl, keys, top=True)
+                    wl.addStretch()
+                    sb.add(wrap)
+                v.addWidget(sb)
+                lay.addWidget(holder, 0)
                 self.controls[key] = (kind, holder, None)
                 return
             if n.get("row") and any(c["kind"] == "host" for c in kids):
@@ -1720,6 +1763,9 @@ class AutoPage(QWidget, _Arranged):
         if kind == "combo" and n.get("px"):               # 1.51: as wide as the model says, whatever its longest
             w.setSizeAdjustPolicy(QComboBox.AdjustToMinimumContentsLengthWithIcon)     # entry (the list shows all
             w.setFixedWidth(round(n["px"] * qt_theme.current_zoom()))                   # of it: view at its own width)
+            if n.get("px_max", 0) > n["px"]:              # 1.55: wider where the row has room (FlowRow) – a long
+                w.setMaximumWidth(round(n["px_max"] * qt_theme.current_zoom()))          # name is cut less often
+                w._grow_to = w.maximumWidth()
             w.view().setTextElideMode(Qt.ElideNone)
             w.view().setMinimumWidth(round(260 * qt_theme.current_zoom()))
         if kind == "label" and n.get("px"):               # 1.52: names of one width – the choices beside them line up

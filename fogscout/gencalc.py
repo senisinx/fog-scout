@@ -78,6 +78,7 @@ class Survivor:
     medkit: str = ""                  # a name from Data.medkits, "" = none (healing others)
     addons: tuple = ()                # names from Data.item_addons (only those of the item in hand count)
     item: str = ""                    # another item in hand (flashlight, key, map, fog vial): no speed of its own
+    stacks: float | None = None       # share of this Survivor's Tokens that count (None: Scenario.stacks)
 
 
 @dataclass
@@ -580,7 +581,8 @@ def _effect_value(f: dict, n: int) -> float:
     return max(v, -f["max"]) if "max" in f and v < 0 else min(v, f["max"]) if "max" in f else v
 
 
-def _stack_count(data: Data, name: str, f: dict, side: str, killer: Killer, scen: Scenario) -> int:
+def _stack_count(data: Data, name: str, f: dict, side: str, killer: Killer, scen: Scenario,
+                 owner: Survivor | None = None) -> int:
     top = int(f.get("max_n", 0))
     if not top:
         return 0
@@ -589,7 +591,8 @@ def _stack_count(data: Data, name: str, f: dict, side: str, killer: Killer, scen
             return max(0, min(int(killer.counts.get(name, top)), top))
         except (TypeError, ValueError):
             return top
-    return max(1, min(top, int(round(top * scen.stacks))))
+    share = owner.stacks if owner is not None and owner.stacks is not None else scen.stacks   # 1.55: per Survivor
+    return max(1, min(top, int(round(top * share))))
 
 
 def _holds(data: Data, s: Survivor, item) -> bool:
@@ -650,7 +653,9 @@ def modifiers(data: Data, area_id: str, row: dict, subject: int, team, killer: K
     tags = set(row["tags"])
     found = []                                            # (Part, group)
 
-    def take(name: str, wanted: tuple, holder: Survivor | None = None):
+    def take(name: str, wanted: tuple, holder: Survivor | None = None, owner: Survivor | None = None):
+        """``holder``: who does the row (an item in hand may switch an effect off); ``owner``: whose perk it is
+        (their Tokens count)."""
         e = data.perks.get(name)
         if not e:
             return
@@ -659,7 +664,7 @@ def modifiers(data: Data, area_id: str, row: dict, subject: int, team, killer: K
                 continue
             if f.get("no_item") and holder is not None and _holds(data, holder, f["no_item"]):
                 continue
-            n = _stack_count(data, name, f, e["side"], killer, scen)
+            n = _stack_count(data, name, f, e["side"], killer, scen, owner)
             v = _effect_value(f, n)
             if not v and "cap" not in f:
                 continue
@@ -682,16 +687,24 @@ def modifiers(data: Data, area_id: str, row: dict, subject: int, team, killer: K
         for name in dict.fromkeys(killer.perks):
             take(name, ("self",))
         take_addons("self")
-        for name in dict.fromkeys(p for s in team for p in s.perks):          # a perk of two Survivors: once
-            take(name, ("enemy",))
+        owners = {}                                                           # a perk of two Survivors: once,
+        for s in team:                                                        # with the Tokens of the first
+            for p in s.perks:
+                owners.setdefault(p, s)
+        for name, owner in owners.items():
+            take(name, ("enemy",), owner=owner)
     else:
         me = team[subject]
         for name in dict.fromkeys(me.perks):
-            take(name, ("self", "team"), me)
+            take(name, ("self", "team"), me, me)
         mine = set(me.perks)
-        others = dict.fromkeys(p for i, s in enumerate(team) if i != subject for p in s.perks)
-        for name in others:
-            take(name, ("others",) if name in mine else ("others", "team"), me)
+        others = {}
+        for i, s in enumerate(team):
+            if i != subject:
+                for p in s.perks:
+                    others.setdefault(p, s)
+        for name, owner in others.items():
+            take(name, ("others",) if name in mine else ("others", "team"), me, owner)
         for name in dict.fromkeys(killer.perks):
             take(name, ("enemy",))
         take_addons("enemy")
@@ -744,6 +757,16 @@ def factor(parts) -> float:
         if p.value < 0:
             out *= max(0.0, 1.0 + p.counted)
     return out
+
+
+def metres(line, part) -> float | None:
+    """1.55: what a timed speed modifier is worth in metres on this line – the base speed times the share of
+    the factor it brings (as it counts now, after diminishing returns and a cap) times its seconds. None where
+    that says nothing (no speed, no duration, not counting)."""
+    if line.kind != "speed" or not line.base or not part.seconds or part.beaten or part.cap is not None:
+        return None
+    rest = [p for p in line.parts if p is not part]
+    return line.base * (factor(line.parts) - factor(rest)) * part.seconds
 
 
 def _can(data: Data, s: Survivor, row: dict) -> bool:
