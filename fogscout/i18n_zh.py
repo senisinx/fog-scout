@@ -6019,4 +6019,28 @@ T = {
         '在战绩下方显示你上次在此地图游玩的时间——若该局已关联统计页面的数据，则附带结果（击杀数或逃脱），否则只显示日期。',
     'Eine Zeile „Serie“ in „Heute“: wie viele 4K (Killer) bzw. Escapes (Survivor) in Folge in der laufenden Sitzung – laut Stats-Seite, Farming zählt nicht.':
         '在“今天”中添加一行“连胜”：当前游戏时段中连续的 4K（杀手）或逃脱（幸存者）次数——依据统计页面；刷分不计入。',
+    'Seit dem Matchbeginn kein Map-Banner erkannt – „Bildschirm scannen“ ({keys}) sucht den Map-Namen auf dem Bildschirm.':
+        '比赛开始后未识别到地图横幅 – “扫描屏幕”（{keys}）会在屏幕上查找地图名称。',
+    'Seit dem Matchbeginn kein Map-Banner erkannt – „Scannen“ im Steuerfenster sucht den Map-Namen auf dem Bildschirm.':
+        '比赛开始后未识别到地图横幅 – 控制窗口中的“扫描”会在屏幕上查找地图名称。',
+    'Map nicht erkannt':
+        '未识别地图',
+    'Wartezeit gegen EST.':
+        '等待时间与 EST. 对比',
+    'Median Abweichung':
+        '偏差中位数',
+    'Innerhalb ±1 min':
+        '±1 分钟内',
+    'Echte Wartezeit minus die Schätzung „EST.“, die DBD beim Start der Suche zeigt: + = länger gewartet als geschätzt. Nur Runden, deren Suche das Programm gesehen hat.':
+        '实际等待时间减去 DBD 在开始搜索时显示的估计 “EST.”：+ = 比估计等得更久。仅包括程序看到其搜索的对局。',
+    'Ladezeit':
+        '加载时间',
+    'Ø Ladezeit':
+        '平均加载',
+    'Von der gefundenen Lobby bis zum Ende des Ladebildschirms (mit dem Warten in der Lobby) – nur wenn das Programm beides gesehen hat. Custom Games haben keine Ladezeit.':
+        '从找到大厅到加载画面结束（包括在大厅中的等待）– 仅当程序两者都看到时。自定义游戏没有加载时间。',
+    'Noch keine Runde mit Wartezeit und EST. in dieser Auswahl.':
+        '此选择中还没有同时带有等待时间和 EST. 的对局。',
+    'Noch keine Ladezeiten in dieser Auswahl.':
+        '此选择中还没有加载时间。',
 }

@@ -59,6 +59,10 @@ TICK_FAIL_LOG_S = 60.0            # … the same traceback goes to the log at mo
 WORKER_RESTARTS = 2               # 1.38.9: a broken detection is started again this often before it counts as crashed
 WORKER_RESTART_S = 5.0            # … after this pause (a display change or the lock screen may be over by then)
 BP_STEADY_S = 5.0                 # 1.16.2 (A7): bloodpoint counter read this seldom once CONFIRM_LOOKS looks agree
+# The banner follows the end of the loading screen within seconds: none decided (detected/unknown) this long after
+# the match began → one hint to scan by hand per round (the worker never scans by itself)
+BANNER_MISS_S = 60.0
+BANNER_MISS_LATE_S = 15.0        # … a check this long after that time is about a match long over: no hint
 LOBBY_HOLD = 3.0                  # only comes after the loading screen; full rate again 3 s after the button went
 
 
@@ -153,6 +157,7 @@ class DetectionWorker(threading.Thread):
         self._broken = None                              # 1.38.9: why the current run gave up (None: it did not)
         self._last_frame_save = 0.0
         self._last_sighting_save = 0.0
+        self._banner_due = None          # when to hint "scan by hand" if no banner was decided since the match began
 
     # ------------------------------------------------------------- helpers
     def post(self, kind, **data):
@@ -546,10 +551,11 @@ class DetectionWorker(threading.Thread):
                             if d is not None:
                                 lobby = self.queue.lobby_for_round(tick)   # 1.8.71: also a lobby seen only briefly
                                 self.queue.round_started(tick)  # 1.8.43: the lobby is used up (same custom lobby next)
+                                self._banner_due = None
                                 self.post("detected", lobby=lobby, map_id=d.map_id, variant=d.variant, probability=d.probability,
                                           variant_probability=d.variant_probability, name_text=d.name_text,
                                           realm_text=d.realm_text, frames=d.frames, name_fit=d.name_fit,
-                                          unsure=d.unsure)
+                                          unsure=d.unsure, latency=max(0.0, tick - session_t))
                                 if self.settings.get("corpus_save", True):     # 1.38.29: the banner for "Erkennung prüfen"
                                     try:
                                         corpus.save(self.data_dir, img, sep, res, d, (fw, fh), boxed, bars,
@@ -569,6 +575,7 @@ class DetectionWorker(threading.Thread):
                                 self.post("ignored", name_text=best[0], realm_text=best[1],
                                           map_id=lead[0] if lead else None, name_fit=best[2], frames=acc.good_frames)
                             else:
+                                self._banner_due = None
                                 self.post("unknown", name_text=best[0], realm_text=best[1])
 
                 # ------------------------------------- lobby: searching / found / role (never in a match)
@@ -636,8 +643,12 @@ class DetectionWorker(threading.Thread):
                             if ms.armed and ms.update(tick, bar, dark, tick - lobby_button_t < START_LOOK_INTERVAL * 1.5):
                                 log.info("Ladebildschirm vorbei – das Match beginnt")
                                 self.post("match_start", t=tick)
+                                found = self.queue.found          # the lobby that armed it (custom known here)
+                                self._banner_due = (None if found is not None and found.custom
+                                                    else tick + BANNER_MISS_S)
                     except Exception:
                         self._report("Matchbeginn", traceback.format_exc())
+                self._banner_check(tick, session, auto and (source is not None or window is not None))
 
                 # ------------------------------------- left the trial? -> hide map
                 gen = self.watch_gen
@@ -760,8 +771,24 @@ class DetectionWorker(threading.Thread):
         if wcap is not None:
             wcap.stop()
 
+    def _banner_check(self, tick, session: bool, live: bool):
+        """One hint per round when no banner was decided BANNER_MISS_S after the match began: "banner_missed" (the
+        app suggests "Scannen" with its hotkey). Nothing while a banner is being read; a map on display (picked by
+        hand), the detection switched off or DBD gone end the wait without a hint. Only a hint – no look of its own."""
+        due = self._banner_due
+        if due is None or session:
+            return
+        if self.map_on_screen or not live or tick > due + BANNER_MISS_LATE_S:
+            self._banner_due = None              # late: the loop did not get here for a while (DBD gone) – stale
+        elif tick >= due:
+            self._banner_due = None
+            log.info("Kein Map-Banner %.0f s nach dem Matchbeginn", BANNER_MISS_S)
+            self.post("banner_missed", t=tick)
+
     def _queue_event(self, ev, tick):
         """QueueTracker events -> UI: what=search | cancel | role | found."""
+        if ev[0] in ("search", "cancel", "left", "found"):
+            self._banner_due = None              # back in the lobby screens: that match is over (or never began)
         if ev[0] == "search":
             self.post("queue", what="search", since=self.queue.search_start, role=self.queue.role,
                       killer=self.queue.killer, crossplay_off=self.queue.crossplay_off)

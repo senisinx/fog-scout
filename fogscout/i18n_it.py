@@ -6019,4 +6019,28 @@ T = {
         "Mostra sotto il bilancio quando hai giocato l'ultima volta su questa mappa – con il risultato se la partita è collegata ai dati della pagina delle statistiche (kill o fuga), altrimenti solo la data.",
     'Eine Zeile „Serie“ in „Heute“: wie viele 4K (Killer) bzw. Escapes (Survivor) in Folge in der laufenden Sitzung – laut Stats-Seite, Farming zählt nicht.':
         'Una riga «Serie» in «Oggi»: quante 4K (killer) o fughe (survivor) di fila nella sessione in corso – secondo la pagina delle statistiche; il farming non conta.',
+    'Seit dem Matchbeginn kein Map-Banner erkannt – „Bildschirm scannen“ ({keys}) sucht den Map-Namen auf dem Bildschirm.':
+        "Nessun banner della mappa riconosciuto dall'inizio del match – “Scansiona schermo” ({keys}) cerca il nome della mappa sullo schermo.",
+    'Seit dem Matchbeginn kein Map-Banner erkannt – „Scannen“ im Steuerfenster sucht den Map-Namen auf dem Bildschirm.':
+        "Nessun banner della mappa riconosciuto dall'inizio del match – “Scansiona” nella finestra di controllo cerca il nome della mappa sullo schermo.",
+    'Map nicht erkannt':
+        'Mappa non riconosciuta',
+    'Wartezeit gegen EST.':
+        'Attesa rispetto a EST.',
+    'Median Abweichung':
+        'Scarto mediano',
+    'Innerhalb ±1 min':
+        'Entro ±1 min',
+    'Echte Wartezeit minus die Schätzung „EST.“, die DBD beim Start der Suche zeigt: + = länger gewartet als geschätzt. Nur Runden, deren Suche das Programm gesehen hat.':
+        "Attesa reale meno la stima “EST.” che DBD mostra all'inizio della ricerca: + = atteso più del previsto. Solo partite di cui il programma ha visto la ricerca.",
+    'Ladezeit':
+        'Tempo di caricamento',
+    'Ø Ladezeit':
+        'Caricamento medio',
+    'Von der gefundenen Lobby bis zum Ende des Ladebildschirms (mit dem Warten in der Lobby) – nur wenn das Programm beides gesehen hat. Custom Games haben keine Ladezeit.':
+        "Dalla lobby trovata alla fine della schermata di caricamento (inclusa l'attesa in lobby) – solo se il programma ha visto entrambe. Le partite personalizzate non hanno tempo di caricamento.",
+    'Noch keine Runde mit Wartezeit und EST. in dieser Auswahl.':
+        'Ancora nessuna partita con tempo di attesa ed EST. in questa selezione.',
+    'Noch keine Ladezeiten in dieser Auswahl.':
+        'Ancora nessun tempo di caricamento in questa selezione.',
 }

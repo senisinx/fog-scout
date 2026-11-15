@@ -33,6 +33,13 @@ BUILD_KINDS = {"perk": N_("Perk"), "addon": N_("Add-on"), "offering": N_("Opferg
 # 1.8.51: the stats page's mode ids as the user's matches showed them (others keep the page's name)
 MODE_LABELS = {"Online": N_("Öffentlich"), "SeasonalEvent": N_("Event-Modus")}
 BUILDS_KEPT = 6                  # 1.11.14: selections whose Builds rows are kept (_builds_rows)
+def signed_duration(seconds: float) -> str:
+    """"+01:12" / "−00:30" / "00:00": a difference of times with its sign (fmt_duration has none)."""
+    s = round(seconds)
+    return ("+" if s > 0 else "−" if s < 0 else "") + fmt_duration(abs(s))
+
+
+LOAD_TO_BANNER_S = 300.0         # a loading time counts for the round whose banner comes at most this long after the match start
 QUALITY_LABELS = (N_("keins"), N_("Bronze"), N_("Silber"), N_("Gold"), N_("Iri"))   # builds.QUALITIES, worst first
 STATS_WAIT_GROUPS = [("weekday", N_("nach Wochentag")), ("hour", N_("nach Uhrzeit")), ("region", N_("nach Region"))]
 # 1.8.76 (user review: thirteen sub-tabs in one row were not to be found): the parts of the statistics in four groups
@@ -405,6 +412,25 @@ class StatsTab:
         self.wait_trend = TrendChart(box_w, bool(self.settings.get("dark_mode", True)))
         ui.Label(box_w, text=_("Gemessen von „CANCEL“ (Suche läuft) bis zur gefundenen Lobby – nur wenn das Programm "
                                 "die Suche gesehen hat. Custom Games haben keine Wartezeit."),
+                  style="Dim.TLabel", wraplength=520).pack(anchor="w", pady=(4, 0))
+        est_box = ui.LabelFrame(box_w, text=_("Wartezeit gegen EST."), padding=8)      # DBD's own estimate
+        est_box.pack(fill="x", pady=(8, 0))
+        self.stats_est = self._stats_tree(est_box, (("role", _("Rolle"), 150, "w"), ("n", _("Runden"), 70, "e"),
+                                                    ("diff", _("Median Abweichung"), 130, "e"),
+                                                    ("near", _("Innerhalb ±1 min"), 120, "e")), 3)
+        ui.Label(est_box, text=_("Echte Wartezeit minus die Schätzung „EST.“, die DBD beim Start der Suche zeigt: "
+                                  "+ = länger gewartet als geschätzt. Nur Runden, deren Suche das Programm gesehen hat."),
+                  style="Dim.TLabel", wraplength=520).pack(anchor="w", pady=(4, 0))
+        load_box = ui.LabelFrame(box_w, text=_("Ladezeit"), padding=8)
+        load_box.pack(fill="x", pady=(8, 0))
+        self.stats_load_map = self._stats_tree(load_box, (("map", _("Map"), 230, "w"), ("n", _("Runden"), 70, "e"),
+                                                          ("avg", _("Ø Ladezeit"), 90, "e"),
+                                                          ("med", _("Median"), 80, "e")), 5)
+        self.stats_load_reg = self._stats_tree(load_box, (("reg", _("Region"), 230, "w"), ("n", _("Runden"), 70, "e"),
+                                                          ("avg", _("Ø Ladezeit"), 90, "e"),
+                                                          ("med", _("Median"), 80, "e")), 4)
+        ui.Label(load_box, text=_("Von der gefundenen Lobby bis zum Ende des Ladebildschirms (mit dem Warten in der "
+                                   "Lobby) – nur wenn das Programm beides gesehen hat. Custom Games haben keine Ladezeit."),
                   style="Dim.TLabel", wraplength=520).pack(anchor="w", pady=(4, 0))
         box_s = self._stats_page(_("System"), "maps", "_stats_part_sys")        # 1.60: tiles, highest values, table, trend; 1.12.7: after Wartezeit
         self.stats_sys_var = ui.StringVar(value="")       # only when there are no values
@@ -1413,6 +1439,7 @@ class StatsTab:
                 label = self._stats_region_name(key)
             t.insert("", "end", values=(label, n, fmt_duration(avg), fmt_duration(shortest)))
         self._wait_trend_render(rounds, TREND_UNIT.get(c.period, "week"))
+        self._stats_wait_more(rounds)
 
     def _wait_trend_render(self, rounds, unit):
         """The median waiting time per hour / day / week below the table – one panel per role."""
@@ -1437,6 +1464,24 @@ class StatsTab:
                           "empty": _("Keine Wartezeiten dieser Rolle in dieser Auswahl.")}
         self.wait_trend.dark = bool(self.settings.get("dark_mode", True))
         self.wait_trend.draw(data)
+
+    def _stats_wait_more(self, rounds):
+        """The tables under the waiting times: real wait against DBD's EST. per role, loading time per map and
+        region (history.est_accuracy / load_by – the rounds of the page's filters)."""
+        roles = {"killer": _("Killer"), "survivor": _("Survivor"), "": _("Alle Rollen")}
+        t = self.stats_est
+        t.delete(*t.get_children())
+        rows = history.est_accuracy(rounds)
+        for role, n, diff, near in rows:
+            t.insert("", "end", values=(roles[role], n, signed_duration(diff), f"{near:.0%}"))
+        t._dbdms_empty = "" if rows else _("Noch keine Runde mit Wartezeit und EST. in dieser Auswahl.")
+        for t, by, name in ((self.stats_load_map, "map", lambda k: k), (self.stats_load_reg, "region",
+                                                                        self._stats_region_name)):
+            t.delete(*t.get_children())
+            rows = history.load_by(rounds, by)
+            for key, n, avg, med in rows:
+                t.insert("", "end", values=(name(key), n, fmt_duration(avg), fmt_duration(med)))
+            t._dbdms_empty = "" if rows else _("Noch keine Ladezeiten in dieser Auswahl.")
 
     def _stats_part_last(self, c):
         rounds, off = c.rounds, c.off
@@ -2081,7 +2126,7 @@ class StatsTab:
             # off makes a farming round even when the lobby looked like a custom game (READY without countdown –
             # an instant lobby); the stats page decides later: a public match is farming, a custom game stays one
             self._hist.update(wait=f.wait, role=f.role or "", custom=f.custom, killer=f.killer,
-                              farming=bool(f.crossplay_off) and farm_on)
+                              farming=bool(f.crossplay_off) and farm_on, est=getattr(f, "est", None))
             self._queue = dict(self._queue, found=None, used=f)
             if self._hist["farming"] and f.custom:
                 self._log(_("Crossplay war aus, die Lobby sah aus wie ein Custom Game – die Runde zählt als "
@@ -2094,11 +2139,29 @@ class StatsTab:
         elif farm_on and (self._queue.get("crossplay_off") or f is not None):
             self._log(_("Keine Lobby zur Runde ({why}) – sie zählt nicht als Farming.",
                         why=_("Lobby zu alt") if f is not None else _("Lobby nicht gesehen")), "Erkennung")
+        ml, self._match_load = getattr(self, "_match_load", None), None      # (match start, loading time) once
+        if ml is not None and 0 <= now - ml[0] <= LOAD_TO_BANNER_S:
+            self._hist["load"] = ml[1]
         self._inputs_round_start()                  # 1.39.1: nothing from before the round
         self.recorder.start_round(t=now, map_id=map_id, label=self._hist["map"], role=self._hist.get("role", ""),
                                   killer=self._hist.get("killer", ""),         # 1.4: OBS records the round
                                   farming=bool(self._hist.get("farming"))      # 1.4.2: goes first when room is needed
                                   and not self._hist.get("custom"))
+
+    def _hist_decision(self, d):
+        """The banner decision that opened the round (worker "detected"): name fit, pictures read, unsure, seconds
+        from the first sight of the banner – stored with the round for the diagnosis (diagnose.detection_health)."""
+        rec = self._hist
+        if rec is None:
+            return
+        fit, frames, latency = d.get("name_fit"), d.get("frames"), d.get("latency")
+        if isinstance(fit, (int, float)) and not isinstance(fit, bool):
+            rec["fit"] = round(float(fit), 2)
+        if isinstance(frames, int) and not isinstance(frames, bool):
+            rec["frames"] = frames
+        rec["unsure"] = bool(d.get("unsure"))
+        if isinstance(latency, (int, float)) and not isinstance(latency, bool) and latency >= 0:
+            rec["latency"] = round(float(latency), 2)
 
     def _hist_follow(self, map_id, label):
         """1.8.39 (QA audit): the map on display changed while a round is open – a later banner frame read the other

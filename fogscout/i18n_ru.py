@@ -6019,4 +6019,28 @@ T = {
         'Показывает под итогом, когда вы в последний раз играли на этой карте – с результатом, если раунд связан с данными страницы статистики (убийства или побег), иначе только дату.',
     'Eine Zeile „Serie“ in „Heute“: wie viele 4K (Killer) bzw. Escapes (Survivor) in Folge in der laufenden Sitzung – laut Stats-Seite, Farming zählt nicht.':
         'Строка «Серия» в «Сегодня»: сколько 4K (убийца) или побегов (выживший) подряд в текущей сессии – по данным страницы статистики; фарм не считается.',
+    'Seit dem Matchbeginn kein Map-Banner erkannt – „Bildschirm scannen“ ({keys}) sucht den Map-Namen auf dem Bildschirm.':
+        'С начала матча баннер карты не распознан – «Сканировать экран» ({keys}) ищет название карты на экране.',
+    'Seit dem Matchbeginn kein Map-Banner erkannt – „Scannen“ im Steuerfenster sucht den Map-Namen auf dem Bildschirm.':
+        'С начала матча баннер карты не распознан – «Сканировать» в окне управления ищет название карты на экране.',
+    'Map nicht erkannt':
+        'Карта не распознана',
+    'Wartezeit gegen EST.':
+        'Ожидание против EST.',
+    'Median Abweichung':
+        'Медиана отклонения',
+    'Innerhalb ±1 min':
+        'В пределах ±1 мин',
+    'Echte Wartezeit minus die Schätzung „EST.“, die DBD beim Start der Suche zeigt: + = länger gewartet als geschätzt. Nur Runden, deren Suche das Programm gesehen hat.':
+        'Реальное ожидание минус оценка «EST.», которую DBD показывает в начале поиска: + = ждали дольше оценки. Только раунды, поиск которых программа видела.',
+    'Ladezeit':
+        'Время загрузки',
+    'Ø Ladezeit':
+        'Ø загрузка',
+    'Von der gefundenen Lobby bis zum Ende des Ladebildschirms (mit dem Warten in der Lobby) – nur wenn das Programm beides gesehen hat. Custom Games haben keine Ladezeit.':
+        'От найденного лобби до конца экрана загрузки (вместе с ожиданием в лобби) – только если программа видела и то и другое. У пользовательских игр нет времени загрузки.',
+    'Noch keine Runde mit Wartezeit und EST. in dieser Auswahl.':
+        'В этой выборке пока нет раундов с ожиданием и EST.',
+    'Noch keine Ladezeiten in dieser Auswahl.':
+        'В этой выборке пока нет времени загрузки.',
 }

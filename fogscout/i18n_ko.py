@@ -6019,4 +6019,28 @@ T = {
         '전적 아래에 이 맵을 마지막으로 플레이한 날짜를 표시합니다. 해당 라운드가 통계 페이지 데이터와 연결되어 있으면 결과(킬 수 또는 탈출)도, 아니면 날짜만 표시합니다.',
     'Eine Zeile „Serie“ in „Heute“: wie viele 4K (Killer) bzw. Escapes (Survivor) in Folge in der laufenden Sitzung – laut Stats-Seite, Farming zählt nicht.':
         "'오늘'에 '연속' 행: 현재 세션에서 연속된 4K(킬러) 또는 탈출(생존자) 횟수 – 통계 페이지 기준, 파밍은 포함되지 않습니다.",
+    'Seit dem Matchbeginn kein Map-Banner erkannt – „Bildschirm scannen“ ({keys}) sucht den Map-Namen auf dem Bildschirm.':
+        '매치 시작 후 맵 배너를 인식하지 못했습니다 – “화면 스캔”({keys})으로 화면에서 맵 이름을 찾습니다.',
+    'Seit dem Matchbeginn kein Map-Banner erkannt – „Scannen“ im Steuerfenster sucht den Map-Namen auf dem Bildschirm.':
+        '매치 시작 후 맵 배너를 인식하지 못했습니다 – 제어 창의 “스캔”으로 화면에서 맵 이름을 찾습니다.',
+    'Map nicht erkannt':
+        '맵 인식 안 됨',
+    'Wartezeit gegen EST.':
+        '대기 시간 대 EST.',
+    'Median Abweichung':
+        '차이 중앙값',
+    'Innerhalb ±1 min':
+        '±1분 이내',
+    'Echte Wartezeit minus die Schätzung „EST.“, die DBD beim Start der Suche zeigt: + = länger gewartet als geschätzt. Nur Runden, deren Suche das Programm gesehen hat.':
+        '실제 대기 시간에서 검색 시작 시 DBD가 보여 주는 예상치 “EST.”를 뺀 값: + = 예상보다 오래 기다림. 프로그램이 검색을 본 라운드만.',
+    'Ladezeit':
+        '로딩 시간',
+    'Ø Ladezeit':
+        '평균 로딩',
+    'Von der gefundenen Lobby bis zum Ende des Ladebildschirms (mit dem Warten in der Lobby) – nur wenn das Programm beides gesehen hat. Custom Games haben keine Ladezeit.':
+        '로비를 찾은 때부터 로딩 화면이 끝날 때까지(로비 대기 포함) – 프로그램이 둘 다 본 경우에만. 커스텀 게임에는 로딩 시간이 없습니다.',
+    'Noch keine Runde mit Wartezeit und EST. in dieser Auswahl.':
+        '이 선택에는 아직 대기 시간과 EST.가 모두 있는 라운드가 없습니다.',
+    'Noch keine Ladezeiten in dieser Auswahl.':
+        '이 선택에는 아직 로딩 시간이 없습니다.',
 }

@@ -70,7 +70,9 @@ def _rounds(path: str, n: int):
                                  "region": rnd.choice(["eu-central-1", "us-east-1", ""]), "source": "auto",
                                  "wait": rnd.uniform(5, 300), "role": role, "custom": rnd.random() < 0.05,
                                  "farming": rnd.random() < 0.05, "ping": rnd.uniform(15, 120),
-                                 "killer": rnd.choice(killers) if role == "killer" else ""}) + "\n")
+                                 "killer": rnd.choice(killers) if role == "killer" else "",
+                                 # loading time and EST. without the random generator: the other values stay
+                                 "load": 40.0 + i * 37 % 90, "est": 60.0 + i * 53 % 240}) + "\n")
 
 
 def _recordings(folder: str, n: int) -> str:

@@ -106,6 +106,41 @@ def _qt_version() -> str:
         return f"? ({e})"
 
 
+HEALTH_ROUNDS = 20          # detection health: the last this many auto-detected rounds
+TREND_ROUNDS = 10           # … the newest this many compared with the same number before them
+# Name fit (detector: ≈ 0 = a clean banner, Accumulator.unsure_fit = -3 = unsure): the newest TREND_ROUNDS' median
+# this much below the median of the TREND_ROUNDS before is "worse" – a third of the way from clean to unsure, far
+# above the spread of clean banners (their fits sit within a few tenths of 0), so a single odd round never says it
+FIT_DROP = 1.0
+
+
+def detection_health(rounds) -> list:
+    """Lines for the diagnosis: how the banner decisions of the last HEALTH_ROUNDS auto-detected rounds went
+    (``Round.fit``/``frames``/``unsure``/``latency``, rounds without them are left out) and, with 2 × TREND_ROUNDS
+    of them, "Erkennung wird schlechter seit …" when the newest TREND_ROUNDS fit clearly worse (FIT_DROP) than
+    the TREND_ROUNDS before. Pure: only the rounds."""
+    from .history import median
+    rs = sorted((r for r in rounds if getattr(r, "fit", None) is not None), key=lambda r: r.t)
+    if not rs:
+        return ["Erkennung je Runde: noch keine automatisch erkannte Runde mit Messwerten"]
+    last = rs[-HEALTH_ROUNDS:]
+    fit = median([r.fit for r in last])
+    lat = median([r.latency for r in last])
+    frames = median([r.frames for r in last])
+    unsure = sum(1 for r in last if r.unsure)
+    lines = [f"Erkennung je Runde (letzte {len(last)}): Passung Median {fit:.1f} · Banner→Entscheidung Median "
+             + ("–" if lat is None else f"{lat:.1f} s") + " · Bilder Median " + ("–" if frames is None else f"{frames:g}")
+             + f" · unsicher {unsure}"]
+    if len(rs) >= 2 * TREND_ROUNDS:
+        new, old = rs[-TREND_ROUNDS:], rs[-2 * TREND_ROUNDS:-TREND_ROUNDS]
+        f_new, f_old = median([r.fit for r in new]), median([r.fit for r in old])
+        if f_new <= f_old - FIT_DROP:
+            since = next(r.t for r in new if r.fit <= f_old - FIT_DROP)
+            lines.append(f"Erkennung wird schlechter seit {time.strftime('%Y-%m-%d %H:%M', time.localtime(since))}: "
+                         f"Passung Median {f_new:.1f} in den letzten {TREND_ROUNDS} Runden, davor {f_old:.1f}")
+    return lines
+
+
 def collect(app) -> str:
     from .capture import find_game_window, foreground_root, is_above, window_kind
     lines = [f"Fog Scout {__version__} – Diagnose {time.strftime('%Y-%m-%d %H:%M:%S')}",
@@ -191,6 +226,11 @@ def collect(app) -> str:
         seen = list(getattr(w, "banner_history", []))
         lines.append(f"Letzte Banner ({len(seen)}):" if seen else "Letzte Banner: keine")
         lines.extend("  " + h for h in seen)
+        try:                                                  # the decisions stored with the rounds
+            from . import history
+            lines.extend(detection_health(history.load(os.path.join(app.data_dir, history.FILE))))
+        except Exception as e:
+            lines.append(f"Erkennung je Runde: {e}")
         miss = list(getattr(w, "role_misses", []))           # 1.11.1
         lines.append(f"Rolle nicht gelesen (Ergebnisbildschirm, debug/result, {len(miss)}):" if miss
                      else "Rolle nicht gelesen: nie seit Start")

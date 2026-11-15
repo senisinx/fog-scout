@@ -6019,4 +6019,28 @@ T = {
         '戦績の下に、このマップを前回プレイした日を表示します。そのラウンドが統計ページのデータと結び付いていれば結果（キル数または脱出）も、なければ日付のみ。',
     'Eine Zeile „Serie“ in „Heute“: wie viele 4K (Killer) bzw. Escapes (Survivor) in Folge in der laufenden Sitzung – laut Stats-Seite, Farming zählt nicht.':
         '「今日」に「連続」の行：現在のセッションで連続した 4K（キラー）または脱出（サバイバー）の回数。統計ページに基づき、ファーミングは数えません。',
+    'Seit dem Matchbeginn kein Map-Banner erkannt – „Bildschirm scannen“ ({keys}) sucht den Map-Namen auf dem Bildschirm.':
+        '試合開始からマップのバナーを認識できていません – 「画面をスキャン」（{keys}）で画面上のマップ名を探します。',
+    'Seit dem Matchbeginn kein Map-Banner erkannt – „Scannen“ im Steuerfenster sucht den Map-Namen auf dem Bildschirm.':
+        '試合開始からマップのバナーを認識できていません – コントロールウィンドウの「スキャン」で画面上のマップ名を探します。',
+    'Map nicht erkannt':
+        'マップ未認識',
+    'Wartezeit gegen EST.':
+        '待ち時間と EST. の比較',
+    'Median Abweichung':
+        '差の中央値',
+    'Innerhalb ±1 min':
+        '±1 分以内',
+    'Echte Wartezeit minus die Schätzung „EST.“, die DBD beim Start der Suche zeigt: + = länger gewartet als geschätzt. Nur Runden, deren Suche das Programm gesehen hat.':
+        '実際の待ち時間から、検索開始時に DBD が表示する推定「EST.」を引いた値：+ = 推定より長く待った。プログラムが検索を確認したラウンドのみ。',
+    'Ladezeit':
+        'ロード時間',
+    'Ø Ladezeit':
+        '平均ロード',
+    'Von der gefundenen Lobby bis zum Ende des Ladebildschirms (mit dem Warten in der Lobby) – nur wenn das Programm beides gesehen hat. Custom Games haben keine Ladezeit.':
+        'ロビーが見つかってからロード画面が終わるまで（ロビーでの待ち時間を含む）– プログラムが両方を確認した場合のみ。カスタムゲームにはロード時間がありません。',
+    'Noch keine Runde mit Wartezeit und EST. in dieser Auswahl.':
+        'この選択には、待ち時間と EST. の両方があるラウンドはまだありません。',
+    'Noch keine Ladezeiten in dieser Auswahl.':
+        'この選択にはまだロード時間がありません。',
 }
