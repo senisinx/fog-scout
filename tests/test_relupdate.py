@@ -181,12 +181,13 @@ class _App:
         self.cls = app_settings.SettingsTab
         self.data_dir = data_dir
         self.status, self.logs, self.quits = [], [], []
+        self.blocked = ""                  # what SettingsTab._update_blocked says ("" = the update may go)
         self.upd_status = type("V", (), {"set": lambda _s, v: self.status.append(v)})()
 
     def run(self, path, sha):
         fake = self
         obj = type("F", (self.cls,), {
-            "__init__": lambda s: None, "_round_running": lambda s: False, "_clips_saving": lambda s: [],
+            "__init__": lambda s: None, "_update_blocked": lambda s: fake.blocked,
             "_quit_phase1": lambda s, then: True, "quit": lambda s: fake.quits.append(True),
             "_log": lambda s, msg, kind="": fake.logs.append((kind, msg))})()
         obj.data_dir, obj.upd_status = self.data_dir, self.upd_status

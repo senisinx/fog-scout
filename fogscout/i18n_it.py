@@ -993,8 +993,6 @@ T = {
         'Fog Scout {version} (build {build}) è scaricato e verificato con SHA-256. Installarlo ora? Il programma si chiude e poi si riavvia.',
     'Installieren':
         'Installa',
-    'Update gesperrt: eine Runde läuft oder ein Clip wird gespeichert. Danach noch einmal auf „Aktualisieren und neu starten“ klicken.':
-        'Aggiornamento bloccato: è in corso un round o si sta salvando una clip. Dopo fai di nuovo clic su «Aggiorna e riavvia».',
     'Programm schliesst sich und installiert das Update …':
         "Il programma si chiude e installa l'aggiornamento …",
     'Das Update wurde nicht gestartet: Die Setup-Datei hat sich seit dem Download verändert oder fehlt. Bitte das Update noch einmal laden.':
@@ -2283,6 +2281,8 @@ T = {
         '«Memorizza come build A» fissa la scelta attuale; poi la tabella mostra ogni modifica accanto.',
     'Tempo (relativ)':
         'Velocità relativa',
+    'Update gesperrt: OBS nimmt gerade auf – der Neustart würde die Aufnahme beenden. Aufnahme stoppen, dann noch einmal auf „Aktualisieren und neu starten“ klicken.':
+        'Aggiornamento bloccato: OBS sta registrando – il riavvio interromperebbe la registrazione. Ferma la registrazione, poi fai di nuovo clic su «Aggiorna e riavvia».',
     'Claude hat unverständlich geantwortet.':
         'Claude ha dato una risposta illeggibile.',
     'Claude ist nicht erreichbar – keine Internetverbindung?':

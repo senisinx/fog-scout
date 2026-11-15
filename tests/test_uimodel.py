@@ -1752,11 +1752,17 @@ def test_no_update_restart_while_a_round_runs(app_root, monkeypatch):
     try:
         app._hist = {"t": time.time(), "map_id": "x", "map": "X"}
         app.apply_update()
-        assert spawned == [] and "gesperrt" in app.upd_status.get()
+        assert spawned == [] and "gesperrt: eine Runde läuft" in app.upd_status.get()
         app._hist = None
         monkeypatch.setattr(type(app.recorder), "recording", property(lambda self: True))
         app.apply_update()
         assert spawned == []                                            # the recording runs on (Nachlauf)
+        # 1.52.1 (Saru's picture: "a round is running" in the lobby while OBS recorded by hand): the line names
+        # what really blocks – and the installed program's last step (the setup is downloaded) says the same
+        assert "OBS nimmt gerade auf" in app.upd_status.get() and "Runde läuft" not in app.upd_status.get()
+        assert app._update_blocked() == app.upd_status.get()
+        app._release_install("setup.exe")
+        assert spawned == [] and "OBS nimmt gerade auf" in app.upd_status.get()
         monkeypatch.setattr(type(app.recorder), "recording", property(lambda self: False))
         app.apply_update()
         assert spawned == [str(app_root)]                               # between rounds: as before

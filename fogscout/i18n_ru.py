@@ -993,8 +993,6 @@ T = {
         'Fog Scout {version} (сборка {build}) загружен и проверен по SHA-256. Установить сейчас? Программа закроется и затем запустится снова.',
     'Installieren':
         'Установить',
-    'Update gesperrt: eine Runde läuft oder ein Clip wird gespeichert. Danach noch einmal auf „Aktualisieren und neu starten“ klicken.':
-        'Обновление заблокировано: идёт раунд или сохраняется клип. Потом снова нажмите «Обновить и перезапустить».',
     'Programm schliesst sich und installiert das Update …':
         'Программа закрывается и устанавливает обновление…',
     'Das Update wurde nicht gestartet: Die Setup-Datei hat sich seit dem Download verändert oder fehlt. Bitte das Update noch einmal laden.':
@@ -2283,6 +2281,8 @@ T = {
         '«Запомнить как билд A» фиксирует текущий выбор; затем таблица показывает каждое изменение рядом.',
     'Tempo (relativ)':
         'Относительная скорость',
+    'Update gesperrt: OBS nimmt gerade auf – der Neustart würde die Aufnahme beenden. Aufnahme stoppen, dann noch einmal auf „Aktualisieren und neu starten“ klicken.':
+        'Обновление заблокировано: OBS ведёт запись – перезапуск прервал бы её. Остановите запись и снова нажмите «Обновить и перезапустить».',
     'Claude hat unverständlich geantwortet.':
         'Ответ Claude не удалось прочитать.',
     'Claude ist nicht erreichbar – keine Internetverbindung?':
