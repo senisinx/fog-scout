@@ -259,3 +259,121 @@ def test_every_drawing_name_is_still_importable_from_overlay_win32():
     missing = [n for n in sorted(names) if getattr(overlay_win32, n, None) is not getattr(overlay_render, n)]
     assert missing == []
     assert overlay_win32._GLYPHS is overlay_render._GLYPHS and overlay_win32.BACKDROP == overlay_render.BACKDROP
+
+
+def _bare_overlay(pushes):
+    class Root:
+        def after(self, *a):
+            return None
+
+        def after_cancel(self, *a):
+            pass
+
+    class Overlay(ow.PictureOverlay):
+        def _push(self, *a):
+            pushes.append(self._size)
+
+    return Overlay(Root())
+
+
+def test_the_waiting_card_fits_by_its_own_lines_whatever_was_measured_before():
+    """1.56 (audit B3): the waiting lines were not part of fit_width's key – "Warte auf Map" alone measured first,
+    the lobby line then reused that fit (classic: 768 px in a 406 px bar), and the long line measured first left
+    the short card tiny. Each card now measures the same as on a fresh overlay; the long lobby line (wider than the
+    bar even at the smallest font) settles on the largest text at that narrowest width."""
+    short = ["Warte auf Map"]
+    long = ["Warte auf Map", "Suche läuft: 00:05 · Farming · Krankenschwester"]
+
+    def fit(ov, lines, avail):
+        ov.set_waiting(lines)
+        h = ov.fit_width(518, 518, avail)
+        w, _h = ov.render(ov.fit_room(h, 1400))
+        return w, ov.text_height
+
+    for skin, avail in (("classic", 406), ("glass", 436)):
+        fresh = {}
+        for lines in (short, long):
+            ov = _bare_overlay([])
+            ov.set_skin(skin, "#c9a227")
+            fresh[len(lines)] = fit(ov, lines, avail)
+        for order in ((short, long, short), (long, short, long)):
+            ov = _bare_overlay([])
+            ov.set_skin(skin, "#c9a227")
+            for lines in order:
+                assert fit(ov, lines, avail) == fresh[len(lines)], (skin, lines)
+        assert fresh[1] == (fresh[1][0], 518) and fresh[1][0] <= avail      # the short card keeps its text size
+        w, text_h = fresh[2]
+        if w > avail:                                   # classic: no text height fits – the narrowest, largest
+            ov = _bare_overlay([])
+            ov.set_skin(skin, "#c9a227")
+            ov.set_waiting(long)
+            ov.text_height = 40
+            assert ov.render(40, push=False)[0] == w
+            ov.text_height = text_h + 1
+            assert ov.render(text_h + 1, push=False)[0] > w
+        else:
+            assert text_h < 518
+
+
+def test_the_waiting_card_is_measured_off_screen_and_shown_once():
+    """1.56: _render_waiting pushed every size fit_width tried while the card was on screen."""
+    pushes = []
+    ov = _bare_overlay(pushes)
+    ov._shown = True
+    ov.set_waiting(["Warte auf Map", "Suche läuft: 00:05 · Farming · Krankenschwester"])
+    ov.render(ov.fit_width(518, 518, 406))
+    assert pushes == [ov._size]
+    ov.render(ov.fit_width(518, 518, 406))           # the next tick: nothing new
+    assert pushes == [ov._size]
+
+
+def test_a_card_shown_again_after_a_fade_out_is_pushed_at_full_opacity(monkeypatch):
+    """1.56 (audit B4): HudWindow.show_at pushed only when (x, y, opacity) changed – the fade was not in it. After a
+    fade-out (_fade_tick: hide(), set_fade(1.0) – no push while hidden) the card came back at the same place with
+    the surface still at opacity 0: invisible. Window calls stubbed, the pushes recorded."""
+    import ctypes
+
+    class Calls:
+        def __getattr__(self, name):
+            return lambda *a, **k: 1
+
+    for name in ("_u", "_g", "_k"):
+        monkeypatch.setattr(ow, name, Calls(), raising=False)
+    monkeypatch.setattr(ow, "WNDPROC", ctypes.CFUNCTYPE(ctypes.c_ssize_t, ctypes.c_void_p, ctypes.c_uint,
+                                                        ctypes.c_size_t, ctypes.c_ssize_t), raising=False)
+    monkeypatch.setattr(ow, "_SetLong", lambda *a: 0, raising=False)
+    monkeypatch.setattr(ow, "_GetLong", lambda *a: 0, raising=False)
+    monkeypatch.setattr(ow, "HWND_TOPMOST", -1, raising=False)
+    pushed = []
+    monkeypatch.setattr(ow.LayeredSurface, "push",
+                        lambda self, hwnd, data, w, h, pos, opacity: pushed.append(round(opacity, 3)) or "")
+    win = ow.HudWindow("test")
+    win.opacity = 0.85
+    rows = [[("HEUTE ", (150, 156, 170, 255)), ("3 RUNDEN", (255, 255, 255, 255))]]
+    win.render(rows, 1440)
+    win.show_at(100, 100)
+    assert pushed == [0.85]
+    for fade in (0.6, 0.3, 0.0):                      # what _fade_tick does while fading out …
+        win.set_fade(fade)
+        win.show_at(100, 100)                         # (a tick in between: nothing new to push)
+    win.hide()                                        # … and at its end
+    win.set_fade(1.0)
+    assert pushed == [0.85, 0.51, 0.255, 0.0] and not win.shown
+    win.render(rows, 1440)
+    win.show_at(100, 100)                             # shown again at the same place, no fading
+    assert pushed[-1] == 0.85 and win.shown
+
+
+def test_the_still_up_next_block_is_drawn_once_and_stays_pixel_identical():
+    """1.56 (audit P2): the classic music card is redrawn every second and drew the unchanged "Als nächstes" block
+    each time (~1.8 ms, twice beside the card). The still block is kept by its inputs – the same pixels as drawn
+    anew; a sliding block (song change) is always drawn."""
+    from fogscout import overlay_render as orr
+    items = [["Save Your Tears", "The Weeknd"], ("Levitating", "Dua Lipa")]
+    a = ow.upnext_block("ALS NÄCHSTES", items, 1440)
+    b = ow.upnext_block("ALS NÄCHSTES", [tuple(i) for i in items], 1440)
+    assert a is b and a.tobytes() == orr._upnext_draw("ALS NÄCHSTES", items, 1440).tobytes()
+    assert ow.upnext_block("ALS NÄCHSTES", items[:1], 1440) is not a
+    moving = ow.upnext_block("ALS NÄCHSTES", items, 1440, (("Blinding Lights", "The Weeknd"), 0.5))
+    assert moving is not a and moving.size == a.size
+    assert ow.upnext_block("ALS NÄCHSTES", items, 1440, (("Blinding Lights", "The Weeknd"), 0.5)) is not moving

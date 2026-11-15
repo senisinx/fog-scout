@@ -149,7 +149,9 @@ def _separator_in(mask: np.ndarray, frame_w: int, frame_h: int, s: float) -> Sep
         x1 = int(row_end[r]) + 1
         x0 = x1 - length
         frac = length / wn
-        if frac > MAX_LINE or x0 > 0.30 * frame_w * s:    # the banner is left-aligned
+        # the banner is left-aligned in the 16:9 picture – 1.56 (audit D-3): measured from the picture's left edge,
+        # not the window's (0.30 of a window wider than ~2.2 × 16:9 lay left of where the line starts)
+        if frac > MAX_LINE or x0 > (frame_w * s - wn) / 2 + 0.30 * wn:
             continue
         if best is None or length > best[2]:
             best = (x0, float(np.mean(grp)), length, len(grp), frac)
@@ -512,15 +514,34 @@ class BannerReader:
         self.pool = pool
         self._seen = None                # (picture, line) of the read under way – for the other scripts' crop
         self._wide = None                # … its text lines found the script-neutral way (locate_text_wide)
-        self.views = []
-        for model in catalog.models:
-            rec = recognizer if model == MAIN else (pool.get(model) if pool is not None else None)
-            if rec is None:
-                continue
-            names, realms, alphabet = catalog.by_model[model]
-            self.views.append(_ModelView(model, rec, alphabet, LexiconScorer(names, alphabet),
-                                         LexiconScorer(realms, alphabet)))
-        self.name_scorer, self.realm_scorer = self.views[0].names, self.views[0].realms
+        main = self._view(MAIN, recognizer)
+        self.name_scorer, self.realm_scorer = main.names, main.realms
+        self._views = None if len(catalog.models) > 1 else [main]
+        self._main = main
+
+    def _view(self, model, rec) -> _ModelView:
+        names, realms, alphabet = self.catalog.by_model[model]
+        return _ModelView(model, rec, alphabet, LexiconScorer(names, alphabet), LexiconScorer(realms, alphabet))
+
+    @property
+    def views(self) -> list:
+        """The main model's view first, then one per other script with a model. 1.56 (audit D-4): the other scripts'
+        models load on the first read, not when the worker starts – the reader is made at the program's start, and
+        with ru/ja/ko ticked their sessions cost ~94 MB while DBD may not run for hours (1.50.4: the model loads
+        only once DBD runs)."""
+        if self._views is None:
+            views = [self._main]
+            for model in self.catalog.models:
+                rec = None if model == MAIN or self.pool is None else self.pool.get(model)
+                if rec is not None:
+                    views.append(self._view(model, rec))
+            self._views = views
+        return self._views
+
+    def load(self) -> "BannerReader":
+        """Load the other scripts' models now (the worker calls it once DBD is found, like LazyRecognizer.load)."""
+        _ = self.views
+        return self
 
     def score_lines(self, lines: TextLines) -> FrameResult | None:
         t0 = time.perf_counter()
@@ -625,7 +646,7 @@ def anchored_separator(frame_w: int, frame_h: int, bars) -> Separator | None:
     wn = min(frame_w, frame_h * 16 / 9)
     x0, y, length = ANCHOR
     sy = int(top + y * pic) - int(ROI[1] * frame_h)
-    sx0 = int(x0 * wn)
+    sx0 = int((frame_w - wn) / 2 + x0 * wn)          # 1.56: in the 16:9 picture (0 offset when narrower)
     return Separator(y=sy, x0=sx0, x1=sx0 + int(length * wn), frac=length, thickness=1.0)
 
 

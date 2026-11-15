@@ -153,7 +153,6 @@ class SysInfo:
         self._media_trans = None           # media.Transition while a song change cross-fades
         self._media_anim_job = None        # timer of its frames
         self._media_box = None             # (x, y, w, h) of the music card on screen
-        self._hud_reserved = None          # (side, height) taken at the top of a bar, for the map below
         self._hud_pending = ""             # "above"/"beside": rendered, placed once the map's place is known
         self._sysrec = None                # readings of the open round (tab Statistik → System)
 
@@ -164,11 +163,19 @@ class SysInfo:
         return style if style in skin.STYLES else "classic"
 
     def _skin_accent(self) -> str:
-        """The window theme's accent (dark palette – the overlay sits on dark bars) for the modern styles."""
+        """The window theme's accent (dark palette – the overlay sits on dark bars) for the modern styles. 1.56
+        (audit P1): kept until the theme changes (qt_theme.look_key) – the overlay tick asked several times a tick and
+        every call built the whole palette."""
+        key = qt_theme.look_key()
+        memo = self.__dict__.get("_accent_memo")
+        if memo is not None and memo[0] == key:
+            return memo[1]
         try:
-            return str(qt_theme.colours(True)["accent"])
+            accent = str(qt_theme.colours(True)["accent"])
         except Exception:
             return "#c9a227"
+        self._accent_memo = (key, accent)
+        return accent
 
     def _hwinfo_check(self, now: float, snap=None):
         """1.8.86 (user: "why are so many fields empty?" – rounds without CPU values in the statistics): once per
@@ -682,6 +689,22 @@ class SysInfo:
                 "inputs": "inputs_win"}[name]
         return getattr(self, attr, None)
 
+    # 1.56 (audit B6): the worker's rectangle of each window – the App clears it the moment a window should go, but
+    # a fading window stays on the screen for Fader.OUT_S; until _fade_tick hides it, it is blacked out from here
+    FADE_RECTS = {"map": "overlay_rect", "hud": "hud_rect", "today": "today_rect", "music": "media_rect",
+                  "info": "info_rect", "inputs": "inputs_rect"}
+
+    def _fade_mask(self, name, rect=None):
+        """Keep ``rect`` blacked out while ``name`` fades out (None: no longer – hidden or shown again)."""
+        masks = self.__dict__.setdefault("_fade_masks", {})
+        if rect:
+            masks[name] = tuple(rect)
+        elif masks.pop(name, None) is None:
+            return
+        worker = getattr(self, "worker", None)
+        if worker is not None:
+            worker.fade_rects = tuple(masks.values())
+
     def _fade_state(self, name):
         st = self._fades.get(name)
         if st is None:
@@ -691,6 +714,8 @@ class SysInfo:
     def _fade_to(self, name, target, start=None):
         st = self._fade_state(name)
         st[0].go(target, time.monotonic(), start)
+        self._fade_mask(name, getattr(getattr(self, "worker", None), self.FADE_RECTS[name], None)
+                        if target == 0 else None)
         self._fade_win(name).set_fade(st[0].value)
         if st[1] is None:
             st[1] = self.root.after(st[0].STEP_MS, lambda: self._fade_tick(name))
@@ -708,6 +733,7 @@ class SysInfo:
         elif st[0].target == 0:
             win.hide()
             win.set_fade(1.0)
+            self._fade_mask(name)
 
     def _fade_stop(self, name):
         """No fading: cancel a running one, full opacity."""
@@ -716,6 +742,7 @@ class SysInfo:
             self.root.after_cancel(st[1])
             st[1] = None
         st[0].go(1, time.monotonic(), 1.0)
+        self._fade_mask(name)
         win = self._fade_win(name)
         if win is not None:
             win.set_fade(1.0)

@@ -738,6 +738,18 @@ def upnext_block(label: str, items, height: int, anim=None) -> Image.Image:
     """"Als nächstes" (1.8): a grey header and one row per coming track – number, title, artist – set like the
     system values. ``anim`` (1.8.1) = ((title, artist), shift): the row that just became the song fades out at
     the top while the others slide up from one row below (shift 0 → 1); the block keeps its final size."""
+    if not anim:                    # 1.56 (audit P2): the still block, cached – the card is redrawn every second
+        return _upnext_still(label, tuple(tuple(i) for i in items), int(height))
+    return _upnext_draw(label, items, height, anim)
+
+
+@lru_cache(maxsize=8)
+def _upnext_still(label: str, items: tuple, height: int) -> Image.Image:
+    """upnext_block without a slide (the picture is only read afterwards, never changed – like guide_line)."""
+    return _upnext_draw(label, items, height, None)
+
+
+def _upnext_draw(label: str, items, height: int, anim=None) -> Image.Image:
     from .media import MAX_CHARS, clip
     h = max(1, int(height * UPNEXT_SCALE))
     pad = 3 * max(2, h // 300)
