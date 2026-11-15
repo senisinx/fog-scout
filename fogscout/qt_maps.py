@@ -178,6 +178,7 @@ class MapsPage(QWidget):
         self.search = QLineEdit()
         self.search.setPlaceholderText(_("Suchen: Name, Realm, Abkürzung …"))
         self.search.setClearButtonEnabled(True)
+        self.search.setAccessibleName(_("Suchen"))           # 1.56 (a11y): the placeholder is gone once typed in
         self.search.textChanged.connect(self._searched)
         self.search.returnPressed.connect(self._pick_first)
         row.addWidget(self.search, 1)

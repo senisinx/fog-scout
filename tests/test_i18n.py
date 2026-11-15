@@ -199,3 +199,46 @@ def test_update_messages_follow_the_setting(tmp_path, monkeypatch):
         assert update.update(str(tmp_path)) == (update.SKIPPED, "Update check is switched off.")
     finally:
         update._lang = None
+
+
+def test_no_table_names_a_text_twice():
+    """1.56 (audit T-2): i18n_en.py named 19 texts twice in its dict literal – the later one wins without a word,
+    so an edit of the first did nothing. Read with ast (the dict itself has lost the twin)."""
+    for path in sorted(glob.glob(os.path.join(PKG, "i18n_*.py"))):
+        with open(path, encoding="utf-8") as fh:
+            tree = ast.parse(fh.read())
+        for d in (n for n in ast.walk(tree) if isinstance(n, ast.Dict)):
+            keys = [k.value for k in d.keys if isinstance(k, ast.Constant)]
+            twice = sorted({k for k in keys if keys.count(k) > 1})
+            assert not twice, (os.path.basename(path), twice[:5])
+
+
+# 1.56 (audit T-1): texts that may read the same as in English – names, units, technical words, signs. Key caps:
+# Russian, Chinese, Japanese and Korean keyboards print them in English; Italian ones do not (Ins, Canc, Fine …).
+SAME_AS_ENGLISH = {
+    "Claude", "DBD", "Discord", "Spotify", "YouTube", "Steam (F12)", "RAM", "VRAM", "P100", "4K", "OK", "Ping",
+    "BP", "{bp} BP", "+{n} P", "{n} K", "{n} S", "{n}M", "≤ {n} MB", "({how})", "S{n}: {v} c/s", "GPU: {name}",
+    "CPU, GPU, RAM", "CPU (x264/x265)", "FPS low", "Short (9:16)", "Short / TikTok (9:16)",
+    "Short 1080×1920, {fps} fps",
+    "Ctrl", "Ctrl+0", "Ctrl+E", "Ctrl+F", "Ctrl+S", "Ctrl+W", "Ctrl+Z / Ctrl+Y", "Ctrl+{n}", "Ctrl+← / →  ·  , / .",
+    "Shift+← / →", "Home"}
+KEY_CAPS = {"Ctrl+Enter", "Enter", "Del", "End", "Home / End", "Insert", "PgDn", "PgUp", "Scroll Lock"}
+SAME_IN = {
+    "it": {"1 round", "Add-on", "Asia", "BP/H ", "BP/h", "Build A", "CPU max", "Clip", "Clip: {what}",
+           "Clip: {start} – {end} ({length} s)", "FARMING ", "Farming", "Farming?", "File", "Focus",
+           "Fog Scout · Editor", "GPU max", "Gamepad", "Hong Kong", "Hot spot", "Hot spot max", "Hotkey: {keys}",
+           "Hotkey {action}: {keys}.", "INFO", "Info", "Iri", "Killer", "Killer · {killer}", "Layout {n} ({p})",
+           "Main", "Mumbai", "Oceania", "Overlay", "Password", "Perk", "Ping (ms)", "Realm", "Server", "Singapore",
+           "Sydney", "Timeline", "Tokyo", "Volume", "Zoom", "h", "hot spot max {v} °C", "lobby/menu", "no",
+           "ping {ms} ms", "{n} s", "{n}× farming", "Ø {ping} ms"},
+    "ru": KEY_CAPS, "zh": KEY_CAPS, "ja": KEY_CAPS, "ko": KEY_CAPS}
+
+
+def test_no_language_shows_english_where_it_has_words_of_its_own():
+    """1.56 (audit T-1): texts left in English in a translated table ("Preset: Quality", "Audio Library", "Client
+    secret", "Space" as a key) – a text equal to the English one must be on the list of words that read the same."""
+    import importlib
+    for code in OTHERS:
+        table = importlib.import_module(f"fogscout.i18n_{code}").T
+        same = sorted(EN[k] for k, v in table.items() if v == EN[k] and EN[k] not in SAME_AS_ENGLISH | SAME_IN[code])
+        assert not same, (code, same[:10])

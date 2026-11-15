@@ -48,3 +48,52 @@ def test_every_page_tab_and_setup_step_gives_a_picture(app_root):
     assert "log.png" in names and "overlay-Karte.png" in names
     assert [n for n in names if n.startswith("setup-")] == [f"setup-{i}.png" for i in range(1, 9)]
     assert all(not n.startswith(("overview", "stats", "maps")) for n in names)        # only the pages asked for
+
+
+def test_names_of_tabs_in_other_scripts_stay_apart():
+    """1.56 (audit): `_name` dropped every non-Latin letter – the Russian/Chinese/Japanese/Korean tabs of one page
+    all became "settings.png" and overwrote each other. Letters of any script stay; a repeat gets a number."""
+    tool = _tool()
+    names = {tool._name("settings", t) for t in ("Общие", "Распознавание", "常规", "識別", "일반", "Match-Daten")}
+    assert len(names) == 6 and "settings-Match_Daten.png" in names
+    assert tool._name("settings", "Erkennung", "full") == "settings-Erkennung-full.png"
+    taken = set()
+    assert [tool._unique(p, taken) for p in ("a/x.png", "a/x.png", "a/x.png")] == ["a/x.png", "a/x-2.png", "a/x-3.png"]
+
+
+def test_every_control_has_an_accessible_name(app_root):
+    """1.56 (a11y audit, agent-ui/dyn6.py): most controls had no accessible name – every labelled tick box (its text
+    is a label beside the box), most choices, the sliders, the entries and the overlay list's icon-only buttons. With
+    every page and tab shown once (tools/screenshots.shoot: the App fills what is on display), each tick box, choice,
+    slider and entry has a name, and every button a screen reader can reach says what it is."""
+    from PySide6.QtGui import QAccessible
+    from PySide6.QtWidgets import QAbstractButton, QAbstractSpinBox, QCheckBox, QComboBox, QLineEdit, QSlider
+    from fogscout.app import App
+    from fogscout.qt_layouts import WrapCheck
+    tool = _tool()
+    app = App(str(app_root), simulate=str(app_root / "sim"))
+    app.qt.resize(1100, 760)
+    try:
+        tool.shoot(app, str(app_root / "shots"))
+        q = app.qt
+        missing = []
+        checks = [wc for wc in q.findChildren(WrapCheck) if wc.text().strip()]
+        missing += [("check", wc.text()[:40]) for wc in checks if wc.box.accessibleName() != wc.text()]
+        fields = [w for cls in (QComboBox, QSlider, QLineEdit) for w in q.findChildren(cls)
+                  if not isinstance(w.parentWidget(), (QComboBox, QAbstractSpinBox))]
+        missing += [(type(w).__name__, w.toolTip()[:40]) for w in fields if not w.accessibleName().strip()]
+        for b in q.findChildren(QAbstractButton):
+            if isinstance(b, QCheckBox) and isinstance(b.parentWidget(), WrapCheck):
+                continue
+            if not b.isVisibleTo(q) and not b.text():             # a button the App never showed (no text yet)
+                continue
+            i = QAccessible.queryAccessibleInterface(b)
+            if not (i and i.text(QAccessible.Name).strip()):
+                missing.append((type(b).__name__, b.objectName(), b.toolTip()[:40]))
+        assert len(checks) > 40 and len(fields) > 100
+        assert not missing, missing
+        icons = q.findChildren(QAbstractButton, "ovicon") + q.findChildren(QAbstractButton, "ovcell")
+        assert len(icons) >= 12 and all(b.accessibleName() for b in icons)
+        assert any(b.accessibleName() == "Karte: Ausblenden" for b in icons)
+    finally:
+        app.quit()

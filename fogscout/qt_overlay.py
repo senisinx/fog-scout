@@ -8,12 +8,13 @@ every control is still one of the page's ``controls`` – the search, ``open_tab
 from __future__ import annotations
 
 from PySide6.QtCore import QSize, Qt, QTimer
-from PySide6.QtGui import QKeySequence, QShortcut
+from PySide6.QtGui import QKeySequence, QPainter, QShortcut
 from PySide6.QtWidgets import (QFrame, QGridLayout, QHBoxLayout, QLabel, QPushButton, QScrollArea,
                                QSizePolicy, QToolButton, QVBoxLayout, QWidget)
 
 from . import qt_icons, qt_theme
 from .i18n import N_, _
+from .qt_common import on_zoom
 
 # element -> its settings tab (appconst.ELEMENT_TABS; repeated here: the Qt side never imports the App's mixins)
 TABS = {"map": "ov.look", "text": "ov.look", "hud": "ov.sys", "today": "ov.today_f", "music": "ov.music_f",
@@ -38,17 +39,49 @@ def _icon_button(glyph: str, tip: str) -> QToolButton:
     b.setAutoRaise(True)
     b.setCursor(Qt.PointingHandCursor)
     b.setFocusPolicy(Qt.TabFocus)
-    b.setIconSize(QSize(qt_theme.ICON["m"], qt_theme.ICON["m"]))
+    on_zoom(b, lambda _z: b.setIconSize(QSize(qt_theme.icon_px(qt_theme.ICON["m"]),     # 1.56: with the text
+                                              qt_theme.icon_px(qt_theme.ICON["m"]))))   # zoom
     b._glyph = glyph
-    b.setToolTip(tip)
+    _set_tip(b, tip)
     return b
+
+
+def _set_tip(b, tip: str, owner: str = ""):
+    """An icon-only button's tooltip – 1.56 (a11y audit): also its accessible name (a screen reader read nothing),
+    with the element it belongs to in front ("Karte: Ausblenden")."""
+    name = f"{owner}: {tip}" if owner else tip
+    if b.toolTip() != tip:
+        b.setToolTip(tip)
+    if b.accessibleName() != name:
+        b.setAccessibleName(name)
+
+
+class _ElideLabel(QLabel):
+    """1.56 (audit V-1, 150 % in a small window): a one-line text of the element list ends in "…" when its room is
+    narrower – it was cut in the middle of a word. The whole text stays ``text()`` (and the row's accessible name)."""
+
+    def minimumSizeHint(self):
+        s = super().minimumSizeHint()
+        return QSize(min(s.width(), self.fontMetrics().horizontalAdvance("…") + 2), s.height())
+
+    def paintEvent(self, e):
+        r = self.contentsRect()
+        fm = self.fontMetrics()
+        if fm.horizontalAdvance(self.text()) <= r.width():
+            super().paintEvent(e)
+            return
+        p = QPainter(self)
+        self.style().drawItemText(p, r, int(self.alignment()), self.palette(), self.isEnabled(),
+                                  fm.elidedText(self.text(), Qt.ElideRight, r.width()), self.foregroundRole())
+        p.end()
 
 
 def _paint_icon(b: QToolButton, glyph: str, on: bool):
     c = qt_theme.colours(qt_theme.current_dark())
-    if b.__dict__.get("_painted") != (glyph, on, c["accent"], c["dim"]):
-        b._painted = (glyph, on, c["accent"], c["dim"])
-        b.setIcon(qt_icons.icon(glyph, c["accent"] if on else c["dim"]))
+    side = qt_theme.icon_px(qt_theme.ICON["m"])
+    if b.__dict__.get("_painted") != (glyph, on, c["accent"], c["dim"], side):
+        b._painted = (glyph, on, c["accent"], c["dim"], side)
+        b.setIcon(qt_icons.icon(glyph, c["accent"] if on else c["dim"], size=side))
 
 
 class _Row(QFrame):
@@ -66,10 +99,12 @@ class _Row(QFrame):
         lay.setSpacing(4)
         texts = QVBoxLayout()
         texts.setSpacing(0)
-        self.title = QLabel(_(NAMES.get(name, name)) if name != "general" else _("Allgemein"))
+        self.title = _ElideLabel(_(NAMES.get(name, name)) if name != "general" else _("Allgemein"))
         self.title.setObjectName("ovrowname")
-        self.info = QLabel(_(WHAT.get(name, "")) if name != "general" else _("Stil, Abstand, Grenzen, Discord"))
+        self.info = _ElideLabel(_(WHAT.get(name, "")) if name != "general" else _("Stil, Abstand, Grenzen, Discord"))
         self.info.setObjectName("ovrowinfo")
+        self.setAccessibleName(self.title.text())           # 1.56: the row is a focus stop of its own
+        self.setAccessibleDescription(self.info.text())
         for lbl in (self.title, self.info):
             lbl.setAttribute(Qt.WA_TransparentForMouseEvents)
         texts.addWidget(self.title)
@@ -78,8 +113,10 @@ class _Row(QFrame):
         self.eye = self.lock = None
         if name != "general":
             self.eye = _icon_button("eye", _("Ein- oder ausblenden"))
+            _set_tip(self.eye, self.eye.toolTip(), self.title.text())
             self.eye.clicked.connect(lambda: rail.post(("show", name, not self.eye.property("on"))))
             self.lock = _icon_button("lock_open", _("Sperren: im Modus „Anordnen“ nicht mehr verschiebbar"))
+            _set_tip(self.lock, self.lock.toolTip(), self.title.text())
             self.lock.clicked.connect(lambda: rail.post(("lock", name, not self.lock.property("on"))))
             lay.addWidget(self.eye)
             lay.addWidget(self.lock)
@@ -103,14 +140,15 @@ class _Row(QFrame):
         info = " · ".join(parts)
         if self.info.text() != info:
             self.info.setText(info)
+            self.setAccessibleDescription(info)
         self.eye.setProperty("on", shown)
         self.eye.setVisible(can_hide)
         _paint_icon(self.eye, "eye" if shown else "eye_off", False)
-        self.eye.setToolTip(_("Ausblenden") if shown else _("Einblenden"))
+        _set_tip(self.eye, _("Ausblenden") if shown else _("Einblenden"), self.title.text())
         self.lock.setProperty("on", locked)
         _paint_icon(self.lock, "lock" if locked else "lock_open", locked)
-        self.lock.setToolTip(_("Entsperren: wieder verschiebbar") if locked else
-                             _("Sperren: im Modus „Anordnen“ nicht mehr verschiebbar"))
+        _set_tip(self.lock, _("Entsperren: wieder verschiebbar") if locked else
+                 _("Sperren: im Modus „Anordnen“ nicht mehr verschiebbar"), self.title.text())
 
     def mousePressEvent(self, e):
         if e.button() == Qt.LeftButton:
@@ -167,8 +205,13 @@ class ElementRail(QWidget):
             self.grid.removeWidget(row)
         names = list(self._order) + ["general"]
         cols = self.COMPACT_COLS if self._compact else 1
+        for c in range(self.COMPACT_COLS):        # 1.56: chips share the width equally (a long name ends in "…",
+            self.grid.setColumnStretch(c, 1 if self._compact else 0)      # it does not squeeze a short one)
         for i, name in enumerate(n for n in names if n in self._rows):
-            self.grid.addWidget(self._rows[name], i // cols, i % cols)
+            row = self._rows[name]
+            row.setSizePolicy(QSizePolicy.Ignored if self._compact else QSizePolicy.Preferred,
+                              row.sizePolicy().verticalPolicy())
+            self.grid.addWidget(row, i // cols, i % cols)
 
     def show_state(self, st):
         self.setVisible(bool(st.get("visible", True)))
@@ -224,7 +267,7 @@ class AnchorGrid(QWidget):
             b.setFixedSize(CELL)
             b.setCursor(Qt.PointingHandCursor)
             b.setFocusPolicy(Qt.TabFocus)
-            b.setToolTip(_("Nach {where} legen (mit Rand)", where=_(word)))
+            _set_tip(b, _("Nach {where} legen (mit Rand)", where=_(word)))   # 1.56: also its accessible name
             b.clicked.connect(lambda _c=False, c=c, r=r: self._click(("cell", c, r)))
             g.addWidget(b, r, c)
             self.cells[(c, r)] = b
@@ -302,10 +345,12 @@ class OverlayEditor(QWidget):
         for c in toolbar:
             if c[0] != "stretch":
                 page._add(c, row)
+        from .qt_pages import _link_names                 # 1.56: the preset choice is named by its label
+        _link_names(page.controls, [c[1] for c in toolbar if c[0] != "stretch"])
         bl.addLayout(row)
         preset = page.controls.get("ov.preset")
         if preset is not None:                          # the presets' names are long: the bar stays one line
-            preset[1].setMaximumWidth(round(PRESET_W * qt_theme.current_zoom()))
+            on_zoom(preset[1], lambda z, w=preset[1]: w.setMaximumWidth(round(PRESET_W * z)))   # 1.56: and on a change
         outer.addWidget(self.bar)
         # ---- body: list | canvas + status | inspector (a grid: arrange() puts them per width)
         self.body = QGridLayout()
@@ -390,6 +435,7 @@ class OverlayEditor(QWidget):
         for body in (b for _k, (kind, _w, b) in page.controls.items() if kind == "tab"):
             body.layout().setContentsMargins(0, 4, 0, 0)    # the inspector has its own padding
         QShortcut(QKeySequence(Qt.Key_Escape), self, activated=self._escape, context=Qt.WidgetWithChildrenShortcut)
+        on_zoom(self, lambda _z: self._rezoomed())
         self.arrange(1400)
 
     # ------------------------------------------------------------ layout
@@ -458,6 +504,14 @@ class OverlayEditor(QWidget):
             QTimer.singleShot(0, self, self._arrange_now)
         elif self._wide == "narrow":
             self._narrow_canvas()
+
+    def _rezoomed(self):
+        """1.56: the text zoom changed while the window runs – the list's and inspector's widths follow it (arranged
+        again right after, never inside the theme switch's own layout pass)."""
+        if self._wide is not None and not self._arranging:
+            self._wide = None
+            self._arranging = True
+            QTimer.singleShot(0, self, self._arrange_now)
 
     def _arrange_now(self):
         self._arranging = False

@@ -189,7 +189,8 @@ def set_glyph(w, name, primary=False, tone="fg"):
     that turns to the accent with the keyboard focus (the rounds' ▶ on the overview). 1.24.5: what was asked is
     kept (``_glyph_args``) – refresh_glyphs draws signs made before the theme was known, or on another screen."""
     ratio = w.devicePixelRatioF() or 1.0
-    key = (name, bool(primary), tone, ratio, qt_theme.look_key())   # 1.24.5: no palette built just to compare
+    side = qt_theme.icon_px(qt_theme.ICON["m"])                    # 1.56: grows with the text zoom
+    key = (name, bool(primary), tone, ratio, side, qt_theme.look_key())   # 1.24.5: no palette built just to compare
     if w.__dict__.get("_glyph_key") == key:             # (getattr of a missing name on a Qt widget: 3.7 µs)
         return                                          # (_glyph_args is part of the key – unchanged on a hit)
     w._glyph_args = (name, bool(primary), tone)
@@ -204,8 +205,8 @@ def set_glyph(w, name, primary=False, tone="fg"):
         w.setIcon(QIcon())
         return
     w.setIcon(qt_icons.icon(name, normal, active=c["accent"] if tone == "dim" else None, disabled=c["fg_dis"],
-                            size=qt_theme.ICON["m"], ratio=ratio))
-    w.setIconSize(QSize(qt_theme.ICON["m"], qt_theme.ICON["m"]))
+                            size=side, ratio=ratio))
+    w.setIconSize(QSize(side, side))
 
 
 def refresh_glyphs(root):
@@ -234,6 +235,24 @@ def _card():
 def _set(widget, text):
     if widget.text() != text:
         widget.setText(text)
+
+
+def on_zoom(widget, fn):
+    """1.56: a size that follows the text zoom – ``fn(zoom)`` now and again whenever the zoom changes while the
+    window runs (MainWindow.apply_theme → ``rezoom``). Sizes set once at build kept the zoom of the start: a switch
+    to 150 % left the calculator's choices and names at their old widths, the texts cut."""
+    fn(qt_theme.current_zoom())
+    widget.__dict__.setdefault("_dbdms_zoom", []).append(fn)
+
+
+def rezoom(root, zoom: float) -> int:
+    """Run the ``on_zoom`` functions of ``root`` and every widget below it; how many ran."""
+    n = 0
+    for w in [root] + root.findChildren(QWidget):
+        for fn in w.__dict__.get("_dbdms_zoom", ()):
+            fn(zoom)
+            n += 1
+    return n
 
 
 def steady_scroll(sa):

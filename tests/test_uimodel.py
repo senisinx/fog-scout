@@ -3004,6 +3004,17 @@ def test_the_screenshots_tab_lists_pictures_and_opens_the_picture_editor(app_roo
         app.quit()
 
 
+def test_the_recording_card_is_drawn_once_when_the_page_is_built(app_root):
+    """1.56 (audit V-5): the card was built saying "Warte auf OBS …" and showing, and only the first tick of the
+    shown page hid it while recordings were off – it flashed. Built, it already says how things are."""
+    from fogscout.app import App
+    app = App(str(app_root), simulate=str(app_root / "sim"))
+    try:
+        assert app.rec_state_var.get() == "Aufnahmen sind aus." and not app.rec_card.winfo_manager()
+    finally:
+        app.quit()
+
+
 def test_the_recording_card_and_its_hotkeys_drive_the_recorder(app_root):
     """1.15 (audit of the video system): start/stop and pause by button or hotkey go to the recorder with the open
     round's names, the card follows the recorder's events and polls OBS only while the page is shown."""

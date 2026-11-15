@@ -975,7 +975,6 @@ EN = {
         "“{name}” already exists ({map}) – choose “Replace the picture of an existing map” instead.",
     "Noch kein Bild gewählt (PNG, JPG, WebP, GIF)": "No picture chosen yet (PNG, JPG, WebP, GIF)",
     "Für welche Map?": "For which map?",
-    "Original": "Original",
     "Ergebnis": "Result",
     "Eigenes Bild löschen": "Delete own picture",
     "Speichern": "Save",
@@ -1205,7 +1204,6 @@ EN = {
     "Ø Kills": "Avg. kills",
     "4K": "4K",
     "Entkommen": "Escaped",
-    "Ergebnis": "Result",
     "entkommen": "escaped",
     "tot": "died",
     "aufgegeben": "abandoned",
@@ -1345,7 +1343,6 @@ EN = {
         "No survivor rounds with official data in this selection.",
     "Ø {kills} Kills": "avg. {kills} kills",
     "{share} entkommen": "{share} escaped",
-    "{bp} BP": "{bp} BP",
     # notification after an import (1.37.1)
     "Meldung, wenn Match-Daten eingelesen und gelöscht wurden": "Notify when match data was read and deleted",
     "Zeigt unten rechts kurz, wie viele Matches gelesen wurden und dass die Datei gelöscht ist – nicht, solange DBD "
@@ -1364,7 +1361,6 @@ EN = {
     "CPU-Temperatur: aus HWiNFO": "CPU temperature: from HWiNFO",
     "Systemwerte (CPU/GPU-Temperatur, Auslastung, VRAM, RAM)": "System values (CPU/GPU temperature, load, VRAM, RAM)",
     # statistics: system values (app_stats)
-    "System": "System",
     "nach Map": "by map",
     "nach Killer": "by killer",
     "GPU Ø °C": "GPU avg. °C",
@@ -2089,7 +2085,6 @@ EN = {
     'Eine halb durchsichtige dunkle Fläche mit runden Ecken hinter „Heute“.':
         'A half-transparent dark area with rounded corners behind "Today".',
     'HEUTE': 'TODAY',
-    'Heute': 'Today',
     'ENTKOMMEN ': 'ESCAPED ',
     'HEUTE ': 'TODAY ',
     'UHR ': 'TIME ',
@@ -2115,7 +2110,6 @@ EN = {
     'Unter den Systemwerten': 'Below the system values',
     'Rechts unten im Balken': 'Bottom right in the bar',
     'Links unten im Balken': 'Bottom left in the bar',
-    'Musik': 'Music',
     'MUSIK': 'MUSIC',
     'läuft gerade': 'now playing',
     'Albumcover zeigen': 'Show the album cover',
@@ -2149,7 +2143,6 @@ EN = {
     'Das Bild zum Lied links neben Titel und Interpret – Windows liefert es mit; es bleibt nur im Speicher.':
         'The picture of the song left of title and artist – Windows supplies it; it stays in memory only.',
     # 1.64.7: music card styles
-    'Stil': 'Style',
     'Gross – Cover oben, Titel darunter': 'Large – cover on top, title below',
     'Kompakt – Cover links': 'Compact – cover left',
     "Fortschritt des Lieds zeigen": "Show the song's progress",
@@ -2157,8 +2150,6 @@ EN = {
         'Below title and artist: how far the song is, with a bar and its length – like in Spotify.',
     # 1.64.7: names while moving
     'KARTE · Strg+Mausrad = Grösse': 'MAP · Ctrl+wheel = size',
-    'Karte': 'Map',
-    'Systemwerte': 'System values',
     'Ziehst: {name}': 'Dragging: {name}',
     'Unter der Maus: {name}': 'Under the mouse: {name}',
     'Kartenstil': 'Map style',
@@ -2195,7 +2186,6 @@ EN = {
                      'the program …). Rounds, match data and own pictures stay; the program restarts afterwards. '
                      'Back up first: "Export settings".',
     'Grösse {pct} %': 'size {pct} %',
-    'eigenes Bild': 'own picture',
     'Eigene Einstellungen dieser Map: {what}': 'Own settings of this map: {what}',
     'Eigene Grösse und Drehung zurücksetzen': 'Reset own size and rotation',
     'Kartenbild ersetzen …': 'Replace map picture …',
@@ -2212,7 +2202,6 @@ EN = {
     'alle Maps (keine Map eingeblendet)': 'all maps (no map on screen)',
     'Letzte 7 Tage': 'Last 7 days',
     'Letzte 30 Tage': 'Last 30 days',
-    'Alle Maps': 'All maps',
     'Rolle/Killer': 'Role/killer',
     'Weitere 100 Runden anzeigen': 'Show 100 more rounds',
     'Runden exportieren': 'Export rounds',
@@ -2256,10 +2245,8 @@ EN = {
     'Klick: sortieren · Rechtsklick: Spalten ein-/ausblenden': 'Click: sort · right-click: show/hide columns',
     'Alle Spalten zeigen': 'Show all columns',
     # 1.4: recordings with OBS
-    'Aufnahmen mit OBS': 'Recordings with OBS',
     # 1.8.91: the export dialog
     "Exportieren …": "Export …",
-    "Runden exportieren": "Export rounds",
     "Zeitraum": "Time range",
     "Von": "From",
     "Bis": "To",
@@ -2331,7 +2318,6 @@ EN = {
     'Unerwartete Begrüssung von OBS': 'Unexpected greeting from OBS',
     'OBS verlangt ein Passwort (OBS: Werkzeuge → WebSocket-Servereinstellungen)': 'OBS wants a password (OBS: Tools → WebSocket Server Settings)',
     'OBS hat die Anmeldung abgelehnt – Passwort falsch?': 'OBS refused the login – wrong password?',
-    'Fehler: {error}': 'Error: {error}',
     'OBS {version} verbunden': 'OBS {version} connected',
     'nimmt gerade auf': 'recording now',
     'bereit': 'ready',
@@ -2401,7 +2387,6 @@ EN = {
     'Platte nicht angeschlossen': 'drive not connected',
     'kein Ordner gewählt': 'no folder chosen',
     'Platz wird gemessen …': 'measuring room …',
-    '1 Runde': '1 round',
     '{n} mit Marke': '{n} with a mark',
     'älteste {date}': 'oldest {date}',
     '{size} frei': '{size} free',
@@ -2467,7 +2452,6 @@ EN = {
         'The clip starts {before} s before the picked mark (none picked: the one nearest the playhead) and ends {after} s after it.',
     'Springt zur nächsten F8-Marke (Taste M).': 'Jumps to the next F8 mark (key M).',
     'Clip: {start} – {end} ({length} s)': 'Clip: {start} – {end} ({length} s)',
-    'Ton': 'Sound',
     'Beim Abspielen den Ton der Aufnahme mitlaufen lassen (Windows).': 'Play the sound of the recording along with the preview (Windows).',
     'Ton im Clip': 'Sound in the clip',
     'Abspielkopf hierher': 'Playhead here',
@@ -2935,7 +2919,6 @@ EN = {
     'ohne': 'without',
     'Dein Loadout laut Stats-Seite (ab Userscript Version 3). „Ergebnis“ = als Killer Ø Kills, als Survivor Anteil entkommen; „ohne“ = dasselbe in deinen Runden derselben Rolle ohne diesen Eintrag. Builds ab {n} Runden. Embleme: Ø Stufe von keins (0) bis Iri (4); „voll“ = Kategorie mit {max} Punkten.':
         'Your loadout from the stats page (userscript version 3 or newer). "Result" = as killer Ø kills, as survivor the share escaped; "without" = the same in your rounds of that role without this entry. Builds from {n} rounds. Emblems: Ø tier from none (0) to iri (4); "full" = category at {max} points.',
-    'Öffentlich': 'Public',
     'Event-Modus': 'Event mode',
     'keins': 'none',
     'Bronze': 'Bronze',
@@ -3335,7 +3318,6 @@ EN = {
     "Inspector ein-/ausblenden.": "Show/hide the inspector.",
     "Keine Aufnahmen – OBS-Aufnahmen und Clips erscheinen hier, „Importieren“ holt eine andere Videodatei.": "No recordings – OBS recordings and clips appear here, “Import” brings in another video file.",
     "Keine Clips auf der Zeitleiste.": "No clips on the timeline.",
-    "Keine Videodatei: {file}": "Not a video file: {file}",
     "Kürzeste zuerst": "Shortest first",
     "Lautstärke der Vorschau (nicht des Clips).": "Volume of the preview (not of the clip).",
     "? alle Tastenkürzel · Leertaste Abspielen · ←/→ 1 s · Shift 5 s · Strg oder ,/. 1 Bild · I/O Clip beginnt/endet hier · S Teilen · Entf Löschen · Strg+Z/Y Rückgängig/Wiederholen · F Vollbild · Strg+S Projekt · Strg+E Export":
@@ -4283,7 +4265,6 @@ EN = {
     'Automatisch (zuletzt benutztes Gerät)': 'Automatic (device used last)',
     'Dunkle Fläche hinter den Eingaben': 'Dark area behind the inputs',
     'EINGABEN': 'INPUTS',
-    'Eingaben': 'Inputs',
     'Eingaben im Spiel': 'Inputs in the game',
     'Eingaben im Spiel zeigen (Tasten, Maus, Gamepad)': 'Show inputs in the game (keys, mouse, gamepad)',
     'Gamepad': 'Gamepad',
@@ -4415,4 +4396,10 @@ EN = {
         'Japanese',
     'Koreanisch':
         'Korean',
+    'Zuordnen zu':
+        'Assign to',
+    'Gruppieren nach':
+        'Group by',
+    'Killer-Perk {n}':
+        'Killer perk {n}',
 }

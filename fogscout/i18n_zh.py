@@ -4620,7 +4620,7 @@ T = {
     'Werkzeuge':
         '工具',
     'Leertaste':
-        'Space',
+        '空格',
     'Abspielen / Anhalten':
         '播放/暂停',
     '1 Sekunde zurück / vor':
@@ -5414,7 +5414,7 @@ T = {
     'Frequenzsteuerung: CQP, QP-Werte 18 (HEVC 20)':
         '码率控制：CQP，QP 值 18（HEVC 20）',
     'Voreinstellung: Qualität':
-        '预设：Quality',
+        '预设：质量',
     'Video-Encoder: QuickSync H.264 oder HEVC (nicht „Stream-Encoder verwenden“)':
         '视频编码器：QuickSync H.264 或 HEVC（不要选“使用串流编码器”）',
     'Frequenzsteuerung: ICQ (oder CQP), Wert 18':
@@ -5923,4 +5923,10 @@ T = {
         '日语',
     'Koreanisch':
         '韩语',
+    'Zuordnen zu':
+        '归类到',
+    'Gruppieren nach':
+        '分组依据',
+    'Killer-Perk {n}':
+        '杀手技能 {n}',
 }
