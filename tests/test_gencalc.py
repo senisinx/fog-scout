@@ -157,7 +157,7 @@ def test_the_page_shows_the_times_of_the_builds_and_keeps_them(app_root):
         app._calc_changed()
         assert list(t.get_children()) == ["k1", "k2", "k3", "k4", "all", "split"]
         saved = app.settings.get("calc")
-        assert saved["n"] == 4 and saved["survivors"][0] == [["Prove Thyself", "Resilience"], "Toolbox"]
+        assert saved["n"] == 4 and saved["survivors"][0] == [["Prove Thyself", "Resilience"], "Toolbox", []]
         assert "0.85" not in app.calc_rates_var.get() and app.calc_rates_var.get()
         # the Killer perk picked sets its usual count
         app.calc_kill[1][0].set("Thanatophobia")

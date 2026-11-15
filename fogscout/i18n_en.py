@@ -1620,8 +1620,6 @@ EN = {
         'Breakdown',
     'Ausgangstor öffnen':
         'Opening an exit gate',
-    'Bedingte Perks zählen als aktiv (z. B. Resilience = verletzt, Hope = Tore mit Strom); die Bedingung steht in der Aufschlüsselung. Ein Werkzeugkasten wirkt beim Reparieren, ein Med-Kit beim Heilen anderer.':
-        'Conditional perks count as active (e.g. Resilience = injured, Hope = gates powered); the condition is shown in the breakdown. A toolbox acts while repairing, a med-kit while healing others.',
     'Bedingung':
         'Condition',
     'Befreien':
@@ -1800,6 +1798,26 @@ EN = {
         '“Keep as build A” holds what is chosen now; the table then shows every change beside it.',
     'Tempo (relativ)':
         'Relative speed',
+    '+{n} Ladungen im Werkzeugkasten':
+        '+{n} charges in the toolbox',
+    '+{p} % Tempo mit dem Werkzeugkasten (Add-on: zählt voll)':
+        '+{p} % speed with the toolbox (add-on: counts fully)',
+    'Add-on: 100 %':
+        'add-on: 100 %',
+    'Add-ons':
+        'Add-ons',
+    'Add-ons: aufgeführt sind die, deren Wirkung der Rechner berechnen kann (Haste, Hindered, Mangled, Aktionstempo). Die Kraft selbst zählt nur dort mit, wo ein gewähltes Add-on sie verstärkt.':
+        'Add-ons: listed are those whose effect the calculator can work out (Haste, Hindered, Mangled, action speed). The power itself only counts where a chosen add-on strengthens it.',
+    'Bedingte Perks zählen als aktiv (z. B. Resilience = verletzt, Hope = Tore mit Strom); die Bedingung steht in der Aufschlüsselung. Ein Werkzeugkasten wirkt beim Reparieren und Sabotieren, ein Med-Kit beim Heilen; Add-ons zählen voll (keine Diminishing Returns).':
+        'Conditional perks count as active (e.g. Resilience = injured, Hope = gates powered); the condition is shown in the breakdown. A toolbox acts while repairing and sabotaging, a med-kit while healing; add-ons count fully (no diminishing returns).',
+    'Für diesen Killer kennt der Rechner kein Add-on mit berechenbarer Wirkung.':
+        'For this killer the calculator knows no add-on with an effect it can work out.',
+    'Grundgeschwindigkeit':
+        'Base speed',
+    'keine regulären Skill Checks, solange der Werkzeugkasten läuft':
+        'no regular skill checks while the toolbox lasts',
+    '+ {n} weitere':
+        '+ {n} more',
     'Claude hat unverständlich geantwortet.': 'Claude gave an answer that could not be read.',
     'Claude ist nicht erreichbar – keine Internetverbindung?': 'Claude cannot be reached – no internet connection?',
     'Claude: Zu viele Anfragen – gleich noch einmal versuchen.': 'Claude: too many requests – try again in a moment.',

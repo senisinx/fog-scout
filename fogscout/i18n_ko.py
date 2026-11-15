@@ -2103,8 +2103,6 @@ T = {
         '세부 내역',
     'Ausgangstor öffnen':
         '탈출구 열기',
-    'Bedingte Perks zählen als aktiv (z. B. Resilience = verletzt, Hope = Tore mit Strom); die Bedingung steht in der Aufschlüsselung. Ein Werkzeugkasten wirkt beim Reparieren, ein Med-Kit beim Heilen anderer.':
-        '조건부 퍽은 발동 중으로 계산합니다(예: Resilience = 부상, Hope = 탈출구 전력 공급). 조건은 세부 내역에 표시됩니다. 공구 상자는 수리할 때, 구급상자는 다른 생존자를 치료할 때 적용됩니다.',
     'Bedingung':
         '조건',
     'Befreien':
@@ -2283,6 +2281,26 @@ T = {
         '"빌드 A로 저장"은 현재 선택을 보관하고, 이후 표가 변경 내용을 나란히 보여 줍니다.',
     'Tempo (relativ)':
         '상대 속도',
+    '+{n} Ladungen im Werkzeugkasten':
+        '공구 상자 충전량 +{n}',
+    '+{p} % Tempo mit dem Werkzeugkasten (Add-on: zählt voll)':
+        '공구 상자 사용 시 속도 +{p} %(애드온: 전부 적용)',
+    'Add-on: 100 %':
+        '애드온: 100 %',
+    'Add-ons':
+        '애드온',
+    'Add-ons: aufgeführt sind die, deren Wirkung der Rechner berechnen kann (Haste, Hindered, Mangled, Aktionstempo). Die Kraft selbst zählt nur dort mit, wo ein gewähltes Add-on sie verstärkt.':
+        '애드온: 계산기가 효과를 계산할 수 있는 것(Haste, Hindered, Mangled, 행동 속도)만 표시합니다. 능력 자체는 선택한 애드온이 강화하는 경우에만 반영됩니다.',
+    'Bedingte Perks zählen als aktiv (z. B. Resilience = verletzt, Hope = Tore mit Strom); die Bedingung steht in der Aufschlüsselung. Ein Werkzeugkasten wirkt beim Reparieren und Sabotieren, ein Med-Kit beim Heilen; Add-ons zählen voll (keine Diminishing Returns).':
+        '조건부 퍽은 발동 중으로 계산합니다(예: Resilience = 부상, Hope = 탈출구 전력 공급). 조건은 세부 내역에 표시됩니다. 공구 상자는 수리와 갈고리 파괴 시, 구급상자는 치료 시 적용됩니다. 애드온은 전부 적용됩니다(효과 감쇠 없음).',
+    'Für diesen Killer kennt der Rechner kein Add-on mit berechenbarer Wirkung.':
+        '이 살인마에는 계산할 수 있는 효과가 있는 애드온이 없습니다.',
+    'Grundgeschwindigkeit':
+        '기본 속도',
+    'keine regulären Skill Checks, solange der Werkzeugkasten läuft':
+        '공구 상자를 쓰는 동안 일반 스킬 체크 없음',
+    '+ {n} weitere':
+        '+ 그 외 {n}개',
     'Claude hat unverständlich geantwortet.':
         'Claude의 답변을 읽을 수 없습니다.',
     'Claude ist nicht erreichbar – keine Internetverbindung?':

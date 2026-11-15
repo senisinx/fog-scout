@@ -2103,8 +2103,6 @@ T = {
         '明细',
     'Ausgangstor öffnen':
         '开启大门',
-    'Bedingte Perks zählen als aktiv (z. B. Resilience = verletzt, Hope = Tore mit Strom); die Bedingung steht in der Aufschlüsselung. Ein Werkzeugkasten wirkt beim Reparieren, ein Med-Kit beim Heilen anderer.':
-        '条件型技能按已生效计算（例如 Resilience = 受伤，Hope = 大门通电）；条件见明细。工具箱在修理时生效，医疗包在治疗他人时生效。',
     'Bedingung':
         '条件',
     'Befreien':
@@ -2283,6 +2281,26 @@ T = {
         '“记为配置 A”会保存当前选择；之后表格会把每次更改显示在旁边。',
     'Tempo (relativ)':
         '相对速度',
+    '+{n} Ladungen im Werkzeugkasten':
+        '工具箱充能 +{n}',
+    '+{p} % Tempo mit dem Werkzeugkasten (Add-on: zählt voll)':
+        '使用工具箱时速度 +{p} %（附加品：全额计算）',
+    'Add-on: 100 %':
+        '附加品：100 %',
+    'Add-ons':
+        '附加品',
+    'Add-ons: aufgeführt sind die, deren Wirkung der Rechner berechnen kann (Haste, Hindered, Mangled, Aktionstempo). Die Kraft selbst zählt nur dort mit, wo ein gewähltes Add-on sie verstärkt.':
+        '附加品：仅列出计算器能够计算其效果的附加品（Haste、Hindered、Mangled、动作速度）。能力本身只在所选附加品强化它时才计入。',
+    'Bedingte Perks zählen als aktiv (z. B. Resilience = verletzt, Hope = Tore mit Strom); die Bedingung steht in der Aufschlüsselung. Ein Werkzeugkasten wirkt beim Reparieren und Sabotieren, ein Med-Kit beim Heilen; Add-ons zählen voll (keine Diminishing Returns).':
+        '条件型技能按已生效计算（例如 Resilience = 受伤，Hope = 大门通电）；条件见明细。工具箱在修理和破坏钩子时生效，医疗包在治疗时生效；附加品全额计算（不受收益递减影响）。',
+    'Für diesen Killer kennt der Rechner kein Add-on mit berechenbarer Wirkung.':
+        '对于这名杀手，计算器没有可计算效果的附加品。',
+    'Grundgeschwindigkeit':
+        '基础速度',
+    'keine regulären Skill Checks, solange der Werkzeugkasten läuft':
+        '工具箱使用期间不出现常规技能检定',
+    '+ {n} weitere':
+        '+ 另外 {n} 项',
     'Claude hat unverständlich geantwortet.':
         'Claude 给出的回答无法读取。',
     'Claude ist nicht erreichbar – keine Internetverbindung?':

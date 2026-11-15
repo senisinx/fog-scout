@@ -1,7 +1,7 @@
 {
  "about": "Numbers for the calculator (fogscout/gencalc.py): generator repair (mechanics, toolboxes, survivor, killer) and every other action or movement speed (areas, medkits, perks). Facts only, taken from the Dead by Daylight Wiki (deadbydaylight.wiki.gg, text licence CC BY-NC-SA 4.0 – no text was copied) – see THIRD_PARTY.md. Check after every game patch.",
  "retrieved": "2026-11-15",
- "source_state": "Module:Datatable/Loadout as of 2026-11-05, Generators 2026-08-31, Dead by Daylight Maths 2026-04-12, Toolboxes 2025-06-16, Skill Checks 2026-06-17; areas: Health States, Med-Kits, Movement Speeds, Vaulting, Pallets, Totems, Chests, Exit Gates, Hooks, Breakable Walls, Lockers and Patch Notes 9.6.X as read on 2026-11-15, Module:Datatable/Loadout/Descriptions as of 2026-11-06",
+ "source_state": "Module:Datatable/Loadout as of 2026-11-05, Generators 2026-08-31, Dead by Daylight Maths 2026-04-12, Toolboxes 2025-06-16, Skill Checks 2026-06-17; areas: Health States, Med-Kits, Movement Speeds, Vaulting, Pallets, Totems, Chests, Exit Gates, Hooks, Breakable Walls, Lockers and Patch Notes 9.6.X as read on 2026-11-15, Module:Datatable/Loadout/Descriptions as of 2026-11-06; Module:Datatable (killers), Status HUD/Mangled, Toolboxes and item/add-on descriptions as read on 2026-11-15",
  "mechanics": {
   "charges": 90,
   "repair_rate": 1.0,
@@ -33,32 +33,56 @@
   {
    "name": "Worn-Out Tools",
    "bonus": 0.5,
-   "charges": 16
+   "charges": 16,
+   "sabotage": 0.0
   },
   {
    "name": "Toolbox",
    "bonus": 0.5,
-   "charges": 20
+   "charges": 20,
+   "sabotage": 0.15
   },
   {
    "name": "Mechanic's Toolbox",
    "bonus": 0.75,
-   "charges": 16
+   "charges": 16,
+   "sabotage": 0.25
   },
   {
    "name": "Commodious Toolbox",
    "bonus": 0.5,
-   "charges": 32
+   "charges": 32,
+   "sabotage": 0.5
   },
   {
    "name": "Engineer's Toolbox",
    "bonus": 1.0,
-   "charges": 16
+   "charges": 16,
+   "sabotage": 0.1
   },
   {
    "name": "Alex's Toolbox",
    "bonus": 0.1,
-   "charges": 18
+   "charges": 18,
+   "sabotage": 1.0
+  },
+  {
+   "name": "Festive Toolbox",
+   "bonus": 0.5,
+   "charges": 32,
+   "sabotage": 0.5
+  },
+  {
+   "name": "Anniversary Toolbox",
+   "bonus": 0.5,
+   "charges": 32,
+   "sabotage": 0.5
+  },
+  {
+   "name": "Masquerade Toolbox",
+   "bonus": 0.5,
+   "charges": 32,
+   "sabotage": 0.5
   }
  ],
  "survivor": [
@@ -355,7 +379,12 @@
   "Fruits of Your Labor",
   "Vigil",
   "Haywire",
-  "Borrowed Time"
+  "Borrowed Time",
+  "Ripper Brace",
+  "BFFs",
+  "Needle & Thread",
+  "Surgical Suture",
+  "Styptic Agent"
  ],
  "areas": [
   {
@@ -668,7 +697,9 @@
   "hook": "https://deadbydaylight.wiki.gg/wiki/Hooks (unhook 1 s, sabotage 3 s)",
   "k_action": "https://deadbydaylight.wiki.gg/wiki/Generators (damage 1.8 s), /Breakable_Walls (2.34 s), /Lockers (search 2.333 s); picking up and hooking: speed only, no base time taken over",
   "k_attack": "https://deadbydaylight.wiki.gg/wiki/Movement_Speeds (cool-down 2.7 s after a hit, 1.5 s after a miss)",
-  "diminishing": "https://deadbydaylight.wiki.gg/wiki/Patch_Notes_9.6.X (status effects included; negative action speed modifiers only within their role; add-ons exempt)"
+  "diminishing": "https://deadbydaylight.wiki.gg/wiki/Patch_Notes_9.6.X (status effects included; negative action speed modifiers only within their role; add-ons exempt)",
+  "killers": "https://deadbydaylight.wiki.gg/wiki/Module:Datatable (speed, altSpeed of every Killer), /Haste and /Hindered (the powers' own values), /Status_HUD/Mangled (-20 % healing speed)",
+  "items": "https://deadbydaylight.wiki.gg/wiki/Toolboxes, /Med-Kits and Module:Datatable/Loadout/Descriptions (items, add-ons)"
  },
  "medkits": [
   {
@@ -686,6 +717,18 @@
   {
    "name": "Ranger Med-Kit",
    "bonus": 0.5
+  },
+  {
+   "name": "All Hallows' Eve Lunchbox",
+   "bonus": 0.4
+  },
+  {
+   "name": "Anniversary Med-Kit",
+   "bonus": 0.4
+  },
+  {
+   "name": "Masquerade Med-Kit",
+   "bonus": 0.4
   }
  ],
  "perks": [
@@ -1115,7 +1158,7 @@
      "value": 1.0,
      "to": "team",
      "when": "boon",
-     "no_item": true
+     "no_item": "medkit"
     }
    ]
   },
@@ -1503,7 +1546,8 @@
       "sabotage"
      ],
      "value": 0.3,
-     "to": "self"
+     "to": "self",
+     "no_item": "toolbox"
     }
    ]
   },
@@ -2089,6 +2133,1436 @@
      "when": "hurt"
     }
    ]
+  },
+  {
+   "name": "Sloppy Butcher",
+   "side": "K",
+   "patch": "7.6.0",
+   "effects": [
+    {
+     "tags": [
+      "heal"
+     ],
+     "value": -0.2,
+     "to": "enemy",
+     "seconds": 90,
+     "when": "trigger",
+     "group": "mangled"
+    }
+   ]
+  }
+ ],
+ "killers": [
+  {
+   "name": "The Trapper",
+   "speed": 4.6
+  },
+  {
+   "name": "The Wraith",
+   "speed": 4.6,
+   "mode": "Uncloaked",
+   "alt": [
+    [
+     6.0,
+     "Cloaked"
+    ]
+   ]
+  },
+  {
+   "name": "The Hillbilly",
+   "speed": 4.6,
+   "alt": [
+    [
+     10.12,
+     "Chainsaw Sprint"
+    ]
+   ]
+  },
+  {
+   "name": "The Nurse",
+   "speed": 3.85,
+   "alt": [
+    [
+     13.33,
+     "Blink"
+    ]
+   ]
+  },
+  {
+   "name": "The Shape",
+   "speed": 4.2,
+   "mode": "Stalker Mode",
+   "alt": [
+    [
+     4.6,
+     "Pursuer Mode & Evil Incarnate"
+    ]
+   ]
+  },
+  {
+   "name": "The Hag",
+   "speed": 4.4
+  },
+  {
+   "name": "The Doctor",
+   "speed": 4.6,
+   "alt": [
+    [
+     3.08,
+     "Shock Therapy"
+    ],
+    [
+     2.99,
+     "Static Blast"
+    ]
+   ]
+  },
+  {
+   "name": "The Huntress",
+   "speed": 4.4,
+   "alt": [
+    [
+     3.08,
+     "Wind-up"
+    ]
+   ]
+  },
+  {
+   "name": "The Cannibal",
+   "speed": 4.6,
+   "alt": [
+    [
+     5.35,
+     "Chainsaw Sweep"
+    ]
+   ]
+  },
+  {
+   "name": "The Nightmare",
+   "speed": 4.6,
+   "alt": [
+    [
+     4.0,
+     "placing Dream Snares"
+    ]
+   ]
+  },
+  {
+   "name": "The Pig",
+   "speed": 4.6,
+   "alt": [
+    [
+     4.0,
+     "Crouched"
+    ],
+    [
+     7.1,
+     "Ambush Dash"
+    ]
+   ]
+  },
+  {
+   "name": "The Clown",
+   "speed": 4.6,
+   "alt": [
+    [
+     2.3,
+     "Reloading"
+    ]
+   ]
+  },
+  {
+   "name": "The Spirit",
+   "speed": 4.4,
+   "alt": [
+    [
+     7.04,
+     "Phase-Walk"
+    ]
+   ]
+  },
+  {
+   "name": "The Legion",
+   "speed": 4.6,
+   "alt": [
+    [
+     5.2,
+     "Feral Frenzy"
+    ]
+   ]
+  },
+  {
+   "name": "The Plague",
+   "speed": 4.6
+  },
+  {
+   "name": "The Ghost Face",
+   "speed": 4.6,
+   "alt": [
+    [
+     4.0,
+     "Crouch"
+    ]
+   ]
+  },
+  {
+   "name": "The Demogorgon",
+   "speed": 4.6,
+   "alt": [
+    [
+     3.86,
+     "Of the Abyss"
+    ],
+    [
+     18.4,
+     "Shred"
+    ]
+   ]
+  },
+  {
+   "name": "The Oni",
+   "speed": 4.6,
+   "alt": [
+    [
+     3.45,
+     "Absorption"
+    ],
+    [
+     7.82,
+     "Demon Dash"
+    ]
+   ]
+  },
+  {
+   "name": "The Deathslinger",
+   "speed": 4.4
+  },
+  {
+   "name": "The Executioner",
+   "speed": 4.6,
+   "alt": [
+    [
+     4.2,
+     "Rites of Judgement"
+    ]
+   ]
+  },
+  {
+   "name": "The Blight",
+   "speed": 4.4,
+   "alt": [
+    [
+     9.2,
+     "Rush"
+    ]
+   ]
+  },
+  {
+   "name": "The Twins",
+   "speed": 4.6,
+   "mode": "Charlotte",
+   "alt": [
+    [
+     6.0,
+     "Victor"
+    ]
+   ]
+  },
+  {
+   "name": "The Trickster",
+   "speed": 4.4,
+   "alt": [
+    [
+     3.86,
+     "Throw State"
+    ]
+   ]
+  },
+  {
+   "name": "The Nemesis",
+   "speed": 4.6,
+   "alt": [
+    [
+     3.8,
+     "MR1/MR2 Tentacle Strike"
+    ],
+    [
+     4.0,
+     "MR3 Tentacle Strike"
+    ]
+   ]
+  },
+  {
+   "name": "The Cenobite",
+   "speed": 4.6
+  },
+  {
+   "name": "The Artist",
+   "speed": 4.6
+  },
+  {
+   "name": "The Onryō",
+   "speed": 4.6
+  },
+  {
+   "name": "The Dredge",
+   "speed": 4.6
+  },
+  {
+   "name": "The Mastermind",
+   "speed": 4.6
+  },
+  {
+   "name": "The Knight",
+   "speed": 4.6,
+   "alt": [
+    [
+     15.0,
+     "Patrol-Path Drawing"
+    ]
+   ]
+  },
+  {
+   "name": "The Skull Merchant",
+   "speed": 4.6
+  },
+  {
+   "name": "The Singularity",
+   "speed": 4.6
+  },
+  {
+   "name": "The Xenomorph",
+   "speed": 4.6,
+   "alt": [
+    [
+     4.6,
+     "Crawler Mode"
+    ]
+   ]
+  },
+  {
+   "name": "The Good Guy",
+   "speed": 4.4
+  },
+  {
+   "name": "The Unknown",
+   "speed": 4.6
+  },
+  {
+   "name": "The Lich",
+   "speed": 4.6,
+   "alt": [
+    [
+     8.0,
+     "Fly Spell"
+    ]
+   ]
+  },
+  {
+   "name": "The Dark Lord",
+   "speed": 4.6,
+   "alt": [
+    [
+     6.5,
+     "Bat Form"
+    ]
+   ]
+  },
+  {
+   "name": "The Houndmaster",
+   "speed": 4.6,
+   "alt": [
+    [
+     6.0,
+     "Slipstream"
+    ]
+   ]
+  },
+  {
+   "name": "The Ghoul",
+   "speed": 4.6
+  },
+  {
+   "name": "The Animatronic",
+   "speed": 4.4,
+   "alt": [
+    [
+     4.6,
+     "No Axe"
+    ]
+   ]
+  },
+  {
+   "name": "The Krasue",
+   "speed": 4.6,
+   "alt": [
+    [
+     4.8,
+     "Head Form"
+    ],
+    [
+     7.0,
+     "Headlong Flight"
+    ]
+   ]
+  },
+  {
+   "name": "The First",
+   "speed": 4.4
+  },
+  {
+   "name": "The Slasher",
+   "speed": 4.4,
+   "alt": [
+    [
+     8.0,
+     "Omnipresent Evil"
+    ]
+   ]
+  },
+  {
+   "name": "The Judgment",
+   "speed": 4.4
+  },
+  {
+   "name": "The Terrifier",
+   "speed": 4.6
+  }
+ ],
+ "killer_addons": [
+  {
+   "name": "Coffee Grounds",
+   "killer": "The Trapper",
+   "patch": "",
+   "effects": [
+    {
+     "tags": [
+      "kmove"
+     ],
+     "value": 0.075,
+     "to": "self",
+     "power": "Bear Trap",
+     "when": "trigger"
+    },
+    {
+     "tags": [
+      "kmove"
+     ],
+     "value": 0.05,
+     "to": "self",
+     "when": "trigger"
+    }
+   ]
+  },
+  {
+   "name": "Rusted Jaws",
+   "killer": "The Trapper",
+   "patch": "7.6.0",
+   "effects": [
+    {
+     "tags": [
+      "heal"
+     ],
+     "value": -0.2,
+     "to": "enemy",
+     "seconds": 70,
+     "when": "trigger",
+     "group": "mangled"
+    }
+   ]
+  },
+  {
+   "name": "Begrimed Chains (Chainsaw)",
+   "killer": "The Hillbilly",
+   "patch": "7.6.0",
+   "effects": [
+    {
+     "tags": [
+      "heal"
+     ],
+     "value": -0.2,
+     "to": "enemy",
+     "seconds": 70,
+     "when": "trigger",
+     "group": "mangled"
+    }
+   ]
+  },
+  {
+   "name": "Fragile Wheeze",
+   "killer": "The Nurse",
+   "patch": "7.6.0",
+   "effects": [
+    {
+     "tags": [
+      "heal"
+     ],
+     "value": -0.2,
+     "to": "enemy",
+     "seconds": 70,
+     "when": "trigger",
+     "group": "mangled"
+    }
+   ]
+  },
+  {
+   "name": "Hair Brush",
+   "killer": "The Shape",
+   "patch": "",
+   "effects": [
+    {
+     "tags": [
+      "break"
+     ],
+     "value": 0.5,
+     "to": "self",
+     "when": "trigger"
+    }
+   ]
+  },
+  {
+   "name": "J. Myers Memorial",
+   "killer": "The Shape",
+   "patch": "",
+   "effects": [
+    {
+     "tags": [
+      "pickup",
+      "hooking"
+     ],
+     "value": 0.4,
+     "to": "self",
+     "when": "trigger"
+    }
+   ]
+  },
+  {
+   "name": "Waterlogged Shoe",
+   "killer": "The Hag",
+   "patch": "",
+   "effects": [
+    {
+     "tags": [
+      "kmove"
+     ],
+     "value": 0.075,
+     "to": "self"
+    },
+    {
+     "tags": [
+      "move"
+     ],
+     "value": -0.09,
+     "to": "enemy",
+     "when": "near"
+    }
+   ]
+  },
+  {
+   "name": "Begrimed Head",
+   "killer": "The Huntress",
+   "patch": "7.6.0",
+   "effects": [
+    {
+     "tags": [
+      "heal"
+     ],
+     "value": -0.2,
+     "to": "enemy",
+     "seconds": 80,
+     "when": "trigger",
+     "group": "mangled"
+    }
+   ]
+  },
+  {
+   "name": "Rusty Head",
+   "killer": "The Huntress",
+   "patch": "7.6.0",
+   "effects": [
+    {
+     "tags": [
+      "heal"
+     ],
+     "value": -0.2,
+     "to": "enemy",
+     "seconds": 70,
+     "when": "trigger",
+     "group": "mangled"
+    }
+   ]
+  },
+  {
+   "name": "Infantry Belt",
+   "killer": "The Huntress",
+   "patch": "7.6.2",
+   "effects": [
+    {
+     "tags": [
+      "kmove"
+     ],
+     "value": 0.03,
+     "to": "self",
+     "seconds": 5,
+     "when": "trigger"
+    }
+   ]
+  },
+  {
+   "name": "Leather Loop",
+   "killer": "The Huntress",
+   "patch": "7.6.2",
+   "effects": [
+    {
+     "tags": [
+      "kmove"
+     ],
+     "value": 0.02,
+     "to": "self",
+     "seconds": 5,
+     "when": "trigger"
+    }
+   ]
+  },
+  {
+   "name": "Yew Seed Brew",
+   "killer": "The Huntress",
+   "patch": "",
+   "effects": [
+    {
+     "tags": [
+      "move"
+     ],
+     "value": -0.03,
+     "to": "enemy",
+     "seconds": 15,
+     "group": "yew seed",
+     "when": "trigger"
+    }
+   ]
+  },
+  {
+   "name": "Yew Seed Concoction",
+   "killer": "The Huntress",
+   "patch": "",
+   "effects": [
+    {
+     "tags": [
+      "move"
+     ],
+     "value": -0.03,
+     "to": "enemy",
+     "seconds": 30,
+     "group": "yew seed",
+     "when": "trigger"
+    }
+   ]
+  },
+  {
+   "name": "Grisly Chains",
+   "killer": "The Cannibal",
+   "patch": "7.6.0",
+   "effects": [
+    {
+     "tags": [
+      "heal"
+     ],
+     "value": -0.2,
+     "to": "enemy",
+     "seconds": 70,
+     "when": "trigger",
+     "group": "mangled"
+    }
+   ]
+  },
+  {
+   "name": "Rusty Attachments",
+   "killer": "The Pig",
+   "patch": "7.6.0",
+   "effects": [
+    {
+     "tags": [
+      "heal"
+     ],
+     "value": -0.2,
+     "to": "enemy",
+     "seconds": 70,
+     "when": "trigger",
+     "group": "mangled"
+    }
+   ]
+  },
+  {
+   "name": "Cheap Gin Bottle",
+   "killer": "The Clown",
+   "patch": "7.6.2",
+   "effects": [
+    {
+     "tags": [
+      "kmove"
+     ],
+     "value": 0.14,
+     "to": "self",
+     "power": "The Afterpiece Antidote",
+     "when": "trigger"
+    },
+    {
+     "tags": [
+      "kmove"
+     ],
+     "value": 0.03,
+     "to": "self",
+     "when": "trigger"
+    }
+   ]
+  },
+  {
+   "name": "Sticky Soda Bottle",
+   "killer": "The Clown",
+   "patch": "7.6.2",
+   "effects": [
+    {
+     "tags": [
+      "kmove"
+     ],
+     "value": 0.14,
+     "to": "self",
+     "power": "The Afterpiece Antidote",
+     "when": "trigger"
+    },
+    {
+     "tags": [
+      "kmove"
+     ],
+     "value": 0.02,
+     "to": "self",
+     "when": "trigger"
+    }
+   ]
+  },
+  {
+   "name": "Flask of Bleach",
+   "killer": "The Clown",
+   "patch": "9.1.0",
+   "effects": [
+    {
+     "tags": [
+      "move"
+     ],
+     "value": -0.14,
+     "to": "enemy",
+     "power": "The Afterpiece Tonic",
+     "when": "trigger"
+    },
+    {
+     "tags": [
+      "move"
+     ],
+     "value": -0.02,
+     "to": "enemy",
+     "when": "trigger"
+    }
+   ]
+  },
+  {
+   "name": "Sulphuric Acid Vial",
+   "killer": "The Clown",
+   "patch": "7.6.0",
+   "effects": [
+    {
+     "tags": [
+      "heal"
+     ],
+     "value": -0.2,
+     "to": "enemy",
+     "seconds": 70,
+     "when": "trigger",
+     "group": "mangled"
+    }
+   ]
+  },
+  {
+   "name": "Frank's Mix Tape",
+   "killer": "The Legion",
+   "patch": "",
+   "effects": [
+    {
+     "tags": [
+      "damage"
+     ],
+     "value": 0.2,
+     "to": "self",
+     "when": "trigger"
+    }
+   ]
+  },
+  {
+   "name": "Defaced Smiley Pin",
+   "killer": "The Legion",
+   "patch": "7.6.0",
+   "effects": [
+    {
+     "tags": [
+      "heal"
+     ],
+     "value": -0.2,
+     "to": "enemy",
+     "seconds": 60,
+     "when": "trigger",
+     "group": "mangled"
+    }
+   ]
+  },
+  {
+   "name": "Worship Tablet",
+   "killer": "The Plague",
+   "patch": "",
+   "effects": [
+    {
+     "tags": [
+      "kmove"
+     ],
+     "value": 0.044,
+     "to": "self",
+     "when": "trigger"
+    }
+   ]
+  },
+  {
+   "name": "Drop-Leg Knife Sheath",
+   "killer": "The Ghost Face",
+   "patch": "",
+   "effects": [
+    {
+     "tags": [
+      "kmove"
+     ],
+     "value": 0.1,
+     "to": "self",
+     "seconds": 5,
+     "when": "trigger"
+    }
+   ]
+  },
+  {
+   "name": "Honey Locust Thorn",
+   "killer": "The Deathslinger",
+   "patch": "7.6.0",
+   "effects": [
+    {
+     "tags": [
+      "heal"
+     ],
+     "value": -0.2,
+     "to": "enemy",
+     "seconds": 70,
+     "when": "trigger",
+     "group": "mangled"
+    }
+   ]
+  },
+  {
+   "name": "Rusted Spike",
+   "killer": "The Deathslinger",
+   "patch": "7.6.0",
+   "effects": [
+    {
+     "tags": [
+      "heal"
+     ],
+     "value": -0.2,
+     "to": "enemy",
+     "seconds": 60,
+     "when": "trigger",
+     "group": "mangled"
+    }
+   ]
+  },
+  {
+   "name": "Crimson Ceremony Book",
+   "killer": "The Executioner",
+   "patch": "7.6.0",
+   "effects": [
+    {
+     "tags": [
+      "heal"
+     ],
+     "value": -0.2,
+     "to": "enemy",
+     "seconds": 80,
+     "when": "trigger",
+     "group": "mangled"
+    }
+   ]
+  },
+  {
+   "name": "Lucky Blade",
+   "killer": "The Trickster",
+   "patch": "9.5.2",
+   "effects": [
+    {
+     "tags": [
+      "kmove"
+     ],
+     "value": 0.03,
+     "to": "self",
+     "seconds": 6,
+     "when": "trigger"
+    }
+   ]
+  },
+  {
+   "name": "Thorny Nest",
+   "killer": "The Artist",
+   "patch": "7.6.0",
+   "effects": [
+    {
+     "tags": [
+      "heal"
+     ],
+     "value": -0.2,
+     "to": "enemy",
+     "seconds": 70,
+     "when": "trigger",
+     "group": "mangled"
+    }
+   ]
+  },
+  {
+   "name": "Untitled Agony",
+   "killer": "The Artist",
+   "patch": "",
+   "effects": [
+    {
+     "tags": [
+      "move"
+     ],
+     "value": -0.15,
+     "to": "enemy",
+     "seconds": 1.5,
+     "when": "trigger"
+    }
+   ]
+  },
+  {
+   "name": "Telephone",
+   "killer": "The Onryō",
+   "patch": "",
+   "effects": [
+    {
+     "tags": [
+      "move"
+     ],
+     "value": -0.03,
+     "to": "enemy",
+     "seconds": 3,
+     "when": "trigger"
+    }
+   ]
+  },
+  {
+   "name": "Tilling Blade",
+   "killer": "The Dredge",
+   "patch": "7.6.0",
+   "effects": [
+    {
+     "tags": [
+      "heal"
+     ],
+     "value": -0.2,
+     "to": "enemy",
+     "seconds": 80,
+     "when": "trigger",
+     "group": "mangled"
+    }
+   ]
+  },
+  {
+   "name": "Broken Hilt",
+   "killer": "The Knight",
+   "patch": "8.1.0",
+   "effects": [
+    {
+     "tags": [
+      "heal"
+     ],
+     "value": -0.2,
+     "to": "enemy",
+     "seconds": 70,
+     "when": "trigger",
+     "group": "mangled"
+    }
+   ]
+  },
+  {
+   "name": "Lightweight Greaves",
+   "killer": "The Knight",
+   "patch": "8.1.0",
+   "effects": [
+    {
+     "tags": [
+      "kmove"
+     ],
+     "value": 0.1,
+     "to": "self",
+     "seconds": 6,
+     "when": "trigger"
+    }
+   ]
+  },
+  {
+   "name": "Powdered Glass",
+   "killer": "The Skull Merchant",
+   "patch": "7.6.0",
+   "effects": [
+    {
+     "tags": [
+      "heal"
+     ],
+     "value": -0.2,
+     "to": "enemy",
+     "seconds": 70,
+     "when": "trigger",
+     "group": "mangled"
+    }
+   ]
+  },
+  {
+   "name": "Geographical Readout",
+   "killer": "The Skull Merchant",
+   "patch": "6.6.0",
+   "effects": [
+    {
+     "tags": [
+      "break",
+      "damage",
+      "kvault"
+     ],
+     "value": 0.2,
+     "to": "self",
+     "seconds": 8,
+     "when": "trigger"
+    }
+   ]
+  },
+  {
+   "name": "Vital Targeting Processor",
+   "killer": "The Skull Merchant",
+   "patch": "8.3.0",
+   "effects": [
+    {
+     "tags": [
+      "move"
+     ],
+     "value": -0.1,
+     "to": "enemy",
+     "power": "Eyes in the Sky",
+     "when": "trigger"
+    },
+    {
+     "tags": [
+      "move"
+     ],
+     "value": -0.02,
+     "to": "enemy",
+     "when": "trigger"
+    }
+   ]
+  },
+  {
+   "name": "Soma Family Photo",
+   "killer": "The Singularity",
+   "patch": "9.3.0",
+   "effects": [
+    {
+     "tags": [
+      "move"
+     ],
+     "value": -0.03,
+     "to": "enemy",
+     "seconds": 6,
+     "when": "trigger"
+    }
+   ]
+  },
+  {
+   "name": "Kane's Helmet",
+   "killer": "The Xenomorph",
+   "patch": "7.6.0",
+   "effects": [
+    {
+     "tags": [
+      "heal"
+     ],
+     "value": -0.2,
+     "to": "enemy",
+     "seconds": 70,
+     "when": "trigger",
+     "group": "mangled"
+    }
+   ]
+  },
+  {
+   "name": "Parker's Headband",
+   "killer": "The Xenomorph",
+   "patch": "7.2.0",
+   "effects": [
+    {
+     "tags": [
+      "kmove"
+     ],
+     "value": 0.05,
+     "to": "self",
+     "seconds": 3,
+     "when": "trigger"
+    }
+   ]
+  },
+  {
+   "name": "Self-Destruct Bolt",
+   "killer": "The Xenomorph",
+   "patch": "7.2.0",
+   "effects": [
+    {
+     "tags": [
+      "kvault"
+     ],
+     "value": 0.3,
+     "to": "self",
+     "when": "trigger"
+    }
+   ]
+  },
+  {
+   "name": "Running Shoes",
+   "killer": "The Good Guy",
+   "patch": "7.4.0",
+   "effects": [
+    {
+     "tags": [
+      "kmove"
+     ],
+     "value": 0.02,
+     "to": "self",
+     "seconds": 5,
+     "when": "trigger"
+    }
+   ]
+  },
+  {
+   "name": "Straight Razor",
+   "killer": "The Good Guy",
+   "patch": "7.6.0",
+   "effects": [
+    {
+     "tags": [
+      "heal"
+     ],
+     "value": -0.2,
+     "to": "enemy",
+     "seconds": 80,
+     "when": "trigger",
+     "group": "mangled"
+    }
+   ]
+  },
+  {
+   "name": "Dragontooth Dagger",
+   "killer": "The Lich",
+   "patch": "9.0.0",
+   "effects": [
+    {
+     "tags": [
+      "heal"
+     ],
+     "value": -0.2,
+     "to": "enemy",
+     "seconds": 60,
+     "when": "trigger",
+     "group": "mangled"
+    }
+   ]
+  },
+  {
+   "name": "Ring of Telekinesis",
+   "killer": "The Lich",
+   "patch": "9.0.0",
+   "effects": [
+    {
+     "tags": [
+      "kvault"
+     ],
+     "value": 0.1,
+     "to": "self",
+     "seconds": 10,
+     "when": "trigger"
+    }
+   ]
+  },
+  {
+   "name": "Medusa's Hair",
+   "killer": "The Dark Lord",
+   "patch": "9.2.0",
+   "effects": [
+    {
+     "tags": [
+      "move"
+     ],
+     "value": -0.08,
+     "to": "enemy",
+     "seconds": 4,
+     "when": "trigger"
+    }
+   ]
+  },
+  {
+   "name": "Celebrate! Poster",
+   "killer": "The Animatronic",
+   "patch": "9.0.0",
+   "effects": [
+    {
+     "tags": [
+      "kmove"
+     ],
+     "value": 0.12,
+     "to": "self",
+     "when": "near"
+    },
+    {
+     "tags": [
+      "kvault"
+     ],
+     "value": 0.2,
+     "to": "self",
+     "when": "near"
+    },
+    {
+     "tags": [
+      "move"
+     ],
+     "value": 0.12,
+     "to": "enemy",
+     "when": "near"
+    },
+    {
+     "tags": [
+      "vault"
+     ],
+     "value": 0.2,
+     "to": "enemy",
+     "when": "near"
+    }
+   ]
+  },
+  {
+   "name": "Foxy's Hook",
+   "killer": "The Animatronic",
+   "patch": "9.0.2",
+   "effects": [
+    {
+     "tags": [
+      "kmove"
+     ],
+     "value": 0.07,
+     "to": "self",
+     "when": "near"
+    },
+    {
+     "tags": [
+      "move"
+     ],
+     "value": 0.07,
+     "to": "enemy",
+     "when": "near"
+    }
+   ]
+  },
+  {
+   "name": "Endo CPU",
+   "killer": "The Animatronic",
+   "patch": "9.0.2",
+   "effects": [
+    {
+     "tags": [
+      "break",
+      "damage"
+     ],
+     "value": 0.4,
+     "to": "self",
+     "when": "near"
+    }
+   ]
+  },
+  {
+   "name": "Ripped Curtain",
+   "killer": "The Animatronic",
+   "patch": "9.0.0",
+   "effects": [
+    {
+     "tags": [
+      "heal"
+     ],
+     "value": -0.2,
+     "to": "enemy",
+     "seconds": 60,
+     "when": "trigger",
+     "group": "mangled"
+    }
+   ]
+  },
+  {
+   "name": "Dulled Knife",
+   "killer": "The Krasue",
+   "patch": "9.2.0",
+   "effects": [
+    {
+     "tags": [
+      "move"
+     ],
+     "value": 0.05,
+     "to": "enemy",
+     "seconds": 5,
+     "when": "trigger"
+    }
+   ]
+  },
+  {
+   "name": "Lorenza's Remains",
+   "killer": "The Krasue",
+   "patch": "9.2.0",
+   "effects": [
+    {
+     "tags": [
+      "move"
+     ],
+     "value": -0.04,
+     "to": "enemy",
+     "when": "trigger"
+    }
+   ]
+  },
+  {
+   "name": "Rotten Swine",
+   "killer": "The Krasue",
+   "patch": "9.2.0",
+   "effects": [
+    {
+     "tags": [
+      "break",
+      "damage"
+     ],
+     "value": 0.15,
+     "to": "self",
+     "when": "trigger"
+    }
+   ]
+  },
+  {
+   "name": "Coroner's Coffee",
+   "killer": "The Slasher",
+   "patch": "10.0.1",
+   "effects": [
+    {
+     "tags": [
+      "kmove"
+     ],
+     "value": 0.13,
+     "to": "self",
+     "seconds": 3,
+     "when": "trigger"
+    }
+   ]
+  },
+  {
+   "name": "Imprinted Aluminum",
+   "killer": "The Slasher",
+   "patch": "",
+   "effects": [
+    {
+     "tags": [
+      "heal"
+     ],
+     "value": -0.2,
+     "to": "enemy",
+     "seconds": 70,
+     "when": "trigger",
+     "group": "mangled"
+    }
+   ]
+  }
+ ],
+ "item_addons": [
+  {
+   "name": "Clean Rag",
+   "item": "toolbox",
+   "patch": "3.6.0",
+   "repair": 0.2
+  },
+  {
+   "name": "Socket Swivels",
+   "item": "toolbox",
+   "patch": "3.6.0",
+   "repair": 0.3
+  },
+  {
+   "name": "Scraps",
+   "item": "toolbox",
+   "patch": "3.6.0",
+   "charges": 8
+  },
+  {
+   "name": "Wire Spool",
+   "item": "toolbox",
+   "patch": "3.6.0",
+   "charges": 12
+  },
+  {
+   "name": "Brand New Part",
+   "item": "toolbox",
+   "patch": "7.1.0",
+   "part": true
+  },
+  {
+   "name": "Instructions",
+   "item": "toolbox",
+   "patch": "3.6.0",
+   "no_checks": true
+  },
+  {
+   "name": "Cutting Wire",
+   "item": "toolbox",
+   "patch": "8.0.0",
+   "sabotage": 0.2
+  },
+  {
+   "name": "Hacksaw",
+   "item": "toolbox",
+   "patch": "8.0.0",
+   "sabotage": 0.3
+  },
+  {
+   "name": "Butterfly Tape",
+   "item": "medkit",
+   "patch": "",
+   "heal": 0.05
+  },
+  {
+   "name": "Self Adherent Wrap",
+   "item": "medkit",
+   "patch": "",
+   "heal": 0.05
+  },
+  {
+   "name": "Medical Scissors",
+   "item": "medkit",
+   "patch": "",
+   "heal": 0.1
+  },
+  {
+   "name": "Abdominal Dressing",
+   "item": "medkit",
+   "patch": "",
+   "heal": 0.15
   }
  ]
 }
