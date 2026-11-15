@@ -224,5 +224,17 @@ def test_the_quick_place_is_read_from_one_look_at_the_preview(app_root):
         assert app._anchors_data()["cell"] == (1, 0) and len(calls) == 1
         app._preview_data = look
         assert _layer(app, "map")[2] > 300 and app._anchors_data()["cell"] == (1, 0)    # and with the picture
+        # 1.53.1 (the test above failed once more): putting an element at a quick place took the place from one
+        # look and set it with the size of another – with the picture arriving in between the map landed 88 px
+        # off the middle. One look for both.
+        app._preview_pic, app._preview_token = None, object()
+        app._anchor_cell(("cell", 2, 2))
+        del calls[:]
+        app._preview_data = arriving
+        app._anchor_cell(("cell", 1, 0))
+        app._preview_data = look
+        x, _y, w, _h = _layer(app, "map")
+        assert w > 300 and abs(x + w / 2 - GAME[2] / 2) <= 3, (x, w)
+        assert app._anchors_data()["cell"] == (1, 0)
     finally:
         app.quit()

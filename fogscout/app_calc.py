@@ -512,10 +512,27 @@ class CalcTab:
             nv.set(str(self._calc_count_default(v.get())))
         self._calc_changed()
 
-    def _calc_tidy(self):
-        """The add-on choices follow the item and the Killer chosen: their lists, and an add-on that no longer
-        fits is taken out."""
+    def _calc_same(self, name: str) -> str:
+        """What makes two choices the same perk: its name – the two kinds of Overzealous are one perk."""
         d = self._calc_data()
+        return (d.survivor.get(name) or d.killer.get(name) or {}).get("group", name)
+
+    def _calc_builds(self) -> list:
+        """The perk choices build by build: [(box, variable, side)] of each Survivor, then of the Killer."""
+        boxes = self.calc_perk_boxes
+        return [boxes[i:i + SLOTS] for i in range(0, len(boxes), SLOTS)]
+
+    def _calc_tidy(self):
+        """A perk is in a build once (1.53.1, Saru: "kann ein Survivor 2x dasselbe Perk haben. Das macht keinen
+        Sinn"): a second one is taken out. The add-on choices follow the item and the Killer chosen: their lists,
+        and an add-on that no longer fits is taken out; the other place does not offer the add-on chosen here."""
+        d = self._calc_data()
+        for build in self._calc_builds():
+            taken = set()
+            for _box, var, _side in build:
+                if var.get() != NONE and self._calc_same(var.get()) in taken:
+                    var.set(NONE)
+                taken.add(self._calc_same(var.get()))
         rows = [(slots, gencalc.item_addon_names(d, tv.get()))
                 for (_vars, tv), slots in zip(self.calc_surv, self.calc_item_addons)]
         rows.append((self.calc_killer_addons, gencalc.killer_addon_names(d, self.calc_killer_var.get())))
@@ -525,7 +542,8 @@ class CalcTab:
                 if var.get() != NONE and (var.get() not in names or var.get() in taken):
                     var.set(NONE)                              # another item, or the same add-on twice
                 taken.add(var.get())
-                values = [NONE] + names
+            for box, var in slots:
+                values = [NONE] + [n for n in names if n == var.get() or n not in taken]
                 if list(box.cget("values") or ()) != values:
                     box.configure(values=values)
                 box.state(["!disabled" if names else "disabled"])
@@ -617,12 +635,16 @@ class CalcTab:
             elif i >= n and block.winfo_manager():
                 block.pack_forget()
         names = {side: gencalc.perk_names(d, side, area) for side in ("S", "K")}
-        for box, var, side in self.calc_perk_boxes:
-            values = [NONE] + names[side]
-            if var.get() != NONE and var.get() not in values:
-                values.append(var.get())
-            if list(box.cget("values") or ()) != values:
-                box.configure(values=values)
+        for build in self._calc_builds():                   # a perk chosen in a build is not offered in its other
+            chosen = {self._calc_same(var.get()) for _box, var, _side in build if var.get() != NONE}    # places
+            for box, var, side in build:
+                own = self._calc_same(var.get())
+                values = [NONE] + [n for n in names[side] if self._calc_same(n) == own or
+                                   self._calc_same(n) not in chosen]
+                if var.get() != NONE and var.get() not in values:
+                    values.append(var.get())
+                if list(box.cget("values") or ()) != values:
+                    box.configure(values=values)
         repair = area == gencalc.REPAIR
         for key, r in self.calc_opt_rows.items():
             want = repair if key in REPAIR_OPTS else not repair
