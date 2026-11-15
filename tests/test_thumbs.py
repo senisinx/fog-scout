@@ -149,3 +149,15 @@ def test_pruning_never_follows_a_link_out_of_the_cache(tmp_path):
         os.utime(cache / "link.png", (1, 1), follow_symlinks=False)
     assert thumbs.prune(str(cache), now=10 ** 9) == 1
     assert not old.exists() and target.exists() and os.path.lexists(cache / "link.png")
+
+
+def test_a_warm_bare_thumbnail_is_not_taken_for_a_cold_one(tmp_path):
+    """1.50.5 (review): Loader._cold asked for the cache name without ``bare`` – a warm picture of a non-English
+    interface looked cold every time and all workers started for nothing."""
+    from PIL import Image
+    pic = tmp_path / "map.png"
+    Image.new("RGB", (400, 300), (40, 90, 30)).save(pic)
+    cache = str(tmp_path / "cache")
+    thumbs.thumbnail(str(pic), (126, 116), cache, bare=True)
+    assert not thumbs.Loader((126, 116), cache, bare=True)._cold(str(pic))
+    assert thumbs.Loader((126, 116), cache)._cold(str(pic))                 # the plain one was never made

@@ -1951,6 +1951,12 @@ T = {
         'Claude non ha trovato nulla di adatto.',
     'Claude hat die Frage abgelehnt.':
         'Claude ha rifiutato la domanda.',
+    'Claude: Die Antwort wurde abgeschnitten – die Frage enger stellen und noch einmal versuchen.':
+        'Claude: la risposta è stata troncata – fai una domanda più precisa e riprova.',
+    'Claude ist gerade überlastet – in ein paar Minuten noch einmal versuchen.':
+        'Claude è sovraccarico in questo momento – riprova tra qualche minuto.',
+    'Claude hat die Anfrage nicht angenommen – zu gross oder vom gewählten Modell nicht unterstützt.':
+        'Claude non ha accettato la richiesta – troppo grande o non supportata dal modello scelto.',
     'Claude hat unverständlich geantwortet.':
         'Claude ha dato una risposta illeggibile.',
     'Claude ist nicht erreichbar – keine Internetverbindung?':

@@ -20,7 +20,7 @@ MAX_QUESTION = 300               # characters of the question sent at most
 MAX_ANSWER = 1200                # characters of the answer shown at most
 MAX_GROUPS = 25                  # groups per kind at most (the most played)
 MIN_GROUP = 2                    # a group with fewer rounds is left out (one round would be raw data)
-MAX_TOKENS = 2048
+MAX_TOKENS = 4096
 HOURS = (("night", 0, 6), ("morning", 6, 12), ("afternoon", 12, 18), ("evening", 18, 24))
 WEEKDAYS = ("mon", "tue", "wed", "thu", "fri", "sat", "sun")
 

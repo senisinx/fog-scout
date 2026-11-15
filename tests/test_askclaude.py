@@ -93,7 +93,8 @@ def test_a_broken_answer_or_a_refusal_is_an_error_not_a_crash():
 
 @pytest.mark.parametrize("code,body,kind", [(401, {}, "auth"), (403, {}, "auth"), (429, {}, "rate"),
                                             (400, {"error": {"message": "Your credit balance is too low"}}, "quota"),
-                                            (500, {}, "net")])
+                                            (500, {}, "busy"), (529, {}, "busy"), (400, {}, "request"),
+                                            (413, {}, "request"), (404, {}, "request"), (418, {}, "net")])
 def test_http_errors_have_a_kind(opener, code, body, kind):
     err = urllib.error.HTTPError(askclaude.ENDPOINT, code, "x", {}, io.BytesIO(json.dumps(body).encode()))
     opener(error=err)
@@ -217,4 +218,34 @@ def test_an_oversized_answer_is_a_network_error_never_read_whole(monkeypatch):
     monkeypatch.setattr(askclaude, "OPENER", FakeOpener(error=big_error))
     with pytest.raises(askclaude.AskError) as e:
         askclaude.send(KEY, {"model": "m"})
-    assert e.value.kind == "net" and str(e.value) == "HTTP 500"
+    assert e.value.kind == "busy" and str(e.value) == "HTTP 500"
+
+
+def test_an_answer_cut_off_at_the_token_limit_says_so(opener):
+    """1.50.5 (review): the thinking counts towards max_tokens – a cut-off answer is incomplete JSON and read as
+    "unreadable" before. It has its own kind and text now."""
+    with pytest.raises(askclaude.AskError) as e:
+        askclaude.reply_json({"stop_reason": "max_tokens", "content": [{"type": "text", "text": '{"answer": "ab'}]})
+    assert e.value.kind == "long"
+    opener(reply={"stop_reason": "max_tokens", "content": [{"type": "text", "text": '{"ans'}]})
+    with pytest.raises(askclaude.AskError) as e:
+        askclaude.ask(KEY, "frage", CATALOGUE)
+    assert e.value.kind == "long"
+    for kind in ("long", "busy", "request"):
+        assert askclaude.error_text(kind) != askclaude.error_text("net")
+
+
+def test_a_reply_is_priced_as_the_model_that_answered(opener):
+    """1.50.5 (review): a server-side fallback answers with another model – the estimate takes that model's price;
+    a model without a known price counts as the one that was asked."""
+    usage = {"input_tokens": 1_000_000}
+    before = askclaude.METER.usd
+    opener(reply={"model": "claude-haiku-5-5", "usage": usage, "content": []})
+    askclaude.send(KEY, {"model": "claude-opus-5-5"})
+    assert askclaude.METER.usd - before == pytest.approx(0.10)
+    before = askclaude.METER.usd
+    opener(reply={"model": "something-else", "usage": usage, "content": []})
+    askclaude.send(KEY, {"model": "claude-opus-5-5"})
+    assert askclaude.METER.usd - before == pytest.approx(4.0)
+    # Sonnet reads the cache at 0.10 $ per million tokens (was listed as 0.20)
+    assert askclaude.cost_usd("claude-sonnet-5-5", {"cache_read_input_tokens": 1_000_000}) == pytest.approx(0.10)

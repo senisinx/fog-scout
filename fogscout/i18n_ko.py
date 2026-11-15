@@ -1951,6 +1951,12 @@ T = {
         'Claude가 맞는 것을 찾지 못했습니다.',
     'Claude hat die Frage abgelehnt.':
         'Claude가 질문을 거절했습니다.',
+    'Claude: Die Antwort wurde abgeschnitten – die Frage enger stellen und noch einmal versuchen.':
+        'Claude: 답변이 중간에 잘렸습니다 – 질문을 더 좁혀서 다시 시도하세요.',
+    'Claude ist gerade überlastet – in ein paar Minuten noch einmal versuchen.':
+        'Claude가 지금 과부하 상태입니다 – 몇 분 후에 다시 시도하세요.',
+    'Claude hat die Anfrage nicht angenommen – zu gross oder vom gewählten Modell nicht unterstützt.':
+        'Claude가 요청을 받지 않았습니다 – 너무 크거나 선택한 모델이 지원하지 않습니다.',
     'Claude hat unverständlich geantwortet.':
         'Claude의 답변을 읽을 수 없습니다.',
     'Claude ist nicht erreichbar – keine Internetverbindung?':

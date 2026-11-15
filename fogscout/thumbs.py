@@ -193,7 +193,7 @@ class Loader:
         if not self.cache_dir:
             return True
         try:
-            return not os.path.isfile(os.path.join(self.cache_dir, cache_name(path, self.box, self.by_content)))
+            return not os.path.isfile(os.path.join(self.cache_dir, cache_name(path, self.box, self.by_content, self.bare)))
         except OSError:
             return True
 

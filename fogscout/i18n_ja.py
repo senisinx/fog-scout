@@ -1951,6 +1951,12 @@ T = {
         'Claude は該当するものを見つけられませんでした。',
     'Claude hat die Frage abgelehnt.':
         'Claude は質問を拒否しました。',
+    'Claude: Die Antwort wurde abgeschnitten – die Frage enger stellen und noch einmal versuchen.':
+        'Claude: 回答が途中で切れました – 質問を絞ってもう一度お試しください。',
+    'Claude ist gerade überlastet – in ein paar Minuten noch einmal versuchen.':
+        'Claude は現在混み合っています – 数分後にもう一度お試しください。',
+    'Claude hat die Anfrage nicht angenommen – zu gross oder vom gewählten Modell nicht unterstützt.':
+        'Claude がリクエストを受け付けませんでした – 大きすぎるか、選択したモデルが対応していません。',
     'Claude hat unverständlich geantwortet.':
         'Claude の回答を読み取れませんでした。',
     'Claude ist nicht erreichbar – keine Internetverbindung?':
