@@ -1,6 +1,7 @@
 """1.33 (.exe, stage 5): updates of the installed program from GitHub Releases – standard library only.
 
-Every merge to main builds a release (.github/workflows/build.yml, job ``release``): tag ``build-<N>`` with
+A release is built when the user starts the workflow by hand on main (1.50.7; until then every merge did –
+.github/workflows/build.yml, job ``release``): tag ``build-<N>`` with
 ``FogScout-Setup-<version>.exe`` and ``….exe.sha256``. The packaged program knows its own build number from
 ``build-info.json`` next to its files (written by CI before PyInstaller).
 
