@@ -311,8 +311,14 @@ def test_the_waiting_card_fits_by_its_own_lines_whatever_was_measured_before():
             assert ov.render(40, push=False)[0] == w
             ov.text_height = text_h + 1
             assert ov.render(text_h + 1, push=False)[0] > w
-        else:
-            assert text_h < 518
+        else:                                           # it fits: at the largest text that does (fonts differ
+            assert text_h <= 518                        # per system – on Windows glass fits even at 518)
+            if text_h < 518:
+                ov = _bare_overlay([])
+                ov.set_skin(skin, "#c9a227")
+                ov.set_waiting(long)
+                ov.text_height = text_h + 1
+                assert ov.render(text_h + 1, push=False)[0] > avail, (skin, text_h)
 
 
 def test_the_waiting_card_is_measured_off_screen_and_shown_once():
