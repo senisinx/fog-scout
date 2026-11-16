@@ -189,7 +189,7 @@ def set_glyph(w, name, primary=False, tone="fg"):
     that turns to the accent with the keyboard focus (the rounds' ▶ on the overview). 1.24.5: what was asked is
     kept (``_glyph_args``) – refresh_glyphs draws signs made before the theme was known, or on another screen."""
     ratio = w.devicePixelRatioF() or 1.0
-    side = qt_theme.icon_px(qt_theme.ICON["m"])                    # 1.56: grows with the text zoom
+    side = qt_theme.icon_px(qt_theme.ICON["m"])                    # 1.55.7: grows with the text zoom
     key = (name, bool(primary), tone, ratio, side, qt_theme.look_key())   # 1.24.5: no palette built just to compare
     if w.__dict__.get("_glyph_key") == key:             # (getattr of a missing name on a Qt widget: 3.7 µs)
         return                                          # (_glyph_args is part of the key – unchanged on a hit)
@@ -238,7 +238,7 @@ def _set(widget, text):
 
 
 def on_zoom(widget, fn):
-    """1.56: a size that follows the text zoom – ``fn(zoom)`` now and again whenever the zoom changes while the
+    """1.55.7: a size that follows the text zoom – ``fn(zoom)`` now and again whenever the zoom changes while the
     window runs (MainWindow.apply_theme → ``rezoom``). Sizes set once at build kept the zoom of the start: a switch
     to 150 % left the calculator's choices and names at their old widths, the texts cut."""
     fn(qt_theme.current_zoom())

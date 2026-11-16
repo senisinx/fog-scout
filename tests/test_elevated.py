@@ -125,7 +125,7 @@ def test_windows_folders_come_from_windows_not_the_environment(monkeypatch):
 
 
 def test_openssl_and_key_log_variables_are_dropped_for_the_elevated_program_and_the_updater():
-    """1.56 (audit SEC-1): OPENSSL_CONF lets OpenSSL load a provider DLL into the elevated process (OPENSSL_MODULES/
+    """1.55.4 (audit SEC-1): OPENSSL_CONF lets OpenSSL load a provider DLL into the elevated process (OPENSSL_MODULES/
     OPENSSL_ENGINES say where from), SSLKEYLOGFILE makes every TLS context append its keys to a file of the user's
     choosing – both were kept. Now gone from the program's start and from update.py (its own process and git/pip)."""
     from fogscout import launch, update
@@ -149,7 +149,7 @@ def _tls_max(code: str, conf: str, extra_env=None) -> str:
 
 @pytest.mark.skipif(sys.platform == "win32", reason="the elevated start is simulated; the probe config is POSIX-tested")
 def test_the_program_and_the_updater_clean_their_own_process_before_openssl_reads_its_config(tmp_path):
-    """1.56 (audit SEC-1): OpenSSL reads OPENSSL_CONF once, when hashlib or ssl is first imported – dropping it for the
+    """1.55.4 (audit SEC-1): OpenSSL reads OPENSSL_CONF once, when hashlib or ssl is first imported – dropping it for the
     children is not enough. Measured with a config that caps TLS at 1.2: harden_start_environment imported paths
     (secrets → hashlib) before cleaning, so the elevated program had already loaded the user's config; update.py
     imported hashlib at the top. Both now clean first."""

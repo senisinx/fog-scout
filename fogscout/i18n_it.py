@@ -6062,4 +6062,32 @@ T = {
         'Interrompe “Salva i segni come clip singole” dopo la clip in corso; le clip finite restano.',
     'Schneidet zu jeder F8-Marke der Runde einen Clip (Länge wie der Sofort-Clip, bis zur Marke, ohne neu zu kodieren) in den Ordner „Clips“. Marken, deren Clip schon da ist, werden übersprungen.':
         'Taglia una clip per ogni segno F8 della partita (lunga come la clip istantanea, fino al segno, senza ricodifica) nella cartella “Clips”. I segni la cui clip esiste già vengono saltati.',
+    'Seit dem Matchbeginn kein Map-Banner erkannt – „Bildschirm scannen“ ({keys}) sucht den Map-Namen auf dem Bildschirm.':
+        "Nessun banner della mappa riconosciuto dall'inizio del match – “Scansiona schermo” ({keys}) cerca il nome della mappa sullo schermo.",
+    'Seit dem Matchbeginn kein Map-Banner erkannt – „Scannen“ im Steuerfenster sucht den Map-Namen auf dem Bildschirm.':
+        "Nessun banner della mappa riconosciuto dall'inizio del match – “Scansiona” nella finestra di controllo cerca il nome della mappa sullo schermo.",
+    'Map nicht erkannt':
+        'Mappa non riconosciuta',
+    'Wartezeit gegen EST.':
+        'Attesa rispetto a EST.',
+    'Median Abweichung':
+        'Scarto mediano',
+    'Innerhalb ±1 min':
+        'Entro ±1 min',
+    'Echte Wartezeit minus die Schätzung „EST.“, die DBD beim Start der Suche zeigt: + = länger gewartet als geschätzt. Nur Runden, deren Suche das Programm gesehen hat.':
+        "Attesa reale meno la stima “EST.” che DBD mostra all'inizio della ricerca: + = atteso più del previsto. Solo partite di cui il programma ha visto la ricerca.",
+    'Ladezeit':
+        'Tempo di caricamento',
+    'Ø Ladezeit':
+        'Caricamento medio',
+    'Von der gefundenen Lobby bis zum Ende des Ladebildschirms (mit dem Warten in der Lobby) – nur wenn das Programm beides gesehen hat. Custom Games haben keine Ladezeit.':
+        "Dalla lobby trovata alla fine della schermata di caricamento (inclusa l'attesa in lobby) – solo se il programma ha visto entrambe. Le partite personalizzate non hanno tempo di caricamento.",
+    'Noch keine Runde mit Wartezeit und EST. in dieser Auswahl.':
+        'Ancora nessuna partita con tempo di attesa ed EST. in questa selezione.',
+    'Noch keine Ladezeiten in dieser Auswahl.':
+        'Ancora nessun tempo di caricamento in questa selezione.',
+    'Hinweis, wenn nach dem Matchbeginn kein Map-Banner erkannt wurde':
+        "Avvisa se dopo l'inizio della partita non è stato riconosciuto alcun banner della mappa",
+    'Kommt eine Minute nach dem Ladebildschirm kein Map-Banner, sagt Fog Scout einmal je Runde, wie du mit „Bildschirm scannen“ nachhilfst – mit Ton und Meldung, auch wenn DBD im Vordergrund ist; nie in Custom Games.':
+        'Se un minuto dopo la schermata di caricamento non arriva il banner della mappa, Fog Scout ti dice una volta per round come aiutare con «Scansiona schermo» – con suono e notifica, anche con DBD in primo piano; mai nelle partite personalizzate.',
 }

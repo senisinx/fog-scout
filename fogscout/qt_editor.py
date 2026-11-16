@@ -1926,7 +1926,7 @@ class EditorWindow(ClaudeMixin, InputMixin, MomentsMixin, MontageMixin, MusicMix
         self.goto(sequence.starts(self.parts)[i + 1])
 
     def _still_untrimmable(self, i) -> bool:
-        """1.56: I/O on a still would move its picture (sequence.trim leaves it alone) – say so instead."""
+        """1.55.8: I/O on a still would move its picture (sequence.trim leaves it alone) – say so instead."""
         if self.parts[i].hold <= 0:
             return False
         self.status.setText(_("Ein Standbild hat keinen Anfang und kein Ende zum Schneiden – seine Länge stellst "

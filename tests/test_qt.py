@@ -189,6 +189,7 @@ def _registered_keys():
                     pattern = "".join(v.value if isinstance(v, ast.Constant) else "{}" for v in a.values)
                     names = [k for k, _l in HOTKEY_LABELS] + ["lobby_notify", "lobby_remind", "notify_background_only",
                                                               "bp_cap_notify", "session_notify",    # 1.13, 1.38.27
+                                                              "banner_missed_notify",
                                                               "show_map", "focus", "caption", "timer", "server",
                                                               "waiting", "floors", "record", "notes", "transparent",
                                                               "last_round"] + \
@@ -369,7 +370,7 @@ def test_filling_tabs_take_the_page_and_tick_boxes_show(qapp, keep):
 
 
 def test_a_table_with_tick_boxes_is_wide_enough_for_its_names_and_follows_its_font(qapp, keep):
-    """1.56 (audit V-3, 150 % in a small window): the server regions ended in "…" while the hosts column had room –
+    """1.55.7 (audit V-3, 150 % in a small window): the server regions ended in "…" while the hosts column had room –
     Qt's size hint leaves the style sheet's tick box out, and the widths were measured before the style sheet's
     font. The name column has room for name, indent and tick box; a bigger font (zoom) widens it again."""
     from fogscout.qt_views import CHECK_SLACK, Table
@@ -388,7 +389,7 @@ def test_a_table_with_tick_boxes_is_wide_enough_for_its_names_and_follows_its_fo
 
 
 def test_a_tab_row_too_wide_even_when_dense_shortens_its_titles(qapp, keep):
-    """1.56 (audit V-2, settings at 150 % in a 1100-px window): the six tabs did not fit even with the dense
+    """1.55.7 (audit V-2, settings at 150 % in a 1100-px window): the six tabs did not fit even with the dense
     padding and the last one sat cut behind scroll arrows. Then the titles end in "…" (whole title on hover);
     with room again the row is as before."""
     from PySide6.QtCore import Qt
@@ -711,7 +712,7 @@ def test_hotkey_from_the_window_is_checked():
 
 
 def test_every_way_of_changing_a_hotkey_leaves_one_hotkey_thread():
-    """1.56 (audit B2): the right-click "Standard"/"Aus" (_hk_set) started a new hotkey thread without stopping
+    """1.55.3 (audit B2): the right-click "Standard"/"Aus" (_hk_set) started a new hotkey thread without stopping
     the running one – two threads registered the same keys. Every path stops and joins the old one first."""
     from fogscout.app_hotkeys import Hotkeys
     from fogscout.config import DEFAULTS
@@ -800,7 +801,7 @@ def test_dialog_window_mirrors_and_closes_both_ways(qapp, keep):
 
 
 def test_icons_grow_with_the_text_zoom_and_stay_on_their_column(qapp, keep):
-    """1.56 (audit V-4, no decision against it in HISTORY): the navigation's icons and the drawn signs kept their
+    """1.55.7 (audit V-4, no decision against it in HISTORY): the navigation's icons and the drawn signs kept their
     100 % size at 150 % text – small beside the words. They grow with the zoom (rounded); the compass and the state
     dot stay centred on the icons' column (1.24.7)."""
     from PySide6.QtWidgets import QPushButton
@@ -827,7 +828,7 @@ def test_icons_grow_with_the_text_zoom_and_stay_on_their_column(qapp, keep):
 
 
 def test_the_element_list_ends_long_texts_in_an_ellipsis(qapp, keep):
-    """1.56 (audit V-1, 150 % in a small window): the overlay element list cut its texts in the middle of a word.
+    """1.55.7 (audit V-1, 150 % in a small window): the overlay element list cut its texts in the middle of a word.
     A text that does not fit is drawn ending in "…" (the whole text stays the label's and the row's name), and the
     chips of the narrow list share the width equally."""
     from fogscout import qt_overlay
@@ -1084,7 +1085,7 @@ def _zoom_sizes(page):
 
 
 def test_a_zoom_change_while_running_sizes_the_pages_like_a_fresh_start(qapp, keep):
-    """1.56 (audit U-2): widths the model gives in px (the calculator's names and choices, its two columns) were
+    """1.55.7 (audit U-2): widths the model gives in px (the calculator's names and choices, its two columns) were
     set once at build with the zoom of that moment – after a switch to 150 % they stayed at 100 % and cut the texts.
     A runtime switch gives the same widths as a window started at 150 %; and an open dialog takes the new style
     sheet (U-3: it kept the old theme until it was closed)."""

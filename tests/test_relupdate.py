@@ -412,7 +412,7 @@ def test_the_update_folder_is_cleaned_at_start_but_only_of_our_files(tmp_path):
                                                      "points, caught by the same fsops.is_link")
 @pytest.mark.parametrize("linked", ["cache", os.path.join("cache", "update")])
 def test_a_linked_update_folder_is_neither_written_nor_cleaned(tmp_path, linked):
-    """1.56 (audit SEC-5): data_dir is the user's – a junction at cache or cache/update made the elevated program
+    """1.55.4 (audit SEC-5): data_dir is the user's – a junction at cache or cache/update made the elevated program
     write the setup and delete setup names wherever it pointed. Now: refused, nothing there touched."""
     data, elsewhere = tmp_path / "data", tmp_path / "elsewhere"
     elsewhere.mkdir()

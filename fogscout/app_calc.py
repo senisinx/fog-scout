@@ -110,7 +110,7 @@ EFFECTS = {
     "instant": N_("nimmt dem Generator sofort {p} %"),
     "undone": N_("der erste Kick nimmt {p} % mehr je Token und blockiert {s} s je Token"),
     "block": N_("blockiert den Generator {s} s"),
-    # 1.56: Skill Checks (the odds as percentage points of the chance per second, see gencalc)
+    # 1.55.2: Skill Checks (the odds as percentage points of the chance per second, see gencalc)
     "check_chance": N_("Skill Checks kommen öfter: +{p} Prozentpunkte Chance je Sekunde"),
     "team_check_chance": N_("Skill Checks kommen für alle am Generator öfter: +{p} Prozentpunkte Chance je Sekunde"),
     "enemy_check_chance": N_("Skill Checks der Survivor kommen öfter: +{p} Prozentpunkte Chance je Sekunde"),
@@ -118,7 +118,7 @@ EFFECTS = {
     "others_check_bonus": N_("jeder erfolgreiche Skill Check der anderen bringt im Mittel +{p} % Fortschritt (W20)"),
 }
 FAIL_LESS = N_("ein verfehlter Skill Check kostet {p} % weniger Fortschritt")     # Deadline ("fail_mult")
-PER_TOKEN_CHANCE = N_("+{p} Prozentpunkte Skill-Check-Chance je Token")           # 1.56: Hyperfocus
+PER_TOKEN_CHANCE = N_("+{p} Prozentpunkte Skill-Check-Chance je Token")           # 1.55.2: Hyperfocus
 
 
 def _pct(v) -> str:
@@ -266,7 +266,7 @@ class CalcTab:
         labels = [_(AREAS[a]) for a in self.calc_area_ids]
         self.calc_area_var = ui.StringVar(value=_(AREAS[st["area"]]))
         cb = self._calc_choice(row, self.calc_area_var, labels, width=30, px=PERK_PX + 90)
-        cb._dbdms_name = _("Bereich")                      # 1.56: its accessible name (no label)
+        cb._dbdms_name = _("Bereich")                      # 1.55.7: its accessible name (no label)
         cb.pack(side="left")
         ui.Label(row, text=_("Survivor im Team")).pack(side="left", padx=(16, 0))
         self.calc_n_var = ui.StringVar(value=str(st["n"]))

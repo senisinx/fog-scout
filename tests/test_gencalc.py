@@ -109,7 +109,7 @@ def test_the_data_file_is_complete_and_sourced():
     assert raw["retrieved"] and "wiki.gg" in json.dumps(raw["mechanics"]["sources"])
     kinds = {"self", "self_with_others", "team", "team_per_other", "team_timed", "great_scale",
              "requirement_all", "requirement_once",
-             "check_chance", "team_check_chance", "check_fail", "others_check_bonus"}          # 1.56: Skill Checks
+             "check_chance", "team_check_chance", "check_fail", "others_check_bonus"}          # 1.55.2: Skill Checks
     assert all(e["kind"] in kinds for e in raw["survivor"])
     for e in raw["killer"]:
         assert e["kind"] in {"slow", "slow_first", "kick_loss", "overcharge", "regress_mult", "ruin",
@@ -192,7 +192,7 @@ def test_every_perk_of_the_data_file_has_a_line_that_says_what_it_does():
         text = app_calc.effect_text(e, D.mech)
         assert text and "{" not in text, e["name"]
     assert app_calc.effect_text(D.killer["Thanatophobia"], D.mech).endswith("20 % bei 4")
-    # 1.56: the Skill Check perks say what the calculation does with them
+    # 1.55.2: the Skill Check perks say what the calculation does with them
     assert app_calc.effect_text(D.survivor["Deadline"], D.mech) == (
         "Skill Checks kommen öfter: +10 Prozentpunkte Chance je Sekunde · ein verfehlter Skill Check kostet 50 % "
         "weniger Fortschritt")
@@ -201,7 +201,7 @@ def test_every_perk_of_the_data_file_has_a_line_that_says_what_it_does():
     assert set(app_calc.COUNT_MEANS) == {n for n, e in D.killer.items() if e.get("count")}
 
 
-# 1.56 (audit of the calculator: perks that change Skill Checks were missing). Hand-worked expected values: one
+# 1.55.2 (audit of the calculator: perks that change Skill Checks were missing). Hand-worked expected values: one
 # Survivor without a toolbox gains 1 c/s; a check comes with the chance per second, a Great one adds 1 % of the
 # 90 Charges (0.9 c), a missed one takes 10 % (9 c) and 3 s – so the Generator runs at
 # (1 + chance · (great · 0.9 + (1 − miss) · extra − miss · loss)) · (1 − chance · miss · 3) c/s.
@@ -263,7 +263,7 @@ def test_bardic_inspiration_gives_the_others_the_mean_of_the_d20():
 
 
 def test_pop_and_steadfast_take_their_values_from_the_data_file():
-    """1.56: 0.15 (Pop Goes the Weasel) and 0.5 (Boon: Steadfast) were typed into the code as well."""
+    """1.55.2: 0.15 (Pop Goes the Weasel) and 0.5 (Boon: Steadfast) were typed into the code as well."""
     import copy
     d = copy.deepcopy(D)
     d.killer["Pop Goes the Weasel"]["value"] = 0.25

@@ -307,7 +307,7 @@ def record_line(by_map: dict, by_pair: dict, map_id: str, role: str, killer: str
     """The line under the timer for the map on display. With a killer known for this round and at least
     ``min_rounds`` results on this map with that killer: "Ø 3.2 Kills · 5 Runden als Nurse"; else the map alone as
     before (1.8.x). A current streak of two or more in the group shown is appended ("4K-Serie 3", "Entkommen-Serie
-    2"). "" below ``min_rounds``. 1.56 (review F15): the survivor text with a killer ("40 % entkommen · 5 Runden gegen
+    2"). "" below ``min_rounds``. 1.55.5 (review F15): the survivor text with a killer ("40 % entkommen · 5 Runden gegen
     Nurse") needs ``by_pair`` entries with a killer for survivor rounds – the app stores none (a survivor round's
     ``killer`` is ""), so there a survivor always gets the line of the whole map; the branch stays for such data."""
     name = (killer_name or (lambda k: k))(killer) if killer else ""

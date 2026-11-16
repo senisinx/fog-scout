@@ -109,7 +109,7 @@ def summary(rounds, off: dict, include_farming: bool = True) -> dict:
     used = [r for r in rounds if not r.custom and (include_farming or not r.farming)]
     out = {"rounds": len(used)}
     if len(used) < MIN_GROUP:
-        # 1.56 (audit SEC-4): MIN_GROUP held only for the groups – with one round "all" (and the first/last day)
+        # 1.55.4 (audit SEC-4): MIN_GROUP held only for the groups – with one round "all" (and the first/last day)
         # were that round's own values. Below MIN_GROUP only the count goes (enough() then says: too few rounds)
         return out
     days = sorted(time.strftime("%Y-%m-%d", time.localtime(r.t)) for r in used)
@@ -149,7 +149,7 @@ def summary(rounds, off: dict, include_farming: bool = True) -> dict:
 
 
 def enough(data: dict) -> bool:
-    """1.56: a summary (or ``week``) holds values worth sending – at least one part reached MIN_GROUP rounds."""
+    """1.55.4: a summary (or ``week``) holds values worth sending – at least one part reached MIN_GROUP rounds."""
     parts = [data[k] for k in ("this_week", "last_week") if isinstance(data.get(k), dict)] or [data]
     return any("all" in p for p in parts)
 
@@ -165,7 +165,7 @@ def week(rounds, off: dict, now: float) -> dict:
     """1.36: this calendar week (Monday to now) and the week before, each summed up like ``summary``."""
     start = history.period_start("week", now)
     this = [r for r in rounds if start <= r.t <= now]
-    before = history.period_start("week", start - 1)     # 1.56 (review F10): not start − 7 × 24 h (clock change)
+    before = history.period_start("week", start - 1)     # 1.55.5 (review F10): not start − 7 × 24 h (clock change)
     last = [r for r in rounds if before <= r.t < start]
     return {"this_week": summary(this, off), "last_week": summary(last, off)}
 

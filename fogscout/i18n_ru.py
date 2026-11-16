@@ -6062,4 +6062,32 @@ T = {
         'Останавливает «Сохранить метки как отдельные клипы» после текущего клипа; готовые клипы остаются.',
     'Schneidet zu jeder F8-Marke der Runde einen Clip (Länge wie der Sofort-Clip, bis zur Marke, ohne neu zu kodieren) in den Ordner „Clips“. Marken, deren Clip schon da ist, werden übersprungen.':
         'Вырезает по клипу на каждую метку F8 раунда (длиной как мгновенный клип, до метки, без перекодирования) в папку «Clips». Метки, клип которых уже есть, пропускаются.',
+    'Seit dem Matchbeginn kein Map-Banner erkannt – „Bildschirm scannen“ ({keys}) sucht den Map-Namen auf dem Bildschirm.':
+        'С начала матча баннер карты не распознан – «Сканировать экран» ({keys}) ищет название карты на экране.',
+    'Seit dem Matchbeginn kein Map-Banner erkannt – „Scannen“ im Steuerfenster sucht den Map-Namen auf dem Bildschirm.':
+        'С начала матча баннер карты не распознан – «Сканировать» в окне управления ищет название карты на экране.',
+    'Map nicht erkannt':
+        'Карта не распознана',
+    'Wartezeit gegen EST.':
+        'Ожидание против EST.',
+    'Median Abweichung':
+        'Медиана отклонения',
+    'Innerhalb ±1 min':
+        'В пределах ±1 мин',
+    'Echte Wartezeit minus die Schätzung „EST.“, die DBD beim Start der Suche zeigt: + = länger gewartet als geschätzt. Nur Runden, deren Suche das Programm gesehen hat.':
+        'Реальное ожидание минус оценка «EST.», которую DBD показывает в начале поиска: + = ждали дольше оценки. Только раунды, поиск которых программа видела.',
+    'Ladezeit':
+        'Время загрузки',
+    'Ø Ladezeit':
+        'Ø загрузка',
+    'Von der gefundenen Lobby bis zum Ende des Ladebildschirms (mit dem Warten in der Lobby) – nur wenn das Programm beides gesehen hat. Custom Games haben keine Ladezeit.':
+        'От найденного лобби до конца экрана загрузки (вместе с ожиданием в лобби) – только если программа видела и то и другое. У пользовательских игр нет времени загрузки.',
+    'Noch keine Runde mit Wartezeit und EST. in dieser Auswahl.':
+        'В этой выборке пока нет раундов с ожиданием и EST.',
+    'Noch keine Ladezeiten in dieser Auswahl.':
+        'В этой выборке пока нет времени загрузки.',
+    'Hinweis, wenn nach dem Matchbeginn kein Map-Banner erkannt wurde':
+        'Сообщать, если после начала матча баннер карты не распознан',
+    'Kommt eine Minute nach dem Ladebildschirm kein Map-Banner, sagt Fog Scout einmal je Runde, wie du mit „Bildschirm scannen“ nachhilfst – mit Ton und Meldung, auch wenn DBD im Vordergrund ist; nie in Custom Games.':
+        'Если через минуту после экрана загрузки баннер карты не появился, Fog Scout один раз за раунд подскажет, как помочь кнопкой «Сканировать экран» — со звуком и уведомлением, даже когда DBD на переднем плане; никогда в своих играх.',
 }

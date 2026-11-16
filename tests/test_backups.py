@@ -286,7 +286,7 @@ def test_the_archived_rounds_are_packed_too(tmp_path):
 
 
 def test_matches_a_restore_pushes_beyond_the_limit_go_to_the_archive(tmp_path, monkeypatch):
-    """1.56 (review F6): the restore cut official.jsonl to its newest KEEP matches without archiving the others and
+    """1.55.5 (review F6): the restore cut official.jsonl to its newest KEEP matches without archiving the others and
     still counted them as added. They go to official-archive.jsonl like official.merge does; counted is what stays."""
     import json
     from fogscout import history, official

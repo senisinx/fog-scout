@@ -114,7 +114,7 @@ class Hotkeys:
         self._hk_restart()
 
     def _hk_restart(self):
-        """1.56 (audit B2): the one place that replaces the hotkey thread – the running one is stopped and joined
+        """1.55.3 (audit B2): the one place that replaces the hotkey thread – the running one is stopped and joined
         first (the right-click "Standard"/"Aus" started a second thread beside it; recording had stopped it)."""
         old = self.hotkeys
         if old.is_alive():

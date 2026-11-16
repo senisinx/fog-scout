@@ -116,7 +116,7 @@ NAV_W, NAV_COMPACT_W = 190, 62    # px (logical) at text zoom 1.0: navigation wi
 
 
 def nav_icon_px() -> int:
-    """1.56 (audit V-4): the navigation's icon box at the text zoom (NAV_ICON at 100 %)."""
+    """1.55.7 (audit V-4): the navigation's icon box at the text zoom (NAV_ICON at 100 %)."""
     return round(NAV_ICON * qt_theme.current_zoom())
 
 
@@ -256,7 +256,8 @@ SPECS = {
                 ("card", "st.more.own", (("row", (("hint", "st.more.aliases"), ("button", "st.more.aliases_clear"))),)),
                 ("card", "st.notify", (
                     ("check", "st.lobby_notify"), ("check", "st.lobby_remind"), ("check", "st.notify_background_only"),
-                    ("check", "st.bp_cap_notify"), ("check", "st.session_notify"),
+                    ("check", "st.bp_cap_notify"), ("check", "st.banner_missed_notify"),
+                    ("check", "st.session_notify"),
                     ("hint", "st.notify_text"), ("row", (("button", "st.notify_test"), ("stretch",))))))),
             ("st.tab.hotkeys", N_("Hotkeys"), (
                 ("card", "st.hotkeys", tuple(                    # 1.25: in groups – 14 keys were one block
@@ -403,7 +404,7 @@ def nav_icon(key: str, colour: str, ratio: float = 1.0, alert: bool = False) -> 
     in different sizes and places). All in a NAV_ICON box, 1.6 px lines; ``alert`` = amber dot (log)."""
     from PySide6.QtCore import QPointF, QRectF
     from PySide6.QtGui import QPainter, QPen
-    size, side = NAV_ICON, nav_icon_px()      # drawn in a NAV_ICON box, scaled to the zoom's size (1.56)
+    size, side = NAV_ICON, nav_icon_px()      # drawn in a NAV_ICON box, scaled to the zoom's size (1.55.7)
     pm = QPixmap(round(side * ratio), round(side * ratio))
     pm.setDevicePixelRatio(ratio)
     pm.fill(Qt.transparent)
@@ -586,7 +587,7 @@ class NavStatus(QFrame):
         self.rezoom()
 
     def rezoom(self):
-        """The sign on the icons' column of the navigation (1.24.7), at the text zoom (1.56)."""
+        """The sign on the icons' column of the navigation (1.24.7), at the text zoom (1.55.7)."""
         side = qt_theme.icon_px(qt_theme.ICON["s"])
         self.layout().setContentsMargins(nav_sign_x() - side // 2, 10, 10, 12)
         self.dot.setFixedWidth(side)                     # 1.24.7: the layout squeezed it to half – off the column
@@ -1228,7 +1229,7 @@ class MainWindow(QMainWindow):
         qt_theme.set_dark(dark, zoom)                              # 1.22.3: state colours, editor zoom
         self._nav_widths()                                         # 1.38.11: the navigation grows with the zoom
         self._style_lazily(qt_theme.stylesheet(dark, zoom))
-        if zoom is not None and float(zoom) != old_zoom:           # 1.56: sizes set at build follow (on_zoom)
+        if zoom is not None and float(zoom) != old_zoom:           # 1.55.7: sizes set at build follow (on_zoom)
             for w in [self.stack.widget(i) for i in range(self.stack.count())] + list(self.dialogs.values()):
                 rezoom(w, float(zoom))
         self._dark = bool(dark)
@@ -1246,7 +1247,7 @@ class MainWindow(QMainWindow):
         if qss == self._qss:
             return
         self._qss = qss
-        for w in (self._side, self.message, self.palette, *self.dialogs.values()):   # 1.56: open dialogs too
+        for w in (self._side, self.message, self.palette, *self.dialogs.values()):   # 1.55.7: open dialogs too
             w.setStyleSheet(qss)
         current = self.stack.currentWidget()
         self._stale = [self.stack.widget(i) for i in range(self.stack.count())]
@@ -1434,7 +1435,7 @@ class MainWindow(QMainWindow):
         self.search.setFixedWidth(nav_w())
         self.search_btn.setFixedWidth(nav_compact_w())
         self.status_btn.setFixedWidth(nav_compact_w() if on else nav_w())
-        side = nav_icon_px()                       # 1.56: the icons and the signs on their column grow too
+        side = nav_icon_px()                       # 1.55.7: the icons and the signs on their column grow too
         if self.nav.iconSize().width() != side:
             self.nav.setIconSize(QSize(side, side))
             self.status_btn.rezoom()

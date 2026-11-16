@@ -327,7 +327,7 @@ def restore(data_dir: str, path: str, now: float | None = None) -> dict:
             snapshot(data_dir, now=now, tag="restore")
         if plan["rounds"] or plan["lost"]:
             hist_path = os.path.join(data_dir, history.FILE)
-            with history.LOCK:          # 1.56 (review F14): a correction in the window's thread waits, is not lost
+            with history.LOCK:          # 1.55.5 (review F14): a correction in the window's thread waits, is not lost
                 history._rewrite(hist_path, history.load(hist_path) + plan["rounds"],
                                  history._lost_lines(hist_path) + plan["lost"])
         added = 0
@@ -335,7 +335,7 @@ def restore(data_dir: str, path: str, now: float | None = None) -> dict:
             off_path = os.path.join(data_dir, official.FILE)
             with official.LOCK:
                 gaps = sorted(set(official.load_gaps(off_path)) | set(plan["gaps"]))
-                # 1.56 (review F6): beyond KEEP the oldest go to the archive (were cut away); counted is what stays
+                # 1.55.5 (review F6): beyond KEEP the oldest go to the archive (were cut away); counted is what stays
                 ordered = sorted(official.load(off_path) + plan["matches"], key=lambda m: m.t)
                 kept = {id(m) for m in official.write_kept(off_path, ordered, gaps)}
             added = sum(1 for m in plan["matches"] if id(m) in kept)

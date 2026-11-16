@@ -144,7 +144,7 @@ class App(ServerTab, StatsTab, ExportDialog, RecordingsTab, DiscordPresence, Spo
         self._last_place = None
         self._log_alert = False          # an error in the log the user has not looked at yet
         self._worker_status = ""
-        self._worker_problem = False     # 1.56: the worker's flag – the status text is translated
+        self._worker_problem = False     # 1.55.3: the worker's flag – the status text is translated
         self._layout_unsure = False
         self._unsure = None              # doubtful detection: {"label", "t", "shown", "fit", "name"}
         self._rejected = None            # (map_id, time) thrown away with "Falsch erkannt"
@@ -775,6 +775,21 @@ class App(ServerTab, StatsTab, ExportDialog, RecordingsTab, DiscordPresence, Spo
         mid, v = items[(i + step) % len(items)]
         self.show_map(mid, v, "manual")
 
+    def _banner_missed(self):
+        """The worker saw the match begin but no banner decided since: say once how to scan by hand (log line and the
+        notification window, also with DBD in front – that is where the player is). Nothing when a map is up."""
+        if self._hist is not None or (self.overlay.has_map() and not self.hidden_after_match):
+            return
+        if not self.settings.get("banner_missed_notify", True):    # the user switched the hint off
+            return
+        keys = self.settings["hotkeys"].get("scan_now")
+        text = (_("Seit dem Matchbeginn kein Map-Banner erkannt – „Bildschirm scannen“ ({keys}) sucht den Map-Namen "
+                  "auf dem Bildschirm.", keys=pretty(keys)) if keys else
+                _("Seit dem Matchbeginn kein Map-Banner erkannt – „Scannen“ im Steuerfenster sucht den Map-Namen auf "
+                  "dem Bildschirm."))
+        self._log(text, "Erkennung")
+        self._notify(_("Map nicht erkannt"), text, force=True)
+
     def scan_now(self):
         self._log(_("Scanne den Bildschirm nach Map- oder Realm-Namen …"), "Erkennung")
         self.worker.request_scan()
@@ -1189,6 +1204,7 @@ class App(ServerTab, StatsTab, ExportDialog, RecordingsTab, DiscordPresence, Spo
                 self._log(_("Rundentimer gestartet."), "Erkennung")
             if restarted or self._hist is None:
                 self._hist_open(d["map_id"], d["variant"], "auto", lobby=d.get("lobby"))
+                self._hist_decision(d)
             if self._unsure and not d.get("unsure") and same:
                 self._clear_unsure(confirmed=True)  # later frames of the banner read it cleanly
             if not same:
@@ -1258,6 +1274,8 @@ class App(ServerTab, StatsTab, ExportDialog, RecordingsTab, DiscordPresence, Spo
                 self._tick_overlay(reschedule=False)
         elif k == "watch_info":
             self._log(d.get("text", ""), "Erkennung")
+        elif k == "banner_missed":                # no banner decided a while after the match began (once a round)
+            self._banner_missed()
         elif k == "warn":
             self._log(_("{text} – Details in fogscout.log", text=d.get("text", "")), "Fehler")
         elif k == "scan_result":
@@ -1286,7 +1304,7 @@ class App(ServerTab, StatsTab, ExportDialog, RecordingsTab, DiscordPresence, Spo
 
     def _set_status(self, text, problem=False):
         """Technical status from the worker: goes to the log; the status line shows a plain summary.
-        ``problem`` (1.56) = the worker's flag that it needs action (red status, tray dot)."""
+        ``problem`` (1.55.3) = the worker's flag that it needs action (red status, tray dot)."""
         self._worker_status = text
         self._worker_problem = bool(problem)
         self._log(text, "System")
@@ -1730,7 +1748,7 @@ class App(ServerTab, StatsTab, ExportDialog, RecordingsTab, DiscordPresence, Spo
         var = ui.StringVar(value=labels[[m.id for m in entries].index(guess)] if guess in
                            [m.id for m in entries] else "")
         cb = ui.Combobox(body, textvariable=var, values=labels, state="readonly", width=44, height=18)
-        cb._dbdms_name = _("Map")                          # 1.56: its accessible name (no label)
+        cb._dbdms_name = _("Map")                          # 1.55.7: its accessible name (no label)
         cb.pack(fill="x")
         msg = ui.StringVar(value="")
         ui.Label(body, textvariable=msg, style="Dim.TLabel", wraplength=380).pack(anchor="w", pady=(6, 0))

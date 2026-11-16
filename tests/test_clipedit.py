@@ -1511,7 +1511,7 @@ def test_the_time_an_export_may_take_grows_with_its_length():
 
 
 def test_part_frames_follow_the_timeline_within_half_a_frame():
-    """1.56 (E-3): the frames each part fills, rounded from the running sum of the timeline – however many parts,
+    """1.55.8 (E-3): the frames each part fills, rounded from the running sum of the timeline – however many parts,
     the clip is the timeline's length within half a frame; every part keeps at least one frame."""
     parts = [clipedit.Part(i * 0.37, i * 0.37 + 0.31, 1.5) for i in range(30)]
     counts = clipedit.part_frames(parts, 30.0)
@@ -1531,7 +1531,7 @@ def _stream_seconds(path, which):
 
 
 def test_many_short_fast_parts_end_with_the_timeline_and_the_fade(clip, tmp_path):
-    """1.56 (E-3): 30 parts of 0.31 s at ×1.5 – each cut to whole frames, then tempo, then concat – came out
+    """1.55.8 (E-3): 30 parts of 0.31 s at ×1.5 – each cut to whole frames, then tempo, then concat – came out
     6.33 s for a 6.2-s timeline and the last frames of the 0.5-s fade-out were black (the fade ended before the
     file). Now the file has the timeline's frames and the fade ends on the last one."""
     e = clipedit.Edit([clipedit.Part(i * 0.37, i * 0.37 + 0.31, 1.5) for i in range(30)], fade_out=0.5)
@@ -1548,7 +1548,7 @@ def test_many_short_fast_parts_end_with_the_timeline_and_the_fade(clip, tmp_path
 
 
 def test_the_preview_sound_comes_in_pieces_one_after_the_other():
-    """1.56 (P-1): the sound of a long stretch is made in pieces – a short first one (the picture waits for it), then
+    """1.55.8 (P-1): the sound of a long stretch is made in pieces – a short first one (the picture waits for it), then
     longer ones – edge to edge, on the millisecond, each with its output time; backwards stays one piece."""
     chunks = clipedit.sound_chunks(100.0, 1300.0)
     assert chunks[0] == (100.0, 100.0 + clipedit.SOUND_FIRST_S, 0.0)
@@ -1575,7 +1575,7 @@ def _pcm(path):
 
 
 def test_the_pieces_of_the_sound_line_up_with_the_whole_stretch(tmp_path):
-    """1.56 (P-1): each piece, read back, holds exactly the samples the whole stretch has at its output time – laid
+    """1.55.8 (P-1): each piece, read back, holds exactly the samples the whole stretch has at its output time – laid
     one after the other at their offsets, the sound runs on as one WAV would (no shift at the edges)."""
     src = str(tmp_path / "noise.mkv")
     subprocess.run([FF, "-hide_banner", "-loglevel", "error", "-y", "-f", "lavfi", "-i",
@@ -1611,7 +1611,7 @@ def test_the_pieces_of_the_sound_line_up_with_the_whole_stretch(tmp_path):
 
 
 def test_waveform_and_track_levels_are_kept_until_the_recording_changes(four_track, tmp_path, monkeypatch):
-    """1.56: reopening a long recording decoded its whole sound again for the waveform and the track levels (a
+    """1.55.8: reopening a long recording decoded its whole sound again for the waveform and the track levels (a
     10-min file with four tracks: ~0.5 s + ~1.8 s each time). Now both are kept under the data folder, named by the
     recording's quick fingerprint, its mtime and the parameters – the second opening reads them; a changed file, a
     broken cache file or an analysis that failed or was cancelled is never taken (or kept); unused ones are pruned."""

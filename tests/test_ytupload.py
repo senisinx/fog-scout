@@ -641,7 +641,7 @@ def test_the_browser_login_hands_a_refresh_token_to_the_app(fake):
 
 
 def test_a_refused_code_exchange_asks_for_a_new_login_with_a_hint(fake):
-    """1.56 (audit SEC-7): the browser came back, but Google refused the code exchange (wrong secret, stale code) –
+    """1.55.4 (audit SEC-7): the browser came back, but Google refused the code exchange (wrong secret, stale code) –
     the YouTubeError ended in the generic error state. Now, as with Spotify: login needed, and what to check."""
     seen = {}
 

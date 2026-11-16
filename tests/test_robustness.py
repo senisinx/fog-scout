@@ -181,7 +181,7 @@ def test_a_crashed_detection_shows_in_the_status_line(app):
 
 @pytest.mark.parametrize("lang", ["it", "ja"])
 def test_a_problem_shows_red_in_every_language(app, lang):
-    """1.56 (audit D-1): status.is_problem matched German/English words – in it/ru/zh/ja/ko a black capture, a
+    """1.55.3 (audit D-1): status.is_problem matched German/English words – in it/ru/zh/ja/ko a black capture, a
     minimised DBD or a crashed detection never turned the status red (status line, tray dot, Übersicht)."""
     from fogscout import i18n, overview, status
     try:
@@ -200,7 +200,7 @@ def test_a_problem_shows_red_in_every_language(app, lang):
 
 
 def test_the_arrange_tip_names_its_hotkey_once(app):
-    """1.56 (audit B5): the tooltip of „Anordnen“ appended „Hotkey: Strg+Alt+P“ twice."""
+    """1.55.3 (audit B5): the tooltip of „Anordnen“ appended „Hotkey: Strg+Alt+P“ twice."""
     from fogscout.hotkeys import pretty
     hint = "Hotkey: " + pretty(app.settings["hotkeys"]["edit_position"])
     tip = app.edit_btn._dbdms_tip()
@@ -208,7 +208,7 @@ def test_the_arrange_tip_names_its_hotkey_once(app):
 
 
 def _game_worker(tmp_path, monkeypatch, grab):
-    """1.56: a worker that finds a DBD window in front and reads its pixels from ``grab(left, top, w, h)``."""
+    """1.55.3: a worker that finds a DBD window in front and reads its pixels from ``grab(left, top, w, h)``."""
     from types import SimpleNamespace
     game = SimpleNamespace(hwnd=7, left=0, top=0, width=1280, height=720, minimized=False)
 
@@ -244,7 +244,7 @@ def _statuses(w, events, seconds):
 
 @pytest.mark.parametrize("lang", ["de", "ru"])
 def test_a_black_capture_is_one_status_with_the_problem_flag(tmp_path, monkeypatch, lang):
-    """1.56 (audit D-2): with a black capture the status flipped every tick between "DBD gefunden …" and the warning
+    """1.55.3 (audit D-2): with a black capture the status flipped every tick between "DBD gefunden …" and the warning
     – two log lines a second; (D-1) the warning carries a flag, as the words differ in each language."""
     import numpy as np
     from fogscout import i18n, status
@@ -263,7 +263,7 @@ def test_a_black_capture_is_one_status_with_the_problem_flag(tmp_path, monkeypat
 
 
 def test_a_failing_capture_is_one_status_not_one_per_tick(tmp_path, monkeypatch):
-    """1.56 (audit D-2): a capture that raised reported "fehlgeschlagen", the next tick "DBD gefunden" again."""
+    """1.55.3 (audit D-2): a capture that raised reported "fehlgeschlagen", the next tick "DBD gefunden" again."""
     def fail(*_a):
         raise OSError("off screen")
     w, events = _game_worker(tmp_path, monkeypatch, fail)

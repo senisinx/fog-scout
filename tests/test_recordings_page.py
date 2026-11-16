@@ -968,7 +968,7 @@ def test_the_setup_assistant_sets_up_obs_and_leads_to_the_server_page(app_root, 
 
 
 def test_the_recorder_learns_the_files_in_use_only_when_they_change():
-    """1.56 (audit E-1): the upload queue's names and every editor's file (a montage: all its sources) go to the
+    """1.55.1 (audit E-1): the upload queue's names and every editor's file (a montage: all its sources) go to the
     recorder, which never prunes them – sent once per change, not on every tick."""
     from types import SimpleNamespace
     sent = []

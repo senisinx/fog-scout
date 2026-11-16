@@ -6062,4 +6062,32 @@ T = {
         '在当前片段剪完后停止“将标记保存为单独片段”；已完成的片段会保留。',
     'Schneidet zu jeder F8-Marke der Runde einen Clip (Länge wie der Sofort-Clip, bis zur Marke, ohne neu zu kodieren) in den Ordner „Clips“. Marken, deren Clip schon da ist, werden übersprungen.':
         '为本局的每个 F8 标记剪出一个片段（时长与即时片段相同，截至标记处，不重新编码），保存到“Clips”文件夹。已有片段的标记会被跳过。',
+    'Seit dem Matchbeginn kein Map-Banner erkannt – „Bildschirm scannen“ ({keys}) sucht den Map-Namen auf dem Bildschirm.':
+        '比赛开始后未识别到地图横幅 – “扫描屏幕”（{keys}）会在屏幕上查找地图名称。',
+    'Seit dem Matchbeginn kein Map-Banner erkannt – „Scannen“ im Steuerfenster sucht den Map-Namen auf dem Bildschirm.':
+        '比赛开始后未识别到地图横幅 – 控制窗口中的“扫描”会在屏幕上查找地图名称。',
+    'Map nicht erkannt':
+        '未识别地图',
+    'Wartezeit gegen EST.':
+        '等待时间与 EST. 对比',
+    'Median Abweichung':
+        '偏差中位数',
+    'Innerhalb ±1 min':
+        '±1 分钟内',
+    'Echte Wartezeit minus die Schätzung „EST.“, die DBD beim Start der Suche zeigt: + = länger gewartet als geschätzt. Nur Runden, deren Suche das Programm gesehen hat.':
+        '实际等待时间减去 DBD 在开始搜索时显示的估计 “EST.”：+ = 比估计等得更久。仅包括程序看到其搜索的对局。',
+    'Ladezeit':
+        '加载时间',
+    'Ø Ladezeit':
+        '平均加载',
+    'Von der gefundenen Lobby bis zum Ende des Ladebildschirms (mit dem Warten in der Lobby) – nur wenn das Programm beides gesehen hat. Custom Games haben keine Ladezeit.':
+        '从找到大厅到加载画面结束（包括在大厅中的等待）– 仅当程序两者都看到时。自定义游戏没有加载时间。',
+    'Noch keine Runde mit Wartezeit und EST. in dieser Auswahl.':
+        '此选择中还没有同时带有等待时间和 EST. 的对局。',
+    'Noch keine Ladezeiten in dieser Auswahl.':
+        '此选择中还没有加载时间。',
+    'Hinweis, wenn nach dem Matchbeginn kein Map-Banner erkannt wurde':
+        '对局开始后未识别到地图横幅时提醒',
+    'Kommt eine Minute nach dem Ladebildschirm kein Map-Banner, sagt Fog Scout einmal je Runde, wie du mit „Bildschirm scannen“ nachhilfst – mit Ton und Meldung, auch wenn DBD im Vordergrund ist; nie in Custom Games.':
+        '加载画面结束一分钟后仍没有地图横幅时，Fog Scout 每局提醒一次如何用“扫描屏幕”补救——带提示音和通知，即使 DBD 在前台；自定义对局中从不提醒。',
 }

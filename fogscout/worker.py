@@ -59,6 +59,10 @@ TICK_FAIL_LOG_S = 60.0            # … the same traceback goes to the log at mo
 WORKER_RESTARTS = 2               # 1.38.9: a broken detection is started again this often before it counts as crashed
 WORKER_RESTART_S = 5.0            # … after this pause (a display change or the lock screen may be over by then)
 BP_STEADY_S = 5.0                 # 1.16.2 (A7): bloodpoint counter read this seldom once CONFIRM_LOOKS looks agree
+# The banner follows the end of the loading screen within seconds: none decided (detected/unknown) this long after
+# the match began → one hint to scan by hand per round (the worker never scans by itself)
+BANNER_MISS_S = 60.0
+BANNER_MISS_LATE_S = 15.0        # … a check this long after that time is about a match long over: no hint
 LOBBY_HOLD = 3.0                  # only comes after the loading screen; full rate again 3 s after the button went
 
 
@@ -107,7 +111,7 @@ def scan_rate(base: float, *, in_match: bool, session: bool, since_button: float
 
 class DetectionWorker(threading.Thread):
     inputs_rect = None               # 1.39: the input card on screen (set by the UI; a default for bare instances)
-    fade_rects = ()                  # 1.56: windows still fading out (their *_rect is cleared already)
+    fade_rects = ()                  # 1.55.6: windows still fading out (their *_rect is cleared already)
 
     def __init__(self, root_dir: str, settings, catalog, events: queue.Queue, simulate: str | None = None,
                  data_dir: str | None = None):
@@ -153,6 +157,7 @@ class DetectionWorker(threading.Thread):
         self._broken = None                              # 1.38.9: why the current run gave up (None: it did not)
         self._last_frame_save = 0.0
         self._last_sighting_save = 0.0
+        self._banner_due = None          # when to hint "scan by hand" if no banner was decided since the match began
 
     # ------------------------------------------------------------- helpers
     def post(self, kind, **data):
@@ -291,7 +296,7 @@ class DetectionWorker(threading.Thread):
         last_hist = 0.0
         last_status = None
         black_since = None
-        capture_warn = None               # 1.56: black/failed capture – overrides "DBD gefunden" until a good look
+        capture_warn = None               # 1.55.3: black/failed capture – overrides "DBD gefunden" until a good look
         fails, failed = 0, False          # 1.8.38: ticks in a row that raised, did the last one
 
         while self.running:
@@ -332,13 +337,13 @@ class DetectionWorker(threading.Thread):
                     with self.times.measure("window"):
                         window = find_game_window(window)   # 1.34.1 (P4): the known window checked first
                     window_checked = tick
-                # 1.56 (audit D-5): with the automatic detection off only a map on display needs the model here (its
+                # 1.55.6 (audit D-5): with the automatic detection off only a map on display needs the model here (its
                 # round end); a manual scan or any other look builds it on first use
                 auto = bool(self.settings.get("auto_detect", True))
                 if (source is not None or (window is not None and (auto or self.map_on_screen))) and not rec.built:
                     rec.load()                       # 1.50.4: built here, before the first look needs it
                 if auto and (source is not None or window is not None):
-                    reader.load()                    # 1.56 (D-4): the other scripts' models (ticked ones) the same way
+                    reader.load()                    # 1.55.6 (D-4): the other scripts' models (ticked ones) the same way
                 if source is not None:
                     frame = source.current()
                     if frame is None:
@@ -430,14 +435,14 @@ class DetectionWorker(threading.Thread):
                     status = _("Automatische Erkennung ist aus")
                 if not (self.settings.get("auto_detect", True) and (source is not None or window is not None)):
                     capture_warn = None          # no banner look this tick: nothing left to warn about
-                # 1.56: one status per tick – a black or failed capture stays the status until a good look (it
+                # 1.55.3: one status per tick – a black or failed capture stays the status until a good look (it
                 # alternated with "DBD gefunden" every tick before: two log lines a second)
                 shown = capture_warn or status
                 if shown != last_status:
                     self._status(shown, last_status, problem=bool(capture_warn))
                     last_status = shown
                 sep = None
-                # 1.56 (D-5): only with the automatic detection – the lobby look arms the match start, and without it
+                # 1.55.6 (D-5): only with the automatic detection – the lobby look arms the match start, and without it
                 # the whole picture once a second was taken for nothing
                 start_due = (auto and not self.map_on_screen and not session
                              and tick - last_start_look >= START_LOOK_INTERVAL
@@ -486,7 +491,7 @@ class DetectionWorker(threading.Thread):
                     else:
                         black_since = None
                         capture_warn = None
-                    shown = capture_warn or status        # 1.56: the grab worked – a failure warning ends here
+                    shown = capture_warn or status        # 1.55.3: the grab worked – a failure warning ends here
                     if shown != last_status:
                         self._status(shown, last_status, problem=bool(capture_warn))
                         last_status = shown
@@ -546,10 +551,11 @@ class DetectionWorker(threading.Thread):
                             if d is not None:
                                 lobby = self.queue.lobby_for_round(tick)   # 1.8.71: also a lobby seen only briefly
                                 self.queue.round_started(tick)  # 1.8.43: the lobby is used up (same custom lobby next)
+                                self._banner_due = None
                                 self.post("detected", lobby=lobby, map_id=d.map_id, variant=d.variant, probability=d.probability,
                                           variant_probability=d.variant_probability, name_text=d.name_text,
                                           realm_text=d.realm_text, frames=d.frames, name_fit=d.name_fit,
-                                          unsure=d.unsure)
+                                          unsure=d.unsure, latency=max(0.0, tick - session_t))
                                 if self.settings.get("corpus_save", True):     # 1.38.29: the banner for "Erkennung prüfen"
                                     try:
                                         corpus.save(self.data_dir, img, sep, res, d, (fw, fh), boxed, bars,
@@ -569,6 +575,7 @@ class DetectionWorker(threading.Thread):
                                 self.post("ignored", name_text=best[0], realm_text=best[1],
                                           map_id=lead[0] if lead else None, name_fit=best[2], frames=acc.good_frames)
                             else:
+                                self._banner_due = None
                                 self.post("unknown", name_text=best[0], realm_text=best[1])
 
                 # ------------------------------------- lobby: searching / found / role (never in a match)
@@ -636,8 +643,12 @@ class DetectionWorker(threading.Thread):
                             if ms.armed and ms.update(tick, bar, dark, tick - lobby_button_t < START_LOOK_INTERVAL * 1.5):
                                 log.info("Ladebildschirm vorbei – das Match beginnt")
                                 self.post("match_start", t=tick)
+                                found = self.queue.found          # the lobby that armed it (custom known here)
+                                self._banner_due = (None if found is not None and found.custom
+                                                    else tick + BANNER_MISS_S)
                     except Exception:
                         self._report("Matchbeginn", traceback.format_exc())
+                self._banner_check(tick, session, auto and (source is not None or window is not None))
 
                 # ------------------------------------- left the trial? -> hide map
                 gen = self.watch_gen
@@ -760,8 +771,24 @@ class DetectionWorker(threading.Thread):
         if wcap is not None:
             wcap.stop()
 
+    def _banner_check(self, tick, session: bool, live: bool):
+        """One hint per round when no banner was decided BANNER_MISS_S after the match began: "banner_missed" (the
+        app suggests "Scannen" with its hotkey). Nothing while a banner is being read; a map on display (picked by
+        hand), the detection switched off or DBD gone end the wait without a hint. Only a hint – no look of its own."""
+        due = self._banner_due
+        if due is None or session:
+            return
+        if self.map_on_screen or not live or tick > due + BANNER_MISS_LATE_S:
+            self._banner_due = None              # late: the loop did not get here for a while (DBD gone) – stale
+        elif tick >= due:
+            self._banner_due = None
+            log.info("Kein Map-Banner %.0f s nach dem Matchbeginn", BANNER_MISS_S)
+            self.post("banner_missed", t=tick)
+
     def _queue_event(self, ev, tick):
         """QueueTracker events -> UI: what=search | cancel | role | found."""
+        if ev[0] in ("search", "cancel", "left", "found"):
+            self._banner_due = None              # back in the lobby screens: that match is over (or never began)
         if ev[0] == "search":
             self.post("queue", what="search", since=self.queue.search_start, role=self.queue.role,
                       killer=self.queue.killer, crossplay_off=self.queue.crossplay_off)
@@ -781,7 +808,7 @@ class DetectionWorker(threading.Thread):
             self.post("queue", what="remind", seconds=ev[1])
 
     def _status(self, text, last, problem=False):
-        """1.56: ``problem`` = needs the player's action (minimised, black or failed capture) – a flag, since
+        """1.55.3: ``problem`` = needs the player's action (minimised, black or failed capture) – a flag, since
         the text is translated and the app cannot tell it from the words."""
         if text != last:
             self.post("status", text=text, problem=problem)

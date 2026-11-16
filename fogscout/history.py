@@ -20,7 +20,7 @@ KEEP = 5000                 # newest rounds kept when the file is tidied
 # oldest rounds were gone for good once there were more than KEEP. The statistics do not read it (their speed is why
 # the file is kept short); "Alles sichern (ZIP)" packs it, "Alle Runden löschen" removes it.
 ARCHIVE = "rounds-archive.jsonl"
-# 1.56 (review F14): every read-change-write of the file holds this lock – a restore from a backup runs in a thread
+# 1.55.5 (review F14): every read-change-write of the file holds this lock – a restore from a backup runs in a thread
 # while the window's thread corrects rounds or saves the balance; without it the last writer won and the other
 # change was gone. Re-entrant: a writer may call another one.
 LOCK = threading.RLock()
@@ -44,6 +44,14 @@ class Round:
     stalls: int | None = None   # 1.11.9: receive gaps ≥ netwatch.STALL_S from the game server (None: not measured)
     stall_max: float | None = None   # … the longest one in seconds
     balance: int | None = None  # 1.13: bloodpoint balance read in the lobby after the round (bloodpoints.py), None: not read
+    # how the banner decision that opened the round went (detector.Decision), None: not detected automatically –
+    # the diagnosis follows the detection's health over the rounds (diagnose.detection_health)
+    fit: float | None = None        # name fit of the decision (≈ 0 = a clean banner, below -3 unsure)
+    frames: int | None = None       # pictures of the banner that were read up to the decision
+    unsure: bool | None = None      # the decision was unsure (Accumulator.unsure_fit)
+    latency: float | None = None    # seconds from the first sight of the banner to the decision
+    load: float | None = None       # seconds from the lobby found to the end of the loading screen (None: not seen)
+    est: float | None = None        # DBD's queue estimate ("EST.") when the search began, seconds (None: not read)
 
 
 _FIELDS = tuple(f.name for f in fields(Round))
@@ -51,7 +59,7 @@ _FIELDS = tuple(f.name for f in fields(Round))
 
 def _dump(r: Round) -> str:
     """One stored line of a round – the same text as ``json.dumps(asdict(r), ensure_ascii=False)`` (fields in their
-    order). 1.56 (review F2): asdict deep-copies every value and took ~60 % of a correction's rewrite at 5000 rounds."""
+    order). 1.55.5 (review F2): asdict deep-copies every value and took ~60 % of a correction's rewrite at 5000 rounds."""
     return json.dumps({k: getattr(r, k) for k in _FIELDS}, ensure_ascii=False)
 
 
@@ -105,7 +113,7 @@ def _archived_tail(path: str, size: int) -> set:
 
 def archive_lines(path: str, lines) -> None:
     """1.50.6: ``lines`` at the end of the archive file ``path``, on the disk before the caller drops them from its
-    own file (OSError when not). 1.56 (review F7): when the caller's rewrite failed after the archive was written,
+    own file (OSError when not). 1.55.5 (review F7): when the caller's rewrite failed after the archive was written,
     its next tidying hands over the same lines again – lines whose ``t`` already stands in the archive's end (as
     many bytes as these lines) are left out. Only the end is compared, not "older than the newest archived line":
     a restore can bring rounds older than those, and they must still reach the archive."""
@@ -139,7 +147,7 @@ def append(path: str, rnd: Round) -> None:
 
 
 def _slack() -> int:
-    """1.56 (review F1): how far the file may grow past KEEP before it is tidied (5 % of it, 250 at KEEP = 5000).
+    """1.55.5 (review F1): how far the file may grow past KEEP before it is tidied (5 % of it, 250 at KEEP = 5000).
     Trimmed to exactly KEEP, every further round rewrote the whole file (~150 ms in the window's thread)."""
     return KEEP // 20
 
@@ -156,7 +164,7 @@ def _tidy(path: str) -> None:
             rounds = load(path)
             kept = rounds[-KEEP:]
             lost = _lost_lines(path)
-            # 1.56 (review F5): lost-round lines older than the kept rounds go to the archive too (were dropped)
+            # 1.55.5 (review F5): lost-round lines older than the kept rounds go to the archive too (were dropped)
             old = [(r.t, _dump(r)) for r in rounds[:-KEEP]] + \
                 [(d["t"], json.dumps(d, ensure_ascii=False)) for d in lost if d["t"] < kept[0].t]
             # first into the archive – when that cannot be written (OSError), nothing is taken out
@@ -178,7 +186,8 @@ def _rewrite(path: str, rounds, lost) -> None:
     _LINES.prime(path, data, sorted(rounds, key=lambda r: r.t))
 
 
-LOST_KEYS = ("map_id", "region", "source", "wait", "role", "custom", "farming", "killer", "ping", "sys")   # since 1.35/1.43
+LOST_KEYS = ("map_id", "region", "source", "wait", "role", "custom", "farming", "killer", "ping", "sys",   # since 1.35/1.43
+             "fit", "frames", "unsure", "latency", "load", "est")    # the optional facts of a round, kept for a rescue
 
 
 def append_lost(path: str, t: float, map_label: str, reason: str, **known) -> None:
@@ -231,8 +240,26 @@ def load_lost_rounds(path: str) -> list:
                          role=str(d.get("role") or "") if d.get("role") in ROLES else "",
                          custom=bool(d.get("custom")), farming=bool(d.get("farming")),
                          ping=float(ping) if isinstance(ping, (int, float)) and ping >= 0 else None,
-                         killer=str(d.get("killer") or ""), sys=_sys(d.get("sys")), **_stalls(d)))
+                         killer=str(d.get("killer") or ""), sys=_sys(d.get("sys")), **_stalls(d), **_extra(d)))
     return out
+
+
+def _num(v, low: float = 0.0, high: float = math.inf):
+    """A stored optional number: a finite int/float within [low, high] as float, else None (bool is no number)."""
+    if isinstance(v, bool) or not isinstance(v, (int, float)) or not math.isfinite(v) or not low <= v <= high:
+        return None
+    return float(v)
+
+
+def _extra(d: dict) -> dict:
+    """The optional facts of a stored line (decision quality, loading time, EST) – None when missing or not
+    plausible, so lines from before these fields, and a hand-edited or broken value, load as "not known"."""
+    frames = d.get("frames")
+    unsure = d.get("unsure")
+    return {"fit": _num(d.get("fit"), -1e6, 1e6),
+            "frames": frames if isinstance(frames, int) and not isinstance(frames, bool) and frames >= 0 else None,
+            "unsure": unsure if isinstance(unsure, bool) else None,
+            "latency": _num(d.get("latency")), "load": _num(d.get("load")), "est": _num(d.get("est"))}
 
 
 def _stalls(d: dict) -> dict:
@@ -260,7 +287,7 @@ def _round_line(line: str):
                  custom=bool(d.get("custom")), farming=bool(d.get("farming")),
                  ping=float(d["ping"]) if isinstance(d.get("ping"), (int, float)) and d["ping"] >= 0 else None,
                  killer=str(d.get("killer") or ""), sys=_sys(d.get("sys")), **_stalls(d),
-                 balance=_balance(d.get("balance")))
+                 balance=_balance(d.get("balance")), **_extra(d))
 
 
 def _balance(v) -> int | None:
@@ -444,7 +471,7 @@ def wait_summary(rounds) -> dict:
     w = sorted(r.wait for r in rounds if r.wait is not None and normal(r))
     if not w:
         return {"count": 0, "avg": 0.0, "median": 0.0, "min": 0.0, "max": 0.0}
-    # 1.56 (review F8): median() – an even count took the upper middle value instead of the mean of both
+    # 1.55.5 (review F8): median() – an even count took the upper middle value instead of the mean of both
     return {"count": len(w), "avg": sum(w) / len(w), "median": median(w), "min": w[0], "max": w[-1]}
 
 
@@ -471,6 +498,38 @@ def wait_by(rounds, by: str) -> list:
     return sorted(rows)
 
 
+def load_by(rounds, by: str) -> list:
+    """Time from the lobby found to the end of the loading screen (``Round.load``), grouped ``by`` "map" (the map
+    label) or "region" (code, NO_REGION without one): [(key, rounds, average s, median s)], longest average first –
+    NO_REGION last. Every round with a loading time counts (custom games have none); the page's filters decide
+    which rounds come in."""
+    groups = {}
+    for r in rounds:
+        if r.load is not None:
+            key = r.map if by == "map" else (r.region or NO_REGION)
+            groups.setdefault(key, []).append(r.load)
+    rows = [(k, len(v), sum(v) / len(v), median(v)) for k, v in groups.items()]
+    return sorted(rows, key=lambda row: (row[0] == NO_REGION, -row[2], str(row[0])))
+
+
+EST_NEAR_S = 60.0           # a real wait within this of DBD's estimate counts as "met" (±1 min)
+
+
+def est_accuracy(rounds) -> list:
+    """How far the real wait (``Round.wait``) was from DBD's estimate (``Round.est``) per role: [(role, rounds,
+    median of wait − estimate in s (positive: longer than estimated), share within ±EST_NEAR_S 0..1)] for "killer",
+    "survivor" (only those with rounds) and "" = all of them. Only public rounds with both values (``normal``)."""
+    groups = {}
+    for r in rounds:
+        if r.wait is not None and r.est is not None and normal(r):
+            diff = r.wait - r.est
+            groups.setdefault("", []).append(diff)
+            if r.role in ROLES:
+                groups.setdefault(r.role, []).append(diff)
+    return [(k, len(groups[k]), median(groups[k]), sum(1 for d in groups[k] if abs(d) <= EST_NEAR_S) / len(groups[k]))
+            for k in ROLES + ("",) if k in groups]
+
+
 def regions_at(rounds, now: float, min_rounds: int = 3) -> tuple:
     """1.38.31 (project review F7): which region found matches fastest at this time of day – the rounds of the
     same HOUR_BLOCK (local time) with a known region and waiting time, per region: (code, rounds, median wait s,
@@ -488,12 +547,12 @@ def regions_at(rounds, now: float, min_rounds: int = 3) -> tuple:
         if len(rs) < min_rounds:
             continue
         pings = [r.ping for r in rs if r.ping is not None]
-        rows.append((code, len(rs), median(r.wait for r in rs), sum(pings) / len(pings) if pings else None))   # 1.56 (F8)
+        rows.append((code, len(rs), median(r.wait for r in rs), sum(pings) / len(pings) if pings else None))   # 1.55.5 (F8)
     return block, sorted(rows, key=lambda row: (row[2], row[0]))
 
 
 def _change(path: str, ts, fn) -> list:
-    """1.56 (review F2): apply ``fn(round) -> bool`` (True: changed) to the rounds that started at the times ``ts``
+    """1.55.5 (review F2): apply ``fn(round) -> bool`` (True: changed) to the rounds that started at the times ``ts``
     and rewrite the file once – marking k rounds was k full rewrites. Returns the changed rounds in the order of
     ``ts`` (each once); nothing changed = nothing written."""
     with LOCK:

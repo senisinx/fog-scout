@@ -149,7 +149,7 @@ def _separator_in(mask: np.ndarray, frame_w: int, frame_h: int, s: float) -> Sep
         x1 = int(row_end[r]) + 1
         x0 = x1 - length
         frac = length / wn
-        # the banner is left-aligned in the 16:9 picture – 1.56 (audit D-3): measured from the picture's left edge,
+        # the banner is left-aligned in the 16:9 picture – 1.55.6 (audit D-3): measured from the picture's left edge,
         # not the window's (0.30 of a window wider than ~2.2 × 16:9 lay left of where the line starts)
         if frac > MAX_LINE or x0 > (frame_w * s - wn) / 2 + 0.30 * wn:
             continue
@@ -525,7 +525,7 @@ class BannerReader:
 
     @property
     def views(self) -> list:
-        """The main model's view first, then one per other script with a model. 1.56 (audit D-4): the other scripts'
+        """The main model's view first, then one per other script with a model. 1.55.6 (audit D-4): the other scripts'
         models load on the first read, not when the worker starts – the reader is made at the program's start, and
         with ru/ja/ko ticked their sessions cost ~94 MB while DBD may not run for hours (1.50.4: the model loads
         only once DBD runs)."""
@@ -646,7 +646,7 @@ def anchored_separator(frame_w: int, frame_h: int, bars) -> Separator | None:
     wn = min(frame_w, frame_h * 16 / 9)
     x0, y, length = ANCHOR
     sy = int(top + y * pic) - int(ROI[1] * frame_h)
-    sx0 = int((frame_w - wn) / 2 + x0 * wn)          # 1.56: in the 16:9 picture (0 offset when narrower)
+    sx0 = int((frame_w - wn) / 2 + x0 * wn)          # 1.55.6: in the 16:9 picture (0 offset when narrower)
     return Separator(y=sy, x0=sx0, x1=sx0 + int(length * wn), frac=length, thickness=1.0)
 
 

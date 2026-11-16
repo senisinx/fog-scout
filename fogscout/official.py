@@ -53,7 +53,7 @@ MAX_FILE = 5_000_000                    # bytes; the page's 30 matches are ~20 k
 MAX_MATCHES = 500                       # per file
 KEEP = 5000                             # newest matches kept in official.jsonl
 ARCHIVE = "official-archive.jsonl"      # 1.50.6: older ones go here first (history.archive_lines), never just away
-LOCK = threading.RLock()                # 1.56 (review F14): around every read-change-write (merge, restore)
+LOCK = threading.RLock()                # 1.55.5 (review F14): around every read-change-write (merge, restore)
 PAGE_LIMIT = 30                         # the page gives the newest 30 matches only
 EARLIEST = 1598918400.0                 # 2020-09-01: the page's stats begin here
 # banner (rounds.jsonl) minus the page's start: measured +31 … +51 s, median +38 (user's data, Oct 2026)
@@ -325,7 +325,7 @@ def merge(path: str, matches) -> tuple:
 def write_kept(path: str, ordered, gaps) -> list:
     """Write the matches ``ordered`` (oldest first) and ``gaps``: the newest KEEP stay in the file, older ones go to
     the archive first (when that cannot be written, nothing is taken out). Returns the matches kept in the file.
-    1.56 (review F6): shared with backups.restore, which cut to KEEP without archiving."""
+    1.55.5 (review F6): shared with backups.restore, which cut to KEEP without archiving."""
     kept = ordered[-KEEP:]
     with LOCK:
         if len(ordered) > KEEP:

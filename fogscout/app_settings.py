@@ -21,6 +21,7 @@ from .textnorm import fmt_duration
 log = logging.getLogger("fogscout")
 
 STORED_FORMS = ("dpapi:", "plain:")      # spotify.protect's encrypted form and the Base64 of before 1.28
+MAX_LOAD_S = 900.0               # lobby found → end of the loading screen: longer is no loading time (a lobby is kept 15 min)
 
 
 def is_protected(stored) -> bool:
@@ -87,6 +88,7 @@ class SettingsTab:
                            ("notify_background_only", N_("Nur wenn DBD nicht das aktive Fenster ist")),
                            ("bp_cap_notify", N_("Melden, wenn eine Runde keine Blutpunkte gebracht hat (Cap "
                                                 "erreicht)")),
+                           ("banner_missed_notify", N_("Hinweis, wenn nach dem Matchbeginn kein Map-Banner erkannt wurde")),
                            ("session_notify", N_("Bilanz der Sitzung zeigen, wenn DBD beendet wurde"))):
             v = self.notify_vars[key] = ui.BooleanVar(value=bool(self.settings.get(key, True)))
             self._reg(f"st.{key}", ui.Checkbutton(nt, text=_(label), variable=v,
@@ -976,6 +978,11 @@ class SettingsTab:
         farming = bool(f is not None and f.crossplay_off and not f.custom
                        and self.settings.get("farming_crossplay", True))
         self._log(_("Ladebildschirm vorbei – das Match beginnt."), "Erkennung")
+        # the loading time (lobby found → end of the loading screen) for the round the banner opens next; a custom
+        # lobby waits as long as its host wants – no loading time there
+        t = d.get("t") or time.time()
+        load = t - f.t if f is not None and not f.custom else None
+        self._match_load = (t, round(load, 1)) if load is not None and 0 < load <= MAX_LOAD_S else None
         if self.settings.get("rec_on") and self.settings.get("rec_early", True):
             self.recorder.start_early(t=d.get("t") or time.time(), role=(f.role if f else "") or q.get("role") or "",
                                       killer=(f.killer if f else "") or "", farming=farming)

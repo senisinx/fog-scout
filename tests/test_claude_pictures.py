@@ -323,7 +323,7 @@ def test_own_perks_become_groups_and_the_week_compares_two_summaries():
 
 
 def test_a_single_round_is_never_summed_up_for_claude():
-    """1.56 (audit SEC-4): MIN_GROUP held only for the groups – with one round, "all" (minutes, kills, bloodpoints,
+    """1.55.4 (audit SEC-4): MIN_GROUP held only for the groups – with one round, "all" (minutes, kills, bloodpoints,
     queue, ping) and first/last day were that round's own values, also for a week half. Now only the count."""
     now = time.mktime((2026, 11, 12, 21, 30, 0, 0, 0, -1))                  # a Thursday
     r = _round(now, "Coal Tower", "killer", "The Nurse")
@@ -341,7 +341,7 @@ def test_a_single_round_is_never_summed_up_for_claude():
 
 
 def test_a_single_round_question_is_refused_with_words(tmp_path):
-    """1.56 (audit SEC-4): the palette's statistics question says there is too little instead of sending one round."""
+    """1.55.4 (audit SEC-4): the palette's statistics question says there is too little instead of sending one round."""
     from types import SimpleNamespace
 
     from fogscout import app_palette
@@ -394,7 +394,7 @@ def test_a_fixed_question_reopens_the_palette_and_sends_the_week(tmp_path):
     now = time.time()
     s._joined = lambda: SimpleNamespace(rounds=[_round(now - 60, "Coal Tower", "killer", "The Nurse")], off={})
     shown.clear()
-    s._palette_ask_fixed("week")                       # 1.56 (audit SEC-4): one round is never sent
+    s._palette_ask_fixed("week")                       # 1.55.4 (audit SEC-4): one round is never sent
     assert shown[-1][0] == "error" and "Zu wenige Runden" in shown[-1][1] and not asked
     s._joined = lambda: SimpleNamespace(rounds=[_round(now - 60 * m, "Coal Tower", "killer", "The Nurse")
                                                 for m in (1, 2)], off={})

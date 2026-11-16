@@ -170,7 +170,7 @@ def test_the_other_languages_show_their_text_and_english_where_one_is_missing(mo
 
 
 def test_a_shared_translation_finds_the_tooltip_and_log_category_meant():
-    """1.56 (audit U-1): the reverse table kept the last of two German keys with the same translation – it
+    """1.55.3 (audit U-1): the reverse table kept the last of two German keys with the same translation – it
     „Rückgängig“ showed the tip of „Abbrechen“, zh/ja/ko „系统“ was no log category („SYSTEM“ won), and buttons
     like ru „Alle löschen“ had no tip at all."""
     from fogscout import tooltip
@@ -202,7 +202,7 @@ def test_update_messages_follow_the_setting(tmp_path, monkeypatch):
 
 
 def test_no_table_names_a_text_twice():
-    """1.56 (audit T-2): i18n_en.py named 19 texts twice in its dict literal – the later one wins without a word,
+    """1.55.7 (audit T-2): i18n_en.py named 19 texts twice in its dict literal – the later one wins without a word,
     so an edit of the first did nothing. Read with ast (the dict itself has lost the twin)."""
     for path in sorted(glob.glob(os.path.join(PKG, "i18n_*.py"))):
         with open(path, encoding="utf-8") as fh:
@@ -213,7 +213,7 @@ def test_no_table_names_a_text_twice():
             assert not twice, (os.path.basename(path), twice[:5])
 
 
-# 1.56 (audit T-1): texts that may read the same as in English – names, units, technical words, signs. Key caps:
+# 1.55.7 (audit T-1): texts that may read the same as in English – names, units, technical words, signs. Key caps:
 # Russian, Chinese, Japanese and Korean keyboards print them in English; Italian ones do not (Ins, Canc, Fine …).
 SAME_AS_ENGLISH = {
     "Claude", "DBD", "Discord", "Spotify", "YouTube", "Steam (F12)", "RAM", "VRAM", "P100", "4K", "OK", "Ping",
@@ -235,7 +235,7 @@ SAME_IN = {
 
 
 def test_no_language_shows_english_where_it_has_words_of_its_own():
-    """1.56 (audit T-1): texts left in English in a translated table ("Preset: Quality", "Audio Library", "Client
+    """1.55.7 (audit T-1): texts left in English in a translated table ("Preset: Quality", "Audio Library", "Client
     secret", "Space" as a key) – a text equal to the English one must be on the list of words that read the same."""
     import importlib
     for code in OTHERS:

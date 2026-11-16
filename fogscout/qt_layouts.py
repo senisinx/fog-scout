@@ -243,7 +243,7 @@ class WrapCheck(QWidget):
 
     def setText(self, text: str):
         self.label.setText(text)
-        self.box.setAccessibleName(text)      # 1.56 (a11y audit): the box's text is the label beside it – a
+        self.box.setAccessibleName(text)      # 1.55.7 (a11y audit): the box's text is the label beside it – a
                                               # screen reader read an unnamed tick box
 
     def isChecked(self) -> bool:

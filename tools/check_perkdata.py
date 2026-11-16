@@ -11,7 +11,7 @@ the numbers in it, written when the values were last read (``--accept``). No tex
     python tools/check_perkdata.py --accept     after reading the changed entries again: keep the new state
 
 What it finds: an entry whose wiki text or numbers changed (with the numbers before and now), an entry that is
-gone or retired (``decom``), perks and add-ons that are new in the wiki, and (1.56) every perk whose wiki tags
+gone or retired (``decom``), perks and add-ons that are new in the wiki, and (1.55.2) every perk whose wiki tags
 touch what the calculator computes (``RELEVANT_TAGS``) but that perkdata.json neither calculates nor names in
 ``not_modelled``/``not_modelled_areas``/``not_relevant`` – before, only perks new since the last ``--accept`` were
 reported, so perks that were already there were never looked at. What it cannot find: a value that was
@@ -48,7 +48,7 @@ ALIASES = {
     "perk:Overzealous (Dull Totem)": ("perk:Overzealous",),
     "perk:Overzealous (Hex Totem)": ("perk:Overzealous",),
 }
-# 1.56: wiki tags of perks that may change a speed, a Skill Check or a Generator's progress – every perk with one
+# 1.55.2: wiki tags of perks that may change a speed, a Skill Check or a Generator's progress – every perk with one
 # of them must be decided on in perkdata.json (calculated, "not_modelled", "not_modelled_areas" or "not_relevant")
 RELEVANT_TAGS = frozenset({
     "SkillChecks", "SkillCheckProbability", "BonusProgression", "Repairing", "RepairingProficiency", "RepairSpeed",
@@ -179,7 +179,7 @@ def used(data: dict) -> dict:
     listed = {n for k in ("killer_addon_lists", "item_addon_lists") for names in data.get(k, {}).values() for n in names}
     for name in list(data.get("not_modelled", ())) + list(data.get("not_modelled_areas", ())):
         add("addon" if name in listed else "perk", [name], False)      # "not calculated" names perks and add-ons
-    add("perk", data.get("not_relevant", ()), False)                  # 1.56: judged irrelevant – watched too
+    add("perk", data.get("not_relevant", ()), False)                  # 1.55.2: judged irrelevant – watched too
     add("item", (e["name"] for k in ("toolboxes", "medkits") for e in data.get(k, ())), True)
     add("item", (n for names in data.get("items", {}).values() for n in names), False)
     add("addon", (e["name"] for k in ("addons", "killer_addons", "item_addons") for e in data.get(k, ())), True)
@@ -202,11 +202,11 @@ def state(data: dict, wiki: dict) -> dict:
     perks = sorted(k[5:] for k in wiki if k.startswith("perk:") and not retired(wiki[k]))
     return {"entries": kept, "perks": perks,
             "addons": sorted(k[6:] for k in wiki if k.startswith("addon:") and not retired(wiki[k])),
-            "tags": {n: t for n in perks for t in [tags(wiki["perk:" + n])] if t}}      # 1.56
+            "tags": {n: t for n in perks for t in [tags(wiki["perk:" + n])] if t}}      # 1.55.2
 
 
 def classified(data: dict) -> set:
-    """1.56: the wiki names of the perks perkdata.json has decided on – calculated (under the wiki's own names,
+    """1.55.2: the wiki names of the perks perkdata.json has decided on – calculated (under the wiki's own names,
     ``ALIASES``), not calculated (``not_modelled``, ``not_modelled_areas``) or judged irrelevant (``not_relevant``)."""
     out = set()
     for name in (e["name"] for k in ("perks", "survivor", "killer") for e in data.get(k, ())):
@@ -218,7 +218,7 @@ def classified(data: dict) -> set:
 
 
 def unclassified(data: dict, snapshot: dict) -> list:
-    """1.56: [(perk, its relevant tags)] of the perks in ``snapshot`` (the state of ``state``) whose tags touch
+    """1.55.2: [(perk, its relevant tags)] of the perks in ``snapshot`` (the state of ``state``) whose tags touch
     ``RELEVANT_TAGS`` but that perkdata.json has not decided on (``classified``)."""
     known = classified(data)
     return [(name, sorted(set(t) & RELEVANT_TAGS)) for name, t in sorted(snapshot.get("tags", {}).items())

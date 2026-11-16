@@ -132,7 +132,7 @@ def test_every_banner_of_the_real_corpus_is_read_as_its_map_again():
 
 
 def test_every_real_banner_is_read_in_a_window_far_wider_than_16_9():
-    """1.56 (audit D-3): the line's start was limited to 0.30 of the window width – in a window wider than about
+    """1.55.6 (audit D-3): the line's start was limited to 0.30 of the window width – in a window wider than about
     2.2 × 16:9 (5760×1080, 7680×1440) the 16:9 picture starts right of that and every banner line was thrown away.
     Each real banner, its 16:9 picture centred in a black 32:9 and 48:9 window, is read as its map again."""
     import numpy as np
@@ -161,7 +161,7 @@ def test_every_real_banner_is_read_in_a_window_far_wider_than_16_9():
 
 
 def test_the_anchored_line_sits_in_the_16_9_picture():
-    """1.56 (audit D-3): anchored_separator measured from the window's left edge – the same in a picture narrower
+    """1.55.6 (audit D-3): anchored_separator measured from the window's left edge – the same in a picture narrower
     than 16:9 (the only case it runs for), inside the picture when the window is wider."""
     narrow = detector.anchored_separator(*RPD_FRAME, RPD_BARS)
     assert narrow is not None and narrow.x0 == int(detector.ANCHOR[0] * RPD_FRAME[0])

@@ -98,7 +98,7 @@ class _Bridge(Bridge):
              "ended",        # the player that ended
              "saved",        # ok, path, why
              "sound",        # wav path (or None) ready for a playback from t
-             "chunk",        # 1.56: a further piece of the playback's sound ready (wav or None, round, index)
+             "chunk",        # 1.55.8: a further piece of the playback's sound ready (wav or None, round, index)
              "strip_done",   # 1.8.3: the thumbnail thread is through (all it could get)
              "still",        # 1.8.10: a still picture saved (ok, path)
              "levels",       # 1.8.18: {track index: loudest moment in dB}
@@ -1143,7 +1143,7 @@ CONTENT_SETTINGS = frozenset(("clip_mode", "clip_target_mb", "clip_mix_on", "cli
                               "clip_height", "clip_hw", "clip_censor_on", "clip_censor_style", "clip_censor_boxes"))
 
 
-_HELD_WAVS = set()                # 1.56: played WAVs Windows did not let go of yet (removed with the next one)
+_HELD_WAVS = set()                # 1.55.8: played WAVs Windows did not let go of yet (removed with the next one)
 
 
 def seg_part(seg):
@@ -1201,7 +1201,7 @@ class ClipBase(QWidget):
                  censor_boxes=(), mix_on=None, mix_vol=None, parent=None, sources=None, info=None, encoding=None,
                  flags=Qt.Window, analysis_dir: str | None = None):
         super().__init__(parent, flags)
-        self._analysis_dir = analysis_dir   # 1.56: waveform and track levels kept there (clipedit._analysis_file)
+        self._analysis_dir = analysis_dir   # 1.55.8: waveform and track levels kept there (clipedit._analysis_file)
         self.path, self.marks, self.clips_dir = path, sorted(float(m) for m in marks or ()), clips_dir
         self.on_saved, self.on_setting, self.log = on_saved, on_setting, (log or (lambda text, kind="System": None))
         self.saved_seconds = {}           # 1.8.13: out path -> length of the clip (the clips list shows it)
@@ -1216,7 +1216,7 @@ class ClipBase(QWidget):
         self.player = None
         self.playing = False
         self._wav = None
-        self._chunks = []                   # 1.56: the pieces of the stretch's sound (clipedit.sound_chunks) …
+        self._chunks = []                   # 1.55.8: the pieces of the stretch's sound (clipedit.sound_chunks) …
         self._chunk_next = None             # … the next one made (index, wav) until its moment comes
         self._chunk_round = 0               # … and which playback they belong to (a stop makes late ones stale)
         self._sound_t0 = 0.0                # monotonic time the first piece started
@@ -1845,7 +1845,7 @@ class ClipBase(QWidget):
             return
         back = bool(part is not None and part.reverse)
         if self._sound_wanted():
-            # 1.56 (P-1): the sound in pieces – the picture waits for the first one only, the next ones are made
+            # 1.55.8 (P-1): the sound in pieces – the picture waits for the first one only, the next ones are made
             # while it plays (until 1.55 the whole stretch first: 2–9 s and up to 423 MB for an uncut round)
             self._chunks = clipedit.sound_chunks(start, end, speed, back)
             self._chunk_round += 1
@@ -1860,7 +1860,7 @@ class ClipBase(QWidget):
             self._run_player(seg)
 
     def _sound_job(self, seg, a, b, off):
-        """1.56: a function (for a thread) that makes the sound of source ``a``..``b`` of stretch ``seg`` – ``off``
+        """1.55.8: a function (for a thread) that makes the sound of source ``a``..``b`` of stretch ``seg`` – ``off``
         output seconds after its start (the own track A2 under it from there)."""
         start, end, speed, _out = seg[:4]
         part = seg_part(seg)
@@ -1876,7 +1876,7 @@ class ClipBase(QWidget):
         return job
 
     def _fetch_chunk(self, k):
-        """1.56: make piece ``k`` of the playing stretch's sound in a thread (``chunk`` brings it back)."""
+        """1.55.8: make piece ``k`` of the playing stretch's sound in a thread (``chunk`` brings it back)."""
         if self._seg is None or not 0 < k < len(self._chunks):
             return
         a, b, off = self._chunks[k]
@@ -1884,7 +1884,7 @@ class ClipBase(QWidget):
         threading.Thread(target=lambda: bridge.chunk.emit(job(), rnd, k), name="clip-sound", daemon=True).start()
 
     def _chunk_ready(self, wav, rnd, k):
-        """1.56: piece ``k`` is made – it starts when the sound before it ends (the first piece's clock: the pieces
+        """1.55.8: piece ``k`` is made – it starts when the sound before it ends (the first piece's clock: the pieces
         follow on as one WAV would, whatever the making took)."""
         if rnd != self._chunk_round or not self.playing or self._seg is None or self._chunk_next is not None:
             if wav:
@@ -1909,7 +1909,7 @@ class ClipBase(QWidget):
         self._fetch_chunk(k + 1)
 
     def _chunks_stop(self):
-        """1.56: no further piece – the stretch ended or playback stopped; a piece made meanwhile is dropped."""
+        """1.55.8: no further piece – the stretch ended or playback stopped; a piece made meanwhile is dropped."""
         self._chunk_round += 1
         self._chunk_timer.stop()
         self._chunks = []
@@ -1978,7 +1978,7 @@ class ClipBase(QWidget):
         self._wav = wav
         if wav:
             self._play_wav(wav)
-        self._sound_t0 = time.monotonic()                       # 1.56: the clock of the further pieces
+        self._sound_t0 = time.monotonic()                       # 1.55.8: the clock of the further pieces
         self._run_player(self._seg)
         self._fetch_chunk(1)
 
@@ -2020,7 +2020,7 @@ class ClipBase(QWidget):
 
     @staticmethod
     def _drop_wav(path):
-        """Remove a played WAV; 1.56: one Windows still holds is tried again with the next (no piece left in
+        """Remove a played WAV; 1.55.8: one Windows still holds is tried again with the next (no piece left in
         %TEMP%)."""
         for p in [path, *_HELD_WAVS]:
             try:

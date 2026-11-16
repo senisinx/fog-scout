@@ -73,7 +73,7 @@ def rel_path(folder: str, name: str) -> str | None:
 
 
 def is_link(path: str) -> bool:
-    """1.56 (audit SEC-5): ``path`` itself is a symlink, a directory junction or any other reparse point (Windows) –
+    """1.55.4 (audit SEC-5): ``path`` itself is a symlink, a directory junction or any other reparse point (Windows) –
     a folder the elevated program must not write through (the same test as ``takeover._linked``). A missing path is
     no link (False); one that cannot be looked at counts as one (True)."""
     try:

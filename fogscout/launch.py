@@ -62,7 +62,7 @@ def child_env(environ=None, bundle: str | None = None) -> dict:
 # or its children when it runs as administrator – which certificates TLS trusts (the update check), what Python
 # imports (PYTHONPATH/PYTHONHOME for the helpers started with sys.executable), what git does (hooks, fsmonitor,
 # sslCAInfo), where Qt loads plugins from. Proxies stay: a proxy alone cannot break TLS, and some PCs need one.
-# 1.56 (audit SEC-1): also OPENSSL_* – OPENSSL_CONF can make OpenSSL load a provider/engine DLL into the elevated
+# 1.55.4 (audit SEC-1): also OPENSSL_* – OPENSSL_CONF can make OpenSSL load a provider/engine DLL into the elevated
 # process (read when hashlib or ssl is first imported), OPENSSL_MODULES/OPENSSL_ENGINES name where it loads them
 # from – and SSLKEYLOGFILE, with which every TLS context appends its session keys to a file the user chose.
 UNSAFE_PREFIXES = ("SSL_CERT_", "PYTHON", "GIT_", "OPENSSL_")
@@ -95,7 +95,7 @@ def harden_start_environment() -> list:
         gone = [k for k in os.environ if k not in clean]
         for key in gone:
             del os.environ[key]
-        # 1.56 (audit SEC-1): paths only after the cleaning – it imports secrets → hashlib, and OpenSSL reads
+        # 1.55.4 (audit SEC-1): paths only after the cleaning – it imports secrets → hashlib, and OpenSSL reads
         # OPENSSL_CONF at that very moment (measured: the config was loaded with the old order)
         from . import paths                   # (paths only needs the standard library at import)
         if paths.installed():

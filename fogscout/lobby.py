@@ -276,6 +276,29 @@ def _digits_end(bright, vw) -> bool:
 
 
 _CLOCK = re.compile(r"(\d{1,2})\s*[:.;：]+\s*(\d{2})")     # OCR sometimes doubles the colon
+# DBD's estimate after "EST." ("0:06 EST. 4:39", "EST. 1:02:03"): only a clean m:ss or h:mm:ss up to the end of the
+# text counts – OCR noise ("0:-01", "4:3", "4:39x", letters for digits) gives no estimate, never a guessed number
+_EST = re.compile(r"EST\.?\s*(\d{1,2}):(\d{2})(?::(\d{2}))?\s*$")
+EST_MAX = 3 * 3600        # an estimate above this is a misread (QueueTracker.MAX_SEARCH ends a search there anyway)
+
+
+def parse_est(text: str) -> float | None:
+    """Seconds of DBD's queue estimate in the text under the button ("0:06 EST. 4:39" -> 279), None when there is
+    none or it does not read cleanly. "EST. 0:00" (DBD before it knows) is no estimate either."""
+    up = (text or "").upper()
+    m = _EST.search(up) if up.count("EST") == 1 else None      # two "EST" = a garbled read
+    if not m:
+        return None
+    a, b, c = int(m.group(1)), int(m.group(2)), m.group(3)
+    if c is None:
+        if b >= 60:
+            return None
+        sec = a * 60 + b
+    else:
+        if b >= 60 or int(c) >= 60:
+            return None
+        sec = a * 3600 + b * 60 + int(c)
+    return float(sec) if 0 < sec <= EST_MAX else None
 
 
 @dataclass
@@ -454,6 +477,7 @@ class Found:
     killer: str = ""                 # the own killer (role killer only)
     crossplay_off: bool | None = None   # cross-play was off while searching / in the lobby (None: not seen)
     cross_looks: tuple = (0, 0)         # 1.5.5: looks that showed the globe (with the red cross, without)
+    est: float | None = None            # DBD's queue estimate ("EST.") at the start of the search, seconds
 
 
 @dataclass
@@ -481,6 +505,8 @@ class QueueTracker:
     _last_button: tuple | None = None              # (kind, t) of the last look that showed a lobby button
     _cross_run: dict = field(default_factory=dict)   # cross-play looks since _pending was last restarted
     _round_t: float | None = None                  # 1.8.71: when the last match began (round_started)
+    _est_reads: list = field(default_factory=list)  # estimates read in this search's looks, in order
+    EST_CONFIRM: int = 2              # the same estimate in this many looks – one misread look gives none
 
     @property
     def killer(self) -> str:
@@ -543,6 +569,9 @@ class QueueTracker:
             el = view.elapsed
             if el is not None and 0 <= el < self.MAX_SEARCH:
                 self._starts.append(t - el)          # DBD's own counter: exact even if the start was missed
+            est = parse_est(view.time_text)
+            if est is not None:
+                self._est_reads.append(est)
         if (kind == "lobby" and self.state == "lobby" and view.button == "ready" and not self._reminded
                 and view.countdown is not None and 0 < view.countdown <= self.REMIND):
             self._reminded = True                    # READY still not pressed, the lobby is about to start
@@ -566,16 +595,16 @@ class QueueTracker:
             elif self._starts:                       # 1.5.5: a single search look with DBD's counter is enough
                 wait = max(0.0, first - sorted(self._starts)[len(self._starts) // 2])
             self.found = Found(first, wait, self.role, killer=self.killer, crossplay_off=self.crossplay_off,
-                               cross_looks=self.cross_looks)
+                               cross_looks=self.cross_looks, est=self.est if wait is not None else None)
             self.state = "lobby"
             self._reminded = False
-            self._starts = []
+            self._starts, self._est_reads = [], []
             events.append(("found", self.found))
         elif kind == "custom":
             self.found = Found(first, None, None, custom=True)
             self.state = "custom"
             self.role = None
-            self._starts, self._killers = [], {}
+            self._starts, self._killers, self._est_reads = [], {}, []
             events.append(("found", self.found))
         elif kind == "play":
             if self.state == "search":
@@ -622,9 +651,20 @@ class QueueTracker:
         lb = self._last_button
         return lb is not None and lb[0] in ("play", "search") and 0 <= t - lb[1] <= self.QUICK_LOBBY_S
 
+    @property
+    def est(self) -> float | None:
+        """DBD's estimate at the start of this search: the first value read in EST_CONFIRM looks (the estimate shown
+        when the search began – DBD may change it later), None until then."""
+        seen = {}
+        for v in self._est_reads:
+            seen[v] = seen.get(v, 0) + 1
+            if seen[v] >= self.EST_CONFIRM:
+                return v
+        return None
+
     def _reset(self):
         self.state, self.search_start, self._starts, self.role, self._killers = "idle", None, [], None, {}
-        self._cross = {}
+        self._cross, self._est_reads = {}, []
 
     def take(self, t: float, max_age: float = 900.0) -> Found | None:
         """The lobby that led to the match now starting (once)."""

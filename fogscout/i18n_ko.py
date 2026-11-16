@@ -6062,4 +6062,32 @@ T = {
         "지금 자르는 클립 다음에 '마크를 개별 클립으로 저장'을 멈춥니다. 완성된 클립은 남습니다.",
     'Schneidet zu jeder F8-Marke der Runde einen Clip (Länge wie der Sofort-Clip, bis zur Marke, ohne neu zu kodieren) in den Ordner „Clips“. Marken, deren Clip schon da ist, werden übersprungen.':
         "라운드의 F8 마크마다 클립 하나를(인스턴트 클립과 같은 길이, 마크까지, 재인코딩 없이) 'Clips' 폴더에 잘라 냅니다. 클립이 이미 있는 마크는 건너뜁니다.",
+    'Seit dem Matchbeginn kein Map-Banner erkannt – „Bildschirm scannen“ ({keys}) sucht den Map-Namen auf dem Bildschirm.':
+        '매치 시작 후 맵 배너를 인식하지 못했습니다 – “화면 스캔”({keys})으로 화면에서 맵 이름을 찾습니다.',
+    'Seit dem Matchbeginn kein Map-Banner erkannt – „Scannen“ im Steuerfenster sucht den Map-Namen auf dem Bildschirm.':
+        '매치 시작 후 맵 배너를 인식하지 못했습니다 – 제어 창의 “스캔”으로 화면에서 맵 이름을 찾습니다.',
+    'Map nicht erkannt':
+        '맵 인식 안 됨',
+    'Wartezeit gegen EST.':
+        '대기 시간 대 EST.',
+    'Median Abweichung':
+        '차이 중앙값',
+    'Innerhalb ±1 min':
+        '±1분 이내',
+    'Echte Wartezeit minus die Schätzung „EST.“, die DBD beim Start der Suche zeigt: + = länger gewartet als geschätzt. Nur Runden, deren Suche das Programm gesehen hat.':
+        '실제 대기 시간에서 검색 시작 시 DBD가 보여 주는 예상치 “EST.”를 뺀 값: + = 예상보다 오래 기다림. 프로그램이 검색을 본 라운드만.',
+    'Ladezeit':
+        '로딩 시간',
+    'Ø Ladezeit':
+        '평균 로딩',
+    'Von der gefundenen Lobby bis zum Ende des Ladebildschirms (mit dem Warten in der Lobby) – nur wenn das Programm beides gesehen hat. Custom Games haben keine Ladezeit.':
+        '로비를 찾은 때부터 로딩 화면이 끝날 때까지(로비 대기 포함) – 프로그램이 둘 다 본 경우에만. 커스텀 게임에는 로딩 시간이 없습니다.',
+    'Noch keine Runde mit Wartezeit und EST. in dieser Auswahl.':
+        '이 선택에는 아직 대기 시간과 EST.가 모두 있는 라운드가 없습니다.',
+    'Noch keine Ladezeiten in dieser Auswahl.':
+        '이 선택에는 아직 로딩 시간이 없습니다.',
+    'Hinweis, wenn nach dem Matchbeginn kein Map-Banner erkannt wurde':
+        '경기 시작 후 맵 배너가 인식되지 않으면 알림',
+    'Kommt eine Minute nach dem Ladebildschirm kein Map-Banner, sagt Fog Scout einmal je Runde, wie du mit „Bildschirm scannen“ nachhilfst – mit Ton und Meldung, auch wenn DBD im Vordergrund ist; nie in Custom Games.':
+        '로딩 화면 1분 뒤에도 맵 배너가 없으면 Fog Scout가 라운드마다 한 번 「화면 스캔」으로 돕는 방법을 알려 줍니다. DBD가 앞에 있어도 소리와 알림이 나오며, 사용자 지정 게임에서는 알리지 않습니다.',
 }
