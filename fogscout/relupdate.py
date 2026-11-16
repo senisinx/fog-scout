@@ -146,8 +146,30 @@ def _retrying(fn, retried=None):
                 raise
 
 
+def rate_limit_reset(e: BaseException) -> float | None:
+    """GitHub's limit for unauthenticated requests (60 an hour per address) is used up: a 403 with
+    ``X-RateLimit-Remaining: 0`` – the time it lifts from ``X-RateLimit-Reset`` (Unix seconds), else None."""
+    if not isinstance(e, urllib.error.HTTPError) or e.code != 403 or e.headers is None:
+        return None
+    try:
+        if str(e.headers.get("X-RateLimit-Remaining", "")).strip() != "0":
+            return None
+        reset = float(str(e.headers.get("X-RateLimit-Reset", "")).strip())
+    except (TypeError, ValueError, AttributeError):
+        return None
+    return reset if reset > 0 and reset == reset and reset != float("inf") else None
+
+
 def describe_error(e: BaseException) -> str:
     """What the user reads when a look or download failed – a busy GitHub said in words, else the error itself."""
+    reset = rate_limit_reset(e)
+    if reset is not None:          # the raw "HTTP Error 403: rate limit exceeded" did not say when to try again
+        try:
+            at = time.strftime("%H:%M", time.localtime(reset))
+        except (OverflowError, OSError, ValueError):
+            at = None
+        if at:
+            return _("GitHub-Limit erreicht – erneut ab {time}", time=at)
     if isinstance(e, urllib.error.HTTPError) and e.code in TRANSIENT_HTTP:
         return _("GitHub antwortet gerade nicht (HTTP {code}) – bitte in einigen Minuten erneut versuchen.",
                  code=e.code)

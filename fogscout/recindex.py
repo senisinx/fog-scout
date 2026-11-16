@@ -11,6 +11,7 @@ import json
 import os
 import re
 import shutil
+import statistics
 import struct
 import time
 from dataclasses import MISSING, asdict, dataclass, field
@@ -160,12 +161,20 @@ DEFAULT_FARMING_DAYS = 7
 FARMING_CHECK_S = 3600.0              # how often the recorder thread looks for expired ones
 
 
+def adopted(r: Recording) -> bool:
+    """A recording taken in with "Aufnahmen nachtragen …": a video Fog Scout did not make itself (it may be one the
+    user recorded by hand), so no automatic cleanup ever deletes it – only the user, from the page
+    (docs/regeln/obs.md)."""
+    return bool((r.extra or {}).get("adopted"))
+
+
 def expired_farming(recs: list[Recording], days: int, now: float) -> list[Recording]:
-    """1.8.23 (pure): farming recordings older than ``days`` – never kept ones, never ones with a mark (F8)."""
+    """1.8.23 (pure): farming recordings older than ``days`` – never kept ones, never ones with a mark (F8), never
+    taken-in ones (``adopted``)."""
     if not days or days <= 0:
         return []
     limit = now - days * 86400
-    return [r for r in recs if r.farming and not r.keep and not r.marks and r.t < limit]
+    return [r for r in recs if r.farming and not r.keep and not r.marks and not adopted(r) and r.t < limit]
 
 
 def protected_paths(folder: str, protect) -> set:
@@ -226,7 +235,8 @@ def prune(folder: str, recs: list[Recording], limit: int, reserve: int = RESERVE
           free=None, protect=()) -> tuple[list[Recording], list[str]]:
     """Keep the folder's recordings under ``limit`` bytes (0 = the whole drive) and ``reserve`` bytes free on
     the drive: delete not-kept ones of the index in ``prune_rank`` order (farming/short first, marked last,
-    oldest first) – only files named in it, only inside ``folder``; 1.55.1: never one in ``protect`` (like kept).
+    oldest first) – only files named in it, only inside ``folder``; 1.55.1: never one in ``protect`` (like kept);
+    never a taken-in one (``adopted``).
     Entries whose files are gone drop out. ``free`` = bytes free now (measured when None).
     Returns (entries left, files deleted)."""
     left, deleted = [], []
@@ -243,7 +253,7 @@ def prune(folder: str, recs: list[Recording], limit: int, reserve: int = RESERVE
             free = reserve
     total = sum(r.size for r in left)
     paths = protected_paths(folder, protect)
-    for r in sorted([r for r in left if not r.keep and not in_use(folder, r, paths)],
+    for r in sorted([r for r in left if not r.keep and not adopted(r) and not in_use(folder, r, paths)],
                     key=lambda r: (prune_rank(r), r.t)):
         if (limit <= 0 or total <= limit) and free >= reserve:
             break
@@ -591,4 +601,68 @@ def space(folder: str | None, recs: list[Recording] | None = None) -> Space:
                  t=time.time())
 
 
-VIDEO_EXTS = (".mkv", ".mp4", ".mov", ".flv", ".ts", ".m3u8", ".fragmented.mp4", ".hybrid.mp4", ".hybrid.mov")
+UNINDEXED_MAX_AGE_S = 30 * 86400   # "Aufnahmen nachtragen": only videos written in the last 30 days are offered –
+                                   # leftovers of a crash or OBS's own names, not an archive the user keeps there
+UNINDEXED_QUIET_S = 300.0          # … and none written in the last 5 min (OBS records into this folder; a saved
+                                   # replay waits there a moment before it is cut and removed)
+FARMING_SUB = "Farming"            # obsrec.FARMING_DIR (the subfolder farming rounds go to)
+
+
+def unindexed_videos(folder: str, recs: list[Recording], now: float | None = None,
+                     max_age_s: float = UNINDEXED_MAX_AGE_S, quiet_s: float = UNINDEXED_QUIET_S) -> list:
+    """Video files (VIDEO_EXTS) in ``folder`` and its Farming subfolder that no index entry names (file, pre-roll,
+    inputs) – e.g. OBS's default names or a "… (zusammen).mkv" left by a crash mid-join – written between
+    ``max_age_s`` and ``quiet_s`` ago. Regular files only (no links). Only reads. Returns [(index name, size,
+    mtime)] oldest first; index names as in Recording.file ("Farming/x.mkv" with "/")."""
+    now = time.time() if now is None else now
+    named = {os.path.normcase(n.replace("\\", "/")) for r in recs for n in (r.file, r.pre, r.inputs) if n}
+    out = []
+    for sub in ("", FARMING_SUB):
+        base = os.path.join(folder, sub) if sub else folder
+        try:
+            entries = list(os.scandir(base))
+        except OSError:
+            continue
+        for e in entries:
+            name = (sub + "/" if sub else "") + e.name
+            if not e.name.lower().endswith(VIDEO_EXTS) or not deletable(e.name) \
+                    or os.path.normcase(name) in named:
+                continue
+            try:
+                if not e.is_file(follow_symlinks=False):
+                    continue
+                st = e.stat(follow_symlinks=False)
+            except OSError:
+                continue
+            if getattr(st, "st_file_attributes", 0) & 0x400:          # FILE_ATTRIBUTE_REPARSE_POINT
+                continue
+            if not now - max_age_s <= st.st_mtime <= now - quiet_s:
+                continue
+            out.append((name, st.st_size, st.st_mtime))
+    return sorted(out, key=lambda x: (x[2], x[0]))
+
+
+FORECAST_MIN = 3             # rounds_left: fewer recordings with size and length say nothing about the next one
+
+
+def rounds_left(free: int, recs: list[Recording], reserve: int = RESERVE, limit: int = 0,
+                used: int = 0) -> int | None:
+    """(pure) About how many more rounds fit before pruning has to delete older recordings (the forecast "Platz für
+    ca. N Runden"): the room – ``free`` minus ``reserve`` on the drive, and with a folder ``limit`` (bytes, 0 = none)
+    at most ``limit`` minus ``used`` – divided by what one round takes: the median recording rate
+    (size / (end − t)) times the median round length. None with fewer than FORECAST_MIN recordings that have a size
+    and a length (one odd round would decide it)."""
+    known = [(r.size, r.end - r.t) for r in recs
+             if isinstance(r.size, int) and r.size > 0 and r.end > r.t]
+    if len(known) < FORECAST_MIN:
+        return None
+    per_round = statistics.median([s / d for s, d in known]) * statistics.median([d for _s, d in known])
+    if per_round <= 0:
+        return None
+    room = max(0, int(free) - int(reserve))
+    if limit and limit > 0:
+        room = min(room, max(0, int(limit) - int(used)))
+    return int(room // per_round)
+
+
+VIDEO_EXTS = (".mkv",".mp4", ".mov", ".flv", ".ts", ".m3u8", ".fragmented.mp4", ".hybrid.mp4", ".hybrid.mov")

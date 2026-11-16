@@ -614,3 +614,41 @@ def test_the_release_look_survives_one_busy_answer(tmp_path):
     gh = _Busy(1, relupdate.API[-6:])
     state, _msg, can, rel = relupdate.check(_info(tmp_path), opener=gh)
     assert state == "available" and can and rel.build == 42
+
+
+def _limited(remaining="0", reset=None, code=403):
+    import email.message
+    import urllib.error
+    h = email.message.Message()
+    if remaining is not None:
+        h["X-RateLimit-Remaining"] = remaining
+    if reset is not None:
+        h["X-RateLimit-Reset"] = str(reset)
+    return urllib.error.HTTPError(relupdate.API, code, "rate limit exceeded", h, None)
+
+
+def test_a_used_up_github_limit_says_when_to_try_again(tmp_path, _no_waits):
+    """A 403 with X-RateLimit-Remaining 0 names the local time of X-RateLimit-Reset instead of the raw HTTP error;
+    it is never tried again."""
+    import time
+    reset = 1_900_000_000
+    want = time.strftime("%H:%M", time.localtime(reset))
+    exc = _limited(reset=reset)
+    assert relupdate.rate_limit_reset(exc) == reset
+    assert relupdate.describe_error(exc) == f"GitHub-Limit erreicht – erneut ab {want}"
+    state, msg, can, rel = relupdate.check(_info(tmp_path), opener=_Failing(exc))
+    assert state == "error" and not can and rel is None
+    assert msg == f"Update-Prüfung fehlgeschlagen: GitHub-Limit erreicht – erneut ab {want}"
+    assert "403" not in msg and _no_waits == []
+
+
+@pytest.mark.parametrize("exc", [
+    _limited(remaining="12", reset=1_900_000_000),     # a 403 for another reason (limit not used up)
+    _limited(remaining=None, reset=1_900_000_000),
+    _limited(reset=None),                              # no reset time: nothing to promise
+    _limited(reset="soon"),
+    _limited(reset=1_900_000_000, code=404),
+])
+def test_other_refusals_keep_their_raw_message(exc):
+    assert relupdate.rate_limit_reset(exc) is None
+    assert relupdate.describe_error(exc) == str(exc)

@@ -2612,3 +2612,170 @@ def test_files_queued_for_upload_or_open_in_an_editor_are_never_pruned(obs, tmp_
     r._command(*r.cmds.get_nowait())
     r._expire_farming(force=True)
     assert {x.file for x in obsrec.load_index(folder)} == {"a.mkv"}
+
+
+# ------------------------------------------------------------------ "Aufnahmen nachtragen …"
+def _video(path, size=obsrec.MIN_FILE_BYTES + 10, mtime=None):
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    with open(path, "wb") as f:
+        f.write(b"\x1a\x45\xdf\xa3" + b"\0" * (size - 4))               # mkv signature (check_file)
+    if mtime is not None:
+        os.utime(path, (mtime, mtime))
+    return path
+
+
+def test_videos_without_an_index_entry_are_found_in_the_folder_and_its_farming_subfolder(tmp_path):
+    folder, now = str(tmp_path), 1_800_000_000.0
+    hour = now - 3600
+    for name in ("a.mkv", "a (Vorlauf).mkv", "Farming/f.mkv", "2026-11-14 21-40-05.mkv", "x (zusammen).mkv",
+                 "Farming/Replay 2026-11-14.mp4", "Clips/clip.mp4", "Montagen/m.mp4"):
+        _video(os.path.join(folder, *name.split("/")), size=100, mtime=hour)
+    _video(os.path.join(folder, "old.mkv"), size=100, mtime=now - obsrec.UNINDEXED_MAX_AGE_S - 60)  # an archive
+    _video(os.path.join(folder, "on-air.mkv"), size=100, mtime=now - 10)    # OBS writes it now
+    with open(os.path.join(folder, "notes.txt"), "w") as fh:
+        fh.write("x")
+    os.utime(os.path.join(folder, "notes.txt"), (hour, hour))
+    try:
+        os.symlink(os.path.join(folder, "x (zusammen).mkv"), os.path.join(folder, "link.mkv"))
+    except (OSError, NotImplementedError):
+        pass
+    recs = [obsrec.Recording(t=1.0, file="a.mkv", pre="a (Vorlauf).mkv", inputs="a.mkv.inputs.json"),
+            obsrec.Recording(t=2.0, file="Farming/f.mkv")]
+    obsrec.save_index(folder, recs)
+    found = obsrec.unindexed_videos(folder, recs, now=now)
+    assert sorted(n for n, _s, _t in found) == ["2026-11-14 21-40-05.mkv", "Farming/Replay 2026-11-14.mp4",
+                                                "x (zusammen).mkv"]
+    assert all(s == 100 and t == hour for _n, s, t in found)
+    assert obsrec.unindexed_videos(os.path.join(folder, "gone"), recs, now=now) == []
+
+
+def test_the_recorder_adds_found_videos_as_recordings_without_a_map_and_renames_nothing(tmp_path, monkeypatch):
+    """On the user's confirmation the recorder thread (the one writer of the index) takes in only what is still
+    unindexed: start = file time minus length, check_file's verdict kept, farming from the subfolder; the files
+    stay as they are, and the normal delete path removes one again."""
+    folder = str(tmp_path)
+    now = time.time()
+    mt = round(now - 3600)
+    _video(os.path.join(folder, "Replay.mkv"), mtime=mt)
+    _video(os.path.join(folder, "Farming", "farm.mkv"), mtime=mt)
+    _video(os.path.join(folder, "tiny.mkv"), size=500, mtime=mt)          # "zu klein": taken, marked as damaged
+    _video(os.path.join(folder, "a.mkv"), mtime=mt)
+    obsrec.save_index(folder, [obsrec.Recording(t=float(mt - 100), file="a.mkv")])
+    monkeypatch.setattr(obsrec, "ffmpeg_exe", lambda: "ffmpeg")
+    monkeypatch.setattr(obsrec, "media_duration", lambda path, ffmpeg=None, run=None: 100.0)
+    posted = []
+    r = obsrec.Recorder(lambda kind, **d: posted.append((kind, d)))
+    r.cfg = obsrec.Config(on=True, folder=folder)
+    before = sorted(os.listdir(folder)) + sorted(os.listdir(os.path.join(folder, "Farming")))
+    r.find_unindexed()
+    r._command(*r.cmds.get_nowait())
+    kind, d = posted[-1]
+    assert kind == "unindexed" and d["folder"] == folder and not d["busy"]
+    assert sorted(n for n, _s, _t in d["files"]) == ["Farming/farm.mkv", "Replay.mkv", "tiny.mkv"]
+    r.adopt(["Replay.mkv", "Farming/farm.mkv", "tiny.mkv", "a.mkv", "../evil.mkv", "missing.mkv"])
+    r._command(*r.cmds.get_nowait())
+    assert posted[-1] == ("changed", {"what": "adopt", "n": 3, "files": ["Replay.mkv", "Farming/farm.mkv",
+                                                                         "tiny.mkv"]})
+    after = sorted(os.listdir(folder)) + sorted(os.listdir(os.path.join(folder, "Farming")))
+    assert [n for n in after if n != obsrec.INDEX] == [n for n in before if n != obsrec.INDEX]   # nothing renamed
+    recs = {x.file: x for x in obsrec.load_index(folder)}
+    assert set(recs) == {"a.mkv", "Replay.mkv", "Farming/farm.mkv", "tiny.mkv"}
+    rep = recs["Replay.mkv"]
+    # a.mkv already starts at mt - 100: the next start is one millisecond later (the start time is the key)
+    assert rep.t == pytest.approx(mt - 100 + 0.001) and rep.end == mt and rep.label == "" and rep.map_id == ""
+    assert rep.size == obsrec.MIN_FILE_BYTES + 10 and rep.extra == {"adopted": True} and not rep.farming
+    assert recs["Farming/farm.mkv"].farming and recs["Farming/farm.mkv"].t == pytest.approx(mt - 100 + 0.002)
+    assert recs["tiny.mkv"].extra == {"adopted": True, "bad": "zu klein"}
+    assert len({x.t for x in recs.values()}) == 4
+    # a second confirmation finds nothing left to take
+    r.adopt(["Replay.mkv"])
+    r._command(*r.cmds.get_nowait())
+    assert posted[-1] == ("changed", {"what": "adopt", "n": 0, "files": []}) and len(obsrec.load_index(folder)) == 4
+    # deleting one from the page goes the normal way: only its file
+    r._delete_one(recs["Replay.mkv"].t)
+    assert not os.path.exists(os.path.join(folder, "Replay.mkv")) and os.path.exists(os.path.join(folder, "a.mkv"))
+
+
+def test_nothing_is_offered_or_added_while_a_recording_of_ours_runs(tmp_path):
+    folder = str(tmp_path)
+    _video(os.path.join(folder, "Replay.mkv"), mtime=time.time() - 3600)
+    posted = []
+    r = obsrec.Recorder(lambda kind, **d: posted.append((kind, d)))
+    r.cfg = obsrec.Config(on=True, folder=folder)
+    r.active = {"t": time.time()}
+    r._find_unindexed()
+    assert posted[-1] == ("unindexed", {"files": [], "folder": folder, "busy": True})
+    r._adopt(("Replay.mkv",))
+    assert obsrec.load_index(folder) == [] and posted[-1][0] == "status"
+    r.cfg = obsrec.Config(on=True, folder=os.path.join(folder, "gone"))
+    r.active = None
+    r._find_unindexed()
+    assert posted[-1] == ("unindexed", {"files": [], "folder": None})
+
+
+def test_an_adopted_real_video_gets_its_length_from_ffmpeg(tmp_path, monkeypatch):
+    import subprocess
+    ff = obsrec.ffmpeg_exe()
+    if ff is None:
+        pytest.skip("imageio-ffmpeg not installed")
+    folder = str(tmp_path)
+    path = os.path.join(folder, "2026-11-14 21-40-05.mkv")
+    subprocess.run([ff, "-hide_banner", "-loglevel", "error", "-y", "-f", "lavfi", "-i",
+                    "testsrc=duration=3:size=160x90:rate=30", "-c:v", "libx264", "-preset", "veryfast",
+                    "-pix_fmt", "yuv420p", path], check=True, timeout=120)
+    mt = round(time.time() - 3600)
+    os.utime(path, (mt, mt))
+    monkeypatch.setattr(obsrec, "MIN_FILE_BYTES", 1)                     # a 3-s test picture is small
+    r = obsrec.Recorder(lambda kind, **d: None)
+    r.cfg = obsrec.Config(on=True, folder=folder)
+    r._adopt(("2026-11-14 21-40-05.mkv",))
+    (rec,) = obsrec.load_index(folder)
+    assert rec.end == mt and rec.end - rec.t == pytest.approx(3.0, abs=0.1) and "bad" not in rec.extra
+
+
+# ------------------------------------------------------------------ "Platz für ca. N Runden"
+def test_the_space_forecast_divides_the_room_by_what_a_median_round_takes():
+    GB = 1024 ** 3
+    R = obsrec.Recording
+    # rates 1, 2 and 4 MB/s (median 2 MB/s = 2 000 000 B/s), lengths 600, 500, 400 s (median 500 s):
+    # one round ≈ 2 000 000 × 500 = 1 000 000 000 bytes
+    recs = [R(t=0.0, end=600.0, file="a.mkv", size=600_000_000),
+            R(t=1000.0, end=1500.0, file="b.mkv", size=1_000_000_000),
+            R(t=2000.0, end=2400.0, file="c.mkv", size=1_600_000_000)]
+    free = obsrec.RESERVE + 25_500_000_000                       # 25.5 rounds above the reserve
+    assert obsrec.rounds_left(free, recs) == 25
+    assert obsrec.rounds_left(obsrec.RESERVE - GB, recs) == 0     # below the reserve: none before pruning
+    # a folder limit of 20 GB with 3.2 GB used leaves 16.8 GB → 16 rounds (fewer than the drive would hold)
+    assert obsrec.rounds_left(free, recs, limit=20_000_000_000, used=3_200_000_000) == 16
+    # fewer than three recordings with a size and a length: no forecast
+    odd = [R(t=0.0, end=0.0, file="d.mkv", size=10), R(t=5.0, end=9.0, file="e.mkv", size=0)]
+    assert obsrec.rounds_left(free, recs[:2] + odd) is None
+    assert obsrec.rounds_left(free, recs[:2] + [R(t=0.0, end=100.0, file="f.mkv", size=100_000_000)]) is not None
+
+
+def test_taken_in_recordings_are_never_cleaned_up_by_themselves(tmp_path):
+    """Saru (16.11.2026, "Ja" to: take in, but never prune automatically): a video taken in with "Aufnahmen nachtragen
+    …" may be one the user recorded by hand – neither room nor farming days delete it, only the user from the page
+    (the normal delete path, test_the_recorder_adds_found_videos_as_recordings_without_a_map_and_renames_nothing)."""
+    folder = str(tmp_path)
+    os.makedirs(os.path.join(folder, obsrec.FARMING_DIR))
+    recs = []
+    for i, name in enumerate(("own0.mkv", "taken.mkv", "own2.mkv")):
+        with open(os.path.join(folder, name), "wb") as f:
+            f.write(b"\0" * 100)
+        recs.append(obsrec.Recording(t=float(i), file=name, extra={"adopted": True} if name == "taken.mkv" else {}))
+    assert [obsrec.adopted(r) for r in recs] == [False, True, False]
+    # room for one file only: both own recordings go, the taken-in one (older than own2) stays
+    left, deleted = obsrec.prune(folder, recs, limit=100, reserve=0, free=10 ** 9)
+    assert deleted == ["own0.mkv", "own2.mkv"] and [r.file for r in left] == ["taken.mkv"]
+    assert os.path.exists(os.path.join(folder, "taken.mkv"))
+    # farming days: an old taken-in farming video stays, an own one of the same age goes
+    now = 100 * 86400.0
+    farm = []
+    for name, extra in (("Farming/own.mkv", {}), ("Farming/taken.mkv", {"adopted": True})):
+        with open(os.path.join(folder, *name.split("/")), "wb") as f:
+            f.write(b"\0" * 100)
+        farm.append(obsrec.Recording(t=1.0, file=name, farming=True, extra=extra))
+    assert [r.file for r in obsrec.expired_farming(farm, 7, now)] == ["Farming/own.mkv"]
+    left, deleted = obsrec.prune_farming(folder, farm, 7, now=now)
+    assert deleted == ["Farming/own.mkv"] and [r.file for r in left] == ["Farming/taken.mkv"]

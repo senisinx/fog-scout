@@ -6019,6 +6019,49 @@ T = {
         'Показывает под итогом, когда вы в последний раз играли на этой карте – с результатом, если раунд связан с данными страницы статистики (убийства или побег), иначе только дату.',
     'Eine Zeile „Serie“ in „Heute“: wie viele 4K (Killer) bzw. Escapes (Survivor) in Folge in der laufenden Sitzung – laut Stats-Seite, Farming zählt nicht.':
         'Строка «Серия» в «Сегодня»: сколько 4K (убийца) или побегов (выживший) подряд в текущей сессии – по данным страницы статистики; фарм не считается.',
+    # Aufnahmen nachtragen, Marken-Clips, Platz-Prognose, GitHub-Limit
+    'GitHub-Limit erreicht – erneut ab {time}':
+        'Лимит GitHub исчерпан – повторите после {time}',
+    'Platz für ca. {n} Runden':
+        'Места примерно на {n} раундов',
+    'Platz für ca. 1 Runde':
+        'Места примерно на 1 раунд',
+    'Aufnahmen nachtragen …':
+        'Добавить недостающие записи …',
+    'Aufnahmen nachtragen':
+        'Добавить недостающие записи',
+    'Marken-Clips abbrechen':
+        'Остановить клипы по меткам',
+    'Marken als einzelne Clips speichern':
+        'Сохранить метки как отдельные клипы',
+    'Während einer Aufnahme wird nichts nachgetragen.':
+        'Во время записи ничего не добавляется.',
+    'Während einer Aufnahme wird nichts nachgetragen – OBS schreibt gerade in den Aufnahmeordner.':
+        'Во время записи ничего не добавляется – OBS сейчас пишет в папку записей.',
+    'Keine Videos ohne Eintrag gefunden (gesucht: Aufnahmeordner und „Farming“, geschrieben in den letzten {days} Tagen).':
+        'Видео без записи в списке не найдено (поиск: папка записей и «Farming», за последние {days} дн.).',
+    '{n} Videos ({size}) im Aufnahmeordner stehen in keiner Aufnahme:\n{list}\n\nAls Aufnahmen ohne Map in die Liste übernehmen? Die Dateien werden nicht umbenannt, und Fog Scout räumt sie nie von selbst auf (weder bei Platzmangel noch nach den Farming-Tagen) – löschen kannst nur du sie, auf der Seite Aufnahmen.':
+        '{n} видео ({size}) в папке записей не относятся ни к одной записи:\n{list}\n\nДобавить их в список как записи без карты? Файлы не переименовываются, и Fog Scout никогда не удаляет их сам (ни при нехватке места, ни по истечении дней фарма) — удалить их можете только вы, на странице «Записи».',
+    'Nachtragen':
+        'Добавить',
+    'Marken-Clips: {done} von {total} …':
+        'Клипы по меткам: {done} из {total} …',
+    'Marken-Clips werden abgebrochen …':
+        'Остановка клипов по меткам …',
+    'Marken-Clips fehlgeschlagen: {error}':
+        'Клипы по меткам не созданы: {error}',
+    'Marken-Clips: {made} gespeichert, {there} schon vorhanden, {failed} fehlgeschlagen.':
+        'Клипы по меткам: сохранено {made}, уже были {there}, не удалось {failed}.',
+    'Aufnahmen nachgetragen: {n}':
+        'Записей добавлено: {n}',
+    'Nichts nachgetragen – die Dateien sind nicht mehr da oder schon in der Liste.':
+        'Ничего не добавлено – файлов больше нет или они уже в списке.',
+    'Sucht im Aufnahmeordner (und in „Farming“) nach Videos der letzten 30 Tage, die in keiner Aufnahme stehen – z. B. OBS-eigene Namen oder Reste nach einem Absturz – und übernimmt sie nach einer Rückfrage als Aufnahmen ohne Map. Nichts wird umbenannt oder gelöscht.':
+        'Ищет в папке записей (и в «Farming») видео за последние 30 дней, которые не относятся ни к одной записи – например, собственные имена OBS или остатки после сбоя – и после подтверждения добавляет их как записи без карты. Ничего не переименовывается и не удаляется.',
+    'Hält „Marken als einzelne Clips speichern“ nach dem Clip an, der gerade geschnitten wird; fertige Clips bleiben.':
+        'Останавливает «Сохранить метки как отдельные клипы» после текущего клипа; готовые клипы остаются.',
+    'Schneidet zu jeder F8-Marke der Runde einen Clip (Länge wie der Sofort-Clip, bis zur Marke, ohne neu zu kodieren) in den Ordner „Clips“. Marken, deren Clip schon da ist, werden übersprungen.':
+        'Вырезает по клипу на каждую метку F8 раунда (длиной как мгновенный клип, до метки, без перекодирования) в папку «Clips». Метки, клип которых уже есть, пропускаются.',
     'Seit dem Matchbeginn kein Map-Banner erkannt – „Bildschirm scannen“ ({keys}) sucht den Map-Namen auf dem Bildschirm.':
         'С начала матча баннер карты не распознан – «Сканировать экран» ({keys}) ищет название карты на экране.',
     'Seit dem Matchbeginn kein Map-Banner erkannt – „Scannen“ im Steuerfenster sucht den Map-Namen auf dem Bildschirm.':

@@ -6019,6 +6019,49 @@ T = {
         "Mostra sotto il bilancio quando hai giocato l'ultima volta su questa mappa – con il risultato se la partita è collegata ai dati della pagina delle statistiche (kill o fuga), altrimenti solo la data.",
     'Eine Zeile „Serie“ in „Heute“: wie viele 4K (Killer) bzw. Escapes (Survivor) in Folge in der laufenden Sitzung – laut Stats-Seite, Farming zählt nicht.':
         'Una riga «Serie» in «Oggi»: quante 4K (killer) o fughe (survivor) di fila nella sessione in corso – secondo la pagina delle statistiche; il farming non conta.',
+    # Aufnahmen nachtragen, Marken-Clips, Platz-Prognose, GitHub-Limit
+    'GitHub-Limit erreicht – erneut ab {time}':
+        'Limite di GitHub raggiunto – riprova dalle {time}',
+    'Platz für ca. {n} Runden':
+        'Spazio per circa {n} partite',
+    'Platz für ca. 1 Runde':
+        'Spazio per circa 1 partita',
+    'Aufnahmen nachtragen …':
+        'Aggiungi registrazioni mancanti …',
+    'Aufnahmen nachtragen':
+        'Aggiungi registrazioni mancanti',
+    'Marken-Clips abbrechen':
+        'Interrompi clip dai segni',
+    'Marken als einzelne Clips speichern':
+        'Salva i segni come clip singole',
+    'Während einer Aufnahme wird nichts nachgetragen.':
+        'Durante una registrazione non si aggiunge nulla.',
+    'Während einer Aufnahme wird nichts nachgetragen – OBS schreibt gerade in den Aufnahmeordner.':
+        'Durante una registrazione non si aggiunge nulla – OBS sta scrivendo nella cartella delle registrazioni.',
+    'Keine Videos ohne Eintrag gefunden (gesucht: Aufnahmeordner und „Farming“, geschrieben in den letzten {days} Tagen).':
+        'Nessun video senza voce trovato (cercato: cartella delle registrazioni e “Farming”, scritti negli ultimi {days} giorni).',
+    '{n} Videos ({size}) im Aufnahmeordner stehen in keiner Aufnahme:\n{list}\n\nAls Aufnahmen ohne Map in die Liste übernehmen? Die Dateien werden nicht umbenannt, und Fog Scout räumt sie nie von selbst auf (weder bei Platzmangel noch nach den Farming-Tagen) – löschen kannst nur du sie, auf der Seite Aufnahmen.':
+        "{n} video ({size}) nella cartella delle registrazioni non appartengono a nessuna registrazione:\n{list}\n\nAggiungerli all'elenco come registrazioni senza mappa? I file non vengono rinominati e Fog Scout non li elimina mai da solo (né quando manca spazio né dopo i giorni di farming) – solo tu puoi eliminarli, nella pagina Registrazioni.",
+    'Nachtragen':
+        'Aggiungi',
+    'Marken-Clips: {done} von {total} …':
+        'Clip dai segni: {done} di {total} …',
+    'Marken-Clips werden abgebrochen …':
+        'Interruzione delle clip dai segni …',
+    'Marken-Clips fehlgeschlagen: {error}':
+        'Clip dai segni non riuscite: {error}',
+    'Marken-Clips: {made} gespeichert, {there} schon vorhanden, {failed} fehlgeschlagen.':
+        'Clip dai segni: {made} salvate, {there} già presenti, {failed} non riuscite.',
+    'Aufnahmen nachgetragen: {n}':
+        'Registrazioni aggiunte: {n}',
+    'Nichts nachgetragen – die Dateien sind nicht mehr da oder schon in der Liste.':
+        "Nulla aggiunto – i file non ci sono più o sono già nell'elenco.",
+    'Sucht im Aufnahmeordner (und in „Farming“) nach Videos der letzten 30 Tage, die in keiner Aufnahme stehen – z. B. OBS-eigene Namen oder Reste nach einem Absturz – und übernimmt sie nach einer Rückfrage als Aufnahmen ohne Map. Nichts wird umbenannt oder gelöscht.':
+        'Cerca nella cartella delle registrazioni (e in “Farming”) i video degli ultimi 30 giorni che non appartengono a nessuna registrazione – ad es. nomi propri di OBS o resti dopo un crash – e, dopo una conferma, li aggiunge come registrazioni senza mappa. Nulla viene rinominato o eliminato.',
+    'Hält „Marken als einzelne Clips speichern“ nach dem Clip an, der gerade geschnitten wird; fertige Clips bleiben.':
+        'Interrompe “Salva i segni come clip singole” dopo la clip in corso; le clip finite restano.',
+    'Schneidet zu jeder F8-Marke der Runde einen Clip (Länge wie der Sofort-Clip, bis zur Marke, ohne neu zu kodieren) in den Ordner „Clips“. Marken, deren Clip schon da ist, werden übersprungen.':
+        'Taglia una clip per ogni segno F8 della partita (lunga come la clip istantanea, fino al segno, senza ricodifica) nella cartella “Clips”. I segni la cui clip esiste già vengono saltati.',
     'Seit dem Matchbeginn kein Map-Banner erkannt – „Bildschirm scannen“ ({keys}) sucht den Map-Namen auf dem Bildschirm.':
         "Nessun banner della mappa riconosciuto dall'inizio del match – “Scansiona schermo” ({keys}) cerca il nome della mappa sullo schermo.",
     'Seit dem Matchbeginn kein Map-Banner erkannt – „Scannen“ im Steuerfenster sucht den Map-Namen auf dem Bildschirm.':

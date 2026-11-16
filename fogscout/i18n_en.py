@@ -4492,6 +4492,49 @@ EN = {
         'Shows below the record when you last played this map – with the result if the round is linked to data from the stats page (kills or escaped), otherwise only the date.',
     'Eine Zeile „Serie“ in „Heute“: wie viele 4K (Killer) bzw. Escapes (Survivor) in Folge in der laufenden Sitzung – laut Stats-Seite, Farming zählt nicht.':
         'A row “Streak” in “Today”: how many 4Ks (killer) or escapes (survivor) in a row in the current session – from the stats page; farming does not count.',
+    # Aufnahmen nachtragen, Marken-Clips, Platz-Prognose, GitHub-Limit
+    'GitHub-Limit erreicht – erneut ab {time}':
+        'GitHub limit reached – try again from {time}',
+    'Platz für ca. {n} Runden':
+        'Room for about {n} rounds',
+    'Platz für ca. 1 Runde':
+        'Room for about 1 round',
+    'Aufnahmen nachtragen …':
+        'Add missing recordings …',
+    'Aufnahmen nachtragen':
+        'Add missing recordings',
+    'Marken-Clips abbrechen':
+        'Stop mark clips',
+    'Marken als einzelne Clips speichern':
+        'Save marks as separate clips',
+    'Während einer Aufnahme wird nichts nachgetragen.':
+        'Nothing is added while a recording runs.',
+    'Während einer Aufnahme wird nichts nachgetragen – OBS schreibt gerade in den Aufnahmeordner.':
+        'Nothing is added while a recording runs – OBS is writing into the recordings folder.',
+    'Keine Videos ohne Eintrag gefunden (gesucht: Aufnahmeordner und „Farming“, geschrieben in den letzten {days} Tagen).':
+        'No videos without an entry found (searched: recordings folder and “Farming”, written in the last {days} days).',
+    '{n} Videos ({size}) im Aufnahmeordner stehen in keiner Aufnahme:\n{list}\n\nAls Aufnahmen ohne Map in die Liste übernehmen? Die Dateien werden nicht umbenannt, und Fog Scout räumt sie nie von selbst auf (weder bei Platzmangel noch nach den Farming-Tagen) – löschen kannst nur du sie, auf der Seite Aufnahmen.':
+        '{n} videos ({size}) in the recordings folder belong to no recording:\n{list}\n\nAdd them to the list as recordings without a map? The files are not renamed, and Fog Scout never cleans them up by itself (neither when room is short nor after the farming days) – only you can delete them, on the Recordings page.',
+    'Nachtragen':
+        'Add',
+    'Marken-Clips: {done} von {total} …':
+        'Mark clips: {done} of {total} …',
+    'Marken-Clips werden abgebrochen …':
+        'Stopping mark clips …',
+    'Marken-Clips fehlgeschlagen: {error}':
+        'Mark clips failed: {error}',
+    'Marken-Clips: {made} gespeichert, {there} schon vorhanden, {failed} fehlgeschlagen.':
+        'Mark clips: {made} saved, {there} already there, {failed} failed.',
+    'Aufnahmen nachgetragen: {n}':
+        'Recordings added: {n}',
+    'Nichts nachgetragen – die Dateien sind nicht mehr da oder schon in der Liste.':
+        'Nothing added – the files are gone or already in the list.',
+    'Sucht im Aufnahmeordner (und in „Farming“) nach Videos der letzten 30 Tage, die in keiner Aufnahme stehen – z. B. OBS-eigene Namen oder Reste nach einem Absturz – und übernimmt sie nach einer Rückfrage als Aufnahmen ohne Map. Nichts wird umbenannt oder gelöscht.':
+        "Looks in the recordings folder (and in “Farming”) for videos of the last 30 days that belong to no recording – e.g. OBS's own names or leftovers after a crash – and, after asking, adds them as recordings without a map. Nothing is renamed or deleted.",
+    'Hält „Marken als einzelne Clips speichern“ nach dem Clip an, der gerade geschnitten wird; fertige Clips bleiben.':
+        'Stops “Save marks as separate clips” after the clip being cut now; finished clips stay.',
+    'Schneidet zu jeder F8-Marke der Runde einen Clip (Länge wie der Sofort-Clip, bis zur Marke, ohne neu zu kodieren) in den Ordner „Clips“. Marken, deren Clip schon da ist, werden übersprungen.':
+        'Cuts one clip per F8 mark of the round (as long as the instant clip, up to the mark, without re-encoding) into the “Clips” folder. Marks whose clip is already there are skipped.',
     'Seit dem Matchbeginn kein Map-Banner erkannt – „Bildschirm scannen“ ({keys}) sucht den Map-Namen auf dem Bildschirm.':
         'No map banner detected since the match began – “Scan screen” ({keys}) looks for the map name on the screen.',
     'Seit dem Matchbeginn kein Map-Banner erkannt – „Scannen“ im Steuerfenster sucht den Map-Namen auf dem Bildschirm.':
