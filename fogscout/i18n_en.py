@@ -1508,6 +1508,14 @@ EN = {
         'Survivor builds',
     'S{n}: {v} c/s':
         'S{n}: {v} c/s',
+    'Ein verfehlter Skill Check kostet (Anteil am Generator): {odds}':
+        'A missed skill check costs (share of the generator): {odds}',
+    'Ein Great Skill Check bringt (Anteil am Generator, im Mittel): {odds}':
+        'A great skill check adds (share of the generator, on average): {odds}',
+    'Jeder erfolgreiche Skill Check bringt zusätzlich (Anteil am Generator, im Mittel): {odds}':
+        'Every successful skill check adds on top (share of the generator, on average): {odds}',
+    'Skill-Check-Chance je Sekunde (mit den gewählten Perks): {odds}':
+        'Skill check chance per second (with the chosen perks): {odds}',
     'Tempo am Generator (Ladungen pro Sekunde, Grundwert 1): {speeds}':
         'Speed on the generator (charges per second, base 1): {speeds}',
     'Verfehlte Skill Checks':

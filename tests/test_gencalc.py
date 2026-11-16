@@ -228,6 +228,48 @@ def test_deadline_unnerving_and_one_two_three_four_add_percentage_points_to_the_
     assert g.skill_checks(D, [quiet], K(("Unnerving Presence",))) == [(pytest.approx(0.1), 0.1, 0.0)]
 
 
+def test_the_page_shows_the_skill_check_chance_the_chosen_perks_give():
+    """1.56.4 (Saru: with perks like One-Two-Three-Four! the page should name the raised Skill Check rate): per
+    Survivor the chance per second without and with the perks – the numbers ``one_generator`` counts with."""
+    from fogscout import app_calc
+    assert g.check_chances(D, [S()]) == [(pytest.approx(0.08), pytest.approx(0.08))]
+    # One-Two-Three-Four!: +20 points for everyone at the Generator, the one without the perk too
+    assert g.check_chances(D, [S(("One-Two-Three-Four!",)), S()]) == [(pytest.approx(0.08), pytest.approx(0.28))] * 2
+    # Deadline is the Survivor's own (+10), Unnerving Presence adds +10 for all: 8 % → 48 % and 8 % → 38 %
+    both = g.check_chances(D, [S(("One-Two-Three-Four!", "Deadline")), S()], K(("Unnerving Presence",)))
+    assert both == [(pytest.approx(0.08), pytest.approx(0.48)), (pytest.approx(0.08), pytest.approx(0.38))]
+    # a toolbox: 40 % while it is in use; with Instructions no regular check, whatever the perks add
+    assert g.check_chances(D, [S(("Deadline",), toolbox="Toolbox")]) == [(pytest.approx(0.4), pytest.approx(0.5))]
+    assert g.check_chances(D, [S(toolbox="Toolbox", addons=("Instructions",))], K(("Unnerving Presence",))) == \
+        [(0.0, 0.0)]
+    # Hyperfocus adds with the share of Great checks (4 points per Token, 6 Tokens at 100 % Great)
+    assert g.check_chances(D, [S(("Hyperfocus",))], None, Sc(great=1.0))[0][1] == pytest.approx(0.08 + 6 * 0.04)
+    assert g.check_chances(D, [S(("Hyperfocus",))], None, Sc(great=0.0))[0][1] == pytest.approx(0.08)
+    assert app_calc.check_text(0.08, 0.08) == "8 %"
+    assert app_calc.check_text(0.08, 0.28) == "8 % → 28 %"
+    assert app_calc.check_text(0.4, 1.0) == "40 % → 100 %"
+
+
+def test_the_page_shows_what_the_perks_make_of_a_missed_a_great_and_a_successful_check():
+    """1.56.4 (Saru: "überprüf ob es bei anderen Perks auch Sinn macht"): the other Skill Check values a perk
+    changes and the page named nowhere – as (without, with) in shares of the Generator."""
+    from fogscout import app_calc
+    plain = g.check_values(D, [S()])
+    assert plain == [{"fail": (0.1, 0.1), "great": (0.01, 0.01), "extra": (0.0, 0.0)}]
+    # Technician: a miss costs 2 points more; Deadline halves it; both: (10 + 2) / 2
+    assert g.check_values(D, [S(("Technician",))])[0]["fail"] == (0.1, pytest.approx(0.12))
+    assert g.check_values(D, [S(("Deadline",))])[0]["fail"] == (0.1, pytest.approx(0.05))
+    assert g.check_values(D, [S(("Technician", "Deadline"))])[0]["fail"] == (0.1, pytest.approx(0.06))
+    # Hyperfocus: every check Great → 6 Tokens · 30 % → 1 % · 2.8; no Great check → nothing changes
+    assert g.check_values(D, [S(("Hyperfocus",))], None, Sc(great=1.0))[0]["great"] == (0.01, pytest.approx(0.028))
+    assert g.check_values(D, [S(("Hyperfocus",))], None, Sc(great=0.0))[0]["great"] == (0.01, pytest.approx(0.01))
+    # Bardic Inspiration: only the others get the +1.5 %
+    bardic = g.check_values(D, [S(("Bardic Inspiration",)), S()])
+    assert [v["extra"] for v in bardic] == [(0.0, 0.0), (0.0, pytest.approx(0.015))]
+    assert [key for key, _text in app_calc.CHECK_LINES] == ["fail", "great", "extra"] == list(plain[0])
+    assert app_calc.check_text(0.01, 0.019375) == "1 % → 1.94 %"
+
+
 def test_deadline_halves_and_technician_raises_what_a_missed_check_costs():
     missing = Sc(great=0, miss=0.5, kicks=0)
     # plain: (1 − 0.08 · 0.5 · 9) · (1 − 0.08 · 0.5 · 3) = 0.64 · 0.88 = 0.5632 c/s → 159.80 s

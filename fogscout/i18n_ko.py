@@ -1995,6 +1995,14 @@ T = {
         '생존자 빌드',
     'S{n}: {v} c/s':
         'S{n}: {v} c/s',
+    'Ein verfehlter Skill Check kostet (Anteil am Generator): {odds}':
+        '기술 검사 실패 시 손실(발전기 대비 비율): {odds}',
+    'Ein Great Skill Check bringt (Anteil am Generator, im Mittel): {odds}':
+        '대성공 기술 검사 시 증가(발전기 대비 비율, 평균): {odds}',
+    'Jeder erfolgreiche Skill Check bringt zusätzlich (Anteil am Generator, im Mittel): {odds}':
+        '기술 검사 성공마다 추가 증가(발전기 대비 비율, 평균): {odds}',
+    'Skill-Check-Chance je Sekunde (mit den gewählten Perks): {odds}':
+        '초당 기술 검사 확률(선택한 기술 포함): {odds}',
     'Tempo am Generator (Ladungen pro Sekunde, Grundwert 1): {speeds}':
         '발전기 수리 속도(초당 충전량, 기본값 1): {speeds}',
     'Verfehlte Skill Checks':

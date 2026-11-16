@@ -1995,6 +1995,14 @@ T = {
         'サバイバーのビルド',
     'S{n}: {v} c/s':
         'S{n}: {v} c/s',
+    'Ein verfehlter Skill Check kostet (Anteil am Generator): {odds}':
+        'スキルチェック失敗で失う量（発電機に対する割合）：{odds}',
+    'Ein Great Skill Check bringt (Anteil am Generator, im Mittel): {odds}':
+        'グレートスキルチェックで得る量（発電機に対する割合、平均）：{odds}',
+    'Jeder erfolgreiche Skill Check bringt zusätzlich (Anteil am Generator, im Mittel): {odds}':
+        'スキルチェック成功ごとの追加分（発電機に対する割合、平均）：{odds}',
+    'Skill-Check-Chance je Sekunde (mit den gewählten Perks): {odds}':
+        '1秒あたりのスキルチェック発生率（選択したパーク込み）：{odds}',
     'Tempo am Generator (Ladungen pro Sekunde, Grundwert 1): {speeds}':
         '発電機での速度（毎秒チャージ、基本値 1）：{speeds}',
     'Verfehlte Skill Checks':

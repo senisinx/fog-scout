@@ -1995,6 +1995,14 @@ T = {
         'Билды выживших',
     'S{n}: {v} c/s':
         'S{n}: {v} c/s',
+    'Ein verfehlter Skill Check kostet (Anteil am Generator): {odds}':
+        'Проваленная проверка реакции стоит (доля генератора): {odds}',
+    'Ein Great Skill Check bringt (Anteil am Generator, im Mittel): {odds}':
+        'Отличная проверка реакции даёт (доля генератора, в среднем): {odds}',
+    'Jeder erfolgreiche Skill Check bringt zusätzlich (Anteil am Generator, im Mittel): {odds}':
+        'Каждая успешная проверка реакции даёт дополнительно (доля генератора, в среднем): {odds}',
+    'Skill-Check-Chance je Sekunde (mit den gewählten Perks): {odds}':
+        'Шанс проверки реакции в секунду (с выбранными навыками): {odds}',
     'Tempo am Generator (Ladungen pro Sekunde, Grundwert 1): {speeds}':
         'Скорость на генераторе (зарядов в секунду, базовая 1): {speeds}',
     'Verfehlte Skill Checks':

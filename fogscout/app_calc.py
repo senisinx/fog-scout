@@ -184,6 +184,19 @@ def signed_pct(v: float) -> str:
     return ("+" if v >= 0 else "−") + f"{abs(v) * 100:.3g} %"
 
 
+def check_text(base: float, now: float) -> str:
+    """A Skill Check value of one Survivor (odds per second, a share of the Generator): "8 %", or "8 % → 28 %"
+    when the perks change it (three significant digits: Hyperfocus gives an expected value)."""
+    one = f"{base * 100:.3g} %"
+    return one if abs(now - base) < 1e-9 else f"{one} → {now * 100:.3g} %"
+
+
+CHECK_LINES = (          # 1.56.4: shown only when a chosen perk changes the value for someone
+    ("fail", N_("Ein verfehlter Skill Check kostet (Anteil am Generator): {odds}")),
+    ("great", N_("Ein Great Skill Check bringt (Anteil am Generator, im Mittel): {odds}")),
+    ("extra", N_("Jeder erfolgreiche Skill Check bringt zusätzlich (Anteil am Generator, im Mittel): {odds}")))
+
+
 def value_text(kind: str, v) -> str:
     if v is None:
         return "–"
@@ -883,8 +896,20 @@ class CalcTab:
         last = sizes[-1][2] if sizes else None
         speeds = " · ".join(_("S{n}: {v} c/s", n=i + 1, v=f"{r:.2f}") for i, r in enumerate(last.rates)) \
             if last else ""
-        self.calc_rates_var.set(_("Tempo am Generator (Ladungen pro Sekunde, Grundwert 1): {speeds}",
-                                  speeds=speeds) if speeds else "")
+        rates = [_("Tempo am Generator (Ladungen pro Sekunde, Grundwert 1): {speeds}", speeds=speeds)] \
+            if speeds else []
+        # 1.56.4 (Saru): what the chosen perks make of the Skill Check odds – the number the times are counted with
+        def per_survivor(pairs) -> str:                     # no words: the same in every language
+            return " · ".join(f"S{i + 1}: {check_text(base, now)}" for i, (base, now) in enumerate(pairs))
+        odds = per_survivor(gencalc.check_chances(d, team, killer, scen))
+        if odds:
+            rates.append(_("Skill-Check-Chance je Sekunde (mit den gewählten Perks): {odds}", odds=odds))
+        values = gencalc.check_values(d, team, killer, scen)
+        for key, text in CHECK_LINES:
+            pairs = [v[key] for v in values]
+            if any(abs(now - base) > 1e-9 for base, now in pairs):
+                rates.append(_(text, odds=per_survivor(pairs)))
+        self.calc_rates_var.set("\n".join(rates))
         notes = []
         if last:
             if last.events:
