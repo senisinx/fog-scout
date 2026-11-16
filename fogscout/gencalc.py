@@ -356,6 +356,42 @@ def skill_checks(data: Data, team, killer: Killer | None = None, great: float = 
     return out
 
 
+def _check_chance(data: Data, tool_on: bool, quiet: bool, added: float) -> float:
+    """The chance per second of a Skill Check for one Survivor: the base odds (the toolbox's while it is in use)
+    plus what the perks add – none with a toolbox whose add-on (Instructions) takes the regular checks away."""
+    if tool_on and quiet:
+        return 0.0
+    m = data.mech
+    return min(1.0, (m["skill_check_chance_toolbox"] if tool_on else m["skill_check_chance"]) + added)
+
+
+def check_chances(data: Data, team, killer: Killer | None = None, scen: Scenario | None = None) -> list:
+    """1.56.4: per Survivor of ``team`` (all at one Generator, at its start) (chance per second of a Skill Check
+    without the perks, with them) – exactly what ``one_generator`` counts with, for the page to show."""
+    scen = scen or Scenario()
+    team = [s for s in team if isinstance(s, Survivor)][:MAX_SURVIVORS]
+    out = []
+    for s, (added, _fail, _bonus) in zip(team, skill_checks(data, team, killer, scen.great)):
+        tool_on = tool_charges(data, s) > 0
+        quiet = any(a.get("no_checks") for a in item_addons(data, s))
+        out.append((_check_chance(data, tool_on, quiet, 0.0), _check_chance(data, tool_on, quiet, added)))
+    return out
+
+
+def check_values(data: Data, team, killer: Killer | None = None, scen: Scenario | None = None) -> list:
+    """1.56.4: per Survivor of ``team`` what else the perks make of a Skill Check, each as (without the perks, with
+    them) in shares of the Generator: {"fail": what a missed check costs (Technician, Deadline), "great": what a
+    Great check adds (Hyperfocus: the expected value at the share of Great checks), "extra": what every successful
+    check adds on top (Bardic Inspiration)} – the numbers ``one_generator`` counts with."""
+    scen = scen or Scenario()
+    team = [s for s in team if isinstance(s, Survivor)][:MAX_SURVIVORS]
+    m = data.mech
+    hyper = _hyper(data, team, scen.great)
+    return [{"fail": (m["fail_loss"], fail), "great": (m["great_bonus"], m["great_bonus"] * hyper[i]),
+             "extra": (0.0, bonus)}
+            for i, (_added, fail, bonus) in enumerate(skill_checks(data, team, killer, scen.great))]
+
+
 def one_generator(data: Data, team, killer: Killer | None = None, scen: Scenario | None = None,
                   first: bool = True, buff_s: float = 0.0) -> Result:
     """One Generator repaired by everyone in ``team`` together; the Killer kicks ``scen.kicks`` times when it reaches
@@ -390,11 +426,7 @@ def one_generator(data: Data, team, killer: Killer | None = None, scen: Scenario
         total, drain, pause = 0.0, [], 0.0
         for i, s in enumerate(team):
             v = speed(data, s, team, killer, scen, tool[i] > 0, buff)
-            chance = m["skill_check_chance_toolbox"] if tool[i] > 0 else m["skill_check_chance"]
-            if tool[i] > 0 and quiet[i]:                   # with the toolbox in use no regular Skill Check comes
-                chance = 0.0
-            else:
-                chance = min(1.0, chance + checks[i][0])
+            chance = _check_chance(data, tool[i] > 0, quiet[i], checks[i][0])
             fail_c, extra_c = checks[i][1] * need, checks[i][2] * need
             total += v + chance * (scen.great * great_c * hyper[i] + max(0.0, 1.0 - scen.miss) * extra_c -
                                    scen.miss * fail_c)

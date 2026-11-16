@@ -1995,6 +1995,14 @@ T = {
         '逃生者配置',
     'S{n}: {v} c/s':
         'S{n}: {v} c/s',
+    'Ein verfehlter Skill Check kostet (Anteil am Generator): {odds}':
+        '技能检定失败损失（发电机进度占比）：{odds}',
+    'Ein Great Skill Check bringt (Anteil am Generator, im Mittel): {odds}':
+        '完美技能检定增加（发电机进度占比，平均）：{odds}',
+    'Jeder erfolgreiche Skill Check bringt zusätzlich (Anteil am Generator, im Mittel): {odds}':
+        '每次成功的技能检定额外增加（发电机进度占比，平均）：{odds}',
+    'Skill-Check-Chance je Sekunde (mit den gewählten Perks): {odds}':
+        '每秒技能检定概率（含所选技能）：{odds}',
     'Tempo am Generator (Ladungen pro Sekunde, Grundwert 1): {speeds}':
         '修理速度（每秒充能，基础值 1）：{speeds}',
     'Verfehlte Skill Checks':

@@ -1995,6 +1995,14 @@ T = {
         'Build dei sopravvissuti',
     'S{n}: {v} c/s':
         'S{n}: {v} c/s',
+    'Ein verfehlter Skill Check kostet (Anteil am Generator): {odds}':
+        'Una prova di abilità fallita costa (quota del generatore): {odds}',
+    'Ein Great Skill Check bringt (Anteil am Generator, im Mittel): {odds}':
+        'Una prova di abilità ottima dà (quota del generatore, in media): {odds}',
+    'Jeder erfolgreiche Skill Check bringt zusätzlich (Anteil am Generator, im Mittel): {odds}':
+        'Ogni prova di abilità riuscita dà in più (quota del generatore, in media): {odds}',
+    'Skill-Check-Chance je Sekunde (mit den gewählten Perks): {odds}':
+        'Probabilità di una prova di abilità al secondo (con le competenze scelte): {odds}',
     'Tempo am Generator (Ladungen pro Sekunde, Grundwert 1): {speeds}':
         'Velocità al generatore (cariche al secondo, base 1): {speeds}',
     'Verfehlte Skill Checks':
