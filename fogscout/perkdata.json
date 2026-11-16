@@ -405,6 +405,14 @@
    "patch": "3.6.0",
    "count_means": "",
    "when": "Survivors repairing inside the Terror Radius (counted as met): Skill Check odds +10 %, added to the chance per second (8 % → 18 %); the smaller success zone (−40/50/60 %) only changes the share of Great and missed checks, which is set on the page – not calculated"
+  },
+  {
+   "name": "Hex: Huntress Lullaby",
+   "kind": "enemy_check_fail",
+   "value": 0.06,
+   "patch": "1.6.0",
+   "count_means": "",
+   "when": "while the Hex Totem stands (counted as met): a missed Repair Skill Check costs 2/4/6 % (tier III: 6 %) more progress – added to the 10 % like Technician (10 % → 16 %; with Deadline the sum is halved: assumption); the shorter or missing warning (Tokens per hook) only changes the share of missed checks, which is set on the page – not calculated; healing is not calculated (the heal rows have no Skill Checks)."
   }
  ],
  "not_modelled": [
@@ -422,7 +430,6 @@
   "Thrilling Tremors",
   "Hex: Hive Mind",
   "Help Wanted",
-  "Hex: Huntress Lullaby",
   "Scavenger",
   "Scourge Hook: Monstrous Shrine"
  ],

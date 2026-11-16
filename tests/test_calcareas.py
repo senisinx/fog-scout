@@ -524,7 +524,7 @@ def test_every_perk_of_the_calculator_has_its_picture_in_the_program():
     want = [(n, "perks") for n in set(D.survivor) | set(D.killer) | set(D.perks)] + \
         [(n, "items") for n in g.item_names(D)] + \
         [(n, "addon") for v in list(D.killer_addon_lists.values()) + list(D.item_addon_lists.values()) for n in v]
-    assert len(want) == len(set(want)) == 1105
+    assert len(want) == len(set(want)) == 1106        # 1.56.5: + Hex: Huntress Lullaby
     assert {(kind, n) for n, kind in want if index.find(n, kind) is None} == NO_PICTURE
     for n, kind in want:                                      # a picture is of the kind asked for
         path = index.find(n, kind)

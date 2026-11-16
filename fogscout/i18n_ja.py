@@ -2065,6 +2065,8 @@ T = {
         '発電機にいる全員のスキルチェックが増える：毎秒の発生確率 +{p} パーセントポイント',
     'Skill Checks der Survivor kommen öfter: +{p} Prozentpunkte Chance je Sekunde':
         '生存者のスキルチェックが増える：毎秒の発生確率 +{p} パーセントポイント',
+    'ein verfehlter Skill Check kostet die Survivor {p} % Fortschritt mehr':
+        'スキルチェック失敗でサバイバーが失う進行度が {p} % 増加',
     'ein verfehlter Skill Check kostet {p} % Fortschritt mehr':
         'スキルチェック失敗で失う進行度が {p} % 増加',
     'jeder erfolgreiche Skill Check der anderen bringt im Mittel +{p} % Fortschritt (W20)':

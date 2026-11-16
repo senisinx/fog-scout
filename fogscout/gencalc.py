@@ -19,7 +19,8 @@ Rules used (all from the wiki, retrieved 2026-11-15):
   the odds (Deadline, One-Two-Three-Four!, Unnerving Presence: "+10 %") add percentage points to the chance per
   second – the wiki gives the odds as a chance per second (8 %, 40 % with a toolbox) and the perks' "+x %" in the
   same unit (assumption: added, not multiplied; relative, +10 % of 8 % would be 0.8 points and hardly a change).
-  Technician adds to a miss's loss, Deadline halves it, Bardic Inspiration adds to every successful check.
+  Technician and (1.56.5) Hex: Huntress Lullaby add to a miss's loss, Deadline halves it, Bardic Inspiration adds
+  to every successful check.
 - Kick: −5 %, then −0.25 Charges/s until Survivors repaired +5 % again; at most 8 regression events (instant losses
   of ≥ 2.5 %) per Generator.
 """
@@ -333,6 +334,7 @@ def _killer_effects(data: Data, killer: Killer) -> dict:
 def skill_checks(data: Data, team, killer: Killer | None = None, great: float = 0.0) -> list:
     """1.55.2: per Survivor of ``team`` (all at one Generator) what the perks change about Skill Checks: (added
     chance per second, share of the Generator a missed check costs, extra share every successful check grants).
+    A Killer perk can add to both (Unnerving Presence: the chance, Hex: Huntress Lullaby: a miss's cost).
     One-Two-Three-Four! and Bardic Inspiration count once (the stronger of two copies), Bardic only for the others.
     Hyperfocus adds its trigger odds per Token (``chance_per_token``) as the expected value over the Token counts
     at the share ``great`` of Great checks (the same model as ``_hyper``)."""
@@ -340,6 +342,8 @@ def skill_checks(data: Data, team, killer: Killer | None = None, great: float = 
     own = [_known(data, s.perks, data.survivor) for s in team]
     shared = max((e["value"] for es in own for e in es if e["kind"] == "team_check_chance"), default=0.0)
     enemy = sum(e["value"] for e in _known(data, killer.perks, data.killer) if e["kind"] == "enemy_check_chance")
+    enemy_fail = sum(e["value"] for e in _known(data, killer.perks, data.killer)     # 1.56.5: Hex: Huntress Lullaby
+                     if e["kind"] == "enemy_check_fail")
     out = []
     for i, es in enumerate(own):
         chance = shared + enemy + sum(e["value"] for e in es if e["kind"] == "check_chance")
@@ -347,7 +351,7 @@ def skill_checks(data: Data, team, killer: Killer | None = None, great: float = 
             if e["kind"] == "great_scale" and e.get("chance_per_token") and great > 0:
                 chance += sum(p * e["chance_per_token"] * t
                               for t, p in enumerate(_token_shares(int(e["tokens"]), great)))
-        fail = data.mech["fail_loss"] + sum(e["value"] for e in es if e["kind"] == "check_fail")
+        fail = data.mech["fail_loss"] + sum(e["value"] for e in es if e["kind"] == "check_fail") + enemy_fail
         for e in es:
             fail *= e.get("fail_mult", 1.0)
         bonus = max((e["value"] for j, x in enumerate(own) if j != i for e in x

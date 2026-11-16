@@ -2065,6 +2065,8 @@ T = {
         'проверки реакции чаще для всех у генератора: +{p} процентных пункта вероятности в секунду',
     'Skill Checks der Survivor kommen öfter: +{p} Prozentpunkte Chance je Sekunde':
         'проверки реакции выживших чаще: +{p} процентных пункта вероятности в секунду',
+    'ein verfehlter Skill Check kostet die Survivor {p} % Fortschritt mehr':
+        'проваленная проверка реакции стоит выжившим на {p} % прогресса больше',
     'ein verfehlter Skill Check kostet {p} % Fortschritt mehr':
         'проваленная проверка реакции стоит на {p} % прогресса больше',
     'jeder erfolgreiche Skill Check der anderen bringt im Mittel +{p} % Fortschritt (W20)':

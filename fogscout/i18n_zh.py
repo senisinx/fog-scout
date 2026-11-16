@@ -2065,6 +2065,8 @@ T = {
         '发电机旁所有人的技能检定更频繁：每秒触发几率 +{p} 个百分点',
     'Skill Checks der Survivor kommen öfter: +{p} Prozentpunkte Chance je Sekunde':
         '幸存者的技能检定更频繁：每秒触发几率 +{p} 个百分点',
+    'ein verfehlter Skill Check kostet die Survivor {p} % Fortschritt mehr':
+        '技能检定失败使逃生者多损失 {p} % 进度',
     'ein verfehlter Skill Check kostet {p} % Fortschritt mehr':
         '技能检定失败多损失 {p} % 进度',
     'jeder erfolgreiche Skill Check der anderen bringt im Mittel +{p} % Fortschritt (W20)':

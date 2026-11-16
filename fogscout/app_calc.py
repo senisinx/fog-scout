@@ -115,6 +115,7 @@ EFFECTS = {
     "team_check_chance": N_("Skill Checks kommen für alle am Generator öfter: +{p} Prozentpunkte Chance je Sekunde"),
     "enemy_check_chance": N_("Skill Checks der Survivor kommen öfter: +{p} Prozentpunkte Chance je Sekunde"),
     "check_fail": N_("ein verfehlter Skill Check kostet {p} % Fortschritt mehr"),
+    "enemy_check_fail": N_("ein verfehlter Skill Check kostet die Survivor {p} % Fortschritt mehr"),      # 1.56.5
     "others_check_bonus": N_("jeder erfolgreiche Skill Check der anderen bringt im Mittel +{p} % Fortschritt (W20)"),
 }
 FAIL_LESS = N_("ein verfehlter Skill Check kostet {p} % weniger Fortschritt")     # Deadline ("fail_mult")
