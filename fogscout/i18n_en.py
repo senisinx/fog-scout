@@ -4513,8 +4513,8 @@ EN = {
         'Nothing is added while a recording runs – OBS is writing into the recordings folder.',
     'Keine Videos ohne Eintrag gefunden (gesucht: Aufnahmeordner und „Farming“, geschrieben in den letzten {days} Tagen).':
         'No videos without an entry found (searched: recordings folder and “Farming”, written in the last {days} days).',
-    '{n} Videos ({size}) im Aufnahmeordner stehen in keiner Aufnahme:\n{list}\n\nAls Aufnahmen ohne Map in die Liste übernehmen? Die Dateien werden nicht umbenannt. Danach zählen sie wie eigene Aufnahmen: Fog Scout räumt sie bei Platzmangel (und im Ordner „Farming“ nach den Farming-Tagen) auf, ausser du behältst sie.':
-        "{n} videos ({size}) in the recordings folder belong to no recording:\n{list}\n\nAdd them to the list as recordings without a map? The files are not renamed. Afterwards they count like Fog Scout's own recordings: it prunes them when room is short (and in the “Farming” folder after the farming days) unless you keep them.",
+    '{n} Videos ({size}) im Aufnahmeordner stehen in keiner Aufnahme:\n{list}\n\nAls Aufnahmen ohne Map in die Liste übernehmen? Die Dateien werden nicht umbenannt, und Fog Scout räumt sie nie von selbst auf (weder bei Platzmangel noch nach den Farming-Tagen) – löschen kannst nur du sie, auf der Seite Aufnahmen.':
+        '{n} videos ({size}) in the recordings folder belong to no recording:\n{list}\n\nAdd them to the list as recordings without a map? The files are not renamed, and Fog Scout never cleans them up by itself (neither when room is short nor after the farming days) – only you can delete them, on the Recordings page.',
     'Nachtragen':
         'Add',
     'Marken-Clips: {done} von {total} …':

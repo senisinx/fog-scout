@@ -161,12 +161,20 @@ DEFAULT_FARMING_DAYS = 7
 FARMING_CHECK_S = 3600.0              # how often the recorder thread looks for expired ones
 
 
+def adopted(r: Recording) -> bool:
+    """A recording taken in with "Aufnahmen nachtragen …": a video Fog Scout did not make itself (it may be one the
+    user recorded by hand), so no automatic cleanup ever deletes it – only the user, from the page
+    (docs/regeln/obs.md)."""
+    return bool((r.extra or {}).get("adopted"))
+
+
 def expired_farming(recs: list[Recording], days: int, now: float) -> list[Recording]:
-    """1.8.23 (pure): farming recordings older than ``days`` – never kept ones, never ones with a mark (F8)."""
+    """1.8.23 (pure): farming recordings older than ``days`` – never kept ones, never ones with a mark (F8), never
+    taken-in ones (``adopted``)."""
     if not days or days <= 0:
         return []
     limit = now - days * 86400
-    return [r for r in recs if r.farming and not r.keep and not r.marks and r.t < limit]
+    return [r for r in recs if r.farming and not r.keep and not r.marks and not adopted(r) and r.t < limit]
 
 
 def protected_paths(folder: str, protect) -> set:
@@ -227,7 +235,8 @@ def prune(folder: str, recs: list[Recording], limit: int, reserve: int = RESERVE
           free=None, protect=()) -> tuple[list[Recording], list[str]]:
     """Keep the folder's recordings under ``limit`` bytes (0 = the whole drive) and ``reserve`` bytes free on
     the drive: delete not-kept ones of the index in ``prune_rank`` order (farming/short first, marked last,
-    oldest first) – only files named in it, only inside ``folder``; 1.55.1: never one in ``protect`` (like kept).
+    oldest first) – only files named in it, only inside ``folder``; 1.55.1: never one in ``protect`` (like kept);
+    never a taken-in one (``adopted``).
     Entries whose files are gone drop out. ``free`` = bytes free now (measured when None).
     Returns (entries left, files deleted)."""
     left, deleted = [], []
@@ -244,7 +253,7 @@ def prune(folder: str, recs: list[Recording], limit: int, reserve: int = RESERVE
             free = reserve
     total = sum(r.size for r in left)
     paths = protected_paths(folder, protect)
-    for r in sorted([r for r in left if not r.keep and not in_use(folder, r, paths)],
+    for r in sorted([r for r in left if not r.keep and not adopted(r) and not in_use(folder, r, paths)],
                     key=lambda r: (prune_rank(r), r.t)):
         if (limit <= 0 or total <= limit) and free >= reserve:
             break

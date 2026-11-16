@@ -2751,3 +2751,31 @@ def test_the_space_forecast_divides_the_room_by_what_a_median_round_takes():
     odd = [R(t=0.0, end=0.0, file="d.mkv", size=10), R(t=5.0, end=9.0, file="e.mkv", size=0)]
     assert obsrec.rounds_left(free, recs[:2] + odd) is None
     assert obsrec.rounds_left(free, recs[:2] + [R(t=0.0, end=100.0, file="f.mkv", size=100_000_000)]) is not None
+
+
+def test_taken_in_recordings_are_never_cleaned_up_by_themselves(tmp_path):
+    """Saru (16.11.2026, "Ja" to: take in, but never prune automatically): a video taken in with "Aufnahmen nachtragen
+    …" may be one the user recorded by hand – neither room nor farming days delete it, only the user from the page
+    (the normal delete path, test_the_recorder_adds_found_videos_as_recordings_without_a_map_and_renames_nothing)."""
+    folder = str(tmp_path)
+    os.makedirs(os.path.join(folder, obsrec.FARMING_DIR))
+    recs = []
+    for i, name in enumerate(("own0.mkv", "taken.mkv", "own2.mkv")):
+        with open(os.path.join(folder, name), "wb") as f:
+            f.write(b"\0" * 100)
+        recs.append(obsrec.Recording(t=float(i), file=name, extra={"adopted": True} if name == "taken.mkv" else {}))
+    assert [obsrec.adopted(r) for r in recs] == [False, True, False]
+    # room for one file only: both own recordings go, the taken-in one (older than own2) stays
+    left, deleted = obsrec.prune(folder, recs, limit=100, reserve=0, free=10 ** 9)
+    assert deleted == ["own0.mkv", "own2.mkv"] and [r.file for r in left] == ["taken.mkv"]
+    assert os.path.exists(os.path.join(folder, "taken.mkv"))
+    # farming days: an old taken-in farming video stays, an own one of the same age goes
+    now = 100 * 86400.0
+    farm = []
+    for name, extra in (("Farming/own.mkv", {}), ("Farming/taken.mkv", {"adopted": True})):
+        with open(os.path.join(folder, *name.split("/")), "wb") as f:
+            f.write(b"\0" * 100)
+        farm.append(obsrec.Recording(t=1.0, file=name, farming=True, extra=extra))
+    assert [r.file for r in obsrec.expired_farming(farm, 7, now)] == ["Farming/own.mkv"]
+    left, deleted = obsrec.prune_farming(folder, farm, 7, now=now)
+    assert deleted == ["Farming/own.mkv"] and [r.file for r in left] == ["Farming/taken.mkv"]

@@ -6040,8 +6040,8 @@ T = {
         'Во время записи ничего не добавляется – OBS сейчас пишет в папку записей.',
     'Keine Videos ohne Eintrag gefunden (gesucht: Aufnahmeordner und „Farming“, geschrieben in den letzten {days} Tagen).':
         'Видео без записи в списке не найдено (поиск: папка записей и «Farming», за последние {days} дн.).',
-    '{n} Videos ({size}) im Aufnahmeordner stehen in keiner Aufnahme:\n{list}\n\nAls Aufnahmen ohne Map in die Liste übernehmen? Die Dateien werden nicht umbenannt. Danach zählen sie wie eigene Aufnahmen: Fog Scout räumt sie bei Platzmangel (und im Ordner „Farming“ nach den Farming-Tagen) auf, ausser du behältst sie.':
-        '{n} видео ({size}) в папке записей не относятся ни к одной записи:\n{list}\n\nДобавить их в список как записи без карты? Файлы не переименовываются. После этого они считаются собственными записями: Fog Scout удаляет их при нехватке места (а в папке «Farming» — по истечении дней фарма), если вы их не сохраните.',
+    '{n} Videos ({size}) im Aufnahmeordner stehen in keiner Aufnahme:\n{list}\n\nAls Aufnahmen ohne Map in die Liste übernehmen? Die Dateien werden nicht umbenannt, und Fog Scout räumt sie nie von selbst auf (weder bei Platzmangel noch nach den Farming-Tagen) – löschen kannst nur du sie, auf der Seite Aufnahmen.':
+        '{n} видео ({size}) в папке записей не относятся ни к одной записи:\n{list}\n\nДобавить их в список как записи без карты? Файлы не переименовываются, и Fog Scout никогда не удаляет их сам (ни при нехватке места, ни по истечении дней фарма) — удалить их можете только вы, на странице «Записи».',
     'Nachtragen':
         'Добавить',
     'Marken-Clips: {done} von {total} …':

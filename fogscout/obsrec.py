@@ -41,10 +41,10 @@ from .recindex import (  # 1.38.35: index, clips and pruning live there; every n
     CLIPS_DIR, CLIPS_INDEX, CLIP_EXTS, CLIP_KINDS, Clip, DEFAULT_FARMING_DAYS, FARMING_CHECK_S, FARMING_DAYS, INDEX,
     NAME_CHARS, OLD_CLIPS_INDEX, OLD_INDEX, PARTS_CHECK_S, PARTS_WRITING, PART_EXT, PART_STALE_S, RESERVE, Recording,
     SHORT_ROUND_S, STILL_EXTS, Space, VIDEO_EXTS, _COPY_RE, _SPACE, _STAMP_RE, _entry, _index_stamp, _kind_value, _who,
-    adopt_clip, adopt_old_file, clips_dir, deletable, expired_farming, own_files, file_name, in_use, list_clips,
+    adopt_clip, adopt_old_file, adopted, clips_dir, deletable, expired_farming, own_files, file_name, in_use, list_clips,
     load_clips, load_index, part_key, protected_paths, prune, prune_farming, prune_rank, save_clips, save_index, select_clips, select_recordings, settle_parts, space, whole,
     FARMING_SUB, FORECAST_MIN, UNINDEXED_MAX_AGE_S, UNINDEXED_QUIET_S, rounds_left, unindexed_videos)
-_INDEX_NAMES = (CLIPS_DIR, CLIPS_INDEX, CLIP_EXTS, CLIP_KINDS, Clip, DEFAULT_FARMING_DAYS, FARMING_CHECK_S, FARMING_DAYS, INDEX, NAME_CHARS, OLD_CLIPS_INDEX, OLD_INDEX, PARTS_CHECK_S, PARTS_WRITING, PART_EXT, PART_STALE_S, RESERVE, Recording, SHORT_ROUND_S, STILL_EXTS, Space, VIDEO_EXTS, _COPY_RE, _SPACE, _STAMP_RE, _entry, _index_stamp, _kind_value, _who, adopt_clip, adopt_old_file, clips_dir, deletable, expired_farming, own_files, file_name, in_use, list_clips, load_clips, load_index, part_key, protected_paths, prune, prune_farming, prune_rank, save_clips, save_index, select_clips, select_recordings, settle_parts, space, whole, FARMING_SUB, FORECAST_MIN, UNINDEXED_MAX_AGE_S, UNINDEXED_QUIET_S, rounds_left, unindexed_videos)   # re-exported
+_INDEX_NAMES = (CLIPS_DIR, CLIPS_INDEX, CLIP_EXTS, CLIP_KINDS, Clip, DEFAULT_FARMING_DAYS, FARMING_CHECK_S, FARMING_DAYS, INDEX, NAME_CHARS, OLD_CLIPS_INDEX, OLD_INDEX, PARTS_CHECK_S, PARTS_WRITING, PART_EXT, PART_STALE_S, RESERVE, Recording, SHORT_ROUND_S, STILL_EXTS, Space, VIDEO_EXTS, _COPY_RE, _SPACE, _STAMP_RE, _entry, _index_stamp, _kind_value, _who, adopt_clip, adopt_old_file, adopted, clips_dir, deletable, expired_farming, own_files, file_name, in_use, list_clips, load_clips, load_index, part_key, protected_paths, prune, prune_farming, prune_rank, save_clips, save_index, select_clips, select_recordings, settle_parts, space, whole, FARMING_SUB, FORECAST_MIN, UNINDEXED_MAX_AGE_S, UNINDEXED_QUIET_S, rounds_left, unindexed_videos)   # re-exported
 
 log = logging.getLogger("fogscout")
 

@@ -6040,8 +6040,8 @@ T = {
         '録画中は何も追加しません – OBS が録画フォルダーに書き込み中です。',
     'Keine Videos ohne Eintrag gefunden (gesucht: Aufnahmeordner und „Farming“, geschrieben in den letzten {days} Tagen).':
         '登録されていない動画は見つかりませんでした（検索対象：録画フォルダーと「Farming」、過去 {days} 日以内に書き込まれたもの）。',
-    '{n} Videos ({size}) im Aufnahmeordner stehen in keiner Aufnahme:\n{list}\n\nAls Aufnahmen ohne Map in die Liste übernehmen? Die Dateien werden nicht umbenannt. Danach zählen sie wie eigene Aufnahmen: Fog Scout räumt sie bei Platzmangel (und im Ordner „Farming“ nach den Farming-Tagen) auf, ausser du behältst sie.':
-        '録画フォルダーに、どの録画にも属さない動画が {n} 本（{size}）あります：\n{list}\n\nマップなしの録画としてリストに追加しますか？ファイル名は変更しません。追加後は自分の録画と同じ扱いになり、空き容量が足りないとき（「Farming」フォルダーではファーミング日数の経過後）Fog Scout が整理します。保持した場合は除きます。',
+    '{n} Videos ({size}) im Aufnahmeordner stehen in keiner Aufnahme:\n{list}\n\nAls Aufnahmen ohne Map in die Liste übernehmen? Die Dateien werden nicht umbenannt, und Fog Scout räumt sie nie von selbst auf (weder bei Platzmangel noch nach den Farming-Tagen) – löschen kannst nur du sie, auf der Seite Aufnahmen.':
+        '録画フォルダーの動画 {n} 本（{size}）がどの録画にも属していません:\n{list}\n\nマップなしの録画として一覧に追加しますか？ファイル名は変わらず、Fog Scout が自動で削除することもありません（容量不足でもファーミング日数後でも）。削除できるのはあなただけで、「録画」ページから行えます。',
     'Nachtragen':
         '追加',
     'Marken-Clips: {done} von {total} …':

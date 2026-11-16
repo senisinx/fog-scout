@@ -1508,9 +1508,9 @@ class RecordingsTab:
         names = [n for n, _size, _t in files]
         listed = "\n".join("• " + n for n in names[:8]) + ("\n…" if len(names) > 8 else "")
         text = _("{n} Videos ({size}) im Aufnahmeordner stehen in keiner Aufnahme:\n{list}\n\nAls Aufnahmen ohne Map "
-                 "in die Liste übernehmen? Die Dateien werden nicht umbenannt. Danach zählen sie wie eigene Aufnahmen: "
-                 "Fog Scout räumt sie bei Platzmangel (und im Ordner „Farming“ nach den Farming-Tagen) auf, ausser du "
-                 "behältst sie.", n=len(names), size=fmt_bytes(sum(s for _n, s, _t in files)), list=listed)
+                 "in die Liste übernehmen? Die Dateien werden nicht umbenannt, und Fog Scout räumt sie nie von selbst auf "
+                 "(weder bei Platzmangel noch nach den Farming-Tagen) – löschen kannst nur du sie, auf der Seite "
+                 "Aufnahmen.", n=len(names), size=fmt_bytes(sum(s for _n, s, _t in files)), list=listed)
         if not self._ask(_("Aufnahmen nachtragen"), text, self._rec_adopt_confirm, ok_text=_("Nachtragen")):
             return
         self._rec_adopt_offer = None

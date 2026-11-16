@@ -6040,8 +6040,8 @@ T = {
         'Durante una registrazione non si aggiunge nulla – OBS sta scrivendo nella cartella delle registrazioni.',
     'Keine Videos ohne Eintrag gefunden (gesucht: Aufnahmeordner und „Farming“, geschrieben in den letzten {days} Tagen).':
         'Nessun video senza voce trovato (cercato: cartella delle registrazioni e “Farming”, scritti negli ultimi {days} giorni).',
-    '{n} Videos ({size}) im Aufnahmeordner stehen in keiner Aufnahme:\n{list}\n\nAls Aufnahmen ohne Map in die Liste übernehmen? Die Dateien werden nicht umbenannt. Danach zählen sie wie eigene Aufnahmen: Fog Scout räumt sie bei Platzmangel (und im Ordner „Farming“ nach den Farming-Tagen) auf, ausser du behältst sie.':
-        "{n} video ({size}) nella cartella delle registrazioni non appartengono a nessuna registrazione:\n{list}\n\nAggiungerli all'elenco come registrazioni senza mappa? I file non vengono rinominati. Poi contano come registrazioni proprie: Fog Scout li elimina quando manca spazio (e nella cartella “Farming” dopo i giorni di farming), a meno che tu non li tenga.",
+    '{n} Videos ({size}) im Aufnahmeordner stehen in keiner Aufnahme:\n{list}\n\nAls Aufnahmen ohne Map in die Liste übernehmen? Die Dateien werden nicht umbenannt, und Fog Scout räumt sie nie von selbst auf (weder bei Platzmangel noch nach den Farming-Tagen) – löschen kannst nur du sie, auf der Seite Aufnahmen.':
+        "{n} video ({size}) nella cartella delle registrazioni non appartengono a nessuna registrazione:\n{list}\n\nAggiungerli all'elenco come registrazioni senza mappa? I file non vengono rinominati e Fog Scout non li elimina mai da solo (né quando manca spazio né dopo i giorni di farming) – solo tu puoi eliminarli, nella pagina Registrazioni.",
     'Nachtragen':
         'Aggiungi',
     'Marken-Clips: {done} von {total} …':

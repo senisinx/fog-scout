@@ -6040,8 +6040,8 @@ T = {
         '녹화 중에는 아무것도 추가하지 않습니다 – OBS가 녹화 폴더에 쓰는 중입니다.',
     'Keine Videos ohne Eintrag gefunden (gesucht: Aufnahmeordner und „Farming“, geschrieben in den letzten {days} Tagen).':
         "항목이 없는 동영상을 찾지 못했습니다(검색: 녹화 폴더와 'Farming', 최근 {days}일 이내에 기록됨).",
-    '{n} Videos ({size}) im Aufnahmeordner stehen in keiner Aufnahme:\n{list}\n\nAls Aufnahmen ohne Map in die Liste übernehmen? Die Dateien werden nicht umbenannt. Danach zählen sie wie eigene Aufnahmen: Fog Scout räumt sie bei Platzmangel (und im Ordner „Farming“ nach den Farming-Tagen) auf, ausser du behältst sie.':
-        "녹화 폴더에 어느 녹화에도 속하지 않는 동영상 {n}개({size})가 있습니다:\n{list}\n\n맵 없는 녹화로 목록에 추가할까요? 파일 이름은 바뀌지 않습니다. 이후에는 자체 녹화처럼 취급되어, 공간이 부족하면(및 'Farming' 폴더에서는 파밍 일수가 지나면) Fog Scout가 정리합니다. 보관하면 예외입니다.",
+    '{n} Videos ({size}) im Aufnahmeordner stehen in keiner Aufnahme:\n{list}\n\nAls Aufnahmen ohne Map in die Liste übernehmen? Die Dateien werden nicht umbenannt, und Fog Scout räumt sie nie von selbst auf (weder bei Platzmangel noch nach den Farming-Tagen) – löschen kannst nur du sie, auf der Seite Aufnahmen.':
+        '녹화 폴더의 동영상 {n}개({size})가 어떤 녹화에도 속하지 않습니다:\n{list}\n\n맵 없는 녹화로 목록에 추가할까요? 파일 이름은 바뀌지 않으며, Fog Scout가 스스로 정리하는 일도 없습니다(공간이 부족할 때도, 파밍 기간이 지나도). 삭제는 녹화 페이지에서 직접만 할 수 있습니다.',
     'Nachtragen':
         '추가',
     'Marken-Clips: {done} von {total} …':

@@ -6040,8 +6040,8 @@ T = {
         '录制进行中，不会补录任何内容 – OBS 正在向录像文件夹写入。',
     'Keine Videos ohne Eintrag gefunden (gesucht: Aufnahmeordner und „Farming“, geschrieben in den letzten {days} Tagen).':
         '未发现没有条目的视频（搜索范围：录像文件夹和“Farming”，最近 {days} 天内写入）。',
-    '{n} Videos ({size}) im Aufnahmeordner stehen in keiner Aufnahme:\n{list}\n\nAls Aufnahmen ohne Map in die Liste übernehmen? Die Dateien werden nicht umbenannt. Danach zählen sie wie eigene Aufnahmen: Fog Scout räumt sie bei Platzmangel (und im Ordner „Farming“ nach den Farming-Tagen) auf, ausser du behältst sie.':
-        '录像文件夹中有 {n} 个视频（{size}）不属于任何录像：\n{list}\n\n要将它们作为无地图的录像加入列表吗？文件不会被重命名。之后它们与自己的录像一样处理：空间不足时（以及“Farming”文件夹中超过刷分天数后）Fog Scout 会清理它们，除非你选择保留。',
+    '{n} Videos ({size}) im Aufnahmeordner stehen in keiner Aufnahme:\n{list}\n\nAls Aufnahmen ohne Map in die Liste übernehmen? Die Dateien werden nicht umbenannt, und Fog Scout räumt sie nie von selbst auf (weder bei Platzmangel noch nach den Farming-Tagen) – löschen kannst nur du sie, auf der Seite Aufnahmen.':
+        '录像文件夹中有 {n} 个视频（{size}）不属于任何录像：\n{list}\n\n要把它们作为无地图的录像加入列表吗？文件不会被重命名，Fog Scout 也绝不会自动清理它们（无论空间不足还是刷分天数到期）——只有你能在“录像”页面删除它们。',
     'Nachtragen':
         '补录',
     'Marken-Clips: {done} von {total} …':
