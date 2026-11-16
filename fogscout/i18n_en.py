@@ -1578,6 +1578,8 @@ EN = {
         'skill checks come more often for everyone at the generator: +{p} percentage points of chance per second',
     'Skill Checks der Survivor kommen öfter: +{p} Prozentpunkte Chance je Sekunde':
         "the survivors' skill checks come more often: +{p} percentage points of chance per second",
+    'ein verfehlter Skill Check kostet die Survivor {p} % Fortschritt mehr':
+        'a missed skill check costs the survivors {p} % more progress',
     'ein verfehlter Skill Check kostet {p} % Fortschritt mehr':
         'a missed skill check costs {p} % more progress',
     'jeder erfolgreiche Skill Check der anderen bringt im Mittel +{p} % Fortschritt (W20)':

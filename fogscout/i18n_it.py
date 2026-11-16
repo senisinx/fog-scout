@@ -2065,6 +2065,8 @@ T = {
         'le prove di abilità arrivano più spesso per tutti al generatore: +{p} punti percentuali di probabilità al secondo',
     'Skill Checks der Survivor kommen öfter: +{p} Prozentpunkte Chance je Sekunde':
         'le prove di abilità dei sopravvissuti arrivano più spesso: +{p} punti percentuali di probabilità al secondo',
+    'ein verfehlter Skill Check kostet die Survivor {p} % Fortschritt mehr':
+        'una prova di abilità fallita costa ai sopravvissuti il {p} % di progresso in più',
     'ein verfehlter Skill Check kostet {p} % Fortschritt mehr':
         'una prova di abilità fallita costa il {p} % di progresso in più',
     'jeder erfolgreiche Skill Check der anderen bringt im Mittel +{p} % Fortschritt (W20)':

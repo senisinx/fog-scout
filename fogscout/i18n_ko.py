@@ -2065,6 +2065,8 @@ T = {
         '발전기에 있는 모두의 기술 검사가 더 자주 발생: 초당 확률 +{p} 퍼센트포인트',
     'Skill Checks der Survivor kommen öfter: +{p} Prozentpunkte Chance je Sekunde':
         '생존자의 기술 검사가 더 자주 발생: 초당 확률 +{p} 퍼센트포인트',
+    'ein verfehlter Skill Check kostet die Survivor {p} % Fortschritt mehr':
+        '기술 검사 실패 시 생존자가 잃는 진행도가 {p} % 증가',
     'ein verfehlter Skill Check kostet {p} % Fortschritt mehr':
         '기술 검사 실패 시 진행도를 {p} % 더 잃음',
     'jeder erfolgreiche Skill Check der anderen bringt im Mittel +{p} % Fortschritt (W20)':

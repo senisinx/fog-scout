@@ -113,7 +113,8 @@ def test_the_data_file_is_complete_and_sourced():
     assert all(e["kind"] in kinds for e in raw["survivor"])
     for e in raw["killer"]:
         assert e["kind"] in {"slow", "slow_first", "kick_loss", "overcharge", "regress_mult", "ruin",
-                             "instant", "undone", "block", "enemy_check_chance"}, e["name"]
+                             "instant", "undone", "block", "enemy_check_chance",
+                             "enemy_check_fail"}, e["name"]                              # 1.56.5
     assert g.fmt(83.4) == "1:23" and g.fmt(None) == "–"
 
 
@@ -268,6 +269,28 @@ def test_the_page_shows_what_the_perks_make_of_a_missed_a_great_and_a_successful
     assert [v["extra"] for v in bardic] == [(0.0, 0.0), (0.0, pytest.approx(0.015))]
     assert [key for key, _text in app_calc.CHECK_LINES] == ["fail", "great", "extra"] == list(plain[0])
     assert app_calc.check_text(0.01, 0.019375) == "1 % → 1.94 %"
+
+
+def test_huntress_lullaby_raises_what_a_missed_check_costs_every_survivor():
+    """1.56.5 (Saru: "Bau Lullaby ein"): Hex: Huntress Lullaby, tier III – a missed Repair Skill Check costs 6
+    points more, for every Survivor (the Killer's perk); added like Technician, halved with Deadline."""
+    lullaby = K(("Hex: Huntress Lullaby",))
+    assert "Hex: Huntress Lullaby" in D.killer and "Hex: Huntress Lullaby" not in D.not_modelled
+    assert g.skill_checks(D, [S(), S(("Technician",)), S(("Deadline",))], lullaby) == [
+        (0.0, pytest.approx(0.16), 0.0), (0.0, pytest.approx(0.18), 0.0),
+        (pytest.approx(0.1), pytest.approx(0.08), 0.0)]
+    assert [v["fail"] for v in g.check_values(D, [S(), S()], lullaby)] == [(0.1, pytest.approx(0.16))] * 2
+    assert g.check_chances(D, [S()], lullaby) == [(pytest.approx(0.08), pytest.approx(0.08))]     # no more checks
+    # half the checks missed, none Great: (1 − 0.08 · 0.5 · 14.4) · (1 − 0.08 · 0.5 · 3) = 0.424 · 0.88 c/s
+    missing = Sc(great=0, miss=0.5, kicks=0)
+    assert g.one_generator(D, [S()], lullaby, missing).seconds == pytest.approx(90 / (0.424 * 0.88), abs=0.02)
+    assert g.one_generator(D, [S()], lullaby, missing).seconds > g.one_generator(D, [S()], K(), missing).seconds
+    # nobody misses: the perk changes nothing
+    clean = Sc(great=0, miss=0, kicks=0)
+    assert g.one_generator(D, [S()], lullaby, clean).seconds == g.one_generator(D, [S()], K(), clean).seconds
+    from fogscout import app_calc
+    assert app_calc.effect_text(D.killer["Hex: Huntress Lullaby"], D.mech) == \
+        "ein verfehlter Skill Check kostet die Survivor 6 % Fortschritt mehr"
 
 
 def test_deadline_halves_and_technician_raises_what_a_missed_check_costs():
