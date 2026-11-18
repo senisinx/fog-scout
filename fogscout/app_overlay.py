@@ -447,7 +447,7 @@ class OverlayTab:
         scb.pack(side="left", padx=6)
         scb.bind("<<ComboboxSelected>>", lambda e: self._loadouts_style_changed())
         self.loadouts_items_var = ui.BooleanVar(value=bool(o.get("loadouts_items", True)))
-        self._reg("ov.loadouts_items", ui.Checkbutton(lf, text=_("Item und Add-ons neben den Perks"),
+        self._reg("ov.loadouts_items", ui.Checkbutton(lf, text=_("Opfergabe, Item und Add-ons neben den Perks"),
                                                       variable=self.loadouts_items_var,
                                                       command=self._loadouts_items_changed)).pack(anchor="w",
                                                                                                   pady=(2, 0))

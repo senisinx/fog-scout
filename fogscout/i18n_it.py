@@ -6107,10 +6107,8 @@ T = {
         "Solo da sopravvissuto: premi Esc una volta durante la partita – Fog Scout legge i loadout degli altri dall'immagine del menu e poi li mostra accanto a loro. Nulla viene salvato o inviato.",
     'Neben jedem anderen Survivor in der Liste links erscheinen seine vier Perks als Raute – gelesen aus dem Pausenmenü (Esc), das DBD Survivorn zeigt. Nur das Bild wird gelesen, nur bei offenem Menü, nie als Killer; nichts wird gespeichert oder gesendet.':
         "Accanto a ogni altro sopravvissuto nella lista a sinistra compaiono i suoi quattro perk come rombo – letti dal menu di pausa (Esc) che DBD mostra ai sopravvissuti. Si legge solo l'immagine, solo a menu aperto, mai da killer; nulla viene salvato o inviato.",
-    'Das Item und seine zwei Add-ons als kleine Kästchen links neben den Perks.':
-        "L'oggetto e i suoi due add-on come piccoli quadrati a sinistra dei perk.",
-    'Item und Add-ons neben den Perks':
-        'Oggetto e add-on accanto ai perk',
+    'Opfergabe, Item und Add-ons neben den Perks':
+        'Offerta, oggetto e add-on accanto ai perk',
     'LOADOUTS':
         'LOADOUT',
     'Loadouts':
@@ -6134,4 +6132,7 @@ T = {
         'Sotto il nome',
     '„In einer Reihe“ passt am besten unter den Namen oder an eine eigene Position.':
         '«In una riga» sta meglio sotto il nome o in una posizione propria.',
+    # 1.57.4: offerings
+    'Die Opfergabe (eine verdeckte als „?“), das Item und seine zwei Add-ons als kleine Felder neben den Perks.':
+        "L'offerta (una nascosta come «?»), l'oggetto e i suoi due add-on come piccoli riquadri accanto ai perk.",
 }

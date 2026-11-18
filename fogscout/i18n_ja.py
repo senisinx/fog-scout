@@ -6107,10 +6107,8 @@ T = {
         'サバイバーのみ：試合中に Esc を一度押すと、Fog Scout がメニュー画面から他の人のロードアウトを読み取り、その後それぞれの横に表示します。何も保存・送信しません。',
     'Neben jedem anderen Survivor in der Liste links erscheinen seine vier Perks als Raute – gelesen aus dem Pausenmenü (Esc), das DBD Survivorn zeigt. Nur das Bild wird gelesen, nur bei offenem Menü, nie als Killer; nichts wird gespeichert oder gesendet.':
         '左のリストの他のサバイバーそれぞれの横に、その4つのパークがひし形で表示されます。DBD がサバイバーに見せるポーズメニュー（Esc）から読み取ります。読むのは画面だけ、メニューが開いている間だけ、キラーの時は読みません。何も保存・送信しません。',
-    'Das Item und seine zwei Add-ons als kleine Kästchen links neben den Perks.':
-        'アイテムと2つのアドオンを、パークの左に小さな四角で表示します。',
-    'Item und Add-ons neben den Perks':
-        'パークの横にアイテムとアドオン',
+    'Opfergabe, Item und Add-ons neben den Perks':
+        'パークの横に供物、アイテムとアドオン',
     'LOADOUTS':
         'ロードアウト',
     'Loadouts':
@@ -6134,4 +6132,7 @@ T = {
         '名前の下',
     '„In einer Reihe“ passt am besten unter den Namen oder an eine eigene Position.':
         '「一列に並べる」は名前の下か独自の位置が最適です。',
+    # 1.57.4: offerings
+    'Die Opfergabe (eine verdeckte als „?“), das Item und seine zwei Add-ons als kleine Felder neben den Perks.':
+        '供物（隠されたものは「?」）、アイテムと2つのアドオンを、パークの横に小さな枠で表示します。',
 }

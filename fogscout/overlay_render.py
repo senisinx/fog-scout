@@ -1257,23 +1257,47 @@ def _loadout_icon(path, side: int):
 
 def loadout_size(cluster: int, height: int, items: bool = True, row: bool = False) -> tuple:
     """(width, height) of the loadout picture – its width the same for every board (it never breathes). ``row``
-    (1.57.3): the four perks side by side, ``cluster`` = their height."""
+    (1.57.3): the four perks side by side, ``cluster`` = their height. 1.57.4: with ``items`` four small slots
+    (offering, item, two add-ons)."""
     if row:
         gap = max(1, cluster // 10)
-        w = 4 * cluster + (gap * 3 + 3 * (int(cluster * 0.86) + gap) if items else 0)
+        w = 4 * cluster + (gap * 3 + 4 * (int(cluster * 0.86) + gap) if items else 0)
         return w, max(cluster, int(height))
-    sq = max(6, cluster // 3)
+    sq = max(6, cluster // 4)
     w = cluster + (sq + max(2, cluster // 16) if items else 0)
     return w, max(cluster, int(height))
+
+
+def _loadout_extras(row) -> tuple:
+    """(name, kind) of a row's small slots in DBD's order: offering, item, two add-ons."""
+    return (((row.offering, "offerings"), (row.item, "items")) + tuple((a, "addons") for a in row.addons))
+
+
+def _loadout_slot(out, d, name, kind, x, y, s, edge, icon):
+    """One small slot at (x, y), ``s`` px: an offering is a hexagon, the rest squares; a hidden offering (no
+    picture) shows a "?"."""
+    fill = LOADOUT_SQUARE if name else LOADOUT_EMPTY
+    if kind == "offerings":
+        c, r = (x + s / 2, y + s / 2), s / 2 - edge
+        hexagon = [(c[0] + r * math.cos(math.radians(a)), c[1] + r * math.sin(math.radians(a)))
+                   for a in range(30, 390, 60)]
+        d.polygon(hexagon, fill=fill, outline=LOADOUT_EDGE, width=edge)
+    else:
+        d.rectangle((x, y, x + s - 1, y + s - 1), fill=fill, outline=LOADOUT_EDGE, width=edge)
+    pic = _loadout_icon(icon(name, kind), s) if name and icon else None
+    if pic is not None:
+        out.alpha_composite(pic, (int(x), int(y)))
+    elif name and kind == "offerings":                # 1.57.4: hidden – drawn, no game picture
+        f = _font(max(8, int(s * 0.7)))
+        d.text((x + s / 2, y + s / 2), "?", font=f, fill=(235, 225, 205, 255), anchor="mm")
 
 
 def loadout_card(rows, cluster: int, tops, height: int, items: bool = True, icon=None, row: bool = False) -> Image.Image:
     """1.57: the other survivors' loadouts – per row (``loadouts.Row``) DBD's four perk diamonds as one large diamond
     (top, left, right, bottom) ``cluster`` px tall, its top at ``tops[i]`` px (beside that survivor's portrait in
-    the HUD); with ``items`` the item and its two add-ons as small squares on its left. ``icon(name, kind)`` gives a
-    picture file. A slot not read stays an empty diamond / square; a row without anything is not drawn. ``row``
-    (1.57.3): each survivor's perks side by side like in DBD's menu, ``cluster`` px tall, item and add-ons after
-    them."""
+    the HUD); with ``items`` the offering, item and two add-ons as small slots on its left. ``icon(name, kind)``
+    gives a picture file. A slot not read stays empty; a row without anything is not drawn. ``row`` (1.57.3): each
+    survivor's perks side by side like in DBD's menu, ``cluster`` px tall, offering, item and add-ons after them."""
     if row:
         return _loadout_rows(rows, cluster, tops, height, items, icon)
     w, h = loadout_size(cluster, height, items)
@@ -1281,7 +1305,7 @@ def loadout_card(rows, cluster: int, tops, height: int, items: bool = True, icon
     d = ImageDraw.Draw(out)
     half = cluster / 2
     side = int(cluster * 0.5)                          # one perk's diamond: its bounding square
-    sq = max(6, cluster // 3)
+    sq = max(6, cluster // 4)
     edge = max(1, cluster // 48)
     for row, top in zip(rows, tops):
         if row is None or row.empty:
@@ -1297,14 +1321,9 @@ def loadout_card(rows, cluster: int, tops, height: int, items: bool = True, icon
             if pic is not None:
                 out.alpha_composite(pic, (int(px - side / 2), int(py - side / 2)))
         if items:
-            gap = max(1, (cluster - 3 * sq) // 2)
-            for k, (name, kind) in enumerate(((row.item, "items"),) + tuple((a, "addons") for a in row.addons)):
-                bx, by = 0, int(top + k * (sq + gap))
-                d.rectangle((bx, by, bx + sq - 1, by + sq - 1), fill=LOADOUT_SQUARE if name else LOADOUT_EMPTY,
-                            outline=LOADOUT_EDGE, width=edge)
-                pic = _loadout_icon(icon(name, kind), sq) if name and icon else None
-                if pic is not None:
-                    out.alpha_composite(pic, (bx, by))
+            gap = max(0, (cluster - 4 * sq) // 3)
+            for k, (name, kind) in enumerate(_loadout_extras(row)):
+                _loadout_slot(out, d, name, kind, 0, int(top + k * (sq + gap)), sq, edge, icon)
     return out
 
 
@@ -1330,12 +1349,7 @@ def _loadout_rows(rows, size: int, tops, height: int, items: bool, icon) -> Imag
                 out.alpha_composite(pic, (k * size, top))
         if items:
             x = 4 * size + gap * 3
-            for name, kind in ((row.item, "items"),) + tuple((a, "addons") for a in row.addons):
-                by = top + (size - sq) // 2
-                d.rectangle((x, by, x + sq - 1, by + sq - 1), fill=LOADOUT_SQUARE if name else LOADOUT_EMPTY,
-                            outline=LOADOUT_EDGE, width=edge)
-                pic = _loadout_icon(icon(name, kind), sq) if name and icon else None
-                if pic is not None:
-                    out.alpha_composite(pic, (x, by))
+            for name, kind in _loadout_extras(row):
+                _loadout_slot(out, d, name, kind, x, top + (size - sq) // 2, sq, edge, icon)
                 x += sq + gap
     return out

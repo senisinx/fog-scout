@@ -6107,10 +6107,8 @@ T = {
         '생존자만: 매치 중 Esc를 한 번 누르세요 – Fog Scout가 메뉴 화면에서 다른 사람들의 로드아웃을 읽어 그 옆에 표시합니다. 아무것도 저장하거나 보내지 않습니다.',
     'Neben jedem anderen Survivor in der Liste links erscheinen seine vier Perks als Raute – gelesen aus dem Pausenmenü (Esc), das DBD Survivorn zeigt. Nur das Bild wird gelesen, nur bei offenem Menü, nie als Killer; nichts wird gespeichert oder gesendet.':
         '왼쪽 목록의 다른 생존자 옆에 그들의 퍽 네 개가 마름모로 표시됩니다 – DBD가 생존자에게 보여주는 일시정지 메뉴(Esc)에서 읽습니다. 화면만 읽으며, 메뉴가 열려 있을 때만, 살인마일 때는 절대 읽지 않습니다. 아무것도 저장하거나 보내지 않습니다.',
-    'Das Item und seine zwei Add-ons als kleine Kästchen links neben den Perks.':
-        '아이템과 애드온 두 개를 퍽 왼쪽에 작은 사각형으로 표시합니다.',
-    'Item und Add-ons neben den Perks':
-        '퍽 옆에 아이템과 애드온',
+    'Opfergabe, Item und Add-ons neben den Perks':
+        '퍽 옆에 공물, 아이템과 애드온',
     'LOADOUTS':
         '로드아웃',
     'Loadouts':
@@ -6134,4 +6132,7 @@ T = {
         '이름 아래',
     '„In einer Reihe“ passt am besten unter den Namen oder an eine eigene Position.':
         '‘한 줄로’는 이름 아래나 직접 정한 위치에 가장 잘 맞습니다.',
+    # 1.57.4: offerings
+    'Die Opfergabe (eine verdeckte als „?“), das Item und seine zwei Add-ons als kleine Felder neben den Perks.':
+        '공물(숨긴 공물은 ‘?’), 아이템과 애드온 두 개를 퍽 옆에 작은 칸으로 표시합니다.',
 }

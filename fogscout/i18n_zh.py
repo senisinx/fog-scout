@@ -6107,10 +6107,8 @@ T = {
         '仅限幸存者：比赛中按一次 Esc——Fog Scout 从菜单画面读取其他人的配置，之后显示在他们旁边。不保存也不发送任何内容。',
     'Neben jedem anderen Survivor in der Liste links erscheinen seine vier Perks als Raute – gelesen aus dem Pausenmenü (Esc), das DBD Survivorn zeigt. Nur das Bild wird gelesen, nur bei offenem Menü, nie als Killer; nichts wird gespeichert oder gesendet.':
         '左侧列表中每位其他幸存者旁会以菱形显示其四个技能——读取自 DBD 向幸存者显示的暂停菜单（Esc）。只读取画面，只在菜单打开时，作为杀手时从不读取；不保存也不发送任何内容。',
-    'Das Item und seine zwei Add-ons als kleine Kästchen links neben den Perks.':
-        '道具及其两个配件以小方块显示在技能左侧。',
-    'Item und Add-ons neben den Perks':
-        '在技能旁显示道具和配件',
+    'Opfergabe, Item und Add-ons neben den Perks':
+        '在技能旁显示祭品、道具和配件',
     'LOADOUTS':
         '配置',
     'Loadouts':
@@ -6134,4 +6132,7 @@ T = {
         '在名字下方',
     '„In einer Reihe“ passt am besten unter den Namen oder an eine eigene Position.':
         '“排成一行”最适合放在名字下方或自定义位置。',
+    # 1.57.4: offerings
+    'Die Opfergabe (eine verdeckte als „?“), das Item und seine zwei Add-ons als kleine Felder neben den Perks.':
+        '祭品（隐藏的显示为“?”）、道具及其两个配件以小格子显示在技能旁。',
 }

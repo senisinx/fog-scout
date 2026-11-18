@@ -30,8 +30,10 @@ from .textnorm import MAIN, MODEL_FILES
 log = logging.getLogger("fogscout")
 END_CHECK_INTERVAL = 0.5          # seconds between two looks for result screen / lobby / loading screen …
 END_IDLE_INTERVAL = 1.0           # … and while nothing points to the end yet (whole-screen grab: ~14 MB each)
-LOADOUT_INTERVAL = 1.5           # 1.57: seconds between two looks at the pause menu's loadouts (while it is open)
-LOADOUT_LOOKS = 6                 # … and after this many looks of a round the board is known: no more looks
+LOADOUT_INTERVAL = 0.9           # 1.57: seconds between two looks at the pause menu's loadouts (while it is open);
+                                  # 1.57.4: every whole-screen look (1 s) – before 1.5 s, a menu open for 2 s gave one
+LOADOUT_LOOKS = 8                 # … and after this many looks of a round the board is known: no more looks
+LOADOUT_LAST_AFTER = 3            # 1.57.4: after this many HUD looks the only one missing is looked for at the free row
 LOADOUT_HUD_LOOKS = 40            # 1.57.1: looks for the portraits in the HUD after the menu (a hurt survivor's
                                   # portrait is covered for a while)
 IN_MATCH_RATE = 1.0               # scans per second while a detected map is being played (banner only at the start)
@@ -728,13 +730,17 @@ class DetectionWorker(threading.Thread):
                             elif (not menu_open and loadout_votes.looks and not loadout_votes.placed
                                   and hud_looks < LOADOUT_HUD_LOOKS):
                                 last_loadout, hud_looks = tick, hud_looks + 1
+                                finder = loadouts.HudFinder()
                                 with self.times.measure("loadouts"):
-                                    found = loadouts.HudFinder().find(look, loadout_votes.faces(), loadout_votes.side)
-                                changed = loadout_votes.place(found)
-                                done = sum(1 for r in loadout_votes.board().rows if r.hud)
-                                self.loadout_info = (f"{time.strftime('%H:%M:%S')} HUD: {len(found)} von "
-                                                     f"{len(loadout_votes.faces())} Porträts gefunden, "
-                                                     f"{done} platziert")
+                                    found = finder.find(look, loadout_votes.faces(), loadout_votes.side)
+                                    changed = loadout_votes.place(found)
+                                    miss = loadout_votes.missing() if hud_looks >= LOADOUT_LAST_AFTER else None
+                                    if miss:              # 1.57.4: the last one, only at the free row(s)
+                                        face = loadout_votes.faces().get(miss[0])
+                                        changed |= loadout_votes.place_last(
+                                            miss[0], {c: loadouts.score_at(look, face, c) for c in miss[1]})
+                                self.loadout_info = (f"{time.strftime('%H:%M:%S')} HUD-Blick {hud_looks}: "
+                                                     f"{loadout_votes.describe(getattr(finder, 'scores', {}))}")
                                 if changed:
                                     self.post("loadouts", gen=gen, board=loadout_votes.board())
                         except Exception:
