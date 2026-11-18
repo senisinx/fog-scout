@@ -12,6 +12,9 @@ Test pictures (tests/data/loadouts, every player name painted over):
 - ``menu_3440_twins.jpg``/``hud_3440_twins.jpg`` and ``…_twins_second``: two matches (1.57.6) with the own Dwight
   (no perks equipped: an empty gold row) and a bot Dwight – alike portraits; HUD order own, Dwight, Adam, Lara and
   own, Lara, Adam, Dwight.
+- ``menu_3440_dejavu.webp``/``hud_3440_dejavu.jpg``: a match of 1.57.7 – own Dwight, Lee, Jill, Lara; Lara's
+  fourth perk is Déjà Vu (an eye like Kindred and the Obsession perks, only the pupil differs). In the HUD Fog
+  Scout's own rows are blacked out (as the worker does).
 - ``menu_four_rows.png``: the four icon rows of the picture of the first request (another player's menu, other
   scale; names, pings and the killer's row painted over)."""
 import json
@@ -463,12 +466,13 @@ def test_the_menu_rows_follow_their_grid():
 
 def test_a_clear_lead_lets_a_weaker_fit_count(reader):
     """User (1.57.5): "Perks werden nicht alle sauber erkannt" – Small Game (fit 0.76, far ahead of the second
-    best) and Saboteur stayed open. A slot of a found row counts with a weaker fit when it leads clearly; a close
-    one (lead under LOOSE_MARGIN) still stays open, and most slots count after one look."""
+    best) and Saboteur stayed open. A slot of a found row counts with a weaker fit when it leads clearly, and most
+    slots count after one look. (Lara's Déjà Vu, 0.04 ahead of Kindred, is read since 1.57.7 – where the eyes
+    differ.)"""
     board = reader.read(_load("menu_3440_fourth.jpg"))
     assert board is not None and len(board.rows) == 4
     assert [r.perks for r in board.rows[1:]] == [
-        ("Balanced Landing", "Boon: Dark Theory", "Breakout", None),        # Lara: Déjà Vu too close to call
+        ("Balanced Landing", "Boon: Dark Theory", "Breakout", "Déjà Vu"),   # Lara (1.57.7: told from Kindred)
         ("Wicked", "Small Game", "Adrenaline", "Plot Twist"),               # Vittorio
         ("Saboteur", "Resilience", None, "Change of Plan")]                 # Eleven: slot 3 is empty
     v = Votes()
@@ -542,3 +546,84 @@ def test_the_same_character_twice_each_at_its_own_portrait(menu, hud, order):
     assert rows[0].own
     assert [r.perks[0] for r in rows[1:]] == order
     assert [r.perks[0] for r in board.others] and len(board.others) == 3
+
+
+def test_deja_vu_is_told_from_the_other_eyes(reader):
+    """User (1.57.7): "bei Lara fehlt immer das eine Perk" – Déjà Vu, 0.03 ahead of Kindred on the whole drawing,
+    is clearly ahead where the eyes differ (the pupil)."""
+    board = reader.read(_load("menu_3440_dejavu.webp"))
+    lara = [r for r in board.rows if r.perks[:3] == ("Balanced Landing", "Boon: Dark Theory", "Breakout")]
+    assert lara and lara[0].perks[3] == "Déjà Vu"
+    assert board.rows[0].own and board.rows[0].perks == ("Ace in the Hole", "Adrenaline", "Bardic Inspiration", None)
+
+
+def test_only_perks_get_the_second_look_where_drawings_differ():
+    """The med-kits stayed too close there on the user's menus – items never get it."""
+    assert loadouts.Templates("perks", {}).perks_kind and not loadouts.Templates("items", {}).perks_kind
+
+
+@pytest.mark.parametrize("menu,hud", [("menu_3440_dejavu.webp", "hud_3440_dejavu.jpg"),
+                                      ("menu_3440_twins.jpg", "hud_3440_twins.jpg")])
+def test_every_survivor_is_placed_within_a_few_quick_looks(menu, hud):
+    """User (1.57.7): "es geht viel zu lange, bis es angezeigt wird". The HUD is looked at every 0.5 s now; once
+    placed, only the HUD's size is searched (and the next rounds keep it). Four looks (2 s) at most here."""
+    reader = loadouts.Reader()
+    v = Votes()
+    for _ in range(2):
+        v.note(reader.read(_load(menu)))
+    frame = _load(hud)
+    from fogscout.worker import LOADOUT_LAST_AFTER
+    for look in range(1, 5):
+        v.place(loadouts.HudFinder().find(frame, v.faces(), v.side, v.scales(frame.shape[0])))
+        gap = v.missing() if look >= LOADOUT_LAST_AFTER else None
+        if gap:
+            v.place_last(gap[0], {p: loadouts.score_at(frame, v.faces()[gap[0]], p) for p in gap[1]})
+        if v.placed:
+            break
+    assert v.placed and look <= 4
+    rows = sorted(v.board().rows, key=lambda r: r.hud[1])
+    assert rows[0].own
+    assert len(v.scales(frame.shape[0])) == 3                        # the HUD's size known now
+    v.reset()
+    assert len(v.scales(frame.shape[0])) == len(loadouts.HUD_SCALES)    # no menu read yet: side unknown
+    v.note(reader.read(_load(menu)))
+    assert len(v.scales(frame.shape[0])) == 3                        # … the next round keeps the size
+
+
+def _slot_picture(icon_file, box, quality):
+    """A perk slot as on the user's pictures: the wiki picture over a purple diamond of ``box`` px in a grey field,
+    (JPEG), scaled up ×1.72 (their 2000 px pictures to 3440) – (picture, centre x, centre y, side)."""
+    from PIL import Image, ImageDraw
+    big_side = box * 4
+    field = int(big_side * 1.6)
+    pic = Image.new("RGBA", (field, field), (40, 40, 40, 255))
+    o = (field - big_side) // 2
+    ImageDraw.Draw(pic).polygon([(o + big_side / 2, o), (o + big_side, o + big_side / 2),
+                                 (o + big_side / 2, o + big_side), (o, o + big_side / 2)], fill=(90, 40, 120, 255))
+    icon = Image.open(os.path.join(loadouts.ICONS, icon_file)).convert("RGBA").resize((big_side, big_side))
+    pic.alpha_composite(icon, (o, o))
+    bgr = cv2.cvtColor(np.asarray(pic.convert("RGB")), cv2.COLOR_RGB2BGR)
+    bgr = cv2.resize(bgr, (field // 4, field // 4), interpolation=cv2.INTER_AREA)
+    if quality:
+        bgr = cv2.imdecode(cv2.imencode(".jpg", bgr, [cv2.IMWRITE_JPEG_QUALITY, quality])[1], cv2.IMREAD_COLOR)
+    bgr = cv2.resize(bgr, None, fx=1.72, fy=1.72, interpolation=cv2.INTER_LANCZOS4)
+    return bgr, bgr.shape[1] / 2, bgr.shape[0] / 2, box * 1.72
+
+
+@pytest.mark.parametrize("box,quality,off", [(37, 85, (0, 0)), (32, 70, (1.5, -1.2))])
+def test_every_perk_is_read_as_itself_or_left_open(box, quality, off):
+    """1.57.7 (user: "ich will, dass es perfekt funktioniert"): every wiki perk drawn like the user's pictures – small,
+    compressed, a pixel or two off – is read as itself or not at all, never as another perk (the looser rules of a
+    found row and the second look where eyes differ included). Pairs with the same wiki picture (the Obsession
+    perks, Down to the Last / Sole Survivor) stay open."""
+    names = loadouts.load_names()["perks"]
+    perks = loadouts.Templates("perks")
+    wrong, read = [], 0
+    for f, name in names.items():
+        pic, cx, cy, side = _slot_picture(f, box, quality)
+        got = perks.best(loadouts._fine_cuts(perks, pic, cx + off[0] * 1.72, cy + off[1] * 1.72, side), loose=True)[0]
+        if got is not None and got != name:
+            wrong.append((name, got))
+        read += got == name
+    assert not wrong
+    assert read >= 0.9 * len(names)
