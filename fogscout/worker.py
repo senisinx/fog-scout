@@ -30,7 +30,8 @@ from .textnorm import MAIN, MODEL_FILES
 log = logging.getLogger("fogscout")
 END_CHECK_INTERVAL = 0.5          # seconds between two looks for result screen / lobby / loading screen …
 END_IDLE_INTERVAL = 1.0           # … and while nothing points to the end yet (whole-screen grab: ~14 MB each)
-LOADOUT_INTERVAL = 0.9           # 1.57: seconds between two looks at the pause menu's loadouts (while it is open);
+LOADOUT_INTERVAL = 0.5           # 1.57: seconds between two looks at the pause menu's loadouts (while it is open);
+                                  # 1.57.14: 0.9 before – the user opens it for a second or two
                                   # 1.57.4: every whole-screen look (1 s) – before 1.5 s, a menu open for 2 s gave one
 LOADOUT_LOOKS = 8                 # … and after this many looks of a round the board is known: no more looks
 LOADOUT_LAST_AFTER = 2            # 1.57.4: after this many HUD looks the only one missing is looked for at the free row (1.57.7: 3 before)
@@ -41,6 +42,9 @@ LOADOUT_HUD_INTERVAL = 0.5        # 1.57.7: seconds between two of those looks (
 LOADOUT_HUD_SLOW = 3.0            # 1.57.12: after those, one look every this many s until all are placed (a teammate
                                   # hooked, downed or hurt shows an icon instead of the portrait for minutes – 1.57.11
                                   # gave up after 40 looks)
+LOADOUT_MENU_MISSES = 3           # 1.57.14: after this many menu looks without a board (a pointer over another screen) …
+LOADOUT_MENU_SLOW = 2.0           # … one look every this many s only
+LOADOUT_SAME_ROUND_S = 90.0       # 1.57.14: a map shown again this soon after the round's start is the same round
 LOADOUT_KEPT = 12                 # 1.57.11: debug pictures of menu / HUD looks kept (each)
 IN_MATCH_RATE = 1.0               # scans per second while a detected map is being played (banner only at the start)
 VBAR_STRIP_S = 1.0                # 1.8.65: without a map, a look at the bars above/below at most this often
@@ -101,6 +105,13 @@ def lobby_interval(kind, state) -> float:
     waiting time exact (``QueueTracker`` takes the start from it) –, LOBBY_INTERVAL for everything else (PLAY,
     READY, the lobby countdown, a first search look still to be confirmed)."""
     return SEARCH_INTERVAL if kind == "search" and state == "search" else LOBBY_INTERVAL
+
+
+def same_round_again(gen, previous, ended: bool, since_start: float) -> bool:
+    """1.57.14: a map shown again (a new generation) still belongs to the round on display – the banner read a
+    second time at the start, a layout picked: the round's loadouts stay. Not after its end, not after
+    ``LOADOUT_SAME_ROUND_S`` (a new banner then is a new round)."""
+    return gen is not None and previous is not None and not ended and since_start < LOADOUT_SAME_ROUND_S
 
 
 def scan_rate(base: float, *, in_match: bool, session: bool, since_button: float, since_loading: float,
@@ -316,6 +327,8 @@ class DetectionWorker(threading.Thread):
         tracker = MatchEndTracker()
         tracker_gen = None
         trial_since = 0.0                 # when the map on display appeared (tracker reset)
+        menu_misses = 0                   # 1.57.14: menu looks in a row without a board (another screen with a pointer)
+        round_since = 0.0                 # 1.57.14: … the round's first map (loadouts: shown again = same round)
         last_end_check = 0.0
         last_hist = 0.0
         last_status = None
@@ -677,11 +690,21 @@ class DetectionWorker(threading.Thread):
                 # ------------------------------------- left the trial? -> hide map
                 gen = self.watch_gen
                 if gen != tracker_gen:
+                    # 1.57.14 (user: "ich öffne oft das Menü, wenn ich in die Runde lade"): the banner is often read
+                    # twice at the start (23:02:37 and 23:02:41) and each shown map is a new generation – the
+                    # loadouts read in between were thrown away. Shown again early in a round not ended: the same
+                    # round, its survivors stay (and are posted for the new generation)
+                    same_round = same_round_again(gen, tracker_gen, tracker.ended, tick - round_since)
                     tracker.reset(gen[0] if gen else None, gen[1] if gen else None, tick)
                     tracker_gen = gen
-                    loadout_votes.reset()         # 1.57: a new map, a new round – other survivors
-                    hud_looks = 0
                     trial_since = tick
+                    if same_round:
+                        if loadout_votes.looks:
+                            self.post("loadouts", gen=gen, board=loadout_votes.board())
+                    else:
+                        loadout_votes.reset()     # 1.57: a new map, a new round – other survivors
+                        hud_looks = 0
+                        round_since = tick
                 use_end = bool(self.settings.get("hide_after_match", True))
                 use_menu = bool(self.settings.get("pause_in_menus", True))
                 watching = (self.map_on_screen and gen is not None and (use_end or use_menu)
@@ -707,7 +730,18 @@ class DetectionWorker(threading.Thread):
                     if (self.loadouts_wanted and loadout_votes.looks and not loadout_votes.placed
                             and not pointer and source is None and hud_looks < LOADOUT_HUD_LOOKS):
                         interval = min(interval, LOADOUT_HUD_INTERVAL)      # 1.57.7: the HUD looks after the menu
-                    if sep is None and tick - last_end_check >= interval and (game or source is not None):
+                    # 1.57.14 (user: "sobald die Karte anzeigt, öffne ich das Menü"): with the menu open a look every
+                    # LOADOUT_INTERVAL – also while the start banner is still seen (no look was taken then, and the
+                    # end check took one a second only); a few menu looks without a board: slower
+                    menu_due = bool(self.loadouts_wanted and pointer and source is None
+                                    and loadout_votes.looks < LOADOUT_LOOKS)
+                    if menu_due:
+                        interval = min(interval, LOADOUT_INTERVAL if menu_misses < LOADOUT_MENU_MISSES
+                                       else LOADOUT_MENU_SLOW)
+                    else:
+                        menu_misses = 0
+                    if ((sep is None or menu_due) and tick - last_end_check >= interval
+                            and (game or source is not None)):
                         last_end_check = tick
                         try:
                             if end_tried:                        # taken above (None: covered – not again)
@@ -716,8 +750,9 @@ class DetectionWorker(threading.Thread):
                                 full = look = grab((0, 0, fw, fh))
                             if look is not None:                 # None: covered -> no observation, nothing changes
                                 ignore = self._mask_screen(look, from_screen(), origin[0], origin[1])   # in place: no 14 MB copy
-                                with self.times.measure("end"):
-                                    obs = out_of_match.observe(look, ignore)
+                                if sep is None:                  # with the banner seen only the menu is read
+                                    with self.times.measure("end"):
+                                        obs = out_of_match.observe(look, ignore)
                                 self._note_vbars(look, fw, fh)
                         except Exception:
                             self._report("Rundenende-Prüfung", traceback.format_exc())
@@ -741,6 +776,7 @@ class DetectionWorker(threading.Thread):
                                 with self.times.measure("loadouts"):
                                     board = loadout_reader.read(look)
                                 self.loadout_info = f"{time.strftime('%H:%M:%S')} {loadout_reader.last}"
+                                menu_misses = 0 if board is not None else menu_misses + 1
                                 if board is not None and loadout_votes.note(board):
                                     self.post("loadouts", gen=gen, board=loadout_votes.board())
                                 # 1.57.11 (user's diagnosis showed only the result screen's look): the last look

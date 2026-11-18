@@ -817,3 +817,102 @@ def test_two_survivors_with_the_same_look_are_never_guessed():
     placed = {r.perks[1]: (round(r.hud[1] * 1440) if r.hud else None) for r in v.board().rows}
     assert placed == {"We're Gonna Live Forever": 608, "Five Moves Ahead": None, "Decisive Strike": 962,
                       "Iron Will": None}
+
+
+def test_one_short_look_at_the_menu_is_enough():
+    """User (1.57.14, a real match: the menu open twice for a moment – once under an add-on's tooltip, once just
+    before the end – nothing shown): every strict read counts after one look (none ever differed between looks on
+    the user's real menus), so one look gives (nearly) every perk; the HUD's size is taken from DBD's usual list
+    before any portrait is found (three sizes, not nine)."""
+    reader = loadouts.Reader()
+    v = Votes()
+    v.note(reader.read(_crop_frame("real_menu_crop.webp", True)))
+    assert sum(1 for r in v.board().rows for p in r.perks if p) >= 15
+    assert len(v.scales(1440)) == 3
+    from fogscout import worker
+    assert worker.LOADOUT_INTERVAL <= 0.5
+
+
+def test_the_map_read_again_at_the_start_keeps_the_loadouts():
+    """User (1.57.14): "Ich öffne oft das Menü, wenn ich in die Runde lade" – the banner is read twice at the start
+    (23:02:37 and 23:02:41 in the diagnosis); each shown map was a new generation and threw the loadouts read in
+    between away. Shown again early in a round not ended: the same round."""
+    from fogscout.worker import LOADOUT_SAME_ROUND_S, same_round_again
+    assert same_round_again((2, "auto"), (1, "auto"), False, 4.0)
+    assert same_round_again((2, "manual"), (1, "auto"), False, 60.0)               # a layout picked early
+    assert not same_round_again((2, "auto"), (1, "auto"), True, 4.0)               # after the round's end
+    assert not same_round_again((2, "auto"), (1, "auto"), False, LOADOUT_SAME_ROUND_S + 1)   # a new round
+    assert not same_round_again((2, "auto"), None, False, 4.0)                     # the first map
+    assert not same_round_again(None, (1, "auto"), False, 4.0)
+
+
+def test_the_whole_way_with_the_real_loop(tmp_path, monkeypatch):
+    """User (1.57.14): "Sobald die Karte anzeigt, öffne ich das Menü" – the real worker loop with a fake screen: the
+    map on display, the menu open (pointer visible) right away, the map shown a second time meanwhile (the banner
+    read twice at the start), the menu shut, the HUD (three of four portraits an icon or marked red) – every
+    survivor ends at its row, the board posted for the map now on display."""
+    pytest.importorskip("onnxruntime")
+    import queue
+    import time
+    from types import SimpleNamespace
+    from fogscout import config, worker
+    from fogscout.catalog import Catalog
+    W, H = 3440, 1440
+    menu = _crop_frame("real_menu_crop.webp", True)
+    huds = [_crop_frame(n, False) for n in ("real_hud_crop_1.jpg", "real_hud_crop_2.jpg")]
+    screen = {"frame": menu, "pointer": True, "n": 0}
+
+    class Grabber:
+        def grab(self, left, top, width, height):
+            frame = screen["frame"]
+            if frame is not menu:                                  # the HUD changes a little from look to look
+                screen["n"] += 1
+                frame = huds[screen["n"] % 2]
+            return frame[top:top + height, left:left + width].copy()
+
+        def primary_monitor(self):
+            return 0, 0, W, H
+
+        def close(self):
+            pass
+
+    game = SimpleNamespace(hwnd=1, left=0, top=0, width=W, height=H, minimized=False)
+    monkeypatch.setattr(worker, "ScreenGrabber", Grabber)
+    monkeypatch.setattr(worker, "find_game_window", lambda *a, **k: game)
+    monkeypatch.setattr(worker, "foreground_root", lambda: 1)
+    monkeypatch.setattr(worker, "cursor_state", lambda: (screen["pointer"], 1720, 720))
+    events = queue.Queue()
+    wk = worker.DetectionWorker(ROOT, config.Settings(str(tmp_path / "settings.json")), Catalog(ROOT, ["en"]),
+                                events, data_dir=str(tmp_path))
+    wk.watch_gen, wk.map_on_screen, wk.loadouts_wanted = (1, "auto"), True, True
+    last = {}
+
+    def wait(test, seconds=60):
+        deadline = time.time() + seconds                          # generous: shared CI runners
+        while time.time() < deadline:
+            try:
+                ev = events.get(timeout=0.1)
+            except queue.Empty:
+                continue
+            if ev.kind == "loadouts":
+                last.update(gen=ev.data["gen"], board=ev.data["board"])
+                if test():
+                    return True
+        return False
+
+    wk.start()
+    try:
+        # the menu read – a second look adds A2's Déjà Vu (an eye close to others: two agreeing reads; at a look
+        # every LOADOUT_INTERVAL the menu open about a second)
+        assert wait(lambda: sum(1 for r in last["board"].rows for p in r.perks if p) == 16)
+        screen["frame"], screen["pointer"] = huds[0], False        # the menu shut: the HUD …
+        wk.watch_gen = (2, "auto")                                 # … and the banner read a second time
+        assert wait(lambda: last["gen"] == (2, "auto"))           # the same round: the board stays
+        assert sum(1 for r in last["board"].rows for p in r.perks if p) >= 15
+        assert wait(lambda: all(r.hud for r in last["board"].rows))
+    finally:
+        wk.stop()
+        wk.join(timeout=10)
+    rows = {r.perks[0]: round(r.hud[1] * H) for r in last["board"].rows}
+    assert rows == {"Fixated": 608, "Déjà Vu": 726, "Adrenaline": 844, "Prove Thyself": 962}
+    assert last["gen"] == (2, "auto")
