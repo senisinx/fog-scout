@@ -9,6 +9,9 @@ Test pictures (tests/data/loadouts, every player name painted over):
 - ``hud_3440.jpg``: the HUD of that match – own portrait on top, then Dustin, Renato, Ellen.
 - ``menu_3440_fourth.jpg``: the user's menu of a fourth match (1.57.5) – Lara, Vittorio, Eleven; Vittorio's
   Small Game fits only 0.76 but far ahead of any other perk.
+- ``menu_3440_twins.jpg``/``hud_3440_twins.jpg`` and ``…_twins_second``: two matches (1.57.6) with the own Dwight
+  (no perks equipped: an empty gold row) and a bot Dwight – alike portraits; HUD order own, Dwight, Adam, Lara and
+  own, Lara, Adam, Dwight.
 - ``menu_four_rows.png``: the four icon rows of the picture of the first request (another player's menu, other
   scale; names, pings and the killer's row painted over)."""
 import json
@@ -501,3 +504,41 @@ def test_the_loose_rule_counts_only_in_a_found_row(top, second, strict, loose):
     assert abs(score - top) < 0.01 and abs(lead - (top - second)) < 0.01
     assert (name == "A") == strict
     assert (t.best(glyph, loose=True)[0] == "A") == loose
+
+
+def _round(menu, hud, looks=4):
+    """The worker's order: menu looks, then the HUD (each look: all portraits, then the last one missing)."""
+    reader = loadouts.Reader()
+    v = Votes()
+    for _ in range(2):
+        v.note(reader.read(_load(menu)))
+    frame = _load(hud)
+    for _ in range(looks):
+        v.place(loadouts.HudFinder().find(frame, v.faces(), v.side))
+        gap = v.missing()
+        if gap:
+            who, free = gap
+            v.place_last(who, {p: loadouts.score_at(frame, v.faces()[who], p) for p in free})
+    return v.board()
+
+
+def test_the_own_row_without_perks_is_read_gold_and_empty(reader):
+    """User (1.57.6): no perks equipped – the own gold row is empty, still it is the own row."""
+    board = reader.read(_load("menu_3440_twins.jpg"))
+    assert len(board.rows) == 4 and board.rows[0].own
+    assert board.rows[0].empty and not any(r.own for r in board.rows[1:])
+
+
+@pytest.mark.parametrize("menu,hud,order", [
+    ("menu_3440_twins.jpg", "hud_3440_twins.jpg", ["Wicked", "Saboteur", "Balanced Landing"]),
+    ("menu_3440_twins_second.jpg", "hud_3440_twins_second.jpg", ["Balanced Landing", "Saboteur", "Wicked"]),
+])
+def test_the_same_character_twice_each_at_its_own_portrait(menu, hud, order):
+    """User (1.57.6, "funktioniert nicht richtig"): the own Dwight and a bot Dwight – the bot was taken for the
+    own one (top of the list) and hidden. Two rows of a look are never one survivor; the own one is on top."""
+    board = _round(menu, hud)
+    rows = sorted(board.rows, key=lambda r: r.hud[1])
+    assert all(r.hud for r in board.rows)
+    assert rows[0].own
+    assert [r.perks[0] for r in rows[1:]] == order
+    assert [r.perks[0] for r in board.others] and len(board.others) == 3
