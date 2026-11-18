@@ -30,7 +30,8 @@ from .textnorm import MAIN, MODEL_FILES
 log = logging.getLogger("fogscout")
 END_CHECK_INTERVAL = 0.5          # seconds between two looks for result screen / lobby / loading screen …
 END_IDLE_INTERVAL = 1.0           # … and while nothing points to the end yet (whole-screen grab: ~14 MB each)
-LOADOUT_INTERVAL = 0.9           # 1.57: seconds between two looks at the pause menu's loadouts (while it is open);
+LOADOUT_INTERVAL = 0.5           # 1.57: seconds between two looks at the pause menu's loadouts (while it is open);
+                                  # 1.57.14: 0.9 before – the user opens it for a second or two
                                   # 1.57.4: every whole-screen look (1 s) – before 1.5 s, a menu open for 2 s gave one
 LOADOUT_LOOKS = 8                 # … and after this many looks of a round the board is known: no more looks
 LOADOUT_LAST_AFTER = 2            # 1.57.4: after this many HUD looks the only one missing is looked for at the free row (1.57.7: 3 before)

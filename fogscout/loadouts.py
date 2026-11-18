@@ -78,7 +78,9 @@ HUD_FIT = 0.62                # a portrait found in the HUD's list from this cor
 HUD_ROUND = 0.42              # 1.57.4: only the round middle of a portrait is compared (radius in portraits) – the
                               # corners show the menu's backdrop there and the game behind it in the HUD, and a
                               # framed portrait (obsession) has its brackets there
-SURE_SCORE, SURE_MARGIN = 0.82, 0.10   # 1.57.4: a slot read this clearly counts as two readings (menu open shortly;
+SURE_SCORE, SURE_MARGIN = MIN_SCORE, MIN_MARGIN   # 1.57.4: a slot read this clearly counts as two readings (menu
+                                       # open shortly; 1.57.14: every strict read – on all of the user's real menus no
+                                       # strict read ever differed between looks; one short look left 3 of 4 perks open;
                                        # 1.57.5: 0.88/0.12 left most of a short look open)
 HUD_STEP = (1.2, 2.4)         # the list's rows: this many portraits apart …
 HUD_ROW = 1.64                # … usually (user's HUD) – of two grids as good, the one nearer to it
@@ -445,8 +447,8 @@ class Reader:
         return out
 
     def read(self, frame) -> Board | None:
-        found = _diamonds(frame, SIZE_TRIES)
-        if not found or not found[0][1]:
+        found = [(s_, p_) for s_, p_ in _diamonds(frame, SIZE_TRIES) if p_]
+        if not found:
             self.last = "keine Rauten"
             return None
         size, peaks, hits = 0.0, [], []
@@ -879,6 +881,9 @@ class Votes:
         if sides and self.side > 0:
             self._ratio = float(np.median(sides)) / self.side       # kept for the next rounds (reset keeps it)
         ratio = getattr(self, "_ratio", None)
+        self._scale_looks = getattr(self, "_scale_looks", 0) + 1
+        if ratio is None and self.side > 0 and self._scale_looks % 4:
+            ratio = HUD_LIST[3] * height / self.side     # 1.57.14: DBD's usual list first (every 4th look: all sizes)
         if ratio is None or self.side <= 0 or self._missed >= 2:
             return HUD_SCALES
         at = min(range(len(HUD_SCALES)), key=lambda i: abs(HUD_SCALES[i] - ratio))

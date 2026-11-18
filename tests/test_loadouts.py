@@ -817,3 +817,17 @@ def test_two_survivors_with_the_same_look_are_never_guessed():
     placed = {r.perks[1]: (round(r.hud[1] * 1440) if r.hud else None) for r in v.board().rows}
     assert placed == {"We're Gonna Live Forever": 608, "Five Moves Ahead": None, "Decisive Strike": 962,
                       "Iron Will": None}
+
+
+def test_one_short_look_at_the_menu_is_enough():
+    """User (1.57.14, a real match: the menu open twice for a moment – once under an add-on's tooltip, once just
+    before the end – nothing shown): every strict read counts after one look (none ever differed between looks on
+    the user's real menus), so one look gives (nearly) every perk; the HUD's size is taken from DBD's usual list
+    before any portrait is found (three sizes, not nine)."""
+    reader = loadouts.Reader()
+    v = Votes()
+    v.note(reader.read(_crop_frame("real_menu_crop.webp", True)))
+    assert sum(1 for r in v.board().rows for p in r.perks if p) >= 15
+    assert len(v.scales(1440)) == 3
+    from fogscout import worker
+    assert worker.LOADOUT_INTERVAL <= 0.5
