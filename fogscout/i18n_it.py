@@ -6125,4 +6125,13 @@ T = {
         'Accanto alla lista dei sopravvissuti',
     'Perks der Mitspieler':
         'Perk dei compagni',
+    # 1.57.3: the loadouts' look
+    'In einer Reihe':
+        'In una riga',
+    'Raute (2×2)':
+        'Rombo (2×2)',
+    'Unter dem Namen':
+        'Sotto il nome',
+    '„In einer Reihe“ passt am besten unter den Namen oder an eine eigene Position.':
+        '«In una riga» sta meglio sotto il nome o in una posizione propria.',
 }

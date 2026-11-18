@@ -209,6 +209,7 @@ SPECS = {
               ("ov.loadouts_f", N_("Loadouts"), (                                                  # 1.57
                   ("check", "ov.loadouts"),
                   ("row", (("label", "ov.loadouts_pos.label"), ("combo", "ov.loadouts_pos"), ("stretch",))),
+                  ("row", (("label", "ov.loadouts_style.label"), ("combo", "ov.loadouts_style"), ("stretch",))),   # 1.57.3
                   ("check", "ov.loadouts_items"), ("hint", "ov.loadouts_hint"))),
               ("ov.pos", N_("Allgemein"), (
                   ("check", "ov.master"),                                                          # 1.8.18

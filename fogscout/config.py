@@ -103,7 +103,8 @@ DEFAULTS = {
         "inputs_backdrop": True,        #   dark area behind the keys
         "show_loadouts": False,         # 1.57: the other survivors' loadouts read from the pause menu
         "loadouts_items": True,         #   item and add-ons beside the perks
-        "loadouts_pos": "hud",          #   hud (beside DBD's survivor list) / custom
+        "loadouts_pos": "hud",          #   hud (beside DBD's survivor list) / name (below each name, 1.57.3) / custom
+        "loadouts_style": "diamond",    #   1.57.3: diamond (2×2) / row (the four side by side)
         "loadouts_xy": [0.05, 0.6],     #   custom: centre as a share of the window
         "loadouts_scale": 1.0,          #   size (slider 50–200 %): DBD's HUD scale can be set
         "loadouts_opacity": 0.9,

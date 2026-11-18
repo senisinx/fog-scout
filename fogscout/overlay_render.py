@@ -1255,18 +1255,27 @@ def _loadout_icon(path, side: int):
     return pic
 
 
-def loadout_size(cluster: int, height: int, items: bool = True) -> tuple:
-    """(width, height) of the loadout picture – its width the same for every board (it never breathes)."""
+def loadout_size(cluster: int, height: int, items: bool = True, row: bool = False) -> tuple:
+    """(width, height) of the loadout picture – its width the same for every board (it never breathes). ``row``
+    (1.57.3): the four perks side by side, ``cluster`` = their height."""
+    if row:
+        gap = max(1, cluster // 10)
+        w = 4 * cluster + (gap * 3 + 3 * (int(cluster * 0.86) + gap) if items else 0)
+        return w, max(cluster, int(height))
     sq = max(6, cluster // 3)
     w = cluster + (sq + max(2, cluster // 16) if items else 0)
     return w, max(cluster, int(height))
 
 
-def loadout_card(rows, cluster: int, tops, height: int, items: bool = True, icon=None) -> Image.Image:
+def loadout_card(rows, cluster: int, tops, height: int, items: bool = True, icon=None, row: bool = False) -> Image.Image:
     """1.57: the other survivors' loadouts – per row (``loadouts.Row``) DBD's four perk diamonds as one large diamond
     (top, left, right, bottom) ``cluster`` px tall, its top at ``tops[i]`` px (beside that survivor's portrait in
     the HUD); with ``items`` the item and its two add-ons as small squares on its left. ``icon(name, kind)`` gives a
-    picture file. A slot not read stays an empty diamond / square; a row without anything is not drawn."""
+    picture file. A slot not read stays an empty diamond / square; a row without anything is not drawn. ``row``
+    (1.57.3): each survivor's perks side by side like in DBD's menu, ``cluster`` px tall, item and add-ons after
+    them."""
+    if row:
+        return _loadout_rows(rows, cluster, tops, height, items, icon)
     w, h = loadout_size(cluster, height, items)
     out = Image.new("RGBA", (w, h), (0, 0, 0, 0))
     d = ImageDraw.Draw(out)
@@ -1296,4 +1305,37 @@ def loadout_card(rows, cluster: int, tops, height: int, items: bool = True, icon
                 pic = _loadout_icon(icon(name, kind), sq) if name and icon else None
                 if pic is not None:
                     out.alpha_composite(pic, (bx, by))
+    return out
+
+
+def _loadout_rows(rows, size: int, tops, height: int, items: bool, icon) -> Image.Image:
+    """``loadout_card`` with the perks in one row (``size`` = a diamond's width and height)."""
+    w, h = loadout_size(size, height, items, row=True)
+    out = Image.new("RGBA", (w, h), (0, 0, 0, 0))
+    d = ImageDraw.Draw(out)
+    edge = max(1, size // 24)
+    gap = max(1, size // 10)
+    sq = int(size * 0.86)
+    for row, top in zip(rows, tops):
+        if row is None or row.empty:
+            continue
+        top = int(round(top))
+        for k, name in enumerate(row.perks):
+            px, py = k * size + size / 2, top + size / 2
+            r = size / 2 - edge
+            poly = [(px, py - r), (px + r, py), (px, py + r), (px - r, py)]
+            d.polygon(poly, fill=LOADOUT_FILL if name else LOADOUT_EMPTY, outline=LOADOUT_EDGE, width=edge)
+            pic = _loadout_icon(icon(name, "perks"), size) if name and icon else None
+            if pic is not None:
+                out.alpha_composite(pic, (k * size, top))
+        if items:
+            x = 4 * size + gap * 3
+            for name, kind in ((row.item, "items"),) + tuple((a, "addons") for a in row.addons):
+                by = top + (size - sq) // 2
+                d.rectangle((x, by, x + sq - 1, by + sq - 1), fill=LOADOUT_SQUARE if name else LOADOUT_EMPTY,
+                            outline=LOADOUT_EDGE, width=edge)
+                pic = _loadout_icon(icon(name, kind), sq) if name and icon else None
+                if pic is not None:
+                    out.alpha_composite(pic, (x, by))
+                x += sq + gap
     return out

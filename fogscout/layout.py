@@ -294,6 +294,12 @@ LOADOUT_FACE = 0.05            # a portrait's height
 LOADOUT_LEFT = 0.052           # the portraits' left edge, share of the picture's width
 LOADOUT_PER_FACE = 1.3         # a survivor's perk diamond: this many portraits tall (fits between the picture's
                                # edge and the portraits with item and add-ons, user's HUD)
+# 1.57.3 (user: "evtl. unter dem Namen der entsprechenden Person", "Perks in einer Reihe"): the four perks in one row
+# below the name – measured on the user's HUD in portraits from the portrait's centre: the name begins 1.1 to the
+# right and ends 0.37 below; the next row's status icon begins 0.9 below
+LOADOUT_NAME_X = 1.1           # the row's left edge right of the portrait's centre
+LOADOUT_NAME_Y = 0.42          # its top below the portrait's centre
+LOADOUT_ROW_H = 0.46           # its height (a perk's diamond)
 
 
 def loadout_scale(o: dict) -> float:
@@ -301,7 +307,8 @@ def loadout_scale(o: dict) -> float:
 
 
 def loadout_rows(o: dict, game, rows) -> tuple:
-    """(cluster px, [(row, centre y px on screen)], the portraits' left edge px) for ``rows`` (``loadouts.Row``): at the
+    """(cluster px, [(row, centre y px on screen)], the portraits' left edge px, a portrait's size px, the portraits'
+    centre x px) for ``rows`` (``loadouts.Row``): at the
     place the worker found its portrait (``Row.hud``, shares of the game window), a row without one at the list's
     usual row – only when no row has a place (the sample); otherwise it is left out."""
     gx, gy, gw, gh = game
@@ -312,14 +319,15 @@ def loadout_rows(o: dict, game, rows) -> tuple:
         sides = sorted(r.hud[2] for r in found)
         face = sides[len(sides) // 2] * gh
         out = [(r, gy + r.hud[1] * gh) for r in found]
-        left = min(gx + r.hud[0] * gw for r in found) - face / 2      # one size for all (a framed portrait is found
-                                                                       # a little larger)
+        mid = min(gx + r.hud[0] * gw for r in found)                  # one size for all (a framed portrait is found
+        left = mid - face / 2                                          # a little larger)
     else:
         face = LOADOUT_FACE * vh
         out = [(r, vy + (LOADOUT_TOP + i * LOADOUT_STEP) * vh) for i, r in enumerate(rows)]
         left = vx + LOADOUT_LEFT * vw
+        mid = left + face / 2
     cluster = max(18, int(face * LOADOUT_PER_FACE * loadout_scale(o)))
-    return cluster, sorted(out, key=lambda rc: rc[1]), left
+    return cluster, sorted(out, key=lambda rc: rc[1]), left, face, mid
 
 
 def loadouts_xy(spot: str, game, size, margin: int, top: float, own=None, left: float | None = None):

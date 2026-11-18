@@ -6125,4 +6125,13 @@ T = {
         '幸存者列表旁',
     'Perks der Mitspieler':
         '队友技能',
+    # 1.57.3: the loadouts' look
+    'In einer Reihe':
+        '排成一行',
+    'Raute (2×2)':
+        '菱形（2×2）',
+    'Unter dem Namen':
+        '在名字下方',
+    '„In einer Reihe“ passt am besten unter den Namen oder an eine eigene Position.':
+        '“排成一行”最适合放在名字下方或自定义位置。',
 }

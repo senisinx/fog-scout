@@ -6125,4 +6125,13 @@ T = {
         '생존자 목록 옆',
     'Perks der Mitspieler':
         '팀원 퍽',
+    # 1.57.3: the loadouts' look
+    'In einer Reihe':
+        '한 줄로',
+    'Raute (2×2)':
+        '마름모 (2×2)',
+    'Unter dem Namen':
+        '이름 아래',
+    '„In einer Reihe“ passt am besten unter den Namen oder an eine eigene Position.':
+        '‘한 줄로’는 이름 아래나 직접 정한 위치에 가장 잘 맞습니다.',
 }

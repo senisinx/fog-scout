@@ -11,7 +11,7 @@ from __future__ import annotations
 import logging
 
 from . import layout, loadouts
-from .appconst import LOADOUT_SPOTS
+from .appconst import LOADOUT_SPOTS, LOADOUT_STYLES
 from .capture import IS_WIN
 from .i18n import _
 
@@ -43,15 +43,25 @@ def placed(o: dict, game, board, editing: bool = False, sample: bool = False):
         return None
     from .overlay_render import add_border, loadout_card
     gx, gy, gw, gh = game
-    cluster, centres, left = layout.loadout_rows(o, game, rows)
-    top = centres[0][1] - cluster / 2
-    height = int(round(centres[-1][1] - top + cluster / 2))
-    pic = loadout_card([r for r, _c in centres], cluster, [c - cluster / 2 - top for _r, c in centres], height,
-                       bool(o.get("loadouts_items", True)), icon_for)
+    spot = o.get("loadouts_pos", "hud")
+    cluster, centres, left, face, mid = layout.loadout_rows(o, game, rows)
+    row = spot == "name" or o.get("loadouts_style", "diamond") == "row"      # 1.57.3: below the name always a row
+    if row:                                          # a row of perks: as tall as the room below a name
+        cluster = max(10, int(face * layout.LOADOUT_ROW_H * layout.loadout_scale(o)))
+    if spot == "name":                               # each row's top just below its name
+        starts = [c + face * layout.LOADOUT_NAME_Y for _r, c in centres]
+    else:                                            # beside the portrait: centred on it
+        starts = [c - cluster / 2 for _r, c in centres]
+    top = starts[0]
+    height = int(round(starts[-1] - top + cluster))
+    pic = loadout_card([r for r, _c in centres], cluster, [s - top for s in starts], height,
+                       bool(o.get("loadouts_items", True)), icon_for, row=row)
     if editing:
         pic = add_border(pic, _("LOADOUTS"))
-    x, y = layout.loadouts_xy(o.get("loadouts_pos", "hud"), game, pic.size, int(gh * o.get("margin", 0.012)), top,
-                              o.get("loadouts_xy"), left)
+    if spot == "name":
+        x = int(round(min(mid + face * layout.LOADOUT_NAME_X, gx + gw - pic.width)))
+        return pic, x, int(round(top))
+    x, y = layout.loadouts_xy(spot, game, pic.size, int(gh * o.get("margin", 0.012)), top, o.get("loadouts_xy"), left)
     return pic, x, y
 
 
@@ -134,6 +144,7 @@ class LoadoutsCard:
             self._loadouts_hide()
             return
         key = (board.key(), game, o.get("loadouts_scale"), o.get("loadouts_pos"), o.get("loadouts_xy"),
+               o.get("loadouts_style"),
                bool(o.get("loadouts_items", True)), win.editing, sample)
         if key != getattr(self, "_loadout_key", None):
             self._loadout_key = key
@@ -177,6 +188,13 @@ class LoadoutsCard:
         self._layout_mark()
         key = dict((_(label), k) for k, label in LOADOUT_SPOTS).get(self.loadouts_pos_var.get(), "hud")
         self.settings["overlay"]["loadouts_pos"] = key
+        self._save_soon()
+        self._tick_overlay(reschedule=False)
+
+    def _loadouts_style_changed(self) -> None:
+        """1.57.3: the perks as a 2×2 diamond or in one row."""
+        key = dict((_(label), k) for k, label in LOADOUT_STYLES).get(self.loadouts_style_var.get(), "diamond")
+        self.settings["overlay"]["loadouts_style"] = key
         self._save_soon()
         self._tick_overlay(reschedule=False)
 
