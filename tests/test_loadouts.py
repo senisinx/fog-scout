@@ -700,3 +700,21 @@ def test_the_style_follows_the_position():
         app._loadouts_style_sync()
         assert app.loadouts_style_var.get() == labels[shown]
         assert app.loadouts_style_cb.instate(["!disabled"]) == free
+
+
+def test_debug_pictures_of_menu_and_hud_looks_are_kept_few(tmp_path):
+    """1.57.11 (user's diagnosis showed only the result screen's look): with "Debug-Bilder speichern" each look at
+    the menu / the HUD is kept at full size (the menu's middle, the HUD's left part), the newest LOADOUT_KEPT."""
+    from types import SimpleNamespace
+    from fogscout import worker
+    stub = SimpleNamespace(data_dir=str(tmp_path))
+    frame = np.zeros((1440, 3440, 3), np.uint8)
+    for _ in range(worker.LOADOUT_KEPT + 3):
+        worker.DetectionWorker._save_loadout_look(stub, frame, "menu")
+    worker.DetectionWorker._save_loadout_look(stub, frame, "hud")
+    files = sorted(os.listdir(tmp_path / "debug" / "loadouts"))
+    assert sum(f.endswith("-menu.png") for f in files) == worker.LOADOUT_KEPT
+    hud = [f for f in files if f.endswith("-hud.png")]
+    menu = cv2.imread(str(tmp_path / "debug" / "loadouts" / files[0]))
+    assert len(hud) == 1 and menu.shape[:2] == (1440, 2560 * 3 // 5)
+    assert cv2.imread(str(tmp_path / "debug" / "loadouts" / hud[0])).shape[:2] == (1440, 2560 * 2 // 5)
