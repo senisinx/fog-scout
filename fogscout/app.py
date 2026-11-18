@@ -44,7 +44,7 @@ from .app_spotify import SpotifyUpNext
 from .app_youtube import YouTubeUpload
 from .app_palette import PaletteMixin
 from .app_inputs import InputsCard
-from .app_loadouts import SAMPLE as LOADOUT_SAMPLE, LoadoutsCard, picture as loadouts_picture
+from .app_loadouts import SAMPLE as LOADOUT_SAMPLE, LoadoutsCard, placed as loadouts_placed
 from .app_calc import CalcTab
 
 LANGS = [("en", "EN"), ("de", "DE"), ("fr", "FR"), ("es", "ES"), ("es-MX", "ES-MX"), ("it", "IT"),
@@ -1465,7 +1465,7 @@ class App(ServerTab, StatsTab, ExportDialog, RecordingsTab, DiscordPresence, Spo
         accent = self._skin_accent()                     # 1.3: the modern styles use the theme's colour
         layout_in = self._inputs_choice.layout(o.get("inputs_layout", "auto"), inputs.SAMPLE) \
             if o.get("show_inputs", False) else None       # 1.39: the input card with made-up keys
-        layout_lo = ((lambda oo, game: loadouts_picture(oo, game, LOADOUT_SAMPLE, bool(self.overlay.editing)))
+        layout_lo = ((lambda oo, game: loadouts_placed(oo, game, LOADOUT_SAMPLE, bool(self.overlay.editing), True))
                      if o.get("show_loadouts", False) else None)    # 1.57: the loadouts with a made-up board
         key = (gw, gh, repr(sorted((k, v) for k, v in o.items() if not isinstance(v, dict))), hud_side,
                bool(self.overlay.editing), accent,

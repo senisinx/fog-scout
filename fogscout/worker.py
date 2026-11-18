@@ -32,6 +32,8 @@ END_CHECK_INTERVAL = 0.5          # seconds between two looks for result screen 
 END_IDLE_INTERVAL = 1.0           # … and while nothing points to the end yet (whole-screen grab: ~14 MB each)
 LOADOUT_INTERVAL = 1.5           # 1.57: seconds between two looks at the pause menu's loadouts (while it is open)
 LOADOUT_LOOKS = 6                 # … and after this many looks of a round the board is known: no more looks
+LOADOUT_HUD_LOOKS = 40            # 1.57.1: looks for the portraits in the HUD after the menu (a hurt survivor's
+                                  # portrait is covered for a while)
 IN_MATCH_RATE = 1.0               # scans per second while a detected map is being played (banner only at the start)
 VBAR_STRIP_S = 1.0                # 1.8.65: without a map, a look at the bars above/below at most this often
 BLACK_WARN_S = 8.0                # a black banner strip this long (DBD found) = "Aufnahme ist schwarz"
@@ -268,6 +270,7 @@ class DetectionWorker(threading.Thread):
         loadout_reader = None             # 1.57: built at the first look at an open menu
         loadout_votes = loadouts.Votes()
         last_loadout = -1e9
+        hud_looks = 0
         steady = self.lobby_steady = SteadyCorner()   # 1.38.14: an unchanged corner is not read again
         last_lobby = 0.0
         lobby_button_t = -1e9             # last look that saw PLAY / CANCEL / READY
@@ -665,6 +668,7 @@ class DetectionWorker(threading.Thread):
                     tracker.reset(gen[0] if gen else None, gen[1] if gen else None, tick)
                     tracker_gen = gen
                     loadout_votes.reset()         # 1.57: a new map, a new round – other survivors
+                    hud_looks = 0
                     trial_since = tick
                 use_end = bool(self.settings.get("hide_after_match", True))
                 use_menu = bool(self.settings.get("pause_in_menus", True))
@@ -701,19 +705,30 @@ class DetectionWorker(threading.Thread):
                         except Exception:
                             self._report("Rundenende-Prüfung", traceback.format_exc())
                     # 1.57: the pause menu shows the other survivors' loadouts – read while it is open (the
-                    # pointer is visible over DBD), a few looks per round, never as the killer
+                    # pointer is visible over DBD), a few looks per round, never as the killer; 1.57.1: once the
+                    # menu is shut, their portraits are looked for in the HUD's survivor list (where to draw them)
                     menu_open = pointer or (source is not None)
-                    if (look is not None and menu_open and self.loadouts_wanted and gen is not None
-                            and loadout_votes.looks < LOADOUT_LOOKS and tick - last_loadout >= LOADOUT_INTERVAL):
-                        last_loadout = tick
+                    due = tick - last_loadout >= LOADOUT_INTERVAL
+                    if look is not None and self.loadouts_wanted and gen is not None and due:
                         try:
-                            if loadout_reader is None:
-                                loadout_reader = loadouts.Reader()
-                            with self.times.measure("loadouts"):
-                                board = loadout_reader.read(look)
-                            self.loadout_info = f"{time.strftime('%H:%M:%S')} {loadout_reader.last}"
-                            if board is not None and loadout_votes.note(board):
-                                self.post("loadouts", gen=gen, board=loadout_votes.board())
+                            if menu_open and loadout_votes.looks < LOADOUT_LOOKS:
+                                last_loadout = tick
+                                if loadout_reader is None:
+                                    loadout_reader = loadouts.Reader()
+                                with self.times.measure("loadouts"):
+                                    board = loadout_reader.read(look)
+                                self.loadout_info = f"{time.strftime('%H:%M:%S')} {loadout_reader.last}"
+                                if board is not None and loadout_votes.note(board):
+                                    self.post("loadouts", gen=gen, board=loadout_votes.board())
+                            elif (not menu_open and loadout_votes.looks and not loadout_votes.placed
+                                  and hud_looks < LOADOUT_HUD_LOOKS):
+                                last_loadout, hud_looks = tick, hud_looks + 1
+                                with self.times.measure("loadouts"):
+                                    found = loadouts.HudFinder().find(look, loadout_votes.faces(), loadout_votes.side)
+                                self.loadout_info = (f"{time.strftime('%H:%M:%S')} HUD: {len(found)} von "
+                                                     f"{len(loadout_votes.faces())} Porträts gefunden")
+                                if found and loadout_votes.place(found):
+                                    self.post("loadouts", gen=gen, board=loadout_votes.board())
                         except Exception:
                             self._report("Loadouts", traceback.format_exc())
                     events = tracker.update(Signals(t=tick, game=game, foreground=foreground, cursor=pointer,
