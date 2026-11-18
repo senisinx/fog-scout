@@ -795,3 +795,25 @@ def test_off_the_usual_list_the_found_grid_decides():
     for _ in range(2):
         v.place(big, grid)
     assert v.placed
+
+
+def test_two_survivors_with_the_same_look_are_never_guessed():
+    """User (1.57.13, real match: two Kate Densons in one skin – Diet Coke and Unlucky Juls – and Vittorio hooked
+    all the time): two portraits alike (0.97–1.00; others ≤ 0.55) can't be told apart in the HUD – 1.57.12 put one
+    Kate's perks at the other. Now neither is placed by a portrait (unless their loadouts are the same), each keeps
+    its own perks from the menu (its row there), and their two rows still leave the last row to Vittorio."""
+    reader = loadouts.Reader()
+    v = Votes()
+    for _ in range(3):
+        v.note(reader.read(_crop_frame("real_menu_twins.webp", True)))
+    rows = v.board().rows
+    assert [r.perks[:2] for r in rows] == [("Fixated", "We're Gonna Live Forever"), ("Déjà Vu", "Five Moves Ahead"),
+                                           ("Lithe", "Decisive Strike"), ("Déjà Vu", "Iron Will")]
+    assert v.twins() == {1, 3}
+    grid = loadouts.list_grid(3440, 1440)
+    for name in ("real_hud_twins_1.jpg", "real_hud_twins_2.jpg") * 2:
+        hud = _crop_frame(name, False)
+        v.place(loadouts.HudFinder().find(hud, v.faces(), v.side, v.scales(1440)), grid)
+    placed = {r.perks[1]: (round(r.hud[1] * 1440) if r.hud else None) for r in v.board().rows}
+    assert placed == {"We're Gonna Live Forever": 608, "Five Moves Ahead": None, "Decisive Strike": 962,
+                      "Iron Will": None}
