@@ -55,6 +55,11 @@ PORTRAIT = 1.0                # … the square cut out of it (inside the round p
 FACE = 24                     # portraits are compared at this size (grey)
 SAME_FACE = 0.8               # two portraits of the menu are the same survivor from this correlation on
 HUD_FIT = 0.7                 # a portrait found in the HUD's list from this correlation on
+HUD_STEP = (1.2, 2.4)         # the list's rows: this many portraits apart …
+HUD_ROW = 1.64                # … usually (user's HUD) – of two grids as good, the one nearer to it
+HUD_GRID = 0.15               # a portrait's row on that grid: within this share of a step
+HUD_SAME = 0.3                # two looks agree on a place within this share of a portrait
+HUD_COL = 0.02                # the list is one column: centres within this share of the picture's width
 HUD_SCALES = (0.6, 0.7, 0.8, 0.9, 1.0, 1.1, 1.25, 1.4, 1.6)   # HUD portrait / menu portrait (both scales can be set)
 HUD_BOX = (0.0, 0.2, 0.3, 0.88)   # where DBD's survivor list can be: share of the 16:9 picture (x0, y0, x1, y1)
 CORNER = 0.28                 # an add-on's top right corner (DBD's white "+") is left out of the comparison
@@ -412,6 +417,34 @@ class HudFinder:
         return out
 
 
+def on_grid(found: dict) -> dict:
+    """The places of ``found`` ({who: (x, y, side)}) that fit DBD's survivor list: one column, rows a whole number
+    of steps apart (``HUD_STEP`` × the portrait); at least two – a lone match says nothing."""
+    if len(found) < 2:
+        return {}
+    side = sorted(a[2] for a in found.values())[len(found) // 2]
+    xs = sorted(a[0] for a in found.values())
+    mid = xs[len(xs) // 2]
+    col = {w: a for w, a in found.items() if abs(a[0] - mid) <= HUD_COL}
+    if len(col) < 2:
+        return {}
+    ys = sorted(a[1] for a in col.values())
+    best, best_key = {}, None
+    for i, base in enumerate(ys):                    # every pair may give the step; keep the largest set on a grid
+        for other in ys[i + 1:]:                     # (of two as large: the one fitting best, the usual step)
+            gap = other - base
+            for n in (1, 2, 3):
+                step = gap / n
+                if not HUD_STEP[0] * side <= step <= HUD_STEP[1] * side:
+                    continue
+                off = {w: abs((a[1] - base) / step - round((a[1] - base) / step)) for w, a in col.items()}
+                fit = {w: col[w] for w, e in off.items() if e <= HUD_GRID}
+                key = (len(fit), -round(sum(off[w] for w in fit), 2), -abs(step / side - HUD_ROW))
+                if best_key is None or key > best_key:
+                    best, best_key = fit, key
+    return best if len(best) >= 2 else {}
+
+
 class Votes:
     """The board of one round from several looks, one entry per survivor (found again by the portrait – the
     menu's order changes): a slot shows a name once it was read ``need`` times and more often than any other name
@@ -421,6 +454,7 @@ class Votes:
         self.need = need
         self.looks = 0
         self.side = 0.0                   # the menu portraits' size (px) – HudFinder scales from it
+        self._hud_seen: dict = {}         # the places on the grid of the last look at the HUD
         self._people: list = []           # {"face", "counts": {slot: {name: n}}, "own": n, "seen": n, "hud": …}
 
     def _who(self, face, index: int) -> int:
@@ -458,21 +492,33 @@ class Votes:
         return self.board().key() != before
 
     def faces(self) -> dict:
-        """{who: portrait} of the survivors not yet found in the HUD."""
-        return {i: p["face"] for i, p in enumerate(self._people) if p["hud"] is None and p["face"] is not None}
+        """{who: portrait} of every survivor with a portrait – all are looked for in each look (one found at a wrong
+        place must not take a free row from another)."""
+        return {i: p["face"] for i, p in enumerate(self._people) if p["face"] is not None}
 
     def place(self, found: dict) -> bool:
-        """Places found by HudFinder; True when the shown board changed."""
+        """Places found by HudFinder in one look; True when the shown board changed. 1.57.2 (user's picture: one
+        perk diamond above the own portrait, none at a bot whose portrait was covered): a place counts only when it
+        lies on the list's grid with the others of that look (same column, rows a whole number of steps apart) and
+        the look before found it at the same place – one stray match never sticks for the round."""
         before = self.board().key()
-        for who, at in found.items():
-            if 0 <= who < len(self._people):
-                self._people[who]["hud"] = at
+        good = on_grid({w: a for w, a in found.items() if 0 <= w < len(self._people)})
+        prev = self._hud_seen
+        self._hud_seen = good
+        for who, at in good.items():
+            last = prev.get(who)
+            if last is not None and abs(last[1] - at[1]) <= HUD_SAME * at[2] and abs(last[0] - at[0]) <= HUD_COL:
+                if self._people[who]["hud"] is None:
+                    taken = [p["hud"][1] for p in self._people if p["hud"] is not None]
+                    if all(abs(y - at[1]) >= 0.6 * at[2] for y in taken):
+                        self._people[who]["hud"] = at
         return self.board().key() != before
 
     @property
     def placed(self) -> bool:
-        """Every survivor seen with a face has its place in the HUD."""
-        return bool(self._people) and not self.faces()
+        """Every survivor seen with a portrait has its place in the HUD."""
+        faced = [p for p in self._people if p["face"] is not None]
+        return bool(faced) and all(p["hud"] is not None for p in faced)
 
     def _slot(self, p: dict, slot: int):
         c = p["counts"].get(slot, {})
@@ -505,4 +551,5 @@ class Votes:
     def reset(self) -> None:
         self.looks = 0
         self.side = 0.0
+        self._hud_seen = {}
         self._people.clear()
