@@ -33,6 +33,9 @@ ICONS = os.path.join(HERE, "perkicons")
 # 1.57.4 (user: "Falls jemand was Verstecktes wirft, soll dies ebenfalls so angezeigt werden"): a hidden offering is a
 # brown hexagon with a faint skull – the wiki has no picture of it; its drawing (GLYPH × GLYPH, grey) is the mean of
 # eight bot rows of the user's menu pictures
+# 1.57.8 (user: "Object of Obsession heisst es, wenn man den Myers-DLC hat, sonst Bound by Obsession. Dasselbe bei
+# Sole Survivor"): one perk with two names and one picture – read as the first name
+SAME_AS = {"Bound by Obsession": "Object of Obsession", "Down to the Last": "Sole Survivor"}
 HIDDEN_OFFERING = "Hidden offering"
 HIDDEN_FILE = os.path.join(HERE, "loadout_hidden_offering.png")
 
@@ -188,9 +191,13 @@ class Templates:
         self.corner = kind == "addons"
         self.perks_kind = kind == "perks"
         self.names, rows = [], []
+        seen = set()
         for f, name in sorted(files.items()):
+            if name in SAME_AS:
+                continue                                  # 1.57.8: the other name of one perk – read as that one
             t = _template(os.path.join(folder, f), self.corner)
-            if t is not None:
+            if t is not None and t.tobytes() not in seen:     # the same drawing twice can never be told apart
+                seen.add(t.tobytes())
                 self.names.append(name)
                 rows.append(t.ravel())
         for name, glyph in (extra or {}).items():        # drawings that are no picture file (the hidden offering)

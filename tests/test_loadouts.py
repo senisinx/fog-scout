@@ -614,16 +614,31 @@ def _slot_picture(icon_file, box, quality):
 def test_every_perk_is_read_as_itself_or_left_open(box, quality, off):
     """1.57.7 (user: "ich will, dass es perfekt funktioniert"): every wiki perk drawn like the user's pictures – small,
     compressed, a pixel or two off – is read as itself or not at all, never as another perk (the looser rules of a
-    found row and the second look where eyes differ included). Pairs with the same wiki picture (the Obsession
-    perks, Down to the Last / Sole Survivor) stay open."""
+    found row and the second look where eyes differ included). A perk with two names (licensed or not) is read
+    as the one name of ``SAME_AS``."""
     names = loadouts.load_names()["perks"]
     perks = loadouts.Templates("perks")
     wrong, read = [], 0
     for f, name in names.items():
         pic, cx, cy, side = _slot_picture(f, box, quality)
         got = perks.best(loadouts._fine_cuts(perks, pic, cx + off[0] * 1.72, cy + off[1] * 1.72, side), loose=True)[0]
-        if got is not None and got != name:
+        want = loadouts.SAME_AS.get(name, name)              # one perk, two names (1.57.8)
+        if got is not None and got != want:
             wrong.append((name, got))
-        read += got == name
+        read += got == want
     assert not wrong
     assert read >= 0.9 * len(names)
+
+
+def test_a_perk_with_two_names_is_read_as_one():
+    """User (1.57.8): "Object of Obsession heisst es, wenn man den Myers-DLC hat, sonst Bound by Obsession. Dasselbe
+    bei Sole Survivor" – one picture, one perk: read (and drawn) as the first name, never left open for the twin."""
+    perks = loadouts.Templates("perks")
+    for other, name in loadouts.SAME_AS.items():
+        assert other not in perks.names and name in perks.names
+        assert loadouts.icon_file(other, "perks") and loadouts.icon_file(name, "perks")
+    names = loadouts.load_names()["perks"]
+    for f, name in names.items():
+        if name in loadouts.SAME_AS:
+            pic, cx, cy, side = _slot_picture(f, 44, 0)
+            assert perks.best(loadouts._fine_cuts(perks, pic, cx, cy, side), loose=True)[0] == loadouts.SAME_AS[name]
