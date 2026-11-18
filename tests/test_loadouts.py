@@ -744,3 +744,54 @@ def test_nobody_takes_the_own_top_row():
         v.place({1: top, 2: third})
     rows = {r.who: r.hud for r in v.board().rows}
     assert rows[1] is None and rows[2] == third                  # not on the remembered own row; below it fine
+
+
+def _crop_frame(name, menu):
+    """The worker's debug crops (1.57.11) back in a 3440×1440 picture: the menu's middle 3/5, the HUD's left 2/5."""
+    crop = cv2.imread(os.path.join(DATA, name))
+    frame = np.zeros((1440, 3440, 3), np.uint8)
+    x = 440 + 512 if menu else 440
+    frame[:, x:x + crop.shape[1]] = crop
+    return frame
+
+
+def test_a_real_match_with_hooked_and_hurt_teammates():
+    """User (1.57.12, debug pictures of a real match at full size): the menu reads every slot, but in the HUD the own
+    portrait is a hook, Jake's a hook, A2's marked red – only one portrait as it is (Hyper's Dwight, the own one's
+    twin). 1.57.11 placed none (it needed two portraits on a grid in one look and the own one) and gave up after 40
+    looks. DBD's list is where it always is: the own row is its top without being found, every portrait found on a
+    row below counts alone, the last one by elimination – and the own Dwight never swaps with the other."""
+    reader = loadouts.Reader()
+    board = reader.read(_crop_frame("real_menu_crop.webp", True))
+    assert [r.perks for r in board.rows] == [
+        ("Fixated", "We're Gonna Live Forever", "For the People", "Dead Hard"),
+        ("Adrenaline", "Sprint Burst", "Windows of Opportunity", "Decisive Strike"),
+        ("Prove Thyself", "Windows of Opportunity", "Sprint Burst", "Adrenaline"),
+        ("Déjà Vu", "Lithe", "Resilience", "Five Moves Ahead")]
+    assert board.rows[0].own and not any(r.own for r in board.rows[1:])
+    v = Votes()
+    for _ in range(3):
+        v.note(reader.read(_crop_frame("real_menu_crop.webp", True)))
+    assert [r.own for r in v.board().rows] == [True, False, False, False]      # the gold Dwight stays the own one
+    grid = loadouts.list_grid(3440, 1440)
+    for name in ("real_hud_crop_1.jpg", "real_hud_crop_2.jpg") * 2:
+        hud = _crop_frame(name, False)
+        v.place(loadouts.HudFinder().find(hud, v.faces(), v.side, v.scales(1440)), grid)
+    assert v.placed
+    rows = {r.perks[0]: round(r.hud[1] * 1440) for r in v.board().rows}
+    assert rows == {"Fixated": 608, "Déjà Vu": 726, "Adrenaline": 844, "Prove Thyself": 962}
+
+
+def test_off_the_usual_list_the_found_grid_decides():
+    """Another HUD size: nothing found fits DBD's usual list – the grid of the portraits found decides as before."""
+    faces = [np.zeros((loadouts.FACE, loadouts.FACE), np.uint8) for _ in range(3)]
+    for i, f in enumerate(faces):
+        f[i * 8:(i + 1) * 8, :] = 200
+    v = Votes()
+    v.note(Board(rows=tuple(Row(perks=(f"P{i}", None, None, None), face=f) for i, f in enumerate(faces)), pitch=40))
+    grid = loadouts.list_grid(3440, 1440)
+    big = {0: (0.18, 0.30, 0.08), 1: (0.18, 0.43, 0.08), 2: (0.18, 0.56, 0.08)}   # a larger HUD: other rows, sides
+    assert v.place_on_list(big, grid) is None
+    for _ in range(2):
+        v.place(big, grid)
+    assert v.placed
