@@ -18,12 +18,13 @@ from .qt_common import on_zoom
 
 # element -> its settings tab (appconst.ELEMENT_TABS; repeated here: the Qt side never imports the App's mixins)
 TABS = {"map": "ov.look", "text": "ov.look", "hud": "ov.sys", "today": "ov.today_f", "music": "ov.music_f",
-        "inputs": "ov.inputs_f"}
+        "inputs": "ov.inputs_f", "loadouts": "ov.loadouts_f"}
 GENERAL_TAB = "ov.pos"
 NAMES = {"map": N_("Karte"), "text": N_("Infos"), "hud": N_("Systemwerte"), "today": N_("Heute"),
-         "music": N_("Musik"), "inputs": N_("Eingaben")}
+         "music": N_("Musik"), "inputs": N_("Eingaben"), "loadouts": N_("Loadouts")}
 WHAT = {"map": N_("Callout-Karte der Map"), "text": N_("Timer, Bilanz, Server"), "hud": N_("CPU, GPU, RAM"),
-        "today": N_("Runden und Zeit heute"), "music": N_("Läuft gerade"), "inputs": N_("Tasten und Gamepad")}
+        "today": N_("Runden und Zeit heute"), "music": N_("Läuft gerade"), "inputs": N_("Tasten und Gamepad"),
+        "loadouts": N_("Perks der Mitspieler")}
 RAIL_W = 236                 # px at text zoom 1.0: the list of elements
 INSPECTOR_W = 344            # px at text zoom 1.0: the settings of the element picked
 WIDE_FROM = 1180             # px (× zoom): list | canvas | inspector side by side

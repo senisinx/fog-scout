@@ -13,7 +13,7 @@ from dataclasses import dataclass
 
 import cv2
 
-from . import __version__, bloodpoints, corpus, gamelang
+from . import __version__, bloodpoints, corpus, gamelang, loadouts
 from .capture import (IS_WIN, ImageSource, ScreenGrabber, cursor_state, find_game_window, foreground_root,
                       overlaps, windows_above)
 from .i18n import _
@@ -30,6 +30,8 @@ from .textnorm import MAIN, MODEL_FILES
 log = logging.getLogger("fogscout")
 END_CHECK_INTERVAL = 0.5          # seconds between two looks for result screen / lobby / loading screen …
 END_IDLE_INTERVAL = 1.0           # … and while nothing points to the end yet (whole-screen grab: ~14 MB each)
+LOADOUT_INTERVAL = 1.5           # 1.57: seconds between two looks at the pause menu's loadouts (while it is open)
+LOADOUT_LOOKS = 6                 # … and after this many looks of a round the board is known: no more looks
 IN_MATCH_RATE = 1.0               # scans per second while a detected map is being played (banner only at the start)
 VBAR_STRIP_S = 1.0                # 1.8.65: without a map, a look at the bars above/below at most this often
 BLACK_WARN_S = 8.0                # a black banner strip this long (DBD found) = "Aufnahme ist schwarz"
@@ -111,6 +113,7 @@ def scan_rate(base: float, *, in_match: bool, session: bool, since_button: float
 
 class DetectionWorker(threading.Thread):
     inputs_rect = None               # 1.39: the input card on screen (set by the UI; a default for bare instances)
+    loadouts_rect = None             # 1.57: the survivors' loadouts on screen (the same)
     fade_rects = ()                  # 1.55.6: windows still fading out (their *_rect is cleared already)
 
     def __init__(self, root_dir: str, settings, catalog, events: queue.Queue, simulate: str | None = None,
@@ -132,6 +135,9 @@ class DetectionWorker(threading.Thread):
         self.today_rect = None           # … and of "today" (its own card since 1.2.6)
         self.info_rect = None            # … and of the map's lines when they are their own element (1.8.24)
         self.inputs_rect = None          # … and of the input card (1.39)
+        self.loadouts_rect = None        # … and of the survivors' loadouts (1.57)
+        self.loadouts_wanted = False     # set by the UI: the loadouts are shown and the round is no killer's (1.57)
+        self.loadout_info = "–"          # 1.57: last look at the pause menu's loadouts (diagnosis)
         self.guide_rects = ()            # … and of the centre guide lines while moving (1.64.5)
         self.toast_rect = None           # … and of the notification window (1.8.13: F8 clip, lobby found)
         self.vbars = None                # (top, bottom, time, (w, h)): black bars above/below the picture
@@ -259,6 +265,9 @@ class DetectionWorker(threading.Thread):
         acc = Accumulator()
         out_of_match = OutOfMatchWatcher(rec)
         lobby_reader = LobbyReader(rec)
+        loadout_reader = None             # 1.57: built at the first look at an open menu
+        loadout_votes = loadouts.Votes()
+        last_loadout = -1e9
         steady = self.lobby_steady = SteadyCorner()   # 1.38.14: an unchanged corner is not read again
         last_lobby = 0.0
         lobby_button_t = -1e9             # last look that saw PLAY / CANCEL / READY
@@ -655,6 +664,7 @@ class DetectionWorker(threading.Thread):
                 if gen != tracker_gen:
                     tracker.reset(gen[0] if gen else None, gen[1] if gen else None, tick)
                     tracker_gen = gen
+                    loadout_votes.reset()         # 1.57: a new map, a new round – other survivors
                     trial_since = tick
                 use_end = bool(self.settings.get("hide_after_match", True))
                 use_menu = bool(self.settings.get("pause_in_menus", True))
@@ -690,6 +700,22 @@ class DetectionWorker(threading.Thread):
                                 self._note_vbars(look, fw, fh)
                         except Exception:
                             self._report("Rundenende-Prüfung", traceback.format_exc())
+                    # 1.57: the pause menu shows the other survivors' loadouts – read while it is open (the
+                    # pointer is visible over DBD), a few looks per round, never as the killer
+                    menu_open = pointer or (source is not None)
+                    if (look is not None and menu_open and self.loadouts_wanted and gen is not None
+                            and loadout_votes.looks < LOADOUT_LOOKS and tick - last_loadout >= LOADOUT_INTERVAL):
+                        last_loadout = tick
+                        try:
+                            if loadout_reader is None:
+                                loadout_reader = loadouts.Reader()
+                            with self.times.measure("loadouts"):
+                                board = loadout_reader.read(look)
+                            self.loadout_info = f"{time.strftime('%H:%M:%S')} {loadout_reader.last}"
+                            if board is not None and loadout_votes.note(board):
+                                self.post("loadouts", gen=gen, board=loadout_votes.board())
+                        except Exception:
+                            self._report("Loadouts", traceback.format_exc())
                     events = tracker.update(Signals(t=tick, game=game, foreground=foreground, cursor=pointer,
                                                     banner=sep is not None, obs=obs))
                     self.watch_status = tracker.describe()
@@ -906,7 +932,7 @@ class DetectionWorker(threading.Thread):
     def _own_windows(self) -> bool:
         """Any of our own windows up (the UI sets their screen rectangles): a screen picture needs them blacked out."""
         return bool(self.overlay_rect or self.hud_rect or self.media_rect or self.today_rect or self.info_rect
-                    or self.inputs_rect or self.guide_rects or self.toast_rect or self.fade_rects)
+                    or self.inputs_rect or self.loadouts_rect or self.guide_rects or self.toast_rect or self.fade_rects)
 
     def _mask_screen(self, img, from_screen: bool, left, top):
         """1.13.1: the one test before every look – black out our own windows in ``img`` (picture of the screen
@@ -926,8 +952,8 @@ class DetectionWorker(threading.Thread):
     def _mask_overlay(self, img, left, top):
         """Black out our own overlay in a screenshot (it is always on top and would
         otherwise be read as part of the game picture)."""
-        for r in (self.hud_rect, self.media_rect, self.today_rect, self.inputs_rect, self.toast_rect, *self.guide_rects,
-                  *self.fade_rects):
+        for r in (self.hud_rect, self.media_rect, self.today_rect, self.inputs_rect, self.loadouts_rect, self.toast_rect,
+                  *self.guide_rects, *self.fade_rects):
             if r:
                 self._black_out(img, r, left, top)
         lines = self._black_out(img, self.info_rect, left, top)      # 1.8.24: the map's lines apart – they

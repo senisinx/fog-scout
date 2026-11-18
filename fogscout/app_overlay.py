@@ -7,7 +7,7 @@ from . import layout
 from . import uimodel as ui
 from .i18n import N_, _
 from .skin import STYLE_LABELS
-from .appconst import INPUT_LAYOUTS, INPUT_SPOTS, MEDIA_NEXT_N, MEDIA_NEXT_SPOTS
+from .appconst import INPUT_LAYOUTS, INPUT_SPOTS, LOADOUT_SPOTS, MEDIA_NEXT_N, MEDIA_NEXT_SPOTS
 from .appconst import (BAR_ALIGNS, HUD_ROW_LABELS, HUD_SIDES, MAP_SCALE, MEDIA_SPOTS, MEDIA_STYLES,
                           OPACITY_KEYS, PRESET_LABELS, SELECTABLE, TODAY_SPOTS)
 from .appconst import INFO_SPOTS   # noqa: F401 – 1.38.36: shared choices live in appconst
@@ -372,6 +372,7 @@ class OverlayTab:
                                                              "Einstellungen → Verbindungen → Spotify."),
                                                  style="Dim.TLabel", wraplength=420)).pack(anchor="w")
         self._inputs_box_ui(f, o)
+        self._loadouts_box_ui(f, o)
         return outer
 
     def _inputs_box_ui(self, f, o):
@@ -417,6 +418,34 @@ class OverlayTab:
                                                          "nichts; gespeichert nur mit dem Häkchen oben, als Datei "
                                                          "neben der eigenen Aufnahme."),
                                              style="Dim.TLabel", wraplength=420)).pack(anchor="w")
+
+    def _loadouts_box_ui(self, f, o):
+        """1.57: the tab "Loadouts" – the other survivors' perks from the pause menu beside DBD's survivor list."""
+        lf = self._reg("ov.loadouts_f", ui.LabelFrame(f, text=_("Loadouts"), padding=8))
+        lf.pack(fill="x", pady=(8, 0))
+        self.loadouts_on_var = ui.BooleanVar(value=bool(o.get("show_loadouts", False)))
+        self._reg("ov.loadouts", ui.Checkbutton(lf, text=_("Loadouts der Mitspieler zeigen (Perks aus dem Menü)"),
+                                                variable=self.loadouts_on_var, command=self._loadouts_on_changed)
+                  ).pack(anchor="w", pady=(2, 0))
+        pr = ui.Frame(lf)
+        pr.pack(fill="x", pady=(4, 0))
+        self._reg("ov.loadouts_pos.label", ui.Label(pr, text=_("Position"), width=12)).pack(side="left")
+        spots = dict(LOADOUT_SPOTS)
+        self.loadouts_pos_var = ui.StringVar(value=_(spots.get(o.get("loadouts_pos", "hud"), spots["hud"])))
+        pcb = self._reg("ov.loadouts_pos", ui.Combobox(pr, textvariable=self.loadouts_pos_var, state="readonly",
+                                                        width=38, values=[_(t) for _k, t in LOADOUT_SPOTS]))
+        pcb.pack(side="left", padx=6)
+        pcb.bind("<<ComboboxSelected>>", lambda e: self._loadouts_spot_changed())
+        self.loadouts_items_var = ui.BooleanVar(value=bool(o.get("loadouts_items", True)))
+        self._reg("ov.loadouts_items", ui.Checkbutton(lf, text=_("Item und Add-ons neben den Perks"),
+                                                      variable=self.loadouts_items_var,
+                                                      command=self._loadouts_items_changed)).pack(anchor="w",
+                                                                                                  pady=(2, 0))
+        self._reg("ov.loadouts_hint", ui.Label(lf, text=_("Nur als Survivor: im Match einmal Esc drücken – Fog Scout "
+                                                          "liest die Loadouts der anderen aus dem Bild des Menüs und "
+                                                          "zeigt sie danach neben ihnen. Nichts wird gespeichert "
+                                                          "oder gesendet."),
+                                               style="Dim.TLabel", wraplength=420)).pack(anchor="w")
 
     def _small_off_changed(self):
         self.settings.set("overlay_small_off", bool(self.small_off_var.get()))

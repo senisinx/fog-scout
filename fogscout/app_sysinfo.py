@@ -80,7 +80,7 @@ INPUT_SCALE = layout.INPUT_SCALE            # size of the input card, percent (1
 TEXT_BASE = 0.36                            # … of the text at the standard map size (share of the game height)
 # 1.2.12: the tab of the overlay page (qt_window.SPECS frame keys) that holds each element's settings
 ELEMENT_TABS = {"map": "ov.look", "text": "ov.look", "hud": "ov.sys", "today": "ov.today_f", "music": "ov.music_f",
-                "inputs": "ov.inputs_f"}
+                "inputs": "ov.inputs_f", "loadouts": "ov.loadouts_f"}
 
 
 def text_scale(o: dict) -> float:
@@ -695,13 +695,13 @@ class SysInfo:
     # ---- fading (1.2.4 the music card, 1.2.9 map, system values and "today" too): media.Fader per window
     def _fade_win(self, name):
         attr = {"map": "overlay", "hud": "hud", "today": "today_win", "music": "media_win", "info": "info_win",
-                "inputs": "inputs_win"}[name]
+                "inputs": "inputs_win", "loadouts": "loadouts_win"}[name]
         return getattr(self, attr, None)
 
     # 1.55.6 (audit B6): the worker's rectangle of each window – the App clears it the moment a window should go, but
     # a fading window stays on the screen for Fader.OUT_S; until _fade_tick hides it, it is blacked out from here
     FADE_RECTS = {"map": "overlay_rect", "hud": "hud_rect", "today": "today_rect", "music": "media_rect",
-                  "info": "info_rect", "inputs": "inputs_rect"}
+                  "info": "info_rect", "inputs": "inputs_rect", "loadouts": "loadouts_rect"}
 
     def _fade_mask(self, name, rect=None):
         """Keep ``rect`` blacked out while ``name`` fades out (None: no longer – hidden or shown again)."""
@@ -790,7 +790,8 @@ class SysInfo:
     # lies on another, on the map or on a keep-out area – placed as usual, then moved up/down where they collide
     ELEMENT_WINDOWS = (("hud", "hud", "hud_rect"), ("text", "info_win", "info_rect"),
                        ("today", "today_win", "today_rect"), ("music", "media_win", "media_rect"),
-                       ("inputs", "inputs_win", "inputs_rect"))                                  # 1.39
+                       ("inputs", "inputs_win", "inputs_rect"),                                  # 1.39
+                       ("loadouts", "loadouts_win", "loadouts_rect"))                            # 1.57
 
     def _el_show(self, name, win, x, y, size):
         """Show an element where its placement put it, moved by what the last check gave it (no back and forth
@@ -858,7 +859,7 @@ class SysInfo:
 
     # 1.45.1: comfort while dragging in the game – the same snap lines as the preview, Ctrl+Z, arrow keys
     SNAP_RECTS = (("map", "overlay_rect"), ("hud", "hud_rect"), ("text", "info_rect"), ("today", "today_rect"),
-                  ("music", "media_rect"), ("inputs", "inputs_rect"))
+                  ("music", "media_rect"), ("inputs", "inputs_rect"), ("loadouts", "loadouts_rect"))
 
     def _edit_comfort(self, name, win):
         """Hook an overlay window up: it snaps while dragged (asked at once, inside Windows' move loop), Ctrl+Z
@@ -906,7 +907,7 @@ class SysInfo:
 
     def _el_any_dragged(self):
         return any(getattr(getattr(self, attr, None), "dragging", False)
-                   for attr in ("overlay", "hud", "info_win", "today_win", "media_win", "inputs_win"))
+                   for attr in ("overlay", "hud", "info_win", "today_win", "media_win", "inputs_win", "loadouts_win"))
 
     def _guides_place(self):
         """Centre cross over the DBD window while moving (1.64.5): two thin click-through windows, hidden
@@ -1003,6 +1004,8 @@ class SysInfo:
             return TODAY_SCALE + (today_scale(o) * 100,)
         if name == "inputs":                                       # 1.39
             return INPUT_SCALE + (min(INPUT_SCALE[1], max(INPUT_SCALE[0], o.get("inputs_scale", 1.0) * 100)),)
+        if name == "loadouts":                                     # 1.57
+            return layout.LOADOUT_SCALE + (layout.loadout_scale(o) * 100,)
         return MAP_SCALE + (self._map_height() * 100,)
 
     def _select(self, name):
@@ -1073,6 +1076,8 @@ class SysInfo:
             o["today_scale"] = round(percent / 100, 2)
         elif name == "inputs":                                     # 1.39
             o["inputs_scale"] = round(percent / 100, 2)
+        elif name == "loadouts":                                   # 1.57
+            o["loadouts_scale"] = round(percent / 100, 2)
         else:
             value = round(percent / 100, 3)
             mid = self._own_size_map()

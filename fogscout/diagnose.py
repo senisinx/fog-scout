@@ -213,6 +213,8 @@ def collect(app) -> str:
         bp = getattr(app, "bloodpoints", None)               # 1.13: balance from the lobby, cap check
         lines.append(f"Blutpunkte: {bp.describe() if bp is not None else '–'} · letzter Blick "
                      f"{getattr(w, 'bp_info', '–')}")
+        lines.append(f"Loadouts (Pausenmenü): gewünscht={getattr(w, 'loadouts_wanted', None)} · letzter Blick "
+                     f"{getattr(w, 'loadout_info', '–')}")            # 1.57: no names – what was found, not read
         lines.append(f"Runde: {getattr(app, '_hist', None)} · Lobby der App: "
                      f"{ {k: v for k, v in getattr(app, '_queue', {}).items() if k != 'since'} }")
         try:                                                  # 1.38.29: the corpus of decided banners

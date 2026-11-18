@@ -21,7 +21,7 @@ FILES = ("maps.json", "HISTORY.md", "models/ch_PP-OCRv4_rec_infer.onnx", "models
          "models/PP-OCRv5_mobile_rec.onnx", "models/PP-OCRv5_mobile_rec.txt",
          "models/cyrillic_PP-OCRv5_mobile_rec.onnx", "models/cyrillic_PP-OCRv5_mobile_rec.txt",
          "models/korean_PP-OCRv5_mobile_rec.onnx", "models/korean_PP-OCRv5_mobile_rec.txt",
-         "fogscout/matchexport.user.js", "fogscout/perkdata.json", "fogscout/perkicons/IconPerks_proveThyself.png",
+         "fogscout/matchexport.user.js", "fogscout/perkdata.json", "fogscout/loadoutnames.json", "fogscout/perkicons/IconPerks_proveThyself.png",
          "fogscout/fonts/FiraSans-ExtraBold.ttf", "fogscout/fonts/Inter-Regular.otf",
          "fogscout/fonts/Inter-Medium.otf", "fogscout/fonts/Inter-SemiBold.otf", "fogscout/fonts/Inter-Bold.otf")
 # third-party modules imported lazily somewhere (only Windows: the ones start.bat installs only there)

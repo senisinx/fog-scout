@@ -44,6 +44,7 @@ from .app_spotify import SpotifyUpNext
 from .app_youtube import YouTubeUpload
 from .app_palette import PaletteMixin
 from .app_inputs import InputsCard
+from .app_loadouts import SAMPLE as LOADOUT_SAMPLE, LoadoutsCard, picture as loadouts_picture
 from .app_calc import CalcTab
 
 LANGS = [("en", "EN"), ("de", "DE"), ("fr", "FR"), ("es", "ES"), ("es-MX", "ES-MX"), ("it", "IT"),
@@ -78,7 +79,7 @@ log = logging.getLogger("fogscout")
 
 class App(ServerTab, StatsTab, ExportDialog, RecordingsTab, DiscordPresence, SpotifyUpNext, YouTubeUpload, LobbyInfo,
           Hotkeys, SettingsTab, PaletteMixin, CalcTab,
-          SysInfo, InputsCard, OverlayPlacement, LayoutMemory, OverlayTab, QtShell):
+          SysInfo, InputsCard, LoadoutsCard, OverlayPlacement, LayoutMemory, OverlayTab, QtShell):
     def __init__(self, root_dir: str, simulate: str | None = None, start_in_tray: bool = False, progress=None,
                  data_dir: str | None = None, start_clock=None):
         self.root_dir = root_dir
@@ -174,6 +175,7 @@ class App(ServerTab, StatsTab, ExportDialog, RecordingsTab, DiscordPresence, Spo
         self._layout_init()              # undo + one layout per DBD window size (1.65)
         self._hud_init()                 # system values at the top of a black bar (CPU/GPU temperature …)
         self._inputs_init()              # 1.39: the input card (keys / mouse / gamepad held right now)
+        self._loadouts_init()            # 1.57: the other survivors' loadouts from the pause menu
         self._start_step("Overlay")
 
         self._progress(0.5, _("Baue Oberfläche …"))
@@ -1235,6 +1237,8 @@ class App(ServerTab, StatsTab, ExportDialog, RecordingsTab, DiscordPresence, Spo
                 self._unknown = (txt, d.get("realm_text") or "")
         elif k == "queue":
             self._queue_event(d)
+        elif k == "loadouts":                     # 1.57: the pause menu's loadouts of the round on display
+            self._loadouts_event(d)
         elif k == "bloodpoints":                  # 1.13: a reading of the bloodpoint counter in the lobby
             self._bp_reading(d)
         elif k == "match_start":                  # 1.6: end of the loading screen (recording from the spawn)
@@ -1461,6 +1465,8 @@ class App(ServerTab, StatsTab, ExportDialog, RecordingsTab, DiscordPresence, Spo
         accent = self._skin_accent()                     # 1.3: the modern styles use the theme's colour
         layout_in = self._inputs_choice.layout(o.get("inputs_layout", "auto"), inputs.SAMPLE) \
             if o.get("show_inputs", False) else None       # 1.39: the input card with made-up keys
+        layout_lo = ((lambda oo, game: loadouts_picture(oo, game, LOADOUT_SAMPLE, bool(self.overlay.editing)))
+                     if o.get("show_loadouts", False) else None)    # 1.57: the loadouts with a made-up board
         key = (gw, gh, repr(sorted((k, v) for k, v in o.items() if not isinstance(v, dict))), hud_side,
                bool(self.overlay.editing), accent,
                repr(rows), repr(today_rows), repr(self.settings.get("sysinfo_pos")), id(pic), caption, repr(info),
@@ -1473,7 +1479,7 @@ class App(ServerTab, StatsTab, ExportDialog, RecordingsTab, DiscordPresence, Spo
             layers, rect = preview.layers(round(gw * f), round(gh * f), o, hud_side, rows,
                                           self.settings.get("sysinfo_pos"), pic, caption, info, self._map_height(),
                                           music, today_rows, bool(self.overlay.editing), accent, upnext, fits,
-                                          inputs=layout_in)
+                                          inputs=layout_in, loadouts=layout_lo)
             self._preview_cache = cached = (key, layers, tuple(round(v / f) for v in rect), f, fits)
         _key, layers, (x, y, w, h), f, fits = cached
         boxes = [(name, (round(lx / f), round(ly / f), round(img.width / f), round(img.height / f)))
@@ -1626,7 +1632,7 @@ class App(ServerTab, StatsTab, ExportDialog, RecordingsTab, DiscordPresence, Spo
                 extra, shift = layout.own_block(dict(self.settings["overlay"], anchor="custom"), lines,
                                                 layout.stack_gap(self.settings["overlay"], gh))
                 fy = round(min(1.0, max(0.0, (y - shift) / max(1, gh - size[1] - extra))), 4)
-            if name in ("music", "today", "text", "inputs"):
+            if name in ("music", "today", "text", "inputs", "loadouts"):
                 fx, fy = layout.media_own(gw, gh, size, x, y)       # by its centre (1.2.5)
             if name == "hud":
                 self._hud_own_place(fx, fy)
@@ -1638,6 +1644,8 @@ class App(ServerTab, StatsTab, ExportDialog, RecordingsTab, DiscordPresence, Spo
                 self._info_own_place(fx, fy)
             elif name == "inputs":                                   # 1.39
                 self._inputs_own_place(fx, fy)
+            elif name == "loadouts":                                 # 1.57
+                self._loadouts_own_place(fx, fy)
             elif name == "map":
                 self._map_own_place(fx, fy)
             return
@@ -1968,7 +1976,8 @@ class App(ServerTab, StatsTab, ExportDialog, RecordingsTab, DiscordPresence, Spo
         try:
             # 1.8.38: every step on its own – one that raises must not skip saving or the other stops
             wins = [w for w in (self.media_win, getattr(self, "today_win", None), getattr(self, "info_win", None),
-                                getattr(self, "inputs_win", None)) if w is not None]
+                                getattr(self, "inputs_win", None), getattr(self, "loadouts_win", None))
+                    if w is not None]
             # first the clip saves still running: stopped, or done ones into the clips list while the recorder runs
             steps = [self._clip_saves_stop, self._hist_quit,     # 1.38.24: an open round is noted as lost
                      self._qt_close, self.settings.save, self.tray.stop, self.conn.stop, self.sysmon.stop,

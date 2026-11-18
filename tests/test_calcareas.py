@@ -509,8 +509,8 @@ def test_perk_pictures_are_found_by_the_perks_name_or_the_packs_file_name(tmp_pa
 # what the wiki has no picture for that can be told apart by its name (1.54) – these entries stand without one
 NO_PICTURE = {("addon", "Anti-Exhaustion Syringe"), ("addon", "Misty Day, Remains of Judgement"),
               ("addon", "Mysterious Elixir"), ("addon", "Spattered Handkerchief"), ("addon", "Vorpal Sword"),
-              ("items", "Annotated Map"), ("items", "Banquet Flashlight"), ("items", "Banquet Med-Kit"),
-              ("items", "Banquet Toolbox"), ("items", "Scribbled Map")}
+              ("items", "Banquet Flashlight"), ("items", "Banquet Med-Kit"),
+              ("items", "Banquet Toolbox")}    # 1.57: the two maps came with the loadout reader
 
 
 def test_every_perk_of_the_calculator_has_its_picture_in_the_program():
@@ -530,8 +530,10 @@ def test_every_perk_of_the_calculator_has_its_picture_in_the_program():
         path = index.find(n, kind)
         assert path is None or perkicons.kind_of(os.path.basename(path)) == kind, n
     used = {index.find(part, kind) for n, kind in want for part in n.split(" / ")} - {None}
-    files = sorted(os.listdir(folder))
-    assert sorted(os.path.basename(p) for p in used) == files and len(files) > 1000
+    from fogscout import loadouts                             # 1.57: and every survivor perk / item / add-on
+    used = {os.path.basename(p) for p in used} | {f for kind in loadouts.load_names().values() for f in kind}
+    files = sorted(os.listdir(folder))                        # … (the reader's own names file)
+    assert sorted(used) == files and len(files) > 1000
     for name in files:
         path = os.path.join(folder, name)
         assert name.endswith(".png") and os.path.getsize(path) < 16 * 1024, name
