@@ -50,6 +50,10 @@ GRID_TOL = 0.25               # a perk's place on the grid: within this share of
 ROW_GAP = 1.5                 # menu rows: at least this many steps apart (user's menu: 2.1)
 MIN_SCORE = 0.78              # a slot's best picture must fit at least this well …
 MIN_MARGIN = 0.05             # … and this much better than the second best
+# 1.57.5 (user: "Perks werden nicht alle sauber erkannt"): a slot of a found row may fit less well when it stands out
+# clearly – fit + lead ≥ LOOSE_SUM, fit ≥ LOOSE_FLOOR, lead ≥ LOOSE_MARGIN. On the user's four menus every read in
+# this range was right (the same bots' perks across matches); the close ones (Déjà Vu / Kindred, lead 0.04) stay open
+LOOSE_FLOOR, LOOSE_SUM, LOOSE_MARGIN = 0.62, 0.87, 0.04
 SQUARE = 0.80                 # item / add-on square: its side in perk pitches
 ITEM_AT = 2.19                # centre of the item right of the fourth perk, in perk pitches (user's menu)
 ADDONS_AT = (3.43, 4.33)      # … and of the two add-ons
@@ -65,7 +69,8 @@ HUD_FIT = 0.62                # a portrait found in the HUD's list from this cor
 HUD_ROUND = 0.42              # 1.57.4: only the round middle of a portrait is compared (radius in portraits) – the
                               # corners show the menu's backdrop there and the game behind it in the HUD, and a
                               # framed portrait (obsession) has its brackets there
-SURE_SCORE, SURE_MARGIN = 0.88, 0.12   # 1.57.4: a slot read this clearly counts as two readings (menu open shortly)
+SURE_SCORE, SURE_MARGIN = 0.82, 0.10   # 1.57.4: a slot read this clearly counts as two readings (menu open shortly;
+                                       # 1.57.5: 0.88/0.12 left most of a short look open)
 HUD_STEP = (1.2, 2.4)         # the list's rows: this many portraits apart …
 HUD_ROW = 1.64                # … usually (user's HUD) – of two grids as good, the one nearer to it
 HUD_GRID = 0.15               # a portrait's row on that grid: within this share of a step
@@ -188,9 +193,10 @@ class Templates:
             rows.append(np.asarray(glyph, np.float32).ravel())
         self.matrix = _norm(np.array(rows, dtype=np.float32)) if rows else np.zeros((0, GLYPH * GLYPH), np.float32)
 
-    def best(self, glyphs: np.ndarray, at: list | None = None):
+    def best(self, glyphs: np.ndarray, at: list | None = None, loose: bool = False):
         """(name, score, margin) of the best picture for any of ``glyphs`` (n × GLYPH²), or (None, score, margin)
-        when it is not clearly the best; ``at`` gets the index of the cut that fitted best."""
+        when it is not clearly the best; ``at`` gets the index of the cut that fitted best. ``loose`` (a slot of a row
+        already found): a weaker fit counts when it leads clearly (``LOOSE_*``)."""
         if not len(self.names) or not len(glyphs):
             return None, 0.0, 0.0
         glyphs = glyphs.reshape(len(glyphs), GLYPH, GLYPH)
@@ -203,8 +209,11 @@ class Templates:
             at.append(int(np.argmax(scores[:, order[0]])))
         top = float(per[order[0]])
         second = float(per[order[1]]) if len(order) > 1 else 0.0
-        name = self.names[order[0]] if top >= MIN_SCORE and top - second >= MIN_MARGIN else None
-        return name, top, top - second
+        lead = top - second
+        ok = top >= MIN_SCORE and lead >= MIN_MARGIN
+        if loose and not ok:
+            ok = top >= LOOSE_FLOOR and top + lead >= LOOSE_SUM and lead >= LOOSE_MARGIN
+        return (self.names[order[0]] if ok else None), top, lead
 
 
 def _glyph(bgr: np.ndarray) -> np.ndarray:
@@ -416,11 +425,13 @@ class Reader:
             back = _strip(frame, x0 - 1.2 * pitch, x0 - 0.7 * pitch, y, 0.25 * pitch)
             if _red(back):
                 continue                                  # the killer's row
-            reads = [self.perks.best(_cuts(frame, x0 + k * pitch, y, pitch * DIAMOND)) for k in range(4)]
+            reads = [self.perks.best(_cuts(frame, x0 + k * pitch, y, pitch * DIAMOND), loose=True) for k in range(4)]
             last = x0 + 3 * pitch
-            reads.append(self.items.best(_cuts(frame, last + ITEM_AT * pitch, y, pitch * SQUARE, reach=2)))
-            reads += [self.addons.best(_cuts(frame, last + a * pitch, y, pitch * SQUARE, reach=2)) for a in ADDONS_AT]
-            reads.append(self.offerings.best(_cuts(frame, last + OFFERING_AT * pitch, y, pitch * OFFERING, reach=2)))
+            reads.append(self.items.best(_cuts(frame, last + ITEM_AT * pitch, y, pitch * SQUARE, reach=2), loose=True))
+            reads += [self.addons.best(_cuts(frame, last + a * pitch, y, pitch * SQUARE, reach=2), loose=True)
+                      for a in ADDONS_AT]
+            reads.append(self.offerings.best(_cuts(frame, last + OFFERING_AT * pitch, y, pitch * OFFERING, reach=2),
+                                             loose=True))
             names = [n for n, _s, _m in reads]
             sure = tuple(n is not None and s >= SURE_SCORE and m >= SURE_MARGIN for n, s, m in reads)
             perks, item, addons, offering = tuple(names[:4]), names[4], tuple(names[5:7]), names[7]

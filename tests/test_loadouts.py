@@ -7,6 +7,8 @@ Test pictures (tests/data/loadouts, every player name painted over):
 - ``menu_3440_hidden.jpg``: the same menu in another state – the survivors' loadouts hidden, the killer's shown,
   another order.
 - ``hud_3440.jpg``: the HUD of that match – own portrait on top, then Dustin, Renato, Ellen.
+- ``menu_3440_fourth.jpg``: the user's menu of a fourth match (1.57.5) – Lara, Vittorio, Eleven; Vittorio's
+  Small Game fits only 0.76 but far ahead of any other perk.
 - ``menu_four_rows.png``: the four icon rows of the picture of the first request (another player's menu, other
   scale; names, pings and the killer's row painted over)."""
 import json
@@ -454,3 +456,48 @@ def test_the_menu_rows_follow_their_grid():
     assert [round(y) for y, _i in rows if not _i] == [300, 450, 600]
     assert 750 in [round(y) for y, inferred in rows if inferred]         # … the fourth on their grid
     assert loadouts._menu_rows([300.0, 340.0], 70.0, 1440) == [(300.0, False), (340.0, False)]   # too close: no grid
+
+
+def test_a_clear_lead_lets_a_weaker_fit_count(reader):
+    """User (1.57.5): "Perks werden nicht alle sauber erkannt" – Small Game (fit 0.76, far ahead of the second
+    best) and Saboteur stayed open. A slot of a found row counts with a weaker fit when it leads clearly; a close
+    one (lead under LOOSE_MARGIN) still stays open, and most slots count after one look."""
+    board = reader.read(_load("menu_3440_fourth.jpg"))
+    assert board is not None and len(board.rows) == 4
+    assert [r.perks for r in board.rows[1:]] == [
+        ("Balanced Landing", "Boon: Dark Theory", "Breakout", None),        # Lara: Déjà Vu too close to call
+        ("Wicked", "Small Game", "Adrenaline", "Plot Twist"),               # Vittorio
+        ("Saboteur", "Resilience", None, "Change of Plan")]                 # Eleven: slot 3 is empty
+    v = Votes()
+    v.note(board)
+    once = sum(1 for r in v.board().rows for p in r.perks if p)
+    assert once >= 10                                                   # one look: nearly all perks already
+
+
+def _fit(top, second):
+    """Templates of two drawings and a glyph that fits them ``top`` and ``second``."""
+    rng = np.random.default_rng(5)
+    q, _r = np.linalg.qr(rng.normal(size=(loadouts.GLYPH * loadouts.GLYPH, 3)))
+    q = q - q.mean(axis=0)
+    q, _r = np.linalg.qr(q)
+    e1, e2, e3 = q.T
+    assert top ** 2 + second ** 2 <= 1
+    glyph = top * e1 + second * e2 + np.sqrt(max(0.0, 1 - top ** 2 - second ** 2)) * e3
+    t = loadouts.Templates("none", {}, extra={"A": e1, "B": e2})
+    return t, glyph.reshape(1, -1).astype(np.float32)
+
+
+@pytest.mark.parametrize("top,second,strict,loose", [
+    (0.80, 0.55, True, True),       # the strict bars
+    (0.72, 0.20, False, True),      # weaker, far ahead: only in a found row
+    (0.66, 0.30, False, True),
+    (0.60, 0.10, False, False),     # below the floor
+    (0.79, 0.60, True, True),       # lead 0.19: both
+    (0.70, 0.67, False, False),     # too close to call
+])
+def test_the_loose_rule_counts_only_in_a_found_row(top, second, strict, loose):
+    t, glyph = _fit(top, second)
+    name, score, lead = t.best(glyph)
+    assert abs(score - top) < 0.01 and abs(lead - (top - second)) < 0.01
+    assert (name == "A") == strict
+    assert (t.best(glyph, loose=True)[0] == "A") == loose
