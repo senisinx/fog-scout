@@ -700,3 +700,47 @@ def test_the_style_follows_the_position():
         app._loadouts_style_sync()
         assert app.loadouts_style_var.get() == labels[shown]
         assert app.loadouts_style_cb.instate(["!disabled"]) == free
+
+
+def test_debug_pictures_of_menu_and_hud_looks_are_kept_few(tmp_path):
+    """1.57.11 (user's diagnosis showed only the result screen's look): with "Debug-Bilder speichern" each look at
+    the menu / the HUD is kept at full size (the menu's middle, the HUD's left part), the newest LOADOUT_KEPT."""
+    from types import SimpleNamespace
+    from fogscout import worker
+    stub = SimpleNamespace(data_dir=str(tmp_path))
+    frame = np.zeros((1440, 3440, 3), np.uint8)
+    for _ in range(worker.LOADOUT_KEPT + 3):
+        worker.DetectionWorker._save_loadout_look(stub, frame, "menu")
+    worker.DetectionWorker._save_loadout_look(stub, frame, "hud")
+    files = sorted(os.listdir(tmp_path / "debug" / "loadouts"))
+    assert sum(f.endswith("-menu.png") for f in files) == worker.LOADOUT_KEPT
+    hud = [f for f in files if f.endswith("-hud.png")]
+    menu = cv2.imread(str(tmp_path / "debug" / "loadouts" / files[0]))
+    assert len(hud) == 1 and menu.shape[:2] == (1440, 2560 * 3 // 5)
+    assert cv2.imread(str(tmp_path / "debug" / "loadouts" / hud[0])).shape[:2] == (1440, 2560 * 2 // 5)
+
+
+def test_nobody_takes_the_own_top_row():
+    """User (1.57.11, a match with real players): the own portrait was hurt and not found – a teammate was found at
+    the own, top row and its perks drawn there. With the own (gold) survivor known, the others count only below its
+    place; unknown, nobody is placed. The own place is kept for the next rounds (the HUD stays put)."""
+    faces = [np.zeros((loadouts.FACE, loadouts.FACE), np.uint8) for _ in range(3)]
+    for i, f in enumerate(faces):
+        f[i * 8:(i + 1) * 8, :] = 200
+    board = Board(rows=(Row(own=True, face=faces[0]),) + tuple(
+        Row(perks=(f"P{i}", None, None, None), face=f) for i, f in enumerate(faces[1:], 1)), pitch=40)
+    top, second, third = (0.18, 0.418, 0.05), (0.18, 0.50, 0.05), (0.18, 0.582, 0.05)
+    v = Votes()
+    v.note(board)
+    for _ in range(2):
+        v.place({1: top, 2: third})                              # the own one not found: 1 sits on its row
+    assert all(r.hud is None for r in v.board().rows)
+    for _ in range(2):
+        v.place({0: top, 1: second, 2: third})                   # the own one found: all placed
+    assert v.placed
+    v.reset()                                                    # next round: the own portrait hurt, not found
+    v.note(board)
+    for _ in range(2):
+        v.place({1: top, 2: third})
+    rows = {r.who: r.hud for r in v.board().rows}
+    assert rows[1] is None and rows[2] == third                  # not on the remembered own row; below it fine

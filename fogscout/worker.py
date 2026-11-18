@@ -38,6 +38,7 @@ LOADOUT_HUD_LOOKS = 40            # 1.57.1: looks for the portraits in the HUD a
                                   # portrait is covered for a while)
 LOADOUT_HUD_INTERVAL = 0.5        # 1.57.7: seconds between two of those looks (a place counts after two agreeing ones;
                                   # 1 s before – the user found it far too slow)
+LOADOUT_KEPT = 12                 # 1.57.11: debug pictures of menu / HUD looks kept (each)
 IN_MATCH_RATE = 1.0               # scans per second while a detected map is being played (banner only at the start)
 VBAR_STRIP_S = 1.0                # 1.8.65: without a map, a look at the bars above/below at most this often
 BLACK_WARN_S = 8.0                # a black banner strip this long (DBD found) = "Aufnahme ist schwarz"
@@ -145,6 +146,8 @@ class DetectionWorker(threading.Thread):
         self.loadouts_rect = None        # … and of the survivors' loadouts (1.57)
         self.loadouts_wanted = False     # set by the UI: the loadouts are shown and the round is no killer's (1.57)
         self.loadout_info = "–"          # 1.57: last look at the pause menu's loadouts (diagnosis)
+        self.loadout_menu_info = "–"     # 1.57.11: … the last one at the menu itself (not the HUD / result)
+        self.loadout_state = "–"         # 1.57.11: … and why looks happen (diagnosis)
         self.menu_open = False           # 1.57.2: the pointer is visible over DBD in a round (a menu is open)
         self.guide_rects = ()            # … and of the centre guide lines while moving (1.64.5)
         self.toast_rect = None           # … and of the notification window (1.8.13: F8 clip, lobby found)
@@ -721,6 +724,11 @@ class DetectionWorker(threading.Thread):
                     menu_open = pointer or (source is not None)
                     self.menu_open = bool(pointer)        # 1.57.2: the App hides the loadouts meanwhile
                     due = tick - last_loadout >= (LOADOUT_HUD_INTERVAL if not menu_open else LOADOUT_INTERVAL)
+                    # 1.57.11 (user's diagnosis: a menu look, then nothing for five minutes): why a look happens or not
+                    self.loadout_state = (f"gewünscht={self.loadouts_wanted} Map={gen is not None} "
+                                          f"Bild={look is not None} Menü offen={bool(menu_open)} "
+                                          f"Menü-Blicke {loadout_votes.looks}/{LOADOUT_LOOKS} "
+                                          f"HUD-Blicke {hud_looks}/{LOADOUT_HUD_LOOKS} alle platziert={loadout_votes.placed}")
                     if look is not None and self.loadouts_wanted and gen is not None and due:
                         try:
                             if menu_open and loadout_votes.looks < LOADOUT_LOOKS:
@@ -732,6 +740,15 @@ class DetectionWorker(threading.Thread):
                                 self.loadout_info = f"{time.strftime('%H:%M:%S')} {loadout_reader.last}"
                                 if board is not None and loadout_votes.note(board):
                                     self.post("loadouts", gen=gen, board=loadout_votes.board())
+                                # 1.57.11 (user's diagnosis showed only the result screen's look): the last look
+                                # at the menu itself – what each row read this time, then the round's votes
+                                read = " ".join(f"{sum(1 for p in r.perks if p)}/4" for r in board.rows) \
+                                    if board is not None else "–"
+                                self.loadout_menu_info = (f"{time.strftime('%H:%M:%S')} Menü-Blick "
+                                                          f"{loadout_votes.looks}: {loadout_reader.last} · "
+                                                          f"dieser Blick Perks {read} · {loadout_votes.describe()}")
+                                if self.settings.get("save_debug_images"):
+                                    self._save_loadout_look(look, "menu")
                             elif (not menu_open and loadout_votes.looks and not loadout_votes.placed
                                   and hud_looks < LOADOUT_HUD_LOOKS):
                                 last_loadout, hud_looks = tick, hud_looks + 1
@@ -747,6 +764,8 @@ class DetectionWorker(threading.Thread):
                                             miss[0], {c: loadouts.score_at(look, face, c) for c in miss[1]})
                                 self.loadout_info = (f"{time.strftime('%H:%M:%S')} HUD-Blick {hud_looks}: "
                                                      f"{loadout_votes.describe(getattr(finder, 'scores', {}))}")
+                                if self.settings.get("save_debug_images"):
+                                    self._save_loadout_look(look, "hud")
                                 if changed:
                                     self.post("loadouts", gen=gen, board=loadout_votes.board())
                         except Exception:
@@ -1080,6 +1099,27 @@ class DetectionWorker(threading.Thread):
             cv2.imencode(".jpg", crop, [cv2.IMWRITE_JPEG_QUALITY, 90])[1].tofile(
                 os.path.join(d, time.strftime("%Y%m%d-%H%M%S") + ".jpg"))
             for old in sorted(os.listdir(d))[:-RESULT_MISSES_KEPT]:
+                os.remove(os.path.join(d, old))
+        except Exception:
+            pass
+
+    def _save_loadout_look(self, frame, tag):
+        """1.57.11: a look at the pause menu ("menu": the middle of the picture) or at the HUD ("hud": its left
+        part) at full size – what the loadouts reader saw (own windows already blacked out), in debug/loadouts,
+        the newest LOADOUT_KEPT of each. Only with "Debug-Bilder speichern"; the user sends them to tune on."""
+        try:
+            d = os.path.join(self.data_dir, "debug", "loadouts")
+            os.makedirs(d, exist_ok=True)
+            h, w = frame.shape[:2]
+            vw = min(w, h * 16 // 9)
+            vx = (w - vw) // 2
+            if tag == "menu":
+                part = frame[:, vx + vw // 5:vx + vw * 4 // 5]
+            else:
+                part = frame[:, vx:vx + vw * 2 // 5]
+            stamp = time.strftime("%Y%m%d-%H%M%S") + f"-{int(time.time() * 1000) % 1000:03d}"
+            cv2.imencode(".png", part)[1].tofile(os.path.join(d, f"{stamp}-{tag}.png"))
+            for old in sorted(f for f in os.listdir(d) if f.endswith(f"-{tag}.png"))[:-LOADOUT_KEPT]:
                 os.remove(os.path.join(d, old))
         except Exception:
             pass
