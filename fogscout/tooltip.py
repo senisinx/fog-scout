@@ -373,9 +373,6 @@ TIPS = {
     "Zu einer Spalte zusammenführen":
         "Heute unter die Systemwerte, die Musik unter Heute, alle gleich breit – eine Spalte im Balken der "
         "Systemwerte. Rückgängig mit Strg+Z.",
-    "Discord-Overlay freihalten":
-        "Karte, Infos, Systemwerte, Heute und Musik weichen den Stellen aus, an denen Discords Overlay seine Widgets "
-        "zeigt (in der Vorschau schraffiert). Das Programm liest nichts aus Discord – die Flächen sind fest.",
     "Grenzen zurücksetzen": "Setzt alle vier Linien auf 8 % vom Rand zurück.",
     "Clip abspielen": "Spielt den markierten Clip im Standard-Player von Windows ab.",
     "Clip im Editor öffnen …": "Öffnet den markierten Clip (auch Sofort-Clips von F8) im Clip-Editor: kürzen, "

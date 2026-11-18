@@ -184,7 +184,7 @@ def test_the_preview_shows_where_a_dragged_element_lands_and_snaps_to_where_othe
 GAME = (0, 0, 3440, 1440)
 
 
-def test_an_own_place_stays_beyond_the_limiter_lines_and_keep_out_areas():
+def test_an_own_place_stays_beyond_the_limiter_lines():
     bands = {"left": (200, 1100), "right": (200, 1100)}                       # lines high in both bars
     cards = {"music": ((300, 120), "custom", [0.95, 0.95]), "today": ((300, 80), "bottom_right", None)}
     placed = layout.place_cards(GAME, cards, None, 17, bands=bands)
@@ -196,7 +196,7 @@ def test_an_own_place_stays_beyond_the_limiter_lines_and_keep_out_areas():
     assert layout.own_bands({"bar_limits_on": True}, bands) is bands
     held = layout.place_cards(GAME, cards, None, 17, bands=bands, own_lines=bands)
     assert held["music"][1] + held["music"][3] <= 1100
-    # … the bands Discord's areas narrow with the lines off do not
+    # … with the lines off nothing holds it
     assert layout.own_bands({"bar_limits_on": False}, bands) is None
 
 
@@ -211,9 +211,6 @@ def test_own_places_move_only_off_the_map_and_the_others_go_around_them():
     on_map = layout.resolve([("text", (40, 300, 200, 60))], [m], GAME, None, 8, keep={"text"})
     dx, dy = on_map["text"]                                                    # off the map (it would hide it):
     assert not layout.boxes_overlap((40 + dx, 300 + dy, 200, 60), m)           # to the nearest free spot
-    zone = [(3000, 250, 440, 300)]                                             # a keep-out area (Discord)
-    assert layout.resolve([("music", (3100, 300, 300, 100))], [], GAME, None, 8, soft=zone, keep={"music"}) == {}
-    assert layout.resolve([("music", (3100, 300, 300, 100))], [], GAME, None, 8, soft=zone) != {}
     o = {"today_pos": "custom", "media_pos": "below", "info_pos": "custom", "inputs_pos": "bottom_left"}
     assert layout.own_places(o, "custom") == {"hud", "today", "text"}
 

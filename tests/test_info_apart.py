@@ -204,22 +204,17 @@ def test_the_queue_beside_the_card_fills_its_height():
     assert skin.upnext_fit("X", 10, 10, 1.0) == 1
 
 
-def test_no_element_lies_on_another_on_the_map_or_on_discords_overlay():
-    """1.8.25 (user: "alle UI-Elemente beachten, damit es immer sauber aussieht" + screenshots with Discord's
-    overlay open): the areas of Discord's widgets keep the bars' lines away (voice bottom left, notifications top
-    right), and every element that would lie on another, on the map or on such an area moves up or down."""
+def test_no_element_lies_on_another_or_on_the_map():
+    """1.8.25 (user: "alle UI-Elemente beachten, damit es immer sauber aussieht"): every element that would lie on
+    another or on the map moves up or down. (Until 1.57.9 also off Discord's overlay areas – removed, user: "Drin
+    soll nur Fog Scout sein": the bars' lines are the limiter's alone.)"""
     from fogscout import media, sysinfo
     game = (0, 0, W, H)
-    o = _o(keep_out_on=True)
-    bands = layout.bar_bands(o, game, 17)
-    zones = layout.keep_out_boxes(o, game)
-    voice, top = zones[0], zones[1]
-    slack = int(layout.SOFT_SLACK * H)
+    o = _o()
+    assert layout.bar_bands(o, game, 17) is None                            # the limiter off: no lines at all
+    assert not hasattr(layout, "keep_out_boxes") and not hasattr(layout, "DISCORD_ZONES")
     side = layout.resolve([("d", (3000, 900, 400, 1000))], [(2800, 800, 220, 400)], game, None, 8)   # no room above/below
     assert side == {"d": (3028 - 3000, 0)}                                                         # → sideways in its bar
-    assert bands["left"][1] <= int(voice[1]) - 17 and bands["right"][0] >= int(top[1] + top[3]) + 17
-    assert layout.bar_bands(o, game, 17, zones=False) is None                 # the limiter itself stays off
-    assert layout.keep_out_boxes(_o(keep_out_on=False), game) == []
     # the resolver: a box on the map moves below it, one with no free place stays
     m = (17, 100, 400, 800)
     shift = layout.resolve([("a", (20, 300, 380, 100)), ("b", (20, 300, 380, 100))], [m], game, None, 8)
@@ -234,42 +229,28 @@ def test_no_element_lies_on_another_on_the_map_or_on_discords_overlay():
     for tpos in ("below", "bottom_left", "bottom_right", "under_music"):
         for mpos in ("below", "bottom_left", "bottom_right", "under_today"):
             for spot in ("below", "custom"):
-                o2 = _o(keep_out_on=True, today_pos=tpos, media_pos=mpos, info_pos=spot, info_xy=[0.06, 0.4])
+                o2 = _o(today_pos=tpos, media_pos=mpos, info_pos=spot, info_xy=[0.06, 0.4])
                 layers, _r = preview.layers(W, H, o2, "right", rows, None, pic, "", INFO, 0.36, music, today)
                 boxes = [(n, (x, y, img.width, img.height)) for n, img, x, y in layers]
                 for i, (n, b) in enumerate(boxes):
                     for n2, b2 in boxes[:i]:
                         if layout.boxes_overlap(b, b2):
                             bad.append((tpos, mpos, spot, n, n2))
-                    # (1.14.3: an area's edge may reach SOFT_SLACK into a card – such a graze moves nothing)
-                    if n != "map" and any(layout.boxes_overlap(b, z, -slack) for z in zones):
-                        free = [z for z in zones if layout.boxes_overlap(b, z, -slack)]
-                        bad.append((tpos, mpos, spot, n, "zone", free))
     assert not bad, bad[:6]
 
 
-def test_an_area_grazing_a_card_no_longer_moves_it():
+def test_the_cards_of_one_bar_stack_as_configured():
     """1.14.3 (user's screenshot of the right bar: system values, a gap of 380 px, the music card shoved to the
-    screen's edge, "today" far below – "ich will einfach nicht, dass das so schlimm verschoben kommt"): Discord's
-    pinned-chat area ends at 88.4 % of the width, 41 px inside the right bar on 3440×1440 – every bar-wide card
-    (centred, 390 of 440 px) touched it by 16 px, and the resolver sent it past the whole area (today) or
-    sideways to the area's edge, flush with the screen (music). An area counts only once it reaches more than
-    layout.SOFT_SLACK into a card from both sides; a card well onto an area still moves off it."""
+    screen's edge – "ich will einfach nicht, dass das so schlimm verschoben kommt"; then caused by Discord's chat
+    area, which is gone since 1.57.9): cards of one bar that don't overlap are never moved."""
     from fogscout import media, sysinfo
     game = (0, 0, W, H)
-    zones = layout.keep_out_boxes(_o(keep_out_on=True), game)
-    chat = zones[2]
-    slack = int(layout.SOFT_SLACK * H)
-    assert 3000 < chat[0] + chat[2] < 3000 + slack                   # its edge inside the bar, within the slack
     bands = {"right": (495, 1415)}                                   # the user's upper limiter line, the margin
     stack = [("hud", (3025, 495, 390, 276)), ("today", (3025, 779, 390, 178)), ("music", (3025, 965, 390, 93))]
-    assert layout.resolve(stack, [None], game, bands, 8, soft=zones) == {}
-    # (before: {"today": (0, 373), "music": (23, 0)} – today below the area, music beside it at x 3048)
-    deep = [("today", (2900, 900, 300, 100))]                        # 141 px onto the chat area: off it, right above
-    assert layout.resolve(deep, [], game, None, 8, soft=zones) == {"today": (0, int(chat[1] - 8 - 100 - 900))}
+    assert layout.resolve(stack, [None], game, bands, 8) == {}
     # the whole chain of the user's set-up (style line, margin 1.8 %, system values 105 %, a long video title):
     # the preview – the App's placement – stacks the three cards as configured, one column, a gap apart
-    o = _o(style="line", margin=0.018, hud_scale=1.05, keep_out_on=True, today_pos="below", media_pos="below",
+    o = _o(style="line", margin=0.018, hud_scale=1.05, today_pos="below", media_pos="below",
            bar_limits_on=True, bar_limits=[0.08, 0.08, 0.344, 0.0])
     rows = [[("CPU ", sysinfo.DIM), ("69°C", sysinfo.WHITE)], [("GPU ", sysinfo.DIM), ("75°C", sysinfo.WHITE)],
             [("VRAM ", sysinfo.DIM), ("5.5 / 12 GB", sysinfo.WHITE)]]

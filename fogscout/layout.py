@@ -502,83 +502,26 @@ def limit_pair(limits, side: str) -> tuple:
     return t, b
 
 
-def bar_bands(o: dict, game, margin: int, zones: bool = True):
+def bar_bands(o: dict, game, margin: int):
     """{"left": (top y, bottom y), "right": (…)} – the room between the lines of each black bar (absolute screen
     y; at least ``margin`` from the edges), or None when the limiter is off or the window has no side bars.
-    1.8.25: a keep-out area (keep_out_boxes, e.g. Discord's voice widget) at the top / bottom edge of a bar moves
-    that bar's line past it – also with the limiter off; ``zones`` False = the limiter lines alone (drawing)."""
+    (1.8.25–1.57.9 Discord's keep-out areas moved the lines too – removed, user: "Drin soll nur Fog Scout sein".)"""
     gx, gy, gw, gh = game
-    if gh <= 0 or bar_width(gw, gh) < MIN_BAR:
-        return None
-    edges = bar_zone_edges(o, game) if zones else {}
-    if not o.get("bar_limits_on") and not edges:
+    if gh <= 0 or bar_width(gw, gh) < MIN_BAR or not o.get("bar_limits_on"):
         return None
     out = {}
     for side in LIMIT_SIDES:
-        t, b = limit_pair(o.get("bar_limits"), side) if o.get("bar_limits_on") else (0.0, 0.0)
+        t, b = limit_pair(o.get("bar_limits"), side)
         top, bottom = int(gy + max(margin, round(t * gh))), int(gy + gh - max(margin, round(b * gh)))
-        zt, zb = edges.get(side, (None, None))
-        if zt is not None:
-            top = max(top, zt + margin)
-        if zb is not None:
-            bottom = min(bottom, zb - margin)
         if bottom - top < gh * LIMIT_MIN_ROOM:           # never squeezed to nothing
             bottom = top + int(gh * LIMIT_MIN_ROOM)
         out[side] = (top, bottom)
     return out
 
 
-# 1.8.25 (user screenshots with Discord's overlay open: "was du beachten musst beim Anordnen"): areas our elements
-# keep out of – Discord's overlay widgets where the user has them, as shares of the DBD window (x, y, w, h):
-# voice widget bottom left, streams + notifications top right, text chat right. Nothing is read from Discord.
-# (measured on 2000×837 screenshots: voice 2–160 × 750–812, streams + notifications 1817–2000 × 0–200, the pinned
-# chat 1630–1767 × 470–665 – its wide input line only shows with the overlay open –, quick actions 680–940 × 15–70)
-DISCORD_ZONES = [[0.0, 0.89, 0.082, 0.11], [0.905, 0.0, 0.095, 0.245], [0.814, 0.56, 0.07, 0.235],
-                 [0.34, 0.015, 0.13, 0.07]]
-EDGE_TOUCH = 0.02                                   # a zone this close to the top / bottom edge moves the bar's line
-
-
-def keep_out_boxes(o: dict, game) -> list:
-    """The keep-out areas in screen pixels [(x, y, w, h)], [] when switched off."""
-    if not o.get("keep_out_on", False):            # settings: on by default (config.DEFAULTS)
-        return []
-    gx, gy, gw, gh = game
-    out = []
-    for z in o.get("keep_out") or DISCORD_ZONES:
-        try:
-            x, y, w, h = (float(v) for v in z)
-        except (TypeError, ValueError):
-            continue
-        out.append((gx + x * gw, gy + y * gh, w * gw, h * gh))
-    return out
-
-
-def bar_zone_edges(o: dict, game) -> dict:
-    """{side: (lowest bottom of the zones at the bar's top or None, highest top of those at its bottom or None)}."""
-    gx, gy, gw, gh = game
-    bar = bar_width(gw, gh)
-    out = {}
-    for x, y, w, h in keep_out_boxes(o, game):
-        for side, (b0, b1) in (("left", (gx, gx + bar)), ("right", (gx + gw - bar, gx + gw))):
-            if x >= b1 or x + w <= b0:
-                continue
-            top, bottom = out.get(side, (None, None))
-            if y <= gy + EDGE_TOUCH * gh:
-                top = max(top or 0, int(y + h))
-            elif y + h >= gy + gh - EDGE_TOUCH * gh:
-                bottom = int(y) if bottom is None else min(bottom, int(y))
-            out[side] = (top, bottom)
-    return out
-
-
 def boxes_overlap(a, b, pad: int = 0) -> bool:
     return (a[0] < b[0] + b[2] + pad and b[0] < a[0] + a[2] + pad and
             a[1] < b[1] + b[3] + pad and b[1] < a[1] + a[3] + pad)
-
-
-SOFT_SLACK = 0.04     # 1.14.3: a keep-out area counts against an element only where it reaches further than this
-#                       share of the game height (58 px at 1440p) into it from both sides – the chat area's edge reaches
-#                       41–52 px into the right bar on 21:9 screens and sent every bar-wide card past the whole area
 
 
 def own_places(o: dict, sysinfo: str) -> set:
@@ -596,19 +539,14 @@ def own_overlaps(boxes, keep) -> set:
     return {n for i, (n, b) in enumerate(own) for m, c in own if m != n and boxes_overlap(b, c)}
 
 
-def resolve(boxes, fixed, game, bands, gap: int, soft=(), keep=()) -> dict:
+def resolve(boxes, fixed, game, bands, gap: int, keep=()) -> dict:
     """1.8.25 (user: "alle UI-Elemente beachten, damit es immer sauber aussieht"): {name: (dx, dy)} so that no box
     lies on an earlier one or on a ``fixed`` box (the map). ``boxes`` = [(name, (x, y, w, h))] in priority order;
     a box that collides moves up or down to the nearest free place in its bar between its lines (else on the
     screen) – without one, sideways within its bar (a narrow area reaching in from the game picture); with no
-    free place at all it stays where it is. ``soft`` (1.8.29) = the keep-out areas (Discord): kept free when
-    that leaves every element off the others – else ignored, so two cards never end up on each other because
-    a zone reaches a few pixels into the bar (bar-wide cards of one column did). 1.14.3 (user: "ich will einfach
-    nicht, dass das so schlimm verschoben kommt"): a soft area counts only where it reaches more than
-    ``SOFT_SLACK`` into an element from both sides – its edge grazing a card (the chat area reaching 41 px into
-    the right bar) no longer sends the card past the area or sideways to the screen's edge. 1.45 (user: "fühlt
-    sich eng an"): the names in ``keep`` (own places, see own_places) move only off a ``fixed`` box (the map) – not
-    for another element or a keep-out area; the others go around them."""
+    free place at all it stays where it is. 1.45 (user: "fühlt sich eng an"): the names in ``keep`` (own places,
+    see own_places) move only off a ``fixed`` box (the map) – not for another element; the others go around them.
+    (1.8.29–1.57.9 also around Discord's overlay areas – removed, user: "Drin soll nur Fog Scout sein".)"""
     keep = set(keep)
     first = {}
     for n, b in boxes:                                # own places: each moves off the map only (not off another)
@@ -616,27 +554,17 @@ def resolve(boxes, fixed, game, bands, gap: int, soft=(), keep=()) -> dict:
             first.update(_resolve([(n, b)], fixed, game, bands, gap))
     if first:
         boxes = [(n, (b[0] + first[n][0], b[1] + first[n][1], b[2], b[3]) if n in first else b) for n, b in boxes]
-    out = _resolve(boxes, fixed, game, bands, gap, soft, int(SOFT_SLACK * game[3]), keep)
-    if soft:
-        final = [(n, (x + out.get(n, (0, 0))[0], y + out.get(n, (0, 0))[1], w, h)) for n, (x, y, w, h) in
-                 ((n, b) for n, b in boxes if b)]
-        hard = [tuple(f) for f in fixed if f] + [b for n, b in final if n in keep]
-        moving = [b for n, b in final if n not in keep]
-        for i, b in enumerate(moving):
-            if any(boxes_overlap(b, p) for p in hard + moving[:i]):
-                out = _resolve(boxes, fixed, game, bands, gap, keep=keep)
-                break
+    out = _resolve(boxes, fixed, game, bands, gap, keep)
     return {**out, **first}
 
 
-def _resolve(boxes, fixed, game, bands, gap: int, soft=(), slack: int = 0, keep=frozenset()) -> dict:
+def _resolve(boxes, fixed, game, bands, gap: int, keep=frozenset()) -> dict:
     gx, gy, gw, gh = game
     bar = bar_width(gw, gh)
     placed = [tuple(f) for f in fixed if f] + [tuple(b) for n, b in boxes if b and n in keep]
-    zones = [tuple(z) for z in soft if z]
 
-    def taken(b) -> bool:                  # on a placed box, or deeper than ``slack`` into a keep-out area
-        return any(boxes_overlap(b, p) for p in placed) or any(boxes_overlap(b, z, -slack) for z in zones)
+    def taken(b) -> bool:                  # on a placed box
+        return any(boxes_overlap(b, p) for p in placed)
 
     out = {}
     for name, box in boxes:
@@ -648,7 +576,7 @@ def _resolve(boxes, fixed, game, bands, gap: int, soft=(), slack: int = 0, keep=
             top, bottom = bands[side] if bands and side else (gy, gy + gh)
             left, right = ((gx, gx + bar) if side == "left" else (gx + gw - bar, gx + gw)) if side else (gx, gx + gw)
             cands = {y}
-            for p in placed + zones:
+            for p in placed:
                 cands |= {p[1] + p[3] + gap, p[1] - gap - h}
             spot = next((c for c in sorted(cands, key=lambda c: (abs(c - y), c))
                          if top <= c and c + h <= bottom and not taken((x, c, w, h))), None)
@@ -656,7 +584,7 @@ def _resolve(boxes, fixed, game, bands, gap: int, soft=(), slack: int = 0, keep=
                 y = spot
             else:
                 xs = set()
-                for p in placed + zones:
+                for p in placed:
                     xs |= {p[0] + p[2] + gap, p[0] - gap - w}
                 spot = next((c for c in sorted(xs, key=lambda c: (abs(c - x), c))
                              if left <= c and c + w <= right and not taken((c, y, w, h))), None)

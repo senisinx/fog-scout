@@ -99,8 +99,6 @@ class LayoutMemory:
             self.media_size_var.set(round(o.get("media_scale", 1.0) * 100))
             self.media_pos_var.set(_(dict(MEDIA_SPOTS).get(o.get("media_pos", "bottom_right"), "")))
             self.today_pos_var.set(_(dict(TODAY_SPOTS).get(o.get("today_pos", "below"), "")))
-            if hasattr(self, "keep_out_var"):                                # 1.8.25
-                self.keep_out_var.set(bool(o.get("keep_out_on", True)))
             if hasattr(self, "same_width_var"):                              # 1.8.29
                 self.same_width_var.set(bool(o.get("cards_same_width", True)))
             if hasattr(self, "info_pos_var"):                                # 1.8.24

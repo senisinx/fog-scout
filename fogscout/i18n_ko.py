@@ -2545,10 +2545,6 @@ T = {
         '오늘은 시스템 값 아래, 음악은 오늘 아래, 모두 같은 너비로 – 시스템 값 여백에 하나의 열. Ctrl+Z로 되돌립니다.',
     'Cover':
         '커버',
-    'Discord-Overlay freihalten':
-        'Discord 오버레이 영역 비우기',
-    'Karte, Infos, Systemwerte, Heute und Musik weichen den Stellen aus, an denen Discords Overlay seine Widgets zeigt (in der Vorschau schraffiert). Das Programm liest nichts aus Discord – die Flächen sind fest.':
-        '맵, 정보, 시스템 값, 오늘, 음악이 Discord 오버레이가 위젯을 표시하는 곳(미리 보기에서 빗금)을 피합니다. 프로그램은 Discord에서 아무것도 읽지 않습니다 – 영역은 고정되어 있습니다.',
     'Wie der Stil':
         '스타일에 따름',
     'Rund':
@@ -5857,8 +5853,8 @@ T = {
         '잠금',
     'Sperren: im Modus „Anordnen“ nicht mehr verschiebbar':
         '잠금: ‘배치’에서 더 이상 옮겨지지 않음',
-    'Stil, Abstand, Grenzen, Discord':
-        '스타일, 간격, 경계, Discord',
+    'Stil, Abstand, Grenzen':
+        '스타일, 간격, 경계',
     'Tasten und Gamepad':
         '키와 게임패드',
     'Timer, Bilanz, Server':
@@ -6130,8 +6126,8 @@ T = {
         '마름모 (2×2)',
     'Unter dem Namen':
         '이름 아래',
-    '„In einer Reihe“ passt am besten unter den Namen oder an eine eigene Position.':
-        '‘한 줄로’는 이름 아래나 직접 정한 위치에 가장 잘 맞습니다.',
+    'Neben der Liste stehen die Perks als Raute, unter dem Namen in einer Reihe; die Darstellung ist an einer eigenen Position wählbar.':
+        '목록 옆에서는 퍽이 마름모로, 이름 아래에서는 한 줄로 표시됩니다. 표시 방식은 직접 정한 위치에서만 선택할 수 있습니다.',
     # 1.57.4: offerings
     'Die Opfergabe (eine verdeckte als „?“), das Item und seine zwei Add-ons als kleine Felder neben den Perks.':
         '공물(숨긴 공물은 ‘?’), 아이템과 애드온 두 개를 퍽 옆에 작은 칸으로 표시합니다.',

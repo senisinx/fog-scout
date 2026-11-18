@@ -102,7 +102,7 @@ class _Row(QFrame):
         texts.setSpacing(0)
         self.title = _ElideLabel(_(NAMES.get(name, name)) if name != "general" else _("Allgemein"))
         self.title.setObjectName("ovrowname")
-        self.info = _ElideLabel(_(WHAT.get(name, "")) if name != "general" else _("Stil, Abstand, Grenzen, Discord"))
+        self.info = _ElideLabel(_(WHAT.get(name, "")) if name != "general" else _("Stil, Abstand, Grenzen"))
         self.info.setObjectName("ovrowinfo")
         self.setAccessibleName(self.title.text())           # 1.55.7: the row is a focus stop of its own
         self.setAccessibleDescription(self.info.text())

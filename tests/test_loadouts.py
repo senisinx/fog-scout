@@ -15,6 +15,9 @@ Test pictures (tests/data/loadouts, every player name painted over):
 - ``menu_3440_dejavu.webp``/``hud_3440_dejavu.jpg``: a match of 1.57.7 – own Dwight, Lee, Jill, Lara; Lara's
   fourth perk is Déjà Vu (an eye like Kindred and the Obsession perks, only the pupil differs). In the HUD Fog
   Scout's own rows are blacked out (as the worker does).
+- ``menu_3440_eyes.webp``/``hud_3440_eyes.jpg``: the user's test of the critical perks (1.57.9) – Lara Object of
+  Obsession, Kindred, Déjà Vu; Lee Kindred; Jill Déjà Vu, Sole Survivor. All the bright eyes made the diamond size
+  fit 52 px best (64 right): nothing was shown. Names, a Discord notice and the music card blacked out.
 - ``menu_four_rows.png``: the four icon rows of the picture of the first request (another player's menu, other
   scale; names, pings and the killer's row painted over)."""
 import json
@@ -372,9 +375,10 @@ def test_below_each_name_the_perks_stand_in_one_row():
     assert pic.size == loadout_size(size, round((0.586 - 0.504) * 1440) + size, True, row=True)
     assert y + size < 0.586 * 1440 - face / 2                         # above the next portrait
     assert pic.width > 4 * size                                       # four perks side by side, then the item
-    diamond = placed(dict(o, loadouts_pos="hud"), (0, 0, 3440, 1440), Board(rows=rows))[0]
-    row = placed(dict(o, loadouts_pos="hud", loadouts_style="row"), (0, 0, 3440, 1440), Board(rows=rows))[0]
-    assert row.width > diamond.width and row.height < diamond.height  # the style is a choice beside the list too
+    custom = dict(o, loadouts_pos="custom", loadouts_xy=[0.2, 0.4])
+    diamond = placed(custom, (0, 0, 3440, 1440), Board(rows=rows))[0]
+    row = placed(dict(custom, loadouts_style="row"), (0, 0, 3440, 1440), Board(rows=rows))[0]
+    assert row.width > diamond.width and row.height < diamond.height  # at a place of one's own the style is a choice
     from fogscout.appconst import LOADOUT_SPOTS, LOADOUT_STYLES
     assert [k for k, _t in LOADOUT_SPOTS] == ["hud", "name", "custom"]
     assert [k for k, _t in LOADOUT_STYLES] == ["diamond", "row"]
@@ -642,3 +646,57 @@ def test_a_perk_with_two_names_is_read_as_one():
         if name in loadouts.SAME_AS:
             pic, cx, cy, side = _slot_picture(f, 44, 0)
             assert perks.best(loadouts._fine_cuts(perks, pic, cx, cy, side), loose=True)[0] == loadouts.SAME_AS[name]
+
+
+def test_a_menu_full_of_eyes_finds_the_right_diamond_size(reader):
+    """User (1.57.9, test of the critical perks: nothing shown): the brightness fit is flat over a few sizes; with
+    bright eyes everywhere 26 (52 px) won, the grid slipped, and the person icon before each name was read as "This
+    Is Not Happening" in every row. The sizes fitting nearly as well are tried with real perk hits now, and the
+    looser rules count only in a row with two clear reads."""
+    board = reader.read(_load("menu_3440_eyes.webp"))
+    assert board is not None and board.size >= 60
+    assert board.rows[0].own and board.rows[0].perks == ("Ace in the Hole", "Adrenaline", "Bardic Inspiration", None)
+    others = {r.perks[1]: r.perks for r in board.others}
+    assert others["Kindred"] == ("Object of Obsession", "Kindred", "Breakout", "Déjà Vu")                 # Lara
+    assert others["Small Game"] == ("Kindred", "Small Game", "Adrenaline", "Plot Twist")                 # Lee
+    assert others["Sole Survivor"][0] in ("Déjà Vu", None) and others["Sole Survivor"][1:] == (
+        "Sole Survivor", "Resilience", "Wicked")                                                         # Jill
+    assert not any("This Is Not Happening" in r.perks for r in board.rows)
+    board_hud = _round("menu_3440_eyes.webp", "hud_3440_eyes.jpg")
+    rows = sorted(board_hud.rows, key=lambda r: r.hud[1])
+    assert rows[0].own and [r.perks[1] for r in rows[1:]] == ["Sole Survivor", "Kindred", "Small Game"]
+
+
+def test_loose_reads_count_only_in_a_proven_row():
+    """A row with fewer than PROVEN_ROW clear reads keeps only those (a slipped grid reads loosely what isn't there)."""
+    assert loadouts.PROVEN_ROW == 2
+
+
+def test_the_style_follows_the_position():
+    """User (1.57.9): "Die Einstellung macht keinen Sinn – wie kann es Raute 2×2 sein, wenn es in einer Reihe sein
+    soll". Beside the list always the diamond, below the name always a row; only at a place of one's own the
+    setting counts – the box shows what is drawn and is greyed out otherwise."""
+    from fogscout.app_loadouts import LoadoutsCard, placed, style_of
+    from fogscout.appconst import LOADOUT_STYLES
+    from fogscout import uimodel as ui
+    assert style_of({"loadouts_pos": "name", "loadouts_style": "diamond"}) == "row"
+    assert style_of({"loadouts_pos": "hud", "loadouts_style": "row"}) == "diamond"
+    assert style_of({"loadouts_pos": "custom", "loadouts_style": "row"}) == "row"
+    o = {"loadouts_scale": 1.0, "loadouts_items": True, "margin": 0.012}
+    rows = (Row(perks=("Dead Hard", None, None, None), hud=(0.177, 0.504, 0.05)),)
+    beside = placed(dict(o, loadouts_pos="hud", loadouts_style="row"), (0, 0, 3440, 1440), Board(rows=rows))[0]
+    plain = placed(dict(o, loadouts_pos="hud"), (0, 0, 3440, 1440), Board(rows=rows))[0]
+    assert beside.size == plain.size
+
+    class App(LoadoutsCard):
+        def __init__(self, overlay):
+            self.settings = {"overlay": overlay}
+            self.loadouts_style_var = ui.StringVar()
+            self.loadouts_style_cb = ui.Combobox(textvariable=self.loadouts_style_var, state="readonly")
+    labels = dict(LOADOUT_STYLES)
+    for spot, style, shown, free in (("name", "diamond", "row", False), ("hud", "row", "diamond", False),
+                                     ("custom", "row", "row", True)):
+        app = App({"loadouts_pos": spot, "loadouts_style": style})
+        app._loadouts_style_sync()
+        assert app.loadouts_style_var.get() == labels[shown]
+        assert app.loadouts_style_cb.instate(["!disabled"]) == free

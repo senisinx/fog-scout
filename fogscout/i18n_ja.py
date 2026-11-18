@@ -2545,10 +2545,6 @@ T = {
         'システム値の下に今日、今日の下に音楽を、すべて同じ幅で配置します – システム値の帯に 1 列。Ctrl+Z で元に戻せます。',
     'Cover':
         'カバー',
-    'Discord-Overlay freihalten':
-        'Discord のオーバーレイの場所を空けておく',
-    'Karte, Infos, Systemwerte, Heute und Musik weichen den Stellen aus, an denen Discords Overlay seine Widgets zeigt (in der Vorschau schraffiert). Das Programm liest nichts aus Discord – die Flächen sind fest.':
-        'マップ、情報、システム値、今日、音楽が、Discord のオーバーレイがウィジェットを表示する場所（プレビューでは斜線）を避けます。プログラムは Discord から何も読み取りません – 領域は固定です。',
     'Wie der Stil':
         'スタイルに合わせる',
     'Rund':
@@ -5857,8 +5853,8 @@ T = {
         'ロック',
     'Sperren: im Modus „Anordnen“ nicht mehr verschiebbar':
         'ロック：「配置」で移動しなくなります',
-    'Stil, Abstand, Grenzen, Discord':
-        'スタイル、間隔、境界、Discord',
+    'Stil, Abstand, Grenzen':
+        'スタイル、間隔、境界',
     'Tasten und Gamepad':
         'キーとゲームパッド',
     'Timer, Bilanz, Server':
@@ -6130,8 +6126,8 @@ T = {
         'ひし形（2×2）',
     'Unter dem Namen':
         '名前の下',
-    '„In einer Reihe“ passt am besten unter den Namen oder an eine eigene Position.':
-        '「一列に並べる」は名前の下か独自の位置が最適です。',
+    'Neben der Liste stehen die Perks als Raute, unter dem Namen in einer Reihe; die Darstellung ist an einer eigenen Position wählbar.':
+        'リストの横ではパークはひし形、名前の下では一列で表示されます。表示方法は独自の位置でのみ選べます。',
     # 1.57.4: offerings
     'Die Opfergabe (eine verdeckte als „?“), das Item und seine zwei Add-ons als kleine Felder neben den Perks.':
         '供物（隠されたものは「?」）、アイテムと2つのアドオンを、パークの横に小さな枠で表示します。',

@@ -2545,10 +2545,6 @@ T = {
         'Oggi sotto i valori di sistema, la musica sotto oggi, tutti con la stessa larghezza – una colonna nella barra dei valori di sistema. Annulla con Ctrl+Z.',
     'Cover':
         'Copertina',
-    'Discord-Overlay freihalten':
-        "Tieni libero l'overlay di Discord",
-    'Karte, Infos, Systemwerte, Heute und Musik weichen den Stellen aus, an denen Discords Overlay seine Widgets zeigt (in der Vorschau schraffiert). Das Programm liest nichts aus Discord – die Flächen sind fest.':
-        "Mappa, info, valori di sistema, oggi e musica stanno lontani dai punti in cui l'overlay di Discord mostra i suoi widget (tratteggiati nell'anteprima). Il programma non legge nulla da Discord – le aree sono fisse.",
     'Wie der Stil':
         'Come lo stile',
     'Rund':
@@ -5857,8 +5853,8 @@ T = {
         'Blocca',
     'Sperren: im Modus „Anordnen“ nicht mehr verschiebbar':
         'Blocca: non viene più spostato in «Disponi»',
-    'Stil, Abstand, Grenzen, Discord':
-        'Stile, distanza, limiti, Discord',
+    'Stil, Abstand, Grenzen':
+        'Stile, distanza, limiti',
     'Tasten und Gamepad':
         'Tasti e gamepad',
     'Timer, Bilanz, Server':
@@ -6130,8 +6126,8 @@ T = {
         'Rombo (2×2)',
     'Unter dem Namen':
         'Sotto il nome',
-    '„In einer Reihe“ passt am besten unter den Namen oder an eine eigene Position.':
-        '«In una riga» sta meglio sotto il nome o in una posizione propria.',
+    'Neben der Liste stehen die Perks als Raute, unter dem Namen in einer Reihe; die Darstellung ist an einer eigenen Position wählbar.':
+        'Accanto alla lista i perk sono un rombo, sotto il nome una riga; l\'aspetto si può scegliere in una posizione propria.',
     # 1.57.4: offerings
     'Die Opfergabe (eine verdeckte als „?“), das Item und seine zwei Add-ons als kleine Felder neben den Perks.':
         "L'offerta (una nascosta come «?»), l'oggetto e i suoi due add-on come piccoli riquadri accanto ai perk.",

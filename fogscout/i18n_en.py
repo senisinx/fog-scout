@@ -2018,11 +2018,6 @@ EN = {
         "Today below the system values, the music below today, all at one width – one column in the bar of the "
         "system values. Undo with Ctrl+Z.",
     "Cover": "Cover",
-    "Discord-Overlay freihalten": "Keep Discord's overlay free",
-    "Karte, Infos, Systemwerte, Heute und Musik weichen den Stellen aus, an denen Discords Overlay seine Widgets "
-    "zeigt (in der Vorschau schraffiert). Das Programm liest nichts aus Discord – die Flächen sind fest.":
-        "Map, info, system values, today and music stay clear of the places where Discord's overlay shows its widgets "
-        "(hatched in the preview). The program reads nothing from Discord – the areas are fixed.",
     "Wie der Stil": "Like the style",
     "Rund": "Round",
     "Eckig": "Square",
@@ -4349,7 +4344,7 @@ EN = {
     'Schnellposition': 'Quick place',
     'Sperren': 'Lock',
     'Sperren: im Modus „Anordnen“ nicht mehr verschiebbar': 'Lock: no longer moved in “Arrange”',
-    'Stil, Abstand, Grenzen, Discord': 'Style, gap, limits, Discord',
+    'Stil, Abstand, Grenzen': 'Style, gap, limits',
     'Tasten und Gamepad': 'Keys and gamepad',
     'Timer, Bilanz, Server': 'Timer, record, server',
     'Verhalten': 'Behaviour',
@@ -4603,8 +4598,8 @@ EN = {
         'Diamond (2×2)',
     'Unter dem Namen':
         'Below the name',
-    '„In einer Reihe“ passt am besten unter den Namen oder an eine eigene Position.':
-        '“In one row” fits best below the name or at a position of your own.',
+    'Neben der Liste stehen die Perks als Raute, unter dem Namen in einer Reihe; die Darstellung ist an einer eigenen Position wählbar.':
+        'Beside the list the perks are a diamond, below the name a row; the appearance can be chosen at a position of your own.',
     # 1.57.4: offerings
     'Die Opfergabe (eine verdeckte als „?“), das Item und seine zwei Add-ons als kleine Felder neben den Perks.':
         'The offering (a hidden one as “?”), the item and its two add-ons as small slots beside the perks.',

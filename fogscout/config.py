@@ -46,9 +46,7 @@ DEFAULTS = {
         "show_server": True,            # connected server region below the timer (needs the Server tab option)
         "transparent": True,            # transparent area around the map (off = dark rectangle)
         "keep_in_bar": True,
-        "keep_out_on": True,            # 1.8.25: keep out of Discord's overlay widgets (layout.DISCORD_ZONES)
         "cards_same_width": True,       # 1.8.29: system values / today / music in the same bar share one width
-        "keep_out": None,               # … own areas [[x, y, w, h], …] as shares of the window; None = Discord's
         "info_pos": "below",            # 1.8.24: timer/record/server below / above the map, custom or "inside" it (1.8.34: "inside_top" = inside, above the map)
         "info_xy": None,                # … their own place (centre as shares of the window)
         "fill_bar": False,              # 1.11.12: the map as wide as its black bar, its height follows from that
@@ -427,6 +425,8 @@ def _load(raw) -> dict:
         (data.get("tab_order") or {}).pop("stats", None)   # put the wrong tabs first (tabs count by position)
     if data.get("color_theme") == "oled":            # 1.62.0: OLED was a theme of its own
         data["color_theme"], data["oled_black"] = "gold", True
+    for key in ("keep_out_on", "keep_out"):         # 1.57.10 (user: "Drin soll nur Fog Scout sein"): Discord's areas gone
+        (data.get("overlay") or {}).pop(key, None)
     data["settings_version"] = SETTINGS_VERSION
     return data
 
