@@ -166,7 +166,8 @@ def test_each_survivor_is_found_by_the_portrait_in_the_hud(reader, menu):
     assert v.side > 0 and len(v.faces()) == 4 and not v.placed
     found = loadouts.HudFinder().find(_load("hud_3440.jpg"), v.faces(), v.side)
     assert set(found) == {0, 1, 2, 3}
-    assert v.place(found) and v.placed
+    assert not v.place(found) and not v.placed                    # one look is not enough (1.57.2) …
+    assert v.place(found) and v.placed                            # … the second one agrees
     board = v.board()
     by_y = [r.who for r in sorted(board.rows, key=lambda r: r.hud[1])]
     assert by_y == [0, 3, 1, 2]                                   # own (Dwight), Dustin, Renato, Ellen
@@ -200,9 +201,11 @@ def test_the_own_survivor_without_gold_is_the_top_of_the_hud():
     v = Votes()
     v.note(Board(rows=tuple(Row(perks=(f"P{i}", None, None, None), face=f) for i, f in enumerate(faces)), pitch=40))
     assert not any(r.own for r in v.board().rows)
-    v.place({0: (0.18, 0.59, 0.05), 1: (0.18, 0.42, 0.05)})
+    for _ in range(2):
+        v.place({0: (0.18, 0.582, 0.05), 1: (0.18, 0.418, 0.05)})
     assert not any(r.own for r in v.board().rows)                # one still missing
-    v.place({2: (0.18, 0.50, 0.05)})
+    for _ in range(2):
+        v.place({0: (0.18, 0.582, 0.05), 1: (0.18, 0.418, 0.05), 2: (0.18, 0.50, 0.05)})
     assert [r.own for r in v.board().rows] == [False, True, False]
 
 
@@ -281,3 +284,63 @@ def test_the_preview_shows_the_sample_beside_the_list():
     _n, pic, x, y = out[names.index("loadouts")]
     left = 220 + layout.LOADOUT_LEFT * 1280                           # where the portraits begin in 1720 × 720
     assert 220 <= x and x + pic.width <= left
+
+
+# ------------------------------------------------------------------ 1.57.2: one stray match never sticks
+def _second_hud(scale=1.16):
+    """The user's second HUD picture (a crop: their own diamonds and the names blacked out) in a 3440×1440
+    frame, the portraits where DBD draws them."""
+    crop = cv2.imread(os.path.join(DATA, "hud_crop_second.jpg"))
+    big = cv2.resize(crop, None, fx=scale, fy=scale, interpolation=cv2.INTER_CUBIC)
+    frame = np.zeros((1440, 3440, 3), np.uint8)
+    x0, y0 = int(610 - 220 * scale), 300
+    frame[y0:y0 + big.shape[0], x0:x0 + big.shape[1]] = big[:1440 - y0]
+    return frame, y0, scale
+
+
+def test_the_second_match_puts_every_bot_beside_its_portrait(reader):
+    """User (1.57.1): a diamond above the own portrait, none at Feng Min. Menu: own Dwight, Steve, Alan, Feng; HUD:
+    own, Feng, Steve, Alan."""
+    menu = _load("menu_3440_second.jpg")
+    board = reader.read(menu)
+    assert board is not None and [r.own for r in board.rows] == [True, False, False, False]
+    for row in board.others:
+        assert row.perks == ("Hyperfocus", "Stake Out", "Better than New", "Prove Thyself")
+        # Sport and Masquerade Flashlight are drawn nearly alike (0.88 / 0.86 here): left open, never the wrong one
+        assert row.item in (None, "Sport Flashlight")
+    v = Votes()
+    v.note(board)
+    v.note(reader.read(menu))
+    frame, y0, sc = _second_hud()
+    for _ in range(2):
+        v.place(loadouts.HudFinder().find(frame, v.faces(), v.side))
+    assert v.placed
+    rows = sorted(v.board().rows, key=lambda r: r.hud[1])
+    assert [r.who for r in rows] == [0, 3, 1, 2]                  # own, Feng, Steve, Alan
+    for r, want in zip(rows, (150, 268, 384, 504)):               # the portraits' centres in the crop
+        assert abs((r.hud[1] * 1440 - y0) / sc - want) <= 8
+    assert rows[0].own and not any(r.own for r in rows[1:])
+
+
+def test_a_place_off_the_lists_grid_or_seen_once_is_never_taken():
+    def at(y):
+        return (0.177, y, 0.05)
+    grid = {0: at(0.42), 1: at(0.502), 2: at(0.584)}
+    assert loadouts.on_grid(grid) == grid
+    assert set(loadouts.on_grid({**grid, 3: at(0.38)})) == {0, 1, 2}        # half a row above: not on the grid
+    assert set(loadouts.on_grid({**grid, 3: (0.4, 0.666, 0.05)})) == {0, 1, 2}   # another column
+    assert loadouts.on_grid({0: at(0.42)}) == {}                              # alone: says nothing
+    assert set(loadouts.on_grid({0: at(0.42), 2: at(0.584)})) == {0, 2}       # a row between may be covered
+    faces = [np.zeros((loadouts.FACE, loadouts.FACE), np.uint8) for _ in range(4)]
+    for i, f in enumerate(faces):
+        f[i * 6:(i + 1) * 6, :] = 200
+    v = Votes()
+    v.note(Board(rows=tuple(Row(perks=(f"P{i}", None, None, None), face=f, own=i == 0) for i, f in enumerate(faces)),
+                 pitch=40))
+    v.place({0: at(0.42), 1: at(0.502), 3: at(0.38)})          # 3 strays above the list …
+    v.place({0: at(0.42), 1: at(0.502), 3: at(0.666)})         # … and is found right the next time
+    rows = {r.who: r.hud for r in v.board().rows}
+    assert rows[0] and rows[1] and rows[3] is None and rows[2] is None   # 3: two looks disagree – not yet
+    v.place({0: at(0.42), 1: at(0.502), 2: at(0.584), 3: at(0.666)})
+    rows = {r.who: r.hud for r in v.board().rows}
+    assert rows[3] is not None and abs(rows[3][1] - 0.666) < 0.01 and rows[2] is None   # 2: seen once only

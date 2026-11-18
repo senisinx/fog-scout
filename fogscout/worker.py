@@ -116,6 +116,7 @@ def scan_rate(base: float, *, in_match: bool, session: bool, since_button: float
 class DetectionWorker(threading.Thread):
     inputs_rect = None               # 1.39: the input card on screen (set by the UI; a default for bare instances)
     loadouts_rect = None             # 1.57: the survivors' loadouts on screen (the same)
+    menu_open = False                # 1.57.2 (the same)
     fade_rects = ()                  # 1.55.6: windows still fading out (their *_rect is cleared already)
 
     def __init__(self, root_dir: str, settings, catalog, events: queue.Queue, simulate: str | None = None,
@@ -140,6 +141,7 @@ class DetectionWorker(threading.Thread):
         self.loadouts_rect = None        # … and of the survivors' loadouts (1.57)
         self.loadouts_wanted = False     # set by the UI: the loadouts are shown and the round is no killer's (1.57)
         self.loadout_info = "–"          # 1.57: last look at the pause menu's loadouts (diagnosis)
+        self.menu_open = False           # 1.57.2: the pointer is visible over DBD in a round (a menu is open)
         self.guide_rects = ()            # … and of the centre guide lines while moving (1.64.5)
         self.toast_rect = None           # … and of the notification window (1.8.13: F8 clip, lobby found)
         self.vbars = None                # (top, bottom, time, (w, h)): black bars above/below the picture
@@ -674,6 +676,8 @@ class DetectionWorker(threading.Thread):
                 use_menu = bool(self.settings.get("pause_in_menus", True))
                 watching = (self.map_on_screen and gen is not None and (use_end or use_menu)
                             and tracker.active and not tracker.ended)
+                if not watching:
+                    self.menu_open = False
                 if watching:
                     tracker.use_end, tracker.use_cursor = use_end, use_menu
                     if source is not None:                       # simulation: no window, no pointer
@@ -708,6 +712,7 @@ class DetectionWorker(threading.Thread):
                     # pointer is visible over DBD), a few looks per round, never as the killer; 1.57.1: once the
                     # menu is shut, their portraits are looked for in the HUD's survivor list (where to draw them)
                     menu_open = pointer or (source is not None)
+                    self.menu_open = bool(pointer)        # 1.57.2: the App hides the loadouts meanwhile
                     due = tick - last_loadout >= LOADOUT_INTERVAL
                     if look is not None and self.loadouts_wanted and gen is not None and due:
                         try:
@@ -725,9 +730,12 @@ class DetectionWorker(threading.Thread):
                                 last_loadout, hud_looks = tick, hud_looks + 1
                                 with self.times.measure("loadouts"):
                                     found = loadouts.HudFinder().find(look, loadout_votes.faces(), loadout_votes.side)
+                                changed = loadout_votes.place(found)
+                                done = sum(1 for r in loadout_votes.board().rows if r.hud)
                                 self.loadout_info = (f"{time.strftime('%H:%M:%S')} HUD: {len(found)} von "
-                                                     f"{len(loadout_votes.faces())} Porträts gefunden")
-                                if found and loadout_votes.place(found):
+                                                     f"{len(loadout_votes.faces())} Porträts gefunden, "
+                                                     f"{done} platziert")
+                                if changed:
                                     self.post("loadouts", gen=gen, board=loadout_votes.board())
                         except Exception:
                             self._report("Loadouts", traceback.format_exc())
