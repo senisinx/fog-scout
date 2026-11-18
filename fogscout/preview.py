@@ -374,7 +374,7 @@ def layers(gw: int, gh: int, o: dict, hud_side: str, hud_rows: list, hud_own, ma
     boxes = [(n, (out[names[n]][2], out[names[n]][3], out[names[n]][1].width, out[names[n]][1].height))
              for n in order]
     own = layout.own_places(o, hud_side)                    # 1.45: put there by hand – they stay
-    shift = layout.resolve(boxes, [map_rect], game, bands, gap, soft=layout.keep_out_boxes(o, game), keep=own)
+    shift = layout.resolve(boxes, [map_rect], game, bands, gap, keep=own)
     for n, (dx, dy) in shift.items():
         name, img, lx, ly = out[names[n]]
         out[names[n]] = (name, img, lx + dx, ly + dy)

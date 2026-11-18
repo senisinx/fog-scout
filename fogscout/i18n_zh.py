@@ -2545,10 +2545,6 @@ T = {
         '“今日”放在系统数值下方，音乐放在“今日”下方，宽度一致，在系统数值所在的黑边中排成一列。按 Ctrl+Z 撤销。',
     'Cover':
         '封面',
-    'Discord-Overlay freihalten':
-        '为 Discord 悬浮窗留出空间',
-    'Karte, Infos, Systemwerte, Heute und Musik weichen den Stellen aus, an denen Discords Overlay seine Widgets zeigt (in der Vorschau schraffiert). Das Programm liest nichts aus Discord – die Flächen sind fest.':
-        '地图、信息、系统数值、今日和音乐会避开 Discord 悬浮窗显示小组件的位置（预览中以阴影线标出）。程序不从 Discord 读取任何内容，这些区域是固定的。',
     'Wie der Stil':
         '跟随样式',
     'Rund':
@@ -5857,8 +5853,8 @@ T = {
         '锁定',
     'Sperren: im Modus „Anordnen“ nicht mehr verschiebbar':
         '锁定：在“排列”中不再移动',
-    'Stil, Abstand, Grenzen, Discord':
-        '样式、间距、边界、Discord',
+    'Stil, Abstand, Grenzen':
+        '样式、间距、边界',
     'Tasten und Gamepad':
         '按键和手柄',
     'Timer, Bilanz, Server':
@@ -6130,8 +6126,8 @@ T = {
         '菱形（2×2）',
     'Unter dem Namen':
         '在名字下方',
-    '„In einer Reihe“ passt am besten unter den Namen oder an eine eigene Position.':
-        '“排成一行”最适合放在名字下方或自定义位置。',
+    'Neben der Liste stehen die Perks als Raute, unter dem Namen in einer Reihe; die Darstellung ist an einer eigenen Position wählbar.':
+        '在列表旁技能显示为菱形，在名字下方显示为一行；只有自定义位置时可以选择外观。',
     # 1.57.4: offerings
     'Die Opfergabe (eine verdeckte als „?“), das Item und seine zwei Add-ons als kleine Felder neben den Perks.':
         '祭品（隐藏的显示为“?”）、道具及其两个配件以小格子显示在技能旁。',

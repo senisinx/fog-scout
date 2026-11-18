@@ -47,6 +47,8 @@ SIZES = range(14, 64, 2)      # diamond sizes tried at LOCATE_H (≈ 2–9 % of 
 MIN_FIT = 0.5                 # the best diamond: its share of bright pixels where they should be
 PEAK_FIT = 0.3                # any other place looked at: at least this fit (the perk's drawing decides)
 MAX_PEAKS = 60
+PROVEN_ROW = 2                    # 1.57.9: clear reads (MIN_SCORE/MIN_MARGIN) a row needs before LOOSE_*/CLOSE_* count
+SIZE_TRIES, SIZE_SPAN = 3, 0.06   # 1.57.9: diamond sizes fitting within SIZE_SPAN of the best are tried (≤ SIZE_TRIES)
 PITCH = (1.05, 1.45)          # perk pitch / diamond size: the steps between two slots of a row
 ROW_TOL = 0.3                 # perks on one row: heights within this share of their size
 GRID_TOL = 0.25               # a perk's place on the grid: within this share of a step
@@ -310,34 +312,41 @@ def _diamond_mask(s: int) -> np.ndarray:
     return t
 
 
-def _diamonds(frame) -> tuple:
-    """(size, [(x, y), …]) of the perk diamonds in the picture (full-size pixels), or (0, [])."""
+def _diamonds(frame, sizes: int = 1) -> list:
+    """[(size, [(x, y), …]), …] of the perk diamonds in the picture (full-size pixels) for the ``sizes`` diamond sizes
+    that fit best (1.57.9: the fit is flat over a few sizes – a menu full of bright eyes fitted 26 best, 32 was right),
+    best first; [] when none fits."""
     import cv2
     h, w = frame.shape[:2]
     f = LOCATE_H / h
     small = cv2.resize(frame, (max(1, int(w * f)), LOCATE_H), interpolation=cv2.INTER_AREA)
     hsv = cv2.cvtColor(small, cv2.COLOR_BGR2HSV)
     fill = (hsv[..., 2] > FILL_VAL).astype(np.float32)
-    best = (0.0, 0, None)
+    fits = []
     for s in SIZES:
         t = _diamond_mask(s)
         r = cv2.matchTemplate(fill, t, cv2.TM_CCORR) / float((t > 0).sum())
-        top = float(r.max())
-        if top > best[0]:
-            best = (top, s, r)
-    fit, s, r = best
-    if r is None or fit < MIN_FIT:
-        return 0, []
-    peaks = []
-    work = r.copy()
-    for _ in range(MAX_PEAKS):
-        _, v, _, (px, py) = cv2.minMaxLoc(work)
-        if v < PEAK_FIT:
+        fits.append((float(r.max()), s, r))
+    fits.sort(key=lambda x: -x[0])
+    if not fits or fits[0][0] < MIN_FIT:
+        return []
+    out = []
+    for fit, s, r in fits:
+        if len(out) >= sizes or fit < fits[0][0] - SIZE_SPAN:
             break
-        peaks.append(((px + s / 2) / f, (py + s / 2) / f))
-        x0, y0 = max(0, px - s // 2 - 1), max(0, py - s // 2 - 1)
-        work[y0:py + s // 2 + 2, x0:px + s // 2 + 2] = -1
-    return s / f, peaks
+        if any(abs(s - o) <= 2 for o, _p in out):
+            continue                                  # a neighbour of a size taken already
+        peaks = []
+        work = r.copy()
+        for _ in range(MAX_PEAKS):
+            _, v, _, (px, py) = cv2.minMaxLoc(work)
+            if v < PEAK_FIT:
+                break
+            peaks.append(((px + s / 2) / f, (py + s / 2) / f))
+            x0, y0 = max(0, px - s // 2 - 1), max(0, py - s // 2 - 1)
+            work[y0:py + s // 2 + 2, x0:px + s // 2 + 2] = -1
+        out.append((s, peaks))
+    return [(s / f, peaks) for s, peaks in out]
 
 
 def _face(frame, cx: float, cy: float, side: float):
@@ -429,11 +438,15 @@ class Reader:
         return out
 
     def read(self, frame) -> Board | None:
-        size, peaks = _diamonds(frame)
-        if not peaks:
+        found = _diamonds(frame, SIZE_TRIES)
+        if not found or not found[0][1]:
             self.last = "keine Rauten"
             return None
-        hits = self._perk_hits(frame, size, peaks)
+        size, peaks, hits = 0.0, [], []
+        for s_, p_ in found:                              # 1.57.9: the size whose perks are found most often
+            h_ = self._perk_hits(frame, s_, p_)
+            if len(h_) > len(hits):
+                size, peaks, hits = s_, p_, h_
         if not hits:
             self.last = f"{len(peaks)} Rauten, kein Perk"
             return None
@@ -487,6 +500,9 @@ class Reader:
                       for a in ADDONS_AT]
             reads.append(self.offerings.best(_cuts(frame, last + OFFERING_AT * pitch, y, pitch * OFFERING, reach=2),
                                              loose=True))
+            strict = [n is not None and sc >= MIN_SCORE and m >= MIN_MARGIN for n, sc, m in reads]
+            if sum(strict) < PROVEN_ROW:              # 1.57.9: the looser rules only in a row proven by clear reads
+                reads = [r if ok else (None, r[1], r[2]) for r, ok in zip(reads, strict)]
             names = [n for n, _s, _m in reads]
             sure = tuple(n is not None and s >= SURE_SCORE and m >= SURE_MARGIN for n, s, m in reads)
             perks, item, addons, offering = tuple(names[:4]), names[4], tuple(names[5:7]), names[7]

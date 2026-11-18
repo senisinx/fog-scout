@@ -15,7 +15,7 @@ INFO = {"timer": "3:27", "server": "", "ping": None, "record": "Bilanz: Ø 2,8 K
 
 
 def _o(**kw):
-    o = dict(DEFAULTS["overlay"], info_pos="inside", keep_out_on=False)  # lines with the map, no Discord areas (1.8.24/25)
+    o = dict(DEFAULTS["overlay"], info_pos="inside")  # lines with the map (1.8.24)
     o.update(kw)
     return o
 
@@ -290,7 +290,7 @@ def test_the_preview_draws_the_cards_of_one_bar_at_one_width():
     from fogscout.config import DEFAULTS
     o = copy.deepcopy(DEFAULTS["overlay"])
     o.update(style="chips", today_pos="custom", today_xy=[0.94, 0.6], media_pos="custom", media_xy=[0.94, 0.87],
-             media_style="big", bar_limits_on=False, keep_out_on=False, hud_scale=1.05)   # (at one scale all are as wide)
+             media_style="big", bar_limits_on=False, hud_scale=1.05)   # (at one scale all are as wide)
     hud = sysinfo.hud_rows(sysinfo.Snapshot(t=0, cpu_load=38, cpu_temp=64, gpu_temp=71, gpu_load=92, vram_used=7.9,
                                             vram_total=12, ram_used=18.2, ram_total=32))
     today = [[("HEUTE ", sysinfo.DIM), ("4 RUNDEN · 1:12 h", sysinfo.WHITE)]]
@@ -310,9 +310,9 @@ def test_the_preview_draws_the_cards_of_one_bar_at_one_width():
     assert len(set(own.values())) > 1 and max(own.values()) == same["hud"]
     assert layout.column_widths({"a": (3100, 100, 200, 50), "b": (3050, 400, 300, 50), "c": (100, 100, 150, 50),
                                  "d": (1700, 100, 500, 50)}, (0, 0, 3440, 1440)) == {"a": 300}
-    # a long title (until 1.50.3 it made the music card and so the whole column bar-wide) with the limits and
-    # Discord's pinned-chat zone at the bar's edge: one width, and the cards never lie on each other
-    o["cards_same_width"], o["keep_out_on"] = True, True
+    # a long title (until 1.50.3 it made the music card and so the whole column bar-wide) with the limits: one
+    # width, and the cards never lie on each other
+    o["cards_same_width"] = True
     o.update(bar_limits_on=True, bar_limits=[0.1521, 0.2381, 0.3014, 0.0], bar_limits_same=False)
     long = ([[("Beneath Your Beautiful (feat. Emeli Sandé)", sysinfo.WHITE)], [("Labrinth", sysinfo.DIM)]],
             preview.sample_cover(), (70, 196))
@@ -327,8 +327,3 @@ def test_the_preview_draws_the_cards_of_one_bar_at_one_width():
         for i, a in enumerate(names):
             for b in names[i + 1:]:
                 assert not layout.boxes_overlap(boxes[a], boxes[b]), (merged, a, b, boxes[a], boxes[b])
-    # the keep-out areas still count when there is room: a card dropped well onto one moves off it (1.14.3: an
-    # edge reaching less than SOFT_SLACK into the card is a graze and moves nothing)
-    shift = layout.resolve([("today", (2900, 900, 300, 100))], [], (0, 0, 3440, 1440), None, 8,
-                           soft=[(2800, 806, 241, 339)])
-    assert shift == {"today": (0, 698 - 900)}                      # the nearest free place: right above it

@@ -2239,10 +2239,10 @@ def test_a_map_that_fills_the_bar_is_as_wide_as_the_bar(app_root):
         app.quit()
 
 
-def test_an_element_dropped_on_the_map_moves_off_it_and_keeps_out_of_discords_widgets(app_root):
-    """1.8.25 (user screenshots: the lines dragged onto Midwich's top floor; Discord's overlay): an element at an
-    own place that lies on the map moves to the nearest free place – shown there at once and in later ticks
-    without going back and forth; the bars' lines keep out of Discord's voice widget / notifications."""
+def test_an_element_dropped_on_the_map_moves_off_it(app_root):
+    """1.8.25 (user screenshots: the lines dragged onto Midwich's top floor): an element at an own place that lies
+    on the map moves to the nearest free place – shown there at once and in later ticks without going back and
+    forth."""
     from fogscout import layout
     from fogscout.app import App
     app = App(str(app_root), simulate=str(app_root / "sim"))
@@ -2250,7 +2250,7 @@ def test_an_element_dropped_on_the_map_moves_off_it_and_keeps_out_of_discords_wi
         app.info_win = _InfoWin()
         app._game_rect = lambda: (0, 0, 3440, 1440)
         o = app.settings["overlay"]
-        o.update(anchor="auto", info_pos="custom", fade=False, keep_out_on=True, bar_limits_on=False)
+        o.update(anchor="auto", info_pos="custom", fade=False, bar_limits_on=False)
         mid = next(m for m in app.catalog.maps if "midwich" in m.lower())
         app._force_until = time.time() + 30
         app.show_map(mid, 1, "manual")
@@ -2267,8 +2267,6 @@ def test_an_element_dropped_on_the_map_moves_off_it_and_keeps_out_of_discords_wi
             assert not layout.boxes_overlap((ix, iy, iw, ih), app._last_place)
             assert app.worker.info_rect == (ix, iy, iw, ih)
         assert len(seen) == 1                                         # no back and forth between ticks
-        voice = layout.keep_out_boxes(o, (0, 0, 3440, 1440))[0]
-        assert app._last_place[1] + app._last_place[3] <= voice[1]   # the map stays above Discord's voice widget
     finally:
         app.quit()
 
@@ -3500,7 +3498,7 @@ def test_the_bar_options_are_greyed_without_black_bars_and_come_back_with_them(a
         app._bar_options_tick()
         assert all(reg[key].instate(["disabled"]) for key, _usual in app_layout.BAR_OPTIONS)
         assert app.settings["overlay"]["keep_in_bar"] is True and app.keep_bar_var.get()
-        assert not reg["ov.anchor"].instate(["disabled"]) and not reg["ov.keep_out"].instate(["disabled"])
+        assert not reg["ov.anchor"].instate(["disabled"]) and "ov.keep_out" not in reg   # 1.57.10: Discord gone
         rect[0] = (0, 0, 3440, 1440)
         app._bar_options_tick()
         assert not any(reg[key].instate(["disabled"]) for key, _usual in app_layout.BAR_OPTIONS)

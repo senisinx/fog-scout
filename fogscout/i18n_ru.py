@@ -2545,10 +2545,6 @@ T = {
         '«Сегодня» под системными данными, музыка под «Сегодня», всё одной ширины — один столбец в полосе системных данных. Отмена — Ctrl+Z.',
     'Cover':
         'Обложка',
-    'Discord-Overlay freihalten':
-        'Не занимать место оверлея Discord',
-    'Karte, Infos, Systemwerte, Heute und Musik weichen den Stellen aus, an denen Discords Overlay seine Widgets zeigt (in der Vorschau schraffiert). Das Programm liest nichts aus Discord – die Flächen sind fest.':
-        'Карта, сведения, системные данные, «Сегодня» и музыка держатся в стороне от мест, где оверлей Discord показывает свои виджеты (заштрихованы в предпросмотре). Программа ничего не читает из Discord — области фиксированы.',
     'Wie der Stil':
         'Как у стиля',
     'Rund':
@@ -5857,8 +5853,8 @@ T = {
         'Закрепить',
     'Sperren: im Modus „Anordnen“ nicht mehr verschiebbar':
         'Закрепить: больше не перемещается в «Расставить»',
-    'Stil, Abstand, Grenzen, Discord':
-        'Стиль, отступ, границы, Discord',
+    'Stil, Abstand, Grenzen':
+        'Стиль, отступ, границы',
     'Tasten und Gamepad':
         'Клавиши и геймпад',
     'Timer, Bilanz, Server':
@@ -6130,8 +6126,8 @@ T = {
         'Ромб (2×2)',
     'Unter dem Namen':
         'Под именем',
-    '„In einer Reihe“ passt am besten unter den Namen oder an eine eigene Position.':
-        '«В один ряд» лучше всего под именем или на своей позиции.',
+    'Neben der Liste stehen die Perks als Raute, unter dem Namen in einer Reihe; die Darstellung ist an einer eigenen Position wählbar.':
+        'Рядом со списком перки показаны ромбом, под именем — в ряд; вид можно выбрать при собственной позиции.',
     # 1.57.4: offerings
     'Die Opfergabe (eine verdeckte als „?“), das Item und seine zwei Add-ons als kleine Felder neben den Perks.':
         'Подношение (скрытое — как «?»), предмет и два его улучшения маленькими ячейками рядом с навыками.',

@@ -275,3 +275,15 @@ def test_a_first_start_is_told_from_saved_settings_and_the_defaults_without_bars
     want["overlay"].update(show_today=False, show_media=False)
     assert data == want
     assert DEFAULTS["sysinfo"] == "right" and DEFAULTS["overlay"]["show_today"]      # the defaults themselves stay
+
+
+def test_discords_keep_out_settings_are_dropped_on_load(tmp_path):
+    """1.57.10 (user: "Entferne die Discord-Sperrflächen – drin soll nur Fog Scout sein"): an older file's
+    keep_out_on/keep_out go on load, the rest of the overlay stays."""
+    import json
+    from fogscout.config import Settings
+    path = tmp_path / "settings.json"
+    path.write_text(json.dumps({"settings_version": 13, "overlay": {"keep_out_on": True, "keep_out": [[0, 0, 1, 1]],
+                                                                    "opacity": 0.7}}), encoding="utf-8")
+    s = Settings(str(path))
+    assert "keep_out_on" not in s["overlay"] and "keep_out" not in s["overlay"] and s["overlay"]["opacity"] == 0.7

@@ -1494,9 +1494,7 @@ class App(ServerTab, StatsTab, ExportDialog, RecordingsTab, DiscordPresence, Spo
                 # 1.8.14; 1.8.15 (user: "ich sehe die Balken nicht beim Bearbeiten"): while moving the lines show
                 # even when the limiter is off – faint, dragging one switches it on
                 "limits": layout.bar_bands(o if o.get("bar_limits_on") or not self.overlay.editing
-                                           else dict(o, bar_limits_on=True), (0, 0, gw, gh), int(gh * o["margin"]),
-                                           zones=False),
-                "zones": layout.keep_out_boxes(o, (0, 0, gw, gh)),        # 1.8.25: Discord's overlay
+                                           else dict(o, bar_limits_on=True), (0, 0, gw, gh), int(gh * o["margin"])),
                 "limits_on": bool(o.get("bar_limits_on")),
                 "locked": sorted(self._locked_names()),                  # 1.46: the editor's locks
                 "layout_key": self.settings.get("layout_key") if self.settings.get("layout_per_size", True) else "",

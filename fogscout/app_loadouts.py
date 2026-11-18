@@ -32,6 +32,18 @@ def icon_for(name, kind):
     return loadouts.icon_file(name, kind) if name else None
 
 
+def style_of(o: dict) -> str:
+    """1.57.9 (user: "Die Einstellung macht keinen Sinn – wie kann es Raute 2×2 sein, wenn es in einer Reihe sein
+    soll"): the style drawn – beside the list always the diamond (a row doesn't fit there), below the name always a
+    row; only at a place of one's own the setting ``loadouts_style`` counts."""
+    spot = o.get("loadouts_pos", "hud")
+    if spot == "name":
+        return "row"
+    if spot == "custom":
+        return o.get("loadouts_style", "diamond")
+    return "diamond"
+
+
 def placed(o: dict, game, board, editing: bool = False, sample: bool = False):
     """(picture, x, y) of the loadouts in the game window ``game`` (also the preview's), or None. Live (not
     ``sample``) only the rows whose portrait the worker found in the HUD – beside it; the sample at the list's
@@ -45,7 +57,7 @@ def placed(o: dict, game, board, editing: bool = False, sample: bool = False):
     gx, gy, gw, gh = game
     spot = o.get("loadouts_pos", "hud")
     cluster, centres, left, face, mid = layout.loadout_rows(o, game, rows)
-    row = spot == "name" or o.get("loadouts_style", "diamond") == "row"      # 1.57.3: below the name always a row
+    row = style_of(o) == "row"
     if row:                                          # a row of perks: as tall as the room below a name
         cluster = max(10, int(face * layout.LOADOUT_ROW_H * layout.loadout_scale(o)))
     if spot == "name":                               # each row's top just below its name
@@ -170,6 +182,7 @@ class LoadoutsCard:
         o["loadouts_xy"], o["loadouts_pos"] = [fx, fy], "custom"
         if hasattr(self, "loadouts_pos_var"):
             self.loadouts_pos_var.set(_(dict(LOADOUT_SPOTS)["custom"]))
+        self._loadouts_style_sync()
         self._el_dropped("loadouts")
         self._save_soon()
         self._tick_overlay(reschedule=False)
@@ -188,8 +201,18 @@ class LoadoutsCard:
         self._layout_mark()
         key = dict((_(label), k) for k, label in LOADOUT_SPOTS).get(self.loadouts_pos_var.get(), "hud")
         self.settings["overlay"]["loadouts_pos"] = key
+        self._loadouts_style_sync()
         self._save_soon()
         self._tick_overlay(reschedule=False)
+
+    def _loadouts_style_sync(self) -> None:
+        """1.57.9: the box "Darstellung" shows the style drawn; only at a place of one's own it can be chosen."""
+        box = getattr(self, "loadouts_style_cb", None)
+        if box is None:
+            return
+        o = self.settings["overlay"]
+        self.loadouts_style_var.set(_(dict(LOADOUT_STYLES)[style_of(o)]))
+        box.state(["!disabled"] if o.get("loadouts_pos", "hud") == "custom" else ["disabled"])
 
     def _loadouts_style_changed(self) -> None:
         """1.57.3: the perks as a 2×2 diamond or in one row."""

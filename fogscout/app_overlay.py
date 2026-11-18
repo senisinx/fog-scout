@@ -93,11 +93,6 @@ class OverlayTab:
         self._reg("ov.limits_hint", ui.Label(pos, text=_("Die Linien in der Vorschau mit „Anordnen“ ziehen – Karte, "
                                                          "Systemwerte, Heute und Musik bleiben im Balken dazwischen."),
                                              style="Dim.TLabel", wraplength=520)).pack(anchor="w")
-        # 1.8.25 (user's screenshots with Discord's overlay open): keep its widgets free
-        self.keep_out_var = ui.BooleanVar(value=bool(o.get("keep_out_on", True)))
-        self._reg("ov.keep_out", ui.Checkbutton(pos, text=_("Discord-Overlay freihalten"),
-                                                variable=self.keep_out_var, command=self._keep_out_changed)
-                  ).pack(anchor="w", pady=(4, 0))
         # 1.8.29 (user: "rechts sind die Felder nicht untereinander … zusammenführen"): one column per bar
         cw = ui.Frame(pos)
         cw.pack(fill="x", pady=(4, 0))
@@ -446,6 +441,8 @@ class OverlayTab:
                                                           width=38, values=[_(t) for _k, t in LOADOUT_STYLES]))
         scb.pack(side="left", padx=6)
         scb.bind("<<ComboboxSelected>>", lambda e: self._loadouts_style_changed())
+        self.loadouts_style_cb = scb
+        self._loadouts_style_sync()                                                   # 1.57.9
         self.loadouts_items_var = ui.BooleanVar(value=bool(o.get("loadouts_items", True)))
         self._reg("ov.loadouts_items", ui.Checkbutton(lf, text=_("Opfergabe, Item und Add-ons neben den Perks"),
                                                       variable=self.loadouts_items_var,
@@ -455,8 +452,9 @@ class OverlayTab:
                                                           "liest die Loadouts der anderen aus dem Bild des Menüs und "
                                                           "zeigt sie danach neben ihnen. Nichts wird gespeichert "
                                                           "oder gesendet.") + " " +
-                                                        _("„In einer Reihe“ passt am besten unter den Namen oder an "
-                                                          "eine eigene Position."),
+                                                        _("Neben der Liste stehen die Perks als Raute, unter dem "
+                                                          "Namen in einer Reihe; die Darstellung ist an einer eigenen "
+                                                          "Position wählbar."),
                                                style="Dim.TLabel", wraplength=420)).pack(anchor="w")
 
     def _small_off_changed(self):
@@ -778,9 +776,3 @@ class OverlayTab:
         snap["overlay"].update(today_pos="below", media_pos="under_today", cards_same_width=True)
         self._layout_apply(snap)
 
-    def _keep_out_changed(self):
-        """1.8.25: Discord's overlay widgets kept free (hatched in the preview) – on/off."""
-        self._layout_mark()
-        self.settings["overlay"]["keep_out_on"] = bool(self.keep_out_var.get())
-        self._save_soon()
-        self._tick_overlay(reschedule=False)

@@ -220,7 +220,7 @@ SPECS = {
                   ("sub", N_("Grenzen und Platz")),
                   ("check", "ov.limits"),                                                          # 1.8.14
                   ("row", (("check", "ov.limits_same"), ("button", "ov.limits_reset"), ("stretch",))),
-                  ("hint", "ov.limits_hint"), ("check", "ov.keep_out"),                         # 1.8.25
+                  ("hint", "ov.limits_hint"),
                   ("row", (("check", "ov.same_width"), ("button", "ov.merge_column"), ("stretch",))),   # 1.8.29
                   ("sub", N_("Verhalten")),
                   ("check", "ov.fade"), ("check", "ov.per_size"), ("hint", "ov.per_size_hint"))))))),
