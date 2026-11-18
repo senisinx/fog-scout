@@ -627,6 +627,7 @@ class Votes:
         self._hud_seen: dict = {}         # the places on the grid of the last look at the HUD
         self._last_seen = None            # (who, place) the last look chose for the only one missing (1.57.4)
         self._missed = 0                  # 1.57.7: HUD looks in a row that found nothing (at the remembered size)
+        self._own_at = None               # 1.57.11: the own portrait's place in the HUD (kept across rounds)
         self._people: list = []           # {"face", "counts": {slot: {name: n}}, "own": n, "seen": n, "hud": …}
 
     def _who(self, face, index: int, used: set = frozenset(), own: bool = False) -> int:
@@ -684,6 +685,7 @@ class Votes:
         before = self.board().key()
         self._missed = 0 if found else self._missed + 1           # 1.57.7: two empty looks: all sizes again
         good = self._own_on_top(on_grid({w: a for w, a in found.items() if 0 <= w < len(self._people)}))
+        good = self._below_own(good)
         prev = self._hud_seen
         self._hud_seen = good
         for who, at in good.items():
@@ -694,6 +696,21 @@ class Votes:
                     if all(abs(y - at[1]) >= 0.6 * at[2] for y in taken):
                         self._people[who]["hud"] = at
         return self.board().key() != before
+
+    def _below_own(self, good: dict) -> dict:
+        """1.57.11 (user's match with real players: the own portrait hurt, not found – another survivor's perks were
+        drawn at the own, top row): with the own survivor known (gold row) the others count only below its place –
+        found this look, placed before, or remembered from an earlier round (``_own_at``, the HUD stays put); with
+        none of these known, nobody is placed this look."""
+        own = self._own(gold_only=True)
+        if own < 0:
+            return good
+        at = good.get(own) or self._people[own]["hud"] or self._own_at
+        if at is None:
+            return {}
+        if own in good or self._people[own]["hud"] is not None:
+            self._own_at = good.get(own) or self._people[own]["hud"]
+        return {w: a for w, a in good.items() if w == own or a[1] > at[1] + 0.6 * at[2]}
 
     def _own_on_top(self, good: dict) -> dict:
         """1.57.6 (user's match with the own Dwight and a bot Dwight – alike portraits fit each other's place): the

@@ -147,6 +147,7 @@ class DetectionWorker(threading.Thread):
         self.loadouts_wanted = False     # set by the UI: the loadouts are shown and the round is no killer's (1.57)
         self.loadout_info = "–"          # 1.57: last look at the pause menu's loadouts (diagnosis)
         self.loadout_menu_info = "–"     # 1.57.11: … the last one at the menu itself (not the HUD / result)
+        self.loadout_state = "–"         # 1.57.11: … and why looks happen (diagnosis)
         self.menu_open = False           # 1.57.2: the pointer is visible over DBD in a round (a menu is open)
         self.guide_rects = ()            # … and of the centre guide lines while moving (1.64.5)
         self.toast_rect = None           # … and of the notification window (1.8.13: F8 clip, lobby found)
@@ -723,6 +724,11 @@ class DetectionWorker(threading.Thread):
                     menu_open = pointer or (source is not None)
                     self.menu_open = bool(pointer)        # 1.57.2: the App hides the loadouts meanwhile
                     due = tick - last_loadout >= (LOADOUT_HUD_INTERVAL if not menu_open else LOADOUT_INTERVAL)
+                    # 1.57.11 (user's diagnosis: a menu look, then nothing for five minutes): why a look happens or not
+                    self.loadout_state = (f"gewünscht={self.loadouts_wanted} Map={gen is not None} "
+                                          f"Bild={look is not None} Menü offen={bool(menu_open)} "
+                                          f"Menü-Blicke {loadout_votes.looks}/{LOADOUT_LOOKS} "
+                                          f"HUD-Blicke {hud_looks}/{LOADOUT_HUD_LOOKS} alle platziert={loadout_votes.placed}")
                     if look is not None and self.loadouts_wanted and gen is not None and due:
                         try:
                             if menu_open and loadout_votes.looks < LOADOUT_LOOKS:

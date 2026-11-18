@@ -216,6 +216,7 @@ def collect(app) -> str:
         lines.append(f"Loadouts (Pausenmenü): gewünscht={getattr(w, 'loadouts_wanted', None)} · letzter Blick "
                      f"{getattr(w, 'loadout_info', '–')}")            # 1.57: no names – what was found, not read
         lines.append(f"  letzter Menü-Blick: {getattr(w, 'loadout_menu_info', '–')}")      # 1.57.11
+        lines.append(f"  Zustand: {getattr(w, 'loadout_state', '–')}")
         lines.append(f"Runde: {getattr(app, '_hist', None)} · Lobby der App: "
                      f"{ {k: v for k, v in getattr(app, '_queue', {}).items() if k != 'since'} }")
         try:                                                  # 1.38.29: the corpus of decided banners
