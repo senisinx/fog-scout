@@ -318,6 +318,27 @@ def _red(hsv) -> bool:
     return hsv is not None and (hsv[0] <= 8 or hsv[0] >= 170) and hsv[1] >= 120
 
 
+def _menu_rows(ys: list, pitch: float, height: int) -> list:
+    """1.57.4 (CI on Windows: a survivor with few perks, read a hair below the bar there, was missing): the menu's
+    rows are evenly spaced – [(y, inferred?)] of the rows found by their perks and of the rows on their grid
+    between and after them (up to ``MAX_ROWS``); a grid row is read like the others and kept only when something
+    on it is read."""
+    ys = sorted(ys)
+    gaps = [b - a for a, b in zip(ys, ys[1:])]
+    if not gaps:
+        return [(y, False) for y in ys]
+    base = min(gaps)
+    step = float(np.median([g / max(1, round(g / base)) for g in gaps]))
+    if step < ROW_GAP * pitch:
+        return [(y, False) for y in ys]
+    out = [(y, False) for y in ys]
+    for k in range(-2, MAX_ROWS + 1):                # two above the first found (the own row may lack a perk read)
+        y = ys[0] + k * step
+        if pitch <= y <= height - pitch and all(abs(y - o) > 0.5 * step for o, _i in out):
+            out.append((y, True))
+    return sorted(out)
+
+
 class Reader:
     """Reads the loadout board from a picture of the pause menu (BGR)."""
 
@@ -387,10 +408,11 @@ class Reader:
         if len(kept) < 2:                     # the menu lists four survivors; one row of perks is no menu (the HUD's own
             self.last = f"{len(peaks)} Rauten, kein Raster"     # perks) – and with only the own row nothing to show
             return None
-        lines = [line for _y, line in kept]
+        found_ys = [y for y, _line in kept]
         rows = []
-        for line in sorted(lines, key=lambda ln: np.mean([p[1] for p in ln]))[:MAX_ROWS]:
-            y = float(np.mean([p[1] for p in line]))
+        for y, inferred in _menu_rows(found_ys, pitch, frame.shape[0]):
+            if len(rows) >= MAX_ROWS:
+                break
             back = _strip(frame, x0 - 1.2 * pitch, x0 - 0.7 * pitch, y, 0.25 * pitch)
             if _red(back):
                 continue                                  # the killer's row
@@ -402,6 +424,8 @@ class Reader:
             names = [n for n, _s, _m in reads]
             sure = tuple(n is not None and s >= SURE_SCORE and m >= SURE_MARGIN for n, s, m in reads)
             perks, item, addons, offering = tuple(names[:4]), names[4], tuple(names[5:7]), names[7]
+            if inferred and not any(names):
+                continue                                  # a row of the grid with nothing read: none
             face = _face(frame, x0 - PORTRAIT_AT * pitch, y - PORTRAIT_UP * pitch, PORTRAIT * pitch)
             rows.append(Row(perks=perks, item=item, addons=addons, offering=offering, own=bool(_gold(back)), face=face,
                             sure=sure))

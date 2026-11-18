@@ -431,3 +431,26 @@ def test_the_last_one_missing_is_looked_for_at_the_free_row(reader):
     assert v.place_last(2, scores) and v.placed                   # twice the same row: placed
     assert abs({r.who: r.hud for r in v.board().rows}[2][1] - nancy[1]) < 0.01
     assert "HUD ja" in v.describe() and "eigener" in v.describe()
+
+
+@pytest.mark.parametrize("quality,noise", [(70, 0), (80, 4), (95, 2)])
+def test_a_row_with_few_perks_is_kept_however_the_picture_is_decoded(reader, quality, noise):
+    """CI on Windows (Python 3.14) decoded the third menu a hair differently: the row with only two perks fell
+    below the bar and was missing. Menu rows are evenly spaced – a row on the grid is read like the others."""
+    base = cv2.imread(os.path.join(DATA, "menu_3440_third.jpg"))
+    _ok, buf = cv2.imencode(".jpg", base, [cv2.IMWRITE_JPEG_QUALITY, quality])
+    pic = cv2.imdecode(buf, cv2.IMREAD_COLOR).astype(np.int16)
+    if noise:
+        pic = pic + np.random.default_rng(quality).normal(0, noise, pic.shape)
+    pic = cv2.resize(np.clip(pic, 0, 255).astype(np.uint8), (3440, 1440), interpolation=cv2.INTER_LANCZOS4)
+    board = reader.read(pic)
+    assert board is not None and len(board.rows) == 4
+    assert [r.offering for r in board.rows] == ["Petrified Oak", loadouts.HIDDEN_OFFERING,
+                                                loadouts.HIDDEN_OFFERING, None]
+
+
+def test_the_menu_rows_follow_their_grid():
+    rows = loadouts._menu_rows([300.0, 450.0, 600.0], 70.0, 1440)          # 150 apart: three found …
+    assert [round(y) for y, _i in rows if not _i] == [300, 450, 600]
+    assert 750 in [round(y) for y, inferred in rows if inferred]         # … the fourth on their grid
+    assert loadouts._menu_rows([300.0, 340.0], 70.0, 1440) == [(300.0, False), (340.0, False)]   # too close: no grid
