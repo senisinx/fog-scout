@@ -435,11 +435,15 @@ class Reader:
             names = [n for n, _s, _m in reads]
             sure = tuple(n is not None and s >= SURE_SCORE and m >= SURE_MARGIN for n, s, m in reads)
             perks, item, addons, offering = tuple(names[:4]), names[4], tuple(names[5:7]), names[7]
-            if inferred and not any(names):
-                continue                                  # a row of the grid with nothing read: none
+            if inferred and not any(names) and not (_gold(back) and y < found_ys[0]):
+                continue                                  # a row of the grid with nothing read: none (1.57.6: the
+                                                          # own gold row counts empty too – no perks equipped)
             face = _face(frame, x0 - PORTRAIT_AT * pitch, y - PORTRAIT_UP * pitch, PORTRAIT * pitch)
             rows.append(Row(perks=perks, item=item, addons=addons, offering=offering, own=bool(_gold(back)), face=face,
                             sure=sure))
+        empty_own = [r for r in rows if r.own and r.empty]
+        if empty_own and (len(empty_own) > 1 or any(r.own and not r.empty for r in rows)):
+            rows = [r for r in rows if not (r.own and r.empty)]  # a gold patch above a read own row: no row
         self.last = f"{len(rows)} Reihen, Raute {size:.0f} px"
         return Board(rows=tuple(rows), size=round(size, 1), pitch=round(pitch, 2)) if rows else None
 
@@ -473,9 +477,11 @@ class HudFinder:
                 cv2.circle(mask, (side // 2, side // 2), max(2, int(side * HUD_ROUND)), 255, -1)
                 r = cv2.matchTemplate(box, t, cv2.TM_CCOEFF_NORMED, mask=mask)
                 r[~np.isfinite(r)] = -1
-                _mn, v, _ml, (px, py) = cv2.minMaxLoc(r)
-                found.append((float(v), who, (bx0 + (px + side / 2) / half) / w, (by0 + (py + side / 2) / half) / h,
-                              side / half / h))
+                for _peak in range(2):                   # 1.57.6: the two best places – the same character twice
+                    _mn, v, _ml, (px, py) = cv2.minMaxLoc(r)     # (own Dwight and a bot Dwight) are two rows
+                    found.append((float(v), who, (bx0 + (px + side / 2) / half) / w,
+                                  (by0 + (py + side / 2) / half) / h, side / half / h))
+                    r[max(0, py - side // 2):py + side // 2 + 1, max(0, px - side // 2):px + side // 2 + 1] = -1
         found.sort(key=lambda f: -f[0])
         self.scores = {}
         for v, who, *_rest in found:                    # each portrait's best fit of this look (diagnosis)
@@ -551,11 +557,15 @@ class Votes:
         self._last_seen = None            # (who, place) the last look chose for the only one missing (1.57.4)
         self._people: list = []           # {"face", "counts": {slot: {name: n}}, "own": n, "seen": n, "hud": …}
 
-    def _who(self, face, index: int) -> int:
-        """The survivor of a row: the one with the same portrait; a row without one (cut off) by its place."""
+    def _who(self, face, index: int, used: set = frozenset(), own: bool = False) -> int:
+        """The survivor of a row: the one with the same portrait; a row without one (cut off) by its place.
+        1.57.6 (user's match with the own Dwight and a bot Dwight): two rows of one look are never one survivor –
+        of the same portrait the own row is the one seen gold before."""
         best, at = 0.0, -1
         for i, p in enumerate(self._people):
-            v = same_face(face, p["face"])
+            if i in used:
+                continue
+            v = same_face(face, p["face"]) + (0.01 if (p["own"] > 0) == own else 0.0)
             if v > best:
                 best, at = v, i
         if at >= 0 and best >= SAME_FACE:
@@ -575,8 +585,11 @@ class Votes:
         self.looks += 1
         if board.pitch:
             self.side = board.pitch * PORTRAIT
+        used = set()
         for index, row in enumerate(board.rows):
-            p = self._people[self._who(row.face, index)]
+            who = self._who(row.face, index, used, row.own)
+            used.add(who)
+            p = self._people[who]
             p["seen"] += 1
             p["own"] += 1 if row.own else 0
             for slot, name in enumerate(row.perks + (row.item,) + row.addons + (row.offering,)):
@@ -597,7 +610,7 @@ class Votes:
         lies on the list's grid with the others of that look (same column, rows a whole number of steps apart) and
         the look before found it at the same place – one stray match never sticks for the round."""
         before = self.board().key()
-        good = on_grid({w: a for w, a in found.items() if 0 <= w < len(self._people)})
+        good = self._own_on_top(on_grid({w: a for w, a in found.items() if 0 <= w < len(self._people)}))
         prev = self._hud_seen
         self._hud_seen = good
         for who, at in good.items():
@@ -608,6 +621,20 @@ class Votes:
                     if all(abs(y - at[1]) >= 0.6 * at[2] for y in taken):
                         self._people[who]["hud"] = at
         return self.board().key() != before
+
+    def _own_on_top(self, good: dict) -> dict:
+        """1.57.6 (user's match with the own Dwight and a bot Dwight – alike portraits fit each other's place): the
+        own survivor always stands on top of the HUD's list. When the own (gold row) was found below another one,
+        it takes the top place and the other gets none this look (it is looked for at the freed row then)."""
+        own = self._own(gold_only=True)
+        if own not in good or len(good) < 2:
+            return good
+        top = min(good, key=lambda w: good[w][1])
+        if top == own:
+            return good
+        out = dict(good)
+        out[own] = out.pop(top)
+        return out
 
     def missing(self):
         """1.57.4 (user's pictures: one survivor never placed, the others were): (who, [place, …]) of the only
@@ -673,12 +700,14 @@ class Votes:
             return None
         return ranked[0][0]
 
-    def _own(self) -> int:
+    def _own(self, gold_only: bool = False) -> int:
         """The own survivor: the gold row of the menu (most looks), else the top portrait of the HUD's list once
         every survivor has its place there; -1 when not known."""
         gold = [(p["own"], i) for i, p in enumerate(self._people) if p["own"] * 2 > p["seen"]]
         if gold:
             return max(gold)[1]
+        if gold_only:
+            return -1
         if self.placed and len(self._people) > 1:
             return min(range(len(self._people)), key=lambda i: self._people[i]["hud"][1])
         return -1
