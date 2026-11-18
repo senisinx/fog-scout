@@ -344,3 +344,29 @@ def test_a_place_off_the_lists_grid_or_seen_once_is_never_taken():
     v.place({0: at(0.42), 1: at(0.502), 2: at(0.584), 3: at(0.666)})
     rows = {r.who: r.hud for r in v.board().rows}
     assert rows[3] is not None and abs(rows[3][1] - 0.666) < 0.01 and rows[2] is None   # 2: seen once only
+
+
+# ------------------------------------------------------------------ 1.57.3: below the name, in one row
+def test_below_each_name_the_perks_stand_in_one_row():
+    """User: "evtl. unter dem Namen der entsprechenden Person", "Perks in einer Reihe" – each row's top just below
+    its name (right of the portrait), the four perks side by side; the row is as tall as the room there."""
+    from fogscout import layout
+    from fogscout.app_loadouts import placed
+    from fogscout.overlay_render import loadout_size
+    o = {"loadouts_scale": 1.0, "loadouts_items": True, "loadouts_pos": "name", "margin": 0.012}
+    rows = (Row(perks=("Dead Hard", None, None, None), hud=(0.177, 0.504, 0.05)),
+            Row(perks=("Lithe", None, None, None), hud=(0.177, 0.586, 0.05)))
+    pic, x, y = placed(o, (0, 0, 3440, 1440), Board(rows=rows))
+    face = 0.05 * 1440
+    size = int(face * layout.LOADOUT_ROW_H)
+    assert abs(x - (0.177 * 3440 + face * layout.LOADOUT_NAME_X)) <= 1          # where the names begin
+    assert abs(y - (0.504 * 1440 + face * layout.LOADOUT_NAME_Y)) <= 1          # just below the first name
+    assert pic.size == loadout_size(size, round((0.586 - 0.504) * 1440) + size, True, row=True)
+    assert y + size < 0.586 * 1440 - face / 2                         # above the next portrait
+    assert pic.width > 4 * size                                       # four perks side by side, then the item
+    diamond = placed(dict(o, loadouts_pos="hud"), (0, 0, 3440, 1440), Board(rows=rows))[0]
+    row = placed(dict(o, loadouts_pos="hud", loadouts_style="row"), (0, 0, 3440, 1440), Board(rows=rows))[0]
+    assert row.width > diamond.width and row.height < diamond.height  # the style is a choice beside the list too
+    from fogscout.appconst import LOADOUT_SPOTS, LOADOUT_STYLES
+    assert [k for k, _t in LOADOUT_SPOTS] == ["hud", "name", "custom"]
+    assert [k for k, _t in LOADOUT_STYLES] == ["diamond", "row"]

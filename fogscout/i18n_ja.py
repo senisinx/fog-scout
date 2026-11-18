@@ -6125,4 +6125,13 @@ T = {
         'サバイバーリストの横',
     'Perks der Mitspieler':
         '味方のパーク',
+    # 1.57.3: the loadouts' look
+    'In einer Reihe':
+        '一列に並べる',
+    'Raute (2×2)':
+        'ひし形（2×2）',
+    'Unter dem Namen':
+        '名前の下',
+    '„In einer Reihe“ passt am besten unter den Namen oder an eine eigene Position.':
+        '「一列に並べる」は名前の下か独自の位置が最適です。',
 }

@@ -4598,4 +4598,13 @@ EN = {
         'Beside the survivor list',
     'Perks der Mitspieler':
         "Teammates' perks",
+    # 1.57.3: the loadouts' look
+    'In einer Reihe':
+        'In one row',
+    'Raute (2×2)':
+        'Diamond (2×2)',
+    'Unter dem Namen':
+        'Below the name',
+    '„In einer Reihe“ passt am besten unter den Namen oder an eine eigene Position.':
+        '“In one row” fits best below the name or at a position of your own.',
 }

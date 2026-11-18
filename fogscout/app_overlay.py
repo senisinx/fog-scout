@@ -7,7 +7,7 @@ from . import layout
 from . import uimodel as ui
 from .i18n import N_, _
 from .skin import STYLE_LABELS
-from .appconst import INPUT_LAYOUTS, INPUT_SPOTS, LOADOUT_SPOTS, MEDIA_NEXT_N, MEDIA_NEXT_SPOTS
+from .appconst import INPUT_LAYOUTS, INPUT_SPOTS, LOADOUT_SPOTS, LOADOUT_STYLES, MEDIA_NEXT_N, MEDIA_NEXT_SPOTS
 from .appconst import (BAR_ALIGNS, HUD_ROW_LABELS, HUD_SIDES, MAP_SCALE, MEDIA_SPOTS, MEDIA_STYLES,
                           OPACITY_KEYS, PRESET_LABELS, SELECTABLE, TODAY_SPOTS)
 from .appconst import INFO_SPOTS   # noqa: F401 – 1.38.36: shared choices live in appconst
@@ -436,6 +436,16 @@ class OverlayTab:
                                                         width=38, values=[_(t) for _k, t in LOADOUT_SPOTS]))
         pcb.pack(side="left", padx=6)
         pcb.bind("<<ComboboxSelected>>", lambda e: self._loadouts_spot_changed())
+        sr = ui.Frame(lf)                                                              # 1.57.3
+        sr.pack(fill="x", pady=(4, 0))
+        self._reg("ov.loadouts_style.label", ui.Label(sr, text=_("Darstellung"), width=12)).pack(side="left")
+        styles = dict(LOADOUT_STYLES)
+        self.loadouts_style_var = ui.StringVar(value=_(styles.get(o.get("loadouts_style", "diamond"),
+                                                                  styles["diamond"])))
+        scb = self._reg("ov.loadouts_style", ui.Combobox(sr, textvariable=self.loadouts_style_var, state="readonly",
+                                                          width=38, values=[_(t) for _k, t in LOADOUT_STYLES]))
+        scb.pack(side="left", padx=6)
+        scb.bind("<<ComboboxSelected>>", lambda e: self._loadouts_style_changed())
         self.loadouts_items_var = ui.BooleanVar(value=bool(o.get("loadouts_items", True)))
         self._reg("ov.loadouts_items", ui.Checkbutton(lf, text=_("Item und Add-ons neben den Perks"),
                                                       variable=self.loadouts_items_var,
@@ -444,7 +454,9 @@ class OverlayTab:
         self._reg("ov.loadouts_hint", ui.Label(lf, text=_("Nur als Survivor: im Match einmal Esc drücken – Fog Scout "
                                                           "liest die Loadouts der anderen aus dem Bild des Menüs und "
                                                           "zeigt sie danach neben ihnen. Nichts wird gespeichert "
-                                                          "oder gesendet."),
+                                                          "oder gesendet.") + " " +
+                                                        _("„In einer Reihe“ passt am besten unter den Namen oder an "
+                                                          "eine eigene Position."),
                                                style="Dim.TLabel", wraplength=420)).pack(anchor="w")
 
     def _small_off_changed(self):

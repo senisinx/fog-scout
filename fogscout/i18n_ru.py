@@ -6125,4 +6125,13 @@ T = {
         'Рядом со списком выживших',
     'Perks der Mitspieler':
         'Навыки союзников',
+    # 1.57.3: the loadouts' look
+    'In einer Reihe':
+        'В один ряд',
+    'Raute (2×2)':
+        'Ромб (2×2)',
+    'Unter dem Namen':
+        'Под именем',
+    '„In einer Reihe“ passt am besten unter den Namen oder an eine eigene Position.':
+        '«В один ряд» лучше всего под именем или на своей позиции.',
 }
