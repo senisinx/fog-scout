@@ -283,44 +283,64 @@ def inputs_height(o: dict, game, margin: int, ratio: float) -> int:
     return h
 
 
-# 1.57: the other survivors' loadouts beside DBD's survivor list – measured on the user's picture of the wanted look
-# (2000×1125, the 16:9 picture): the list's second row (the first other survivor) centred at 49.5 % of the picture's
-# height, the rows 8.7 % apart, a 2×2 perk diamond 8 % tall; DBD's HUD scale can be set – the size slider and
-# moving it by hand follow that
+# 1.57: the other survivors' loadouts beside DBD's survivor list. 1.57.1: placed by the portraits the worker found
+# in the HUD (loadouts.HudFinder); without them (preview, "Overlay testen") at the list's usual rows – measured on the
+# user's 3440×1440 HUD: the first other survivor at 50.4 % of the picture's height, the rows 8.2 % apart, a portrait
+# 5 % tall
 LOADOUT_SCALE = (50, 200)      # size slider, percent
-LOADOUT_TOP = 0.495            # centre of the first other survivor's row, share of the picture's height
-LOADOUT_STEP = 0.087           # rows apart
-LOADOUT_CLUSTER = 0.08         # one survivor's perk diamond, its height
+LOADOUT_TOP = 0.504            # centre of the first other survivor's portrait, share of the picture's height
+LOADOUT_STEP = 0.082           # rows apart
+LOADOUT_FACE = 0.05            # a portrait's height
+LOADOUT_LEFT = 0.052           # the portraits' left edge, share of the picture's width
+LOADOUT_PER_FACE = 1.3         # a survivor's perk diamond: this many portraits tall (fits between the picture's
+                               # edge and the portraits with item and add-ons, user's HUD)
 
 
 def loadout_scale(o: dict) -> float:
     return min(LOADOUT_SCALE[1], max(LOADOUT_SCALE[0], float(o.get("loadouts_scale", 1.0)) * 100)) / 100
 
 
-def loadout_metrics(o: dict, game) -> tuple:
-    """(cluster, step) in pixels for the game window ``game``: the 16:9 picture's height × the size setting."""
-    _gx, _gy, gw, gh = game
-    vh = min(gh, gw * 9 / 16)
-    f = loadout_scale(o)
-    return max(18, int(vh * LOADOUT_CLUSTER * f)), max(18, int(vh * LOADOUT_STEP * f))
+def loadout_rows(o: dict, game, rows) -> tuple:
+    """(cluster px, [(row, centre y px on screen)], the portraits' left edge px) for ``rows`` (``loadouts.Row``): at the
+    place the worker found its portrait (``Row.hud``, shares of the game window), a row without one at the list's
+    usual row – only when no row has a place (the sample); otherwise it is left out."""
+    gx, gy, gw, gh = game
+    vw, vh = min(gw, gh * 16 / 9), min(gh, gw * 9 / 16)
+    vx, vy = gx + (gw - vw) / 2, gy + (gh - vh) / 2
+    found = [r for r in rows if r.hud]
+    if found:
+        sides = sorted(r.hud[2] for r in found)
+        face = sides[len(sides) // 2] * gh
+        out = [(r, gy + r.hud[1] * gh) for r in found]
+        left = min(gx + r.hud[0] * gw for r in found) - face / 2      # one size for all (a framed portrait is found
+                                                                       # a little larger)
+    else:
+        face = LOADOUT_FACE * vh
+        out = [(r, vy + (LOADOUT_TOP + i * LOADOUT_STEP) * vh) for i, r in enumerate(rows)]
+        left = vx + LOADOUT_LEFT * vw
+    cluster = max(18, int(face * LOADOUT_PER_FACE * loadout_scale(o)))
+    return cluster, sorted(out, key=lambda rc: rc[1]), left
 
 
-def loadouts_xy(spot: str, game, size, margin: int, cluster: int, own=None):
-    """1.57: top-left corner of the loadouts (``size``, rows of ``cluster`` px) – "hud" = right beside the left edge
-    of the 16:9 picture (in the black bar when it is wide enough, else just inside the picture), the first row
-    centred at DBD's first other survivor; "custom" = ``own`` (share of the window where its centre is). Never
-    outside the game window."""
+def loadouts_xy(spot: str, game, size, margin: int, top: float, own=None, left: float | None = None):
+    """1.57: top-left corner of the loadouts (``size``; ``top`` = where the first row's diamond begins) – "hud" =
+    right before the portraits (``left`` = their left edge, the user's sketch) when there is room inside the 16:9
+    picture, else beside its left edge (in the black bar when it is wide enough, else just inside), at the height of
+    the portraits; "custom" = ``own`` (share of the window where its centre is). Never outside the game window."""
     gx, gy, gw, gh = game
     w, h = size
     if spot == "custom":
         fx, fy = own or (0.05, 0.6)
         x, y = gx + fx * gw - w / 2, gy + fy * gh - h / 2
     else:
-        vw, vh = min(gw, gh * 16 / 9), min(gh, gw * 9 / 16)
-        vx, vy = gx + (gw - vw) / 2, gy + (gh - vh) / 2
+        vw = min(gw, gh * 16 / 9)
+        vx = gx + (gw - vw) / 2
         gap = max(2, margin // 2)
-        x = vx - w - gap if vx - gx >= w + gap else vx + gap
-        y = vy + LOADOUT_TOP * vh - cluster / 2
+        if left is not None and left - w - 2 >= vx:      # just before the portraits, as close as it can
+            x = left - w - min(gap, left - w - vx)
+        else:
+            x = vx - w - gap if vx - gx >= w + gap else vx + gap
+        y = top
     x = min(max(x, gx), gx + gw - w)
     y = min(max(y, gy), gy + gh - h)
     return int(round(x)), int(round(y))

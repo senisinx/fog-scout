@@ -17,7 +17,7 @@ from .i18n import _
 
 log = logging.getLogger("fogscout")
 
-# what the preview and "Overlay testen" show (made up; names of the wiki's survivor perks)
+# what the preview and "Overlay testen" show (made up; names of the wiki's survivor perks) – at the list's usual rows
 SAMPLE = loadouts.Board(rows=(
     loadouts.Row(own=True),
     loadouts.Row(perks=("Dead Hard", "Resurgence", "Made for This", "Windows of Opportunity"),
@@ -32,20 +32,34 @@ def icon_for(name, kind):
     return loadouts.icon_file(name, kind) if name else None
 
 
-def picture(o: dict, game, board, editing: bool = False):
-    """The loadouts' picture for the game window ``game`` (also the preview's); None without a board."""
+def placed(o: dict, game, board, editing: bool = False, sample: bool = False):
+    """(picture, x, y) of the loadouts in the game window ``game`` (also the preview's), or None. Live (not
+    ``sample``) only the rows whose portrait the worker found in the HUD – beside it; the sample at the list's
+    usual rows."""
     if board is None:
         return None
+    rows = [r for r in board.others if sample or r.hud]
+    if not rows:
+        return None
     from .overlay_render import add_border, loadout_card
-    cluster, step = layout.loadout_metrics(o, game)
-    pic = loadout_card(board.others, cluster, step, bool(o.get("loadouts_items", True)), icon_for)
-    return add_border(pic, _("LOADOUTS")) if editing else pic
+    gx, gy, gw, gh = game
+    cluster, centres, left = layout.loadout_rows(o, game, rows)
+    top = centres[0][1] - cluster / 2
+    height = int(round(centres[-1][1] - top + cluster / 2))
+    pic = loadout_card([r for r, _c in centres], cluster, [c - cluster / 2 - top for _r, c in centres], height,
+                       bool(o.get("loadouts_items", True)), icon_for)
+    if editing:
+        pic = add_border(pic, _("LOADOUTS"))
+    x, y = layout.loadouts_xy(o.get("loadouts_pos", "hud"), game, pic.size, int(gh * o.get("margin", 0.012)), top,
+                              o.get("loadouts_xy"), left)
+    return pic, x, y
 
 
 class LoadoutsCard:
     def _loadouts_init(self):
         self._loadout_board = None           # the board of the round on display (loadouts.Board) or None
         self._loadout_gen = None             # … read for this map (worker.watch_gen)
+        self._loadout_key, self._loadout_at = None, None     # (picture, x, y) for the last board / window / settings
         self.loadouts_win = None
         if IS_WIN:
             try:
@@ -114,18 +128,22 @@ class LoadoutsCard:
         o = self.settings["overlay"]
         win.set_editing(self._loadouts_on() and self._el_editable("loadouts"))
         board, sample = self._loadouts_board()
-        gx, gy, gw, gh = game = self._game_rect()
-        if board is None or gh <= 0:
+        game = self._game_rect()
+        if board is None or game[3] <= 0:
             self._loadouts_hide()
             return
-        key = (board.key(), layout.loadout_metrics(o, game), bool(o.get("loadouts_items", True)), win.editing)
-        if key != getattr(win, "_key", None):
-            win.set_picture(picture(o, game, board, win.editing), key)
+        key = (board.key(), game, o.get("loadouts_scale"), o.get("loadouts_pos"), o.get("loadouts_xy"),
+               bool(o.get("loadouts_items", True)), win.editing, sample)
+        if key != getattr(self, "_loadout_key", None):
+            self._loadout_key = key
+            self._loadout_at = placed(o, game, board, win.editing, sample)
+        at = self._loadout_at
+        if at is None:
+            self._loadouts_hide()
+            return
+        pic, x, y = at
+        win.set_picture(pic, key)
         win.opacity = o.get("loadouts_opacity", o["opacity"])
-        margin = int(gh * o["margin"])
-        cluster = layout.loadout_metrics(o, game)[0]
-        x, y = layout.loadouts_xy(o.get("loadouts_pos", "hud"), game, win.size, margin, cluster,
-                                  o.get("loadouts_xy"))
         self.worker.loadouts_rect = self._el_show("loadouts", win, x, y, win.size)
 
     # ---- settings and dragging

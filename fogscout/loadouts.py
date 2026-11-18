@@ -3,27 +3,27 @@ Survivor mitnimmt, wenn man ins Menü geht" – shown only to survivors, of the 
 item and its two add-ons of each row, read from the screen picture only (hard rule – nothing from the game, no
 network). Pure: numpy + OpenCV, the pictures of fogscout/perkicons (Dead by Daylight Wiki, THIRD_PARTY.md).
 
-How a row is found without knowing where the menu sits or how large DBD draws it (the HUD scale can be set):
-1. ``_diamonds``: the perk diamonds are the only diamond-shaped areas of one strong colour (the rarity) – a
-   diamond-shaped mask is matched against "strongly coloured" pixels at several sizes on a small copy of the
-   picture; the best size is the menu's size.
-2. ``_rows``: diamonds on one height in steps of about 1.2 × their size are one row; the rows share their left
-   edge (``x0``), so an empty first slot still counts right.
-3. ``_glyph`` + ``Templates.best``: each slot is cut out at full size and its white drawing (the minimum of the
-   three colours is high only for white and grey) compared with the drawings of the known pictures (normalised
-   cross-correlation, a few shifts and sizes). A slot is named only when the best picture is clearly the best
-   (``MIN_SCORE``, ``MIN_MARGIN``) – an unknown or unsure slot stays ``None``, never a guess.
-4. Item and add-ons sit right of the perks at fixed steps of the perk pitch (``ITEM_AT``, ``ADDONS_AT``),
-   measured on the user's picture.
+How a row is found without knowing where the menu sits or how large DBD draws it (the UI scale can be set):
+1. ``_diamonds``: places shaped like a bright diamond on the dark menu (a slot = rarity fill + white drawing, the
+   backdrop darker than ``FILL_VAL``) at several sizes on a small copy of the picture.
+2. ``Reader._perk_hits``: a place is a perk only where a perk's drawing fits it clearly (``_glyph`` +
+   ``Templates.best``: the white drawing – the minimum of the three colours – against the wiki pictures,
+   normalised cross-correlation, ``MIN_SCORE``/``MIN_MARGIN``). The offering, the item and the portraits are no
+   perks, so the step between two perks (``pitch``) and the left edge of the rows (``x0``) come from perks only.
+3. Each row: the four slots on that grid, the item and add-ons at fixed steps (``ITEM_AT``, ``ADDONS_AT``), the
+   character's portrait left of it (``PORTRAIT_AT``/``PORTRAIT_UP``) – all measured on the user's 3440×1440 menu.
+   An unknown or unsure slot stays ``None``, never a guess. The killer's row (red) is left out.
 
-The own row is the first one (DBD lists the player first, highlighted); ``Board.others`` are the rows of the
-other survivors in the order of the menu, which is the order of the HUD's list. A slot counts only
-after it was read twice the same way (``Votes``)."""
+Which survivor is which (1.57.1, user's pictures: the menu's order is not the HUD's, and the own row is not always
+first): never by the names (any script, never read) but by the character's portrait – each survivor character is
+in a match once. ``Votes`` keeps one entry per portrait over the looks (a slot counts after two equal readings);
+``HudFinder`` finds each portrait in the HUD's survivor list after the menu closed – the perks are drawn beside
+it. The own row: the menu's gold highlight (``_gold``), else the top portrait of the HUD's list."""
 from __future__ import annotations
 
 import json
 import os
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 import numpy as np
 
@@ -33,19 +33,32 @@ ICONS = os.path.join(HERE, "perkicons")
 
 GLYPH = 32                    # side of the compared drawings
 LOCATE_H = 720                # the picture is searched for diamonds at this height
+FILL_VAL = 90                 # a slot (rarity fill + white drawing) is brighter than this; the menu's backdrop and the
+                              # own row's gold are darker (user's 3440×1440 menu: 45–80, diamonds ≥ 100)
 SIZES = range(14, 64, 2)      # diamond sizes tried at LOCATE_H (≈ 2–9 % of the height)
-MIN_FIT = 0.62                # the best diamond: its share of strongly coloured pixels where they should be
-PEAK_FIT = (0.45, 0.55)       # any other: at least this fit and this share of the best (the drawing covers a part)
+MIN_FIT = 0.5                 # the best diamond: its share of bright pixels where they should be
+PEAK_FIT = 0.3                # any other place looked at: at least this fit (the perk's drawing decides)
+MAX_PEAKS = 60
 PITCH = (1.05, 1.45)          # perk pitch / diamond size: the steps between two slots of a row
-ROW_TOL = 0.25                # diamonds on one row: heights within this share of their size
+ROW_TOL = 0.3                 # perks on one row: heights within this share of their size
+GRID_TOL = 0.25               # a perk's place on the grid: within this share of a step
+ROW_GAP = 1.5                 # menu rows: at least this many steps apart (user's menu: 2.1)
 MIN_SCORE = 0.78              # a slot's best picture must fit at least this well …
 MIN_MARGIN = 0.05             # … and this much better than the second best
 SQUARE = 0.80                 # item / add-on square: its side in perk pitches
-ITEM_AT = 2.24                # centre of the item right of the fourth perk, in perk pitches
-ADDONS_AT = (3.44, 4.44)      # … and of the two add-ons
-DIAMOND = 0.84                # a perk diamond's width in perk pitches
+ITEM_AT = 2.19                # centre of the item right of the fourth perk, in perk pitches (user's menu)
+ADDONS_AT = (3.43, 4.33)      # … and of the two add-ons
+DIAMOND = 0.88                # a perk diamond's width in perk pitches (user's menu: 37 of 42 px)
+PORTRAIT_AT = 1.74            # the character's portrait: its centre left of the first perk, in perk pitches …
+PORTRAIT_UP = 0.33            # … and above the row's centre
+PORTRAIT = 1.0                # … the square cut out of it (inside the round picture)
+FACE = 24                     # portraits are compared at this size (grey)
+SAME_FACE = 0.8               # two portraits of the menu are the same survivor from this correlation on
+HUD_FIT = 0.7                 # a portrait found in the HUD's list from this correlation on
+HUD_SCALES = (0.6, 0.7, 0.8, 0.9, 1.0, 1.1, 1.25, 1.4, 1.6)   # HUD portrait / menu portrait (both scales can be set)
+HUD_BOX = (0.0, 0.2, 0.3, 0.88)   # where DBD's survivor list can be: share of the 16:9 picture (x0, y0, x1, y1)
 CORNER = 0.28                 # an add-on's top right corner (DBD's white "+") is left out of the comparison
-MAX_ROWS = 4
+MAX_ROWS = 5                  # four survivors and the killer (left out)
 
 
 @dataclass(frozen=True)
@@ -54,6 +67,9 @@ class Row:
     item: str | None = None
     addons: tuple = (None, None)
     own: bool = False
+    who: int = -1                               # Votes: the survivor (one per portrait)
+    face: np.ndarray | None = field(default=None, compare=False, repr=False)    # FACE × FACE grey portrait
+    hud: tuple | None = None                    # HudFinder: (x, y, side) of the portrait, shares of the picture
 
     @property
     def empty(self) -> bool:
@@ -64,15 +80,16 @@ class Row:
 class Board:
     rows: tuple = ()
     size: float = 0.0                           # the diamonds' size in the picture (px) – for the diagnosis
+    pitch: float = 0.0                          # the step between two perks (px): the portraits' size follows
 
     @property
     def others(self) -> tuple:
-        """The other survivors' rows, in the menu's order (the own row is left out)."""
+        """The other survivors' rows (the own row left out)."""
         return tuple(r for r in self.rows if not r.own)
 
     def key(self) -> tuple:
-        """What is shown: the rows with at least one name."""
-        return tuple((i, r.perks, r.item, r.addons, r.own) for i, r in enumerate(self.rows) if not r.empty)
+        """What is shown: the rows with at least one name, with their place in the HUD."""
+        return tuple((r.who, r.perks, r.item, r.addons, r.own, r.hud) for r in self.rows if not r.empty)
 
 
 def load_names(path: str = NAMES_FILE) -> dict:
@@ -140,9 +157,9 @@ class Templates:
                 rows.append(t.ravel())
         self.matrix = _norm(np.array(rows, dtype=np.float32)) if rows else np.zeros((0, GLYPH * GLYPH), np.float32)
 
-    def best(self, glyphs: np.ndarray):
+    def best(self, glyphs: np.ndarray, at: list | None = None):
         """(name, score, margin) of the best picture for any of ``glyphs`` (n × GLYPH²), or (None, score, margin)
-        when it is not clearly the best."""
+        when it is not clearly the best; ``at`` gets the index of the cut that fitted best."""
         if not len(self.names) or not len(glyphs):
             return None, 0.0, 0.0
         glyphs = glyphs.reshape(len(glyphs), GLYPH, GLYPH)
@@ -151,6 +168,8 @@ class Templates:
         scores = _norm(glyphs.reshape(len(glyphs), -1).astype(np.float32)) @ self.matrix.T     # n × templates
         per = scores.max(axis=0)                                    # each picture at its best cut
         order = np.argsort(per)[::-1]
+        if at is not None:
+            at.append(int(np.argmax(scores[:, order[0]])))
         top = float(per[order[0]])
         second = float(per[order[1]]) if len(order) > 1 else 0.0
         name = self.names[order[0]] if top >= MIN_SCORE and top - second >= MIN_MARGIN else None
@@ -160,29 +179,34 @@ class Templates:
 def _glyph(bgr: np.ndarray) -> np.ndarray:
     """The white drawing of a cut-out slot as GLYPH × GLYPH floats: high where all three colours are high."""
     import cv2
-    small = cv2.resize(bgr, (GLYPH, GLYPH), interpolation=cv2.INTER_AREA).astype(np.float32) / 255
-    return np.clip((small.min(axis=2) - 0.35) / 0.5, 0, 1)
+    small = cv2.resize(bgr, (GLYPH, GLYPH), interpolation=cv2.INTER_AREA)
+    low = np.minimum(np.minimum(small[..., 0], small[..., 1]), small[..., 2]).astype(np.float32) / 255
+    return np.clip((low - 0.35) / 0.5, 0, 1)
 
 
-def _cuts(frame, cx: float, cy: float, side: float) -> np.ndarray:
+def _cuts(frame, cx: float, cy: float, side: float, reach: int = 1, places: list | None = None,
+          step: float | None = None, sizes: bool = True) -> np.ndarray:
     """The drawings of the square around (cx, cy) with a few shifts and sizes (the found place is ± a pixel or
-    two off) – n × GLYPH²."""
+    two off; ``reach`` 2 for a place from the coarse diamond search, ± side/10) – n × GLYPH²."""
     h, w = frame.shape[:2]
-    step = max(1.0, side / 20)
+    step = step or max(1.0, side / 20)
+    shifts = [k * step for k in range(-reach, reach + 1)]
     out = []
-    for s in (side - step, side, side + step):
-        for dx in (-step, 0, step):
-            for dy in (-step, 0, step):
+    for s in ((side - step, side, side + step) if sizes else (side,)):
+        for dx in shifts:
+            for dy in shifts:
                 x0, y0 = int(round(cx + dx - s / 2)), int(round(cy + dy - s / 2))
                 x1, y1 = int(round(x0 + s)), int(round(y0 + s))
                 if x0 < 0 or y0 < 0 or x1 > w or y1 > h or x1 - x0 < 8:
                     continue
                 out.append(_glyph(frame[y0:y1, x0:x1]).ravel())
+                if places is not None:
+                    places.append((cx + dx, cy + dy))
     return np.array(out, dtype=np.float32) if out else np.zeros((0, GLYPH * GLYPH), np.float32)
 
 
 def _diamond_mask(s: int) -> np.ndarray:
-    """+1 on the coloured fill of a diamond of side ``s``, −1 just outside it, 0 on the drawing in its middle."""
+    """+1 on the bright ring of a diamond of side ``s``, −1 just outside it, 0 in its middle (the drawing)."""
     c = (s - 1) / 2
     yy, xx = np.mgrid[0:s, 0:s]
     d = (np.abs(xx - c) + np.abs(yy - c)) / max(c, 1)
@@ -199,7 +223,7 @@ def _diamonds(frame) -> tuple:
     f = LOCATE_H / h
     small = cv2.resize(frame, (max(1, int(w * f)), LOCATE_H), interpolation=cv2.INTER_AREA)
     hsv = cv2.cvtColor(small, cv2.COLOR_BGR2HSV)
-    fill = ((hsv[..., 1] > 100) & (hsv[..., 2] > 70)).astype(np.float32)
+    fill = (hsv[..., 2] > FILL_VAL).astype(np.float32)
     best = (0.0, 0, None)
     for s in SIZES:
         t = _diamond_mask(s)
@@ -212,9 +236,9 @@ def _diamonds(frame) -> tuple:
         return 0, []
     peaks = []
     work = r.copy()
-    for _ in range(MAX_ROWS * 4 + 8):
+    for _ in range(MAX_PEAKS):
         _, v, _, (px, py) = cv2.minMaxLoc(work)
-        if v < max(PEAK_FIT[0], fit * PEAK_FIT[1]):
+        if v < PEAK_FIT:
             break
         peaks.append(((px + s / 2) / f, (py + s / 2) / f))
         x0, y0 = max(0, px - s // 2 - 1), max(0, py - s // 2 - 1)
@@ -222,36 +246,45 @@ def _diamonds(frame) -> tuple:
     return s / f, peaks
 
 
-def _rows(size: float, peaks: list) -> tuple:
-    """(pitch, x0, [y, …]): the rows of diamonds, the step between two slots and the first slot's centre."""
-    lines = []
-    for x, y in sorted(peaks, key=lambda p: p[1]):
-        for line in lines:
-            if abs(line[0][1] - y) <= ROW_TOL * size:
-                line.append((x, y))
-                break
-        else:
-            lines.append([(x, y)])
-    steps = []
-    for line in lines:
-        xs = sorted(p[0] for p in line)
-        steps += [b - a for a, b in zip(xs, xs[1:]) if PITCH[0] * size <= b - a <= PITCH[1] * size]
-    if not steps:
-        return 0.0, 0.0, []
-    pitch = float(np.median(steps))
-    good, starts = [], []
-    for line in lines:
-        xs = sorted(p[0] for p in line)
-        # a row: diamonds on the grid of one step – each kept one has another 1–3 steps away (a lone coloured
-        # spot on the row, a portrait, is not)
-        kept = [a for a in xs if any(b != a and abs(abs(b - a) / pitch - round(abs(b - a) / pitch)) < 0.2
-                                     and 1 <= round(abs(b - a) / pitch) <= 3 for b in xs)]
-        if kept:
-            good.append(float(np.mean([p[1] for p in line if p[0] in kept])))
-            starts.append(min(kept))
-    if not good:
-        return 0.0, 0.0, []
-    return pitch, min(starts), sorted(good)[:MAX_ROWS]
+def _face(frame, cx: float, cy: float, side: float):
+    """The grey FACE × FACE picture of the square around (cx, cy), None outside the picture."""
+    import cv2
+    h, w = frame.shape[:2]
+    x0, y0 = int(round(cx - side / 2)), int(round(cy - side / 2))
+    x1, y1 = int(round(cx + side / 2)), int(round(cy + side / 2))
+    if x0 < 0 or y0 < 0 or x1 > w or y1 > h or x1 - x0 < 8:
+        return None
+    grey = cv2.cvtColor(np.ascontiguousarray(frame[y0:y1, x0:x1]), cv2.COLOR_BGR2GRAY)
+    return cv2.resize(grey, (FACE, FACE), interpolation=cv2.INTER_AREA)
+
+
+def same_face(a, b) -> float:
+    """Correlation of two FACE pictures (−1 … 1), 0 when one is missing."""
+    if a is None or b is None:
+        return 0.0
+    m = _norm(np.stack([a.ravel(), b.ravel()]).astype(np.float32))
+    return float(m[0] @ m[1])
+
+
+def _strip(frame, x0: float, x1: float, y: float, half: float):
+    """Mean HSV of the strip x0…x1 around the row's centre (the row's backdrop left of the perks)."""
+    import cv2
+    h, w = frame.shape[:2]
+    a, b = max(0, int(x0)), min(w, int(x1))
+    c, d = max(0, int(y - half)), min(h, int(y + half))
+    if b - a < 2 or d - c < 2:
+        return None
+    return cv2.cvtColor(np.ascontiguousarray(frame[c:d, a:b]), cv2.COLOR_BGR2HSV).reshape(-1, 3).mean(axis=0)
+
+
+def _gold(hsv) -> bool:
+    """The own row's highlight: gold (user's menu: hue 25, saturation 116) – the others are blue-grey."""
+    return hsv is not None and 10 <= hsv[0] <= 40 and hsv[1] >= 80
+
+
+def _red(hsv) -> bool:
+    """The killer's row: red."""
+    return hsv is not None and (hsv[0] <= 8 or hsv[0] >= 170) and hsv[1] >= 120
 
 
 class Reader:
@@ -264,36 +297,147 @@ class Reader:
         self.addons = Templates("addons", names, folder)
         self.last = ""                                    # what the last look found – for the diagnosis
 
+    def _perk_hits(self, frame, size: float, peaks: list) -> list:
+        """[(x, y)] of the places where a perk's drawing clearly fits – moved to where it fits best (the coarse
+        search is a few pixels off)."""
+        out = []
+        for x, y in peaks:
+            places, at = [], []                          # coarse: ± size/5 in steps of size/10, one size …
+            self.perks.best(_cuts(frame, x, y, size, reach=2, places=places, step=size / 10, sizes=False), at)
+            if not at:
+                continue
+            fx, fy = places[at[0]]
+            places, at = [], []                          # … then fine around the best place
+            if self.perks.best(_cuts(frame, fx, fy, size, places=places), at)[0] is not None:
+                out.append(places[at[0]])
+        return out
+
     def read(self, frame) -> Board | None:
         size, peaks = _diamonds(frame)
         if not peaks:
             self.last = "keine Rauten"
             return None
-        pitch, x0, ys = _rows(size, peaks)
-        if not ys:
-            self.last = f"{len(peaks)} Rauten, keine Reihe"
+        hits = self._perk_hits(frame, size, peaks)
+        if not hits:
+            self.last = f"{len(peaks)} Rauten, kein Perk"
             return None
+        # the grid: every perk is x0 + n · pitch (n 0…3) – a straight line through all of them (one pair alone is
+        # a pixel or two off, and the add-ons sit 7 steps further)
+        x_min = min(x for x, _y in hits)
+        guess = size * 1.15
+        ns = np.array([round((x - x_min) / guess) for x, _y in hits], dtype=float)
+        xs = np.array([x for x, _y in hits], dtype=float)
+        pitch, x0 = guess, x_min
+        if len(set(ns.tolist())) >= 2:
+            p, x = (float(v) for v in np.polyfit(ns, xs, 1))
+            if PITCH[0] * size <= p <= PITCH[1] * size:
+                pitch, x0 = p, x
+        # only perks on that grid (the HUD's own perks bottom right sit half a step apart: no menu)
+        hits = [(x, y) for x, y in hits
+                if abs((x - x0) / pitch - round((x - x0) / pitch)) <= GRID_TOL and 0 <= round((x - x0) / pitch) <= 3]
+        lines = []
+        for x, y in sorted(hits, key=lambda p: p[1]):
+            for line in lines:
+                if abs(np.mean([p[1] for p in line]) - y) <= ROW_TOL * size:
+                    line.append((x, y))
+                    break
+            else:
+                lines.append([(x, y)])
+        # menu rows are far apart (≈ 2 steps); closer ones are no menu
+        kept = []
+        for line in sorted(lines, key=lambda ln: np.mean([p[1] for p in ln])):
+            y = float(np.mean([p[1] for p in line]))
+            if kept and y - kept[-1][0] < ROW_GAP * pitch:
+                if len(line) > len(kept[-1][1]):
+                    kept[-1] = (y, line)
+                continue
+            kept.append((y, line))
+        if len(kept) < 2:                     # the menu lists four survivors; one row of perks is no menu (the HUD's own
+            self.last = f"{len(peaks)} Rauten, kein Raster"     # perks) – and with only the own row nothing to show
+            return None
+        lines = [line for _y, line in kept]
         rows = []
-        for i, y in enumerate(ys):
+        for line in sorted(lines, key=lambda ln: np.mean([p[1] for p in ln]))[:MAX_ROWS]:
+            y = float(np.mean([p[1] for p in line]))
+            back = _strip(frame, x0 - 1.2 * pitch, x0 - 0.7 * pitch, y, 0.25 * pitch)
+            if _red(back):
+                continue                                  # the killer's row
             perks = tuple(self.perks.best(_cuts(frame, x0 + k * pitch, y, pitch * DIAMOND))[0] for k in range(4))
             last = x0 + 3 * pitch
-            item = self.items.best(_cuts(frame, last + ITEM_AT * pitch, y, pitch * SQUARE))[0]
-            addons = tuple(self.addons.best(_cuts(frame, last + a * pitch, y, pitch * SQUARE))[0] for a in ADDONS_AT)
-            rows.append(Row(perks=perks, item=item, addons=addons, own=i == 0))     # a lone row is the own one
+            item = self.items.best(_cuts(frame, last + ITEM_AT * pitch, y, pitch * SQUARE, reach=2))[0]
+            addons = tuple(self.addons.best(_cuts(frame, last + a * pitch, y, pitch * SQUARE, reach=2))[0]
+                           for a in ADDONS_AT)
+            face = _face(frame, x0 - PORTRAIT_AT * pitch, y - PORTRAIT_UP * pitch, PORTRAIT * pitch)
+            rows.append(Row(perks=perks, item=item, addons=addons, own=bool(_gold(back)), face=face))
         self.last = f"{len(rows)} Reihen, Raute {size:.0f} px"
-        return Board(rows=tuple(rows), size=round(size, 1))
+        return Board(rows=tuple(rows), size=round(size, 1), pitch=round(pitch, 2)) if rows else None
+
+
+class HudFinder:
+    """Finds the menu's portraits in DBD's survivor list (the HUD left in the picture) – by the picture, never by
+    a name. ``find`` gives {who: (x, y, side)} as shares of the picture for each portrait found clearly."""
+
+    def find(self, frame, faces: dict, menu_side: float) -> dict:
+        import cv2
+        h, w = frame.shape[:2]
+        vw, vh = min(w, h * 16 / 9), min(h, w * 9 / 16)
+        vx, vy = (w - vw) / 2, (h - vh) / 2
+        bx0, by0 = int(vx + HUD_BOX[0] * vw), int(vy + HUD_BOX[1] * vh)
+        bx1, by1 = int(vx + HUD_BOX[2] * vw), int(vy + HUD_BOX[3] * vh)
+        if bx1 - bx0 < 20 or by1 - by0 < 20 or not faces or menu_side <= 0:
+            return {}
+        half = 0.5                                       # searched at half size: four times faster
+        box = cv2.cvtColor(np.ascontiguousarray(frame[by0:by1, bx0:bx1]), cv2.COLOR_BGR2GRAY)
+        box = cv2.resize(box, None, fx=half, fy=half, interpolation=cv2.INTER_AREA)
+        found = []
+        for who, face in faces.items():
+            if face is None:
+                continue
+            for sc in HUD_SCALES:
+                side = max(8, int(round(menu_side * sc * half)))
+                if side >= min(box.shape):
+                    continue
+                t = cv2.resize(face, (side, side), interpolation=cv2.INTER_AREA)
+                r = cv2.matchTemplate(box, t, cv2.TM_CCOEFF_NORMED)
+                _mn, v, _ml, (px, py) = cv2.minMaxLoc(r)
+                found.append((float(v), who, (bx0 + (px + side / 2) / half) / w, (by0 + (py + side / 2) / half) / h,
+                              side / half / h))
+        found.sort(key=lambda f: -f[0])
+        out, taken = {}, []
+        for v, who, fx, fy, fs in found:
+            if v < HUD_FIT or who in out or any(abs(fy - ty) < 0.6 * fs for ty in taken):
+                continue
+            out[who] = (round(fx, 4), round(fy, 4), round(fs, 4))
+            taken.append(fy)
+        return out
 
 
 class Votes:
-    """The board of one round from several looks: a slot shows a name once it was read ``need`` times and more
-    often than any other name there (one misread look never reaches the screen; a slot read differently stays
-    open). Rows by their place in the menu."""
+    """The board of one round from several looks, one entry per survivor (found again by the portrait – the
+    menu's order changes): a slot shows a name once it was read ``need`` times and more often than any other name
+    there (one misread look never reaches the screen; a slot read differently stays open)."""
 
     def __init__(self, need: int = 2):
         self.need = need
         self.looks = 0
-        self._counts: dict = {}           # (row, slot) -> {name: n}
-        self._own: dict = {}              # row -> own?
+        self.side = 0.0                   # the menu portraits' size (px) – HudFinder scales from it
+        self._people: list = []           # {"face", "counts": {slot: {name: n}}, "own": n, "seen": n, "hud": …}
+
+    def _who(self, face, index: int) -> int:
+        """The survivor of a row: the one with the same portrait; a row without one (cut off) by its place."""
+        best, at = 0.0, -1
+        for i, p in enumerate(self._people):
+            v = same_face(face, p["face"])
+            if v > best:
+                best, at = v, i
+        if at >= 0 and best >= SAME_FACE:
+            return at
+        if face is None:
+            for i, p in enumerate(self._people):
+                if p["face"] is None and p["index"] == index:
+                    return i
+        self._people.append({"face": face, "index": index, "counts": {}, "own": 0, "seen": 0, "hud": None})
+        return len(self._people) - 1
 
     def note(self, board: Board | None) -> bool:
         """Count a look; True when the shown board changed."""
@@ -301,16 +445,37 @@ class Votes:
             return False
         before = self.board().key()
         self.looks += 1
-        for i, row in enumerate(board.rows):
-            self._own[i] = row.own
+        if board.pitch:
+            self.side = board.pitch * PORTRAIT
+        for index, row in enumerate(board.rows):
+            p = self._people[self._who(row.face, index)]
+            p["seen"] += 1
+            p["own"] += 1 if row.own else 0
             for slot, name in enumerate(row.perks + (row.item,) + row.addons):
                 if name is not None:
-                    c = self._counts.setdefault((i, slot), {})
+                    c = p["counts"].setdefault(slot, {})
                     c[name] = c.get(name, 0) + 1
         return self.board().key() != before
 
-    def _slot(self, i: int, slot: int):
-        c = self._counts.get((i, slot), {})
+    def faces(self) -> dict:
+        """{who: portrait} of the survivors not yet found in the HUD."""
+        return {i: p["face"] for i, p in enumerate(self._people) if p["hud"] is None and p["face"] is not None}
+
+    def place(self, found: dict) -> bool:
+        """Places found by HudFinder; True when the shown board changed."""
+        before = self.board().key()
+        for who, at in found.items():
+            if 0 <= who < len(self._people):
+                self._people[who]["hud"] = at
+        return self.board().key() != before
+
+    @property
+    def placed(self) -> bool:
+        """Every survivor seen with a face has its place in the HUD."""
+        return bool(self._people) and not self.faces()
+
+    def _slot(self, p: dict, slot: int):
+        c = p["counts"].get(slot, {})
         if not c:
             return None
         ranked = sorted(c.items(), key=lambda kv: -kv[1])
@@ -318,14 +483,26 @@ class Votes:
             return None
         return ranked[0][0]
 
+    def _own(self) -> int:
+        """The own survivor: the gold row of the menu (most looks), else the top portrait of the HUD's list once
+        every survivor has its place there; -1 when not known."""
+        gold = [(p["own"], i) for i, p in enumerate(self._people) if p["own"] * 2 > p["seen"]]
+        if gold:
+            return max(gold)[1]
+        if self.placed and len(self._people) > 1:
+            return min(range(len(self._people)), key=lambda i: self._people[i]["hud"][1])
+        return -1
+
     def board(self) -> Board:
+        own = self._own()
         rows = []
-        for i in sorted(self._own):
-            names = [self._slot(i, s) for s in range(7)]
-            rows.append(Row(perks=tuple(names[:4]), item=names[4], addons=tuple(names[5:]), own=self._own[i]))
+        for i, p in enumerate(self._people):
+            names = [self._slot(p, s) for s in range(7)]
+            rows.append(Row(perks=tuple(names[:4]), item=names[4], addons=tuple(names[5:]), own=i == own, who=i,
+                            face=p["face"], hud=p["hud"]))
         return Board(rows=tuple(rows))
 
     def reset(self) -> None:
         self.looks = 0
-        self._counts.clear()
-        self._own.clear()
+        self.side = 0.0
+        self._people.clear()
