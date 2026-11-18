@@ -230,8 +230,9 @@ def test_form_page_shows_states_and_posts_clicks(qapp, keep):
     assert page.controls["ov.map_size_reset"][1].isHidden() and page.controls["ov.pos_hint"][1].isHidden()
     kind, tabs, body = page.controls["ov.pos"]                 # 1.66.4: the cards of the page are tabs
     index = tabs.indexOf(body)                                 # 1.7.6: addressed by widget – tabs can be moved
-    assert kind == "tab" and tabs.tabText(index) == "Allgemein" and tabs.count() == 6   # 1.2.12: one per element
-    assert [tabs.tabText(i) for i in range(6)] == ["Karte", "Systemwerte", "Heute", "Musik", "Eingaben", "Allgemein"]
+    assert kind == "tab" and tabs.tabText(index) == "Allgemein" and tabs.count() == 7   # 1.2.12: one per element
+    assert [tabs.tabText(i) for i in range(7)] == ["Karte", "Systemwerte", "Heute", "Musik", "Eingaben", "Loadouts",
+                                                   "Allgemein"]                                     # 1.57
     page.show_states({"ov.sys": {"text": "Systemwerte", "visible": False}})
     assert not tabs.isTabVisible(tabs.indexOf(page.controls["ov.sys"][2])) and tabs.isTabVisible(index)
     assert posted.empty()                                   # showing a state never sends anything back
@@ -1909,8 +1910,8 @@ def test_the_navigation_and_the_overlay_tabs_can_be_reordered_and_remembered(qap
     assert tabs_id == frames[0] and tabs.tabBar().isMovable()
     form.apply_tab_order({tabs_id: list(reversed(frames))})
     assert form._tab_ids(tabs, ids) == list(reversed(frames))
-    assert [tabs.tabText(i) for i in range(tabs.count())] == ["Allgemein", "Eingaben", "Musik", "Heute", "Systemwerte",
-                                                              "Karte"]
+    assert [tabs.tabText(i) for i in range(tabs.count())] == ["Allgemein", "Loadouts", "Eingaben", "Musik", "Heute",
+                                                              "Systemwerte", "Karte"]
     win.open_tab("overlay", frames[0])
     assert tabs.currentWidget() is form.controls[frames[0]][2]
     form.show_states({"ov.sys": {"text": "Systemwerte", "visible": False}})
@@ -2038,7 +2039,7 @@ def test_the_overlay_editor_has_a_tool_bar_list_canvas_and_inspector_in_three_wi
     assert ed.canvas is page.controls["ov.preview"][1] and ed.canvas_box.isAncestorOf(ed.canvas)
     assert ed.inspector.isAncestorOf(page.controls["ov.anchors"][1])
     assert ed.inspector.isAncestorOf(page.controls["ov.sel_size"][1]) and ed.inspector.isAncestorOf(ed.tabs)
-    assert ed.tabs.tabBar().isHidden() and ed.tabs.count() == 6         # the list picks the tab, not a tab row
+    assert ed.tabs.tabBar().isHidden() and ed.tabs.count() == 7         # the list picks the tab, not a tab row
     assert not ed.canvas.hasHeightForWidth()                           # fills its place – no 380-px cap
     for width, mode in ((1600, "wide"), (900, "medium"), (600, "narrow")):
         ed.arrange(width)

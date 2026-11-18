@@ -15,7 +15,8 @@ from .qt_common import pixmap_from_pil
 
 
 PREVIEW_NAMES = {"map": N_("Karte"), "hud": N_("Systemwerte"), "today": N_("Heute"), "music": N_("Musik"),
-                 "text": N_("Infos"), "inputs": N_("Eingaben")}     # 1.8.24: the map's lines apart; 1.39
+                 "text": N_("Infos"), "inputs": N_("Eingaben"),     # 1.8.24: the map's lines apart; 1.39
+                 "loadouts": N_("Loadouts")}                        # 1.57
 NOTE_H = 40                      # 1.8.8: the strip below the screen for the note while moving
 
 

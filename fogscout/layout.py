@@ -283,6 +283,49 @@ def inputs_height(o: dict, game, margin: int, ratio: float) -> int:
     return h
 
 
+# 1.57: the other survivors' loadouts beside DBD's survivor list – measured on the user's picture of the wanted look
+# (2000×1125, the 16:9 picture): the list's second row (the first other survivor) centred at 49.5 % of the picture's
+# height, the rows 8.7 % apart, a 2×2 perk diamond 8 % tall; DBD's HUD scale can be set – the size slider and
+# moving it by hand follow that
+LOADOUT_SCALE = (50, 200)      # size slider, percent
+LOADOUT_TOP = 0.495            # centre of the first other survivor's row, share of the picture's height
+LOADOUT_STEP = 0.087           # rows apart
+LOADOUT_CLUSTER = 0.08         # one survivor's perk diamond, its height
+
+
+def loadout_scale(o: dict) -> float:
+    return min(LOADOUT_SCALE[1], max(LOADOUT_SCALE[0], float(o.get("loadouts_scale", 1.0)) * 100)) / 100
+
+
+def loadout_metrics(o: dict, game) -> tuple:
+    """(cluster, step) in pixels for the game window ``game``: the 16:9 picture's height × the size setting."""
+    _gx, _gy, gw, gh = game
+    vh = min(gh, gw * 9 / 16)
+    f = loadout_scale(o)
+    return max(18, int(vh * LOADOUT_CLUSTER * f)), max(18, int(vh * LOADOUT_STEP * f))
+
+
+def loadouts_xy(spot: str, game, size, margin: int, cluster: int, own=None):
+    """1.57: top-left corner of the loadouts (``size``, rows of ``cluster`` px) – "hud" = right beside the left edge
+    of the 16:9 picture (in the black bar when it is wide enough, else just inside the picture), the first row
+    centred at DBD's first other survivor; "custom" = ``own`` (share of the window where its centre is). Never
+    outside the game window."""
+    gx, gy, gw, gh = game
+    w, h = size
+    if spot == "custom":
+        fx, fy = own or (0.05, 0.6)
+        x, y = gx + fx * gw - w / 2, gy + fy * gh - h / 2
+    else:
+        vw, vh = min(gw, gh * 16 / 9), min(gh, gw * 9 / 16)
+        vx, vy = gx + (gw - vw) / 2, gy + (gh - vh) / 2
+        gap = max(2, margin // 2)
+        x = vx - w - gap if vx - gx >= w + gap else vx + gap
+        y = vy + LOADOUT_TOP * vh - cluster / 2
+    x = min(max(x, gx), gx + gw - w)
+    y = min(max(y, gy), gy + gh - h)
+    return int(round(x)), int(round(y))
+
+
 def inputs_xy(spot: str, game, size, margin: int, own=None, bands=None):
     """1.39: top-left corner of the input card – "bottom_left" / "bottom_right" = centred at the bottom of that black
     bar (between its limiter lines); without bars in that corner of the game window; "custom" = ``own`` (share of
@@ -514,7 +557,7 @@ def own_places(o: dict, sysinfo: str) -> set:
     """1.45: the elements standing at a place the user put them (position setting "custom") – kept exactly there;
     only the others make way (resolve ``keep``)."""
     spots = {"hud": sysinfo, "today": o.get("today_pos"), "music": o.get("media_pos"), "text": o.get("info_pos"),
-             "inputs": o.get("inputs_pos")}
+             "inputs": o.get("inputs_pos"), "loadouts": o.get("loadouts_pos")}
     return {name for name, spot in spots.items() if spot == "custom"}
 
 

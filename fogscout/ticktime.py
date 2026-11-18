@@ -76,7 +76,7 @@ class TickTimes:
 # 1.38.22 (project review, PERF-2): the detection worker timed the same way – before, nothing said what a tick of
 # the detection cost (the full-screen grab, the OCR of the banner and the lobby corner, the round-end look).
 LOOK_STEPS = (("grab", "Aufnahme"), ("mask", "Schwärzen"), ("banner", "Banner-OCR"), ("lobby", "Lobby-OCR"),
-              ("end", "Rundenende"), ("vbars", "Balken"), ("window", "Fenstersuche"))
+              ("end", "Rundenende"), ("loadouts", "Loadouts"), ("vbars", "Balken"), ("window", "Fenstersuche"))
 
 
 class LookTimes(TickTimes):

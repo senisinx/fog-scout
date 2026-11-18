@@ -101,6 +101,12 @@ DEFAULTS = {
         "inputs_scale": 1.0,            #   size (slider 60–200 %)
         "inputs_opacity": 0.85,
         "inputs_backdrop": True,        #   dark area behind the keys
+        "show_loadouts": False,         # 1.57: the other survivors' loadouts read from the pause menu
+        "loadouts_items": True,         #   item and add-ons beside the perks
+        "loadouts_pos": "hud",          #   hud (beside DBD's survivor list) / custom
+        "loadouts_xy": [0.05, 0.6],     #   custom: centre as a share of the window
+        "loadouts_scale": 1.0,          #   size (slider 50–200 %): DBD's HUD scale can be set
+        "loadouts_opacity": 0.9,
         "locked": [],                   # 1.46: elements locked in place ("map", "hud", "today", …) – not dragged
     },
     "hotkeys": {
@@ -236,6 +242,7 @@ DEFAULTS = {
     "claude_stats": False,              # 1.35: the search may ask Claude about summed-up round values
     "edit_templates": [],               # 1.44: [{name, ops}] – applied edits kept as recipes (editcommands.to_template)
     "crash_seen": 0.0,                  # 1.36: time of the last crash the start already asked about (diagnose)
+    "loadouts_told": False,             # 1.57: the note on what the loadouts read was shown once
     "inputs_told": False,               # 1.39: the note on what the input card reads was shown once
     "inputs_record": True,              # 1.39.1: with the input card on, a round's inputs go next to its recording
     "claude_model": "opus",             # 1.36: opus | sonnet | haiku for every Claude request (askclaude.MODELS)

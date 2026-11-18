@@ -6100,4 +6100,29 @@ T = {
         "Avvisa se dopo l'inizio della partita non è stato riconosciuto alcun banner della mappa",
     'Kommt eine Minute nach dem Ladebildschirm kein Map-Banner, sagt Fog Scout einmal je Runde, wie du mit „Bildschirm scannen“ nachhilfst – mit Ton und Meldung, auch wenn DBD im Vordergrund ist; nie in Custom Games.':
         'Se un minuto dopo la schermata di caricamento non arriva il banner della mappa, Fog Scout ti dice una volta per round come aiutare con «Scansiona schermo» – con suono e notifica, anche con DBD in primo piano; mai nelle partite personalizzate.',
+    # 1.57: the other survivors' loadouts
+    'Als Survivor zeigt Dead by Daylight im Pausenmenü (Esc), was die anderen Survivor mitnehmen. Fog Scout liest das nur aus dem Bild, solange das Menü offen ist (ein paar Blicke je Runde), und zeigt die Perks danach als Raute neben jedem Mitspieler – Item und Add-ons auf Wunsch daneben. Als Killer wird nichts gelesen. Nichts wird gespeichert oder gesendet, keine Namen. Einmal kurz Esc drücken reicht.':
+        "Da sopravvissuto, il menu di pausa di Dead by Daylight (Esc) mostra cosa portano gli altri sopravvissuti. Fog Scout lo legge solo dall'immagine, mentre il menu è aperto (pochi sguardi per round), e poi mostra i perk come rombo accanto a ogni compagno – oggetto e add-on accanto, se vuoi. Da killer non viene letto nulla. Nulla viene salvato o inviato, nessun nome. Basta premere Esc una volta.",
+    'Nur als Survivor: im Match einmal Esc drücken – Fog Scout liest die Loadouts der anderen aus dem Bild des Menüs und zeigt sie danach neben ihnen. Nichts wird gespeichert oder gesendet.':
+        "Solo da sopravvissuto: premi Esc una volta durante la partita – Fog Scout legge i loadout degli altri dall'immagine del menu e poi li mostra accanto a loro. Nulla viene salvato o inviato.",
+    'Neben jedem anderen Survivor in der Liste links erscheinen seine vier Perks als Raute – gelesen aus dem Pausenmenü (Esc), das DBD Survivorn zeigt. Nur das Bild wird gelesen, nur bei offenem Menü, nie als Killer; nichts wird gespeichert oder gesendet.':
+        "Accanto a ogni altro sopravvissuto nella lista a sinistra compaiono i suoi quattro perk come rombo – letti dal menu di pausa (Esc) che DBD mostra ai sopravvissuti. Si legge solo l'immagine, solo a menu aperto, mai da killer; nulla viene salvato o inviato.",
+    'Das Item und seine zwei Add-ons als kleine Kästchen links neben den Perks.':
+        "L'oggetto e i suoi due add-on come piccoli quadrati a sinistra dei perk.",
+    'Item und Add-ons neben den Perks':
+        'Oggetto e add-on accanto ai perk',
+    'LOADOUTS':
+        'LOADOUT',
+    'Loadouts':
+        'Loadout',
+    'Loadouts der Mitspieler':
+        'Loadout dei compagni',
+    'Loadouts der Mitspieler aus dem Menü gelesen ({n} Perks).':
+        'Loadout dei compagni letti dal menu ({n} perk).',
+    'Loadouts der Mitspieler zeigen (Perks aus dem Menü)':
+        'Mostra i loadout dei compagni (perk dal menu)',
+    'Neben der Survivor-Liste':
+        'Accanto alla lista dei sopravvissuti',
+    'Perks der Mitspieler':
+        'Perk dei compagni',
 }

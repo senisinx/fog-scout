@@ -6100,4 +6100,29 @@ T = {
         '경기 시작 후 맵 배너가 인식되지 않으면 알림',
     'Kommt eine Minute nach dem Ladebildschirm kein Map-Banner, sagt Fog Scout einmal je Runde, wie du mit „Bildschirm scannen“ nachhilfst – mit Ton und Meldung, auch wenn DBD im Vordergrund ist; nie in Custom Games.':
         '로딩 화면 1분 뒤에도 맵 배너가 없으면 Fog Scout가 라운드마다 한 번 「화면 스캔」으로 돕는 방법을 알려 줍니다. DBD가 앞에 있어도 소리와 알림이 나오며, 사용자 지정 게임에서는 알리지 않습니다.',
+    # 1.57: the other survivors' loadouts
+    'Als Survivor zeigt Dead by Daylight im Pausenmenü (Esc), was die anderen Survivor mitnehmen. Fog Scout liest das nur aus dem Bild, solange das Menü offen ist (ein paar Blicke je Runde), und zeigt die Perks danach als Raute neben jedem Mitspieler – Item und Add-ons auf Wunsch daneben. Als Killer wird nichts gelesen. Nichts wird gespeichert oder gesendet, keine Namen. Einmal kurz Esc drücken reicht.':
+        '생존자일 때 Dead by Daylight의 일시정지 메뉴(Esc)에 다른 생존자들의 장비가 표시됩니다. Fog Scout는 메뉴가 열려 있는 동안 화면에서만 읽고(라운드당 몇 번), 이후 각 팀원 옆에 퍽을 마름모로 표시합니다 – 원하면 아이템과 애드온도 옆에 표시합니다. 살인마일 때는 아무것도 읽지 않습니다. 아무것도 저장하거나 보내지 않으며 이름도 읽지 않습니다. Esc를 한 번 누르면 충분합니다.',
+    'Nur als Survivor: im Match einmal Esc drücken – Fog Scout liest die Loadouts der anderen aus dem Bild des Menüs und zeigt sie danach neben ihnen. Nichts wird gespeichert oder gesendet.':
+        '생존자만: 매치 중 Esc를 한 번 누르세요 – Fog Scout가 메뉴 화면에서 다른 사람들의 로드아웃을 읽어 그 옆에 표시합니다. 아무것도 저장하거나 보내지 않습니다.',
+    'Neben jedem anderen Survivor in der Liste links erscheinen seine vier Perks als Raute – gelesen aus dem Pausenmenü (Esc), das DBD Survivorn zeigt. Nur das Bild wird gelesen, nur bei offenem Menü, nie als Killer; nichts wird gespeichert oder gesendet.':
+        '왼쪽 목록의 다른 생존자 옆에 그들의 퍽 네 개가 마름모로 표시됩니다 – DBD가 생존자에게 보여주는 일시정지 메뉴(Esc)에서 읽습니다. 화면만 읽으며, 메뉴가 열려 있을 때만, 살인마일 때는 절대 읽지 않습니다. 아무것도 저장하거나 보내지 않습니다.',
+    'Das Item und seine zwei Add-ons als kleine Kästchen links neben den Perks.':
+        '아이템과 애드온 두 개를 퍽 왼쪽에 작은 사각형으로 표시합니다.',
+    'Item und Add-ons neben den Perks':
+        '퍽 옆에 아이템과 애드온',
+    'LOADOUTS':
+        '로드아웃',
+    'Loadouts':
+        '로드아웃',
+    'Loadouts der Mitspieler':
+        '팀원 로드아웃',
+    'Loadouts der Mitspieler aus dem Menü gelesen ({n} Perks).':
+        '메뉴에서 팀원 로드아웃을 읽었습니다(퍽 {n}개).',
+    'Loadouts der Mitspieler zeigen (Perks aus dem Menü)':
+        '팀원 로드아웃 표시(메뉴의 퍽)',
+    'Neben der Survivor-Liste':
+        '생존자 목록 옆',
+    'Perks der Mitspieler':
+        '팀원 퍽',
 }

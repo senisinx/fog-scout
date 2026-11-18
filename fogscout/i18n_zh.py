@@ -6100,4 +6100,29 @@ T = {
         '对局开始后未识别到地图横幅时提醒',
     'Kommt eine Minute nach dem Ladebildschirm kein Map-Banner, sagt Fog Scout einmal je Runde, wie du mit „Bildschirm scannen“ nachhilfst – mit Ton und Meldung, auch wenn DBD im Vordergrund ist; nie in Custom Games.':
         '加载画面结束一分钟后仍没有地图横幅时，Fog Scout 每局提醒一次如何用“扫描屏幕”补救——带提示音和通知，即使 DBD 在前台；自定义对局中从不提醒。',
+    # 1.57: the other survivors' loadouts
+    'Als Survivor zeigt Dead by Daylight im Pausenmenü (Esc), was die anderen Survivor mitnehmen. Fog Scout liest das nur aus dem Bild, solange das Menü offen ist (ein paar Blicke je Runde), und zeigt die Perks danach als Raute neben jedem Mitspieler – Item und Add-ons auf Wunsch daneben. Als Killer wird nichts gelesen. Nichts wird gespeichert oder gesendet, keine Namen. Einmal kurz Esc drücken reicht.':
+        '作为幸存者时，Dead by Daylight 的暂停菜单（Esc）会显示其他幸存者携带的配置。Fog Scout 只在菜单打开时从画面读取（每局看几眼），之后在每位队友旁以菱形显示技能——可选在旁边显示道具和配件。作为杀手时不读取任何内容。不保存、不发送任何东西，也不读取名字。按一次 Esc 即可。',
+    'Nur als Survivor: im Match einmal Esc drücken – Fog Scout liest die Loadouts der anderen aus dem Bild des Menüs und zeigt sie danach neben ihnen. Nichts wird gespeichert oder gesendet.':
+        '仅限幸存者：比赛中按一次 Esc——Fog Scout 从菜单画面读取其他人的配置，之后显示在他们旁边。不保存也不发送任何内容。',
+    'Neben jedem anderen Survivor in der Liste links erscheinen seine vier Perks als Raute – gelesen aus dem Pausenmenü (Esc), das DBD Survivorn zeigt. Nur das Bild wird gelesen, nur bei offenem Menü, nie als Killer; nichts wird gespeichert oder gesendet.':
+        '左侧列表中每位其他幸存者旁会以菱形显示其四个技能——读取自 DBD 向幸存者显示的暂停菜单（Esc）。只读取画面，只在菜单打开时，作为杀手时从不读取；不保存也不发送任何内容。',
+    'Das Item und seine zwei Add-ons als kleine Kästchen links neben den Perks.':
+        '道具及其两个配件以小方块显示在技能左侧。',
+    'Item und Add-ons neben den Perks':
+        '在技能旁显示道具和配件',
+    'LOADOUTS':
+        '配置',
+    'Loadouts':
+        '配置',
+    'Loadouts der Mitspieler':
+        '队友配置',
+    'Loadouts der Mitspieler aus dem Menü gelesen ({n} Perks).':
+        '已从菜单读取队友配置（{n} 个技能）。',
+    'Loadouts der Mitspieler zeigen (Perks aus dem Menü)':
+        '显示队友配置（来自菜单的技能）',
+    'Neben der Survivor-Liste':
+        '幸存者列表旁',
+    'Perks der Mitspieler':
+        '队友技能',
 }
