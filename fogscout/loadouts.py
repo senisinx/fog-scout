@@ -87,6 +87,13 @@ HUD_SAME = 0.3                # two looks agree on a place within this share of 
 HUD_COL = 0.02                # the list is one column: centres within this share of the picture's width
 HUD_LAST_FIT = 0.45           # 1.57.4: the last one missing, looked for only at the free row(s) of the list
 HUD_SCALES = (0.6, 0.7, 0.8, 0.9, 1.0, 1.1, 1.25, 1.4, 1.6)   # HUD portrait / menu portrait (both scales can be set)
+# 1.57.12 (user's real matches: hooked / downed / hurt teammates show an icon or red marks instead of the portrait,
+# often three of four at once; the list never moves): DBD's survivor list at the usual HUD size – the own portrait's
+# centre (x as share of the 16:9 picture's width, y of its height), the rows' step, a portrait's side (of the
+# height); measured on all of the user's HUD pictures (own 608 px, others 726 / 844 / 962 px, 72 px, x 612 px)
+HUD_LIST = (0.0672, 0.4222, 0.0819, 0.05)
+TWIN_FACE = 0.9               # 1.57.13: two survivors with the same look (user's real menus: 0.97–1.00; others ≤ 0.55)
+HUD_LIST_SIDE = 0.2           # a portrait found within this share of the list's side belongs to that list
 HUD_BOX = (0.0, 0.2, 0.3, 0.88)   # where DBD's survivor list can be: share of the 16:9 picture (x0, y0, x1, y1)
 CORNER = 0.28                 # an add-on's top right corner (DBD's white "+") is left out of the comparison
 MAX_ROWS = 5                  # four survivors and the killer (left out)
@@ -566,6 +573,14 @@ class HudFinder:
         return out
 
 
+def list_grid(width: int, height: int):
+    """(x, y, step, side) of the own portrait in DBD's survivor list (shares of the picture) at the usual HUD size."""
+    vw = min(width, height * 16 / 9)
+    vx = (width - vw) / 2
+    x, y, step, side = HUD_LIST
+    return ((vx + x * vw) / width, y, step, side)
+
+
 def on_grid(found: dict) -> dict:
     """The places of ``found`` ({who: (x, y, side)}) that fit DBD's survivor list: one column, rows a whole number
     of steps apart (``HUD_STEP`` × the portrait); at least two – a lone match says nothing."""
@@ -615,6 +630,11 @@ def score_at(frame, face, place) -> float:
     return float(r.max())
 
 
+def _kit(row) -> tuple:
+    """What a row shows: perks, item, add-ons, offering."""
+    return row.perks, row.item, row.addons, row.offering
+
+
 class Votes:
     """The board of one round from several looks, one entry per survivor (found again by the portrait – the
     menu's order changes): a slot shows a name once it was read ``need`` times and more often than any other name
@@ -628,17 +648,27 @@ class Votes:
         self._last_seen = None            # (who, place) the last look chose for the only one missing (1.57.4)
         self._missed = 0                  # 1.57.7: HUD looks in a row that found nothing (at the remembered size)
         self._own_at = None               # 1.57.11: the own portrait's place in the HUD (kept across rounds)
+        self._list_seen = False           # 1.57.12: portraits were found on DBD's usual list (kept across rounds)
+        self._twin_rows: dict = {}        # 1.57.13: rows of the list where one of two alike survivors was seen (count)
         self._people: list = []           # {"face", "counts": {slot: {name: n}}, "own": n, "seen": n, "hud": …}
 
     def _who(self, face, index: int, used: set = frozenset(), own: bool = False) -> int:
         """The survivor of a row: the one with the same portrait; a row without one (cut off) by its place.
         1.57.6 (user's match with the own Dwight and a bot Dwight): two rows of one look are never one survivor –
-        of the same portrait the own row is the one seen gold before."""
+        of the same portrait the own row is the one seen gold before. 1.57.12 (user's debug pictures: the two
+        Dwights swapped between looks): the gold row is always the survivor seen gold, a plain row never is."""
+        gold = [i for i, p in enumerate(self._people) if p["own"] > 0 and i not in used]
+        if own and gold:
+            return gold[0]
         best, at = 0.0, -1
         for i, p in enumerate(self._people):
             if i in used:
                 continue
-            v = same_face(face, p["face"]) + (0.01 if (p["own"] > 0) == own else 0.0)
+            if not own and p["own"] * 2 > p["seen"] > 0:
+                continue                                  # 1.57.12: the own one (gold) never takes a plain row
+            v = same_face(face, p["face"])
+            if v >= TWIN_FACE and p["index"] == index:
+                v += 0.05                                 # 1.57.13: twins (two Kates) kept apart by their menu row
             if v > best:
                 best, at = v, i
         if at >= 0 and best >= SAME_FACE:
@@ -675,17 +705,83 @@ class Votes:
     def faces(self) -> dict:
         """{who: portrait} of every survivor with a portrait – all are looked for in each look (one found at a wrong
         place must not take a free row from another)."""
-        return {i: p["face"] for i, p in enumerate(self._people) if p["face"] is not None}
+        own = self._own(gold_only=True) if self._list_seen else -1     # 1.57.12: its row is known – not looked for
+        return {i: p["face"] for i, p in enumerate(self._people) if p["face"] is not None and i != own}
 
-    def place(self, found: dict) -> bool:
+    def twins(self) -> set:
+        """1.57.13 (user's real match with two Kate Densons, one skin): survivors other than the own one whose
+        portraits are the same (``TWIN_FACE``) and whose loadouts differ – the HUD can't tell which is which, so they
+        are never placed by their portrait (with the same loadout either place is right)."""
+        own = self._own(gold_only=True)
+        board = self.board().rows
+        out = set()
+        for i, p in enumerate(self._people):
+            for j, q in enumerate(self._people):
+                if i < j and own not in (i, j) and p["face"] is not None and q["face"] is not None \
+                        and same_face(p["face"], q["face"]) >= TWIN_FACE and _kit(board[i]) != _kit(board[j]):
+                    out |= {i, j}
+        return out
+
+    def place_on_list(self, found: dict, grid) -> bool | None:
+        """1.57.12 (user's real matches: three of four portraits an icon or marked red at once – two found in one
+        look were seldom; the own one hooked): with DBD's list where it always is (``grid`` = list_grid), the own
+        survivor (gold row) stands on its top row without being looked for, and every other portrait found counts
+        on its own when it sits on one of the three rows below at the list's size – after two agreeing looks, one
+        survivor a row. None when nothing found fits that list (another HUD size: the grid of the found ones,
+        ``place``, decides)."""
+        gx, gy, step, side = grid
+        own = self._own(gold_only=True)
+        twins = self.twins()
+        fits = {}
+        for who, (x, y, s) in found.items():
+            if who == own or not 0 <= who < len(self._people):
+                continue
+            k = round((y - gy) / step)
+            if (abs(s - side) <= HUD_LIST_SIDE * side and abs(x - gx) <= HUD_COL and 1 <= k <= 3
+                    and abs(y - (gy + k * step)) <= HUD_GRID * step):
+                if who in twins:                          # one of them is there – which one is unknown
+                    self._twin_rows[k] = self._twin_rows.get(k, 0) + 1
+                else:
+                    fits[who] = (gx, gy + k * step, side)
+        if not fits and not self._list_seen and not self._twin_rows:
+            return None                                   # nothing fits it (yet): another HUD size, maybe
+        self._list_seen = True                            # it fits: from now on only the list (kept across rounds)
+        before = self.board().key()
+        self._missed = 0 if found else self._missed + 1
+        if own >= 0 and self._people[own]["hud"] is None:
+            self._people[own]["hud"] = (gx, gy, side)     # its row is the top one – no need to find its portrait
+            self._own_at = (gx, gy, side)
+        prev, self._hud_seen = self._hud_seen, fits
+        for who, at in fits.items():
+            if prev.get(who) == at and self._people[who]["hud"] is None:
+                if all(p["hud"] is None or abs(p["hud"][1] - at[1]) >= 0.5 * step for p in self._people):
+                    self._people[who]["hud"] = at
+        # the last one by elimination: four survivors, four rows – three placed (the own one among them), one row
+        # left; its portrait need not be seen (hooked or downed all the time)
+        if own >= 0 and len(self._people) == 4:
+            left = [i for i, p in enumerate(self._people) if p["hud"] is None]
+            rows = [k for k in (1, 2, 3) if all(p["hud"] is None or abs(p["hud"][1] - (gy + k * step)) >= 0.5 * step
+                                                for p in self._people) and self._twin_rows.get(k, 0) < 2]
+            left = [i for i in left if i not in twins]      # 1.57.13: the twins' rows (seen twice) are theirs
+            if len(left) == 1 and len(rows) == 1:
+                self._people[left[0]]["hud"] = (gx, gy + rows[0] * step, side)
+        return self.board().key() != before
+
+    def place(self, found: dict, grid=None) -> bool:
         """Places found by HudFinder in one look; True when the shown board changed. 1.57.2 (user's picture: one
         perk diamond above the own portrait, none at a bot whose portrait was covered): a place counts only when it
         lies on the list's grid with the others of that look (same column, rows a whole number of steps apart) and
         the look before found it at the same place – one stray match never sticks for the round."""
+        if grid is not None:                          # 1.57.12: DBD's list where it always is
+            done = self.place_on_list(found, grid)
+            if done is not None:
+                return done
         before = self.board().key()
         self._missed = 0 if found else self._missed + 1           # 1.57.7: two empty looks: all sizes again
         good = self._own_on_top(on_grid({w: a for w, a in found.items() if 0 <= w < len(self._people)}))
         good = self._below_own(good)
+        twins = self.twins()                          # 1.57.13: never by a portrait two survivors share
+        good = {w: a for w, a in good.items() if w not in twins}
         prev = self._hud_seen
         self._hud_seen = good
         for who, at in good.items():
@@ -731,7 +827,7 @@ class Votes:
         survivor not placed yet and the free rows of the list where it can stand – the list is N rows in steps
         of the placed ones' grid, the own one on top; None when not exactly one is missing."""
         faced = [(i, p) for i, p in enumerate(self._people) if p["face"] is not None]
-        left = [i for i, p in faced if p["hud"] is None]
+        left = [i for i, p in faced if p["hud"] is None and i not in self.twins()]
         done = [p["hud"] for _i, p in faced if p["hud"] is not None]
         if len(left) != 1 or len(done) < 2:
             return None
@@ -831,4 +927,5 @@ class Votes:
         self._hud_seen = {}
         self._last_seen = None
         self._missed = 0
+        self._twin_rows = {}
         self._people.clear()                  # (the HUD's size, ``_ratio``, stays for the next round)

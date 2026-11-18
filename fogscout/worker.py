@@ -38,6 +38,9 @@ LOADOUT_HUD_LOOKS = 40            # 1.57.1: looks for the portraits in the HUD a
                                   # portrait is covered for a while)
 LOADOUT_HUD_INTERVAL = 0.5        # 1.57.7: seconds between two of those looks (a place counts after two agreeing ones;
                                   # 1 s before – the user found it far too slow)
+LOADOUT_HUD_SLOW = 3.0            # 1.57.12: after those, one look every this many s until all are placed (a teammate
+                                  # hooked, downed or hurt shows an icon instead of the portrait for minutes – 1.57.11
+                                  # gave up after 40 looks)
 LOADOUT_KEPT = 12                 # 1.57.11: debug pictures of menu / HUD looks kept (each)
 IN_MATCH_RATE = 1.0               # scans per second while a detected map is being played (banner only at the start)
 VBAR_STRIP_S = 1.0                # 1.8.65: without a map, a look at the bars above/below at most this often
@@ -750,13 +753,14 @@ class DetectionWorker(threading.Thread):
                                 if self.settings.get("save_debug_images"):
                                     self._save_loadout_look(look, "menu")
                             elif (not menu_open and loadout_votes.looks and not loadout_votes.placed
-                                  and hud_looks < LOADOUT_HUD_LOOKS):
+                                  and (hud_looks < LOADOUT_HUD_LOOKS or tick - last_loadout >= LOADOUT_HUD_SLOW)):
                                 last_loadout, hud_looks = tick, hud_looks + 1
                                 finder = loadouts.HudFinder()
                                 with self.times.measure("loadouts"):
                                     found = finder.find(look, loadout_votes.faces(), loadout_votes.side,
                                                         loadout_votes.scales(look.shape[0]))
-                                    changed = loadout_votes.place(found)
+                                    changed = loadout_votes.place(
+                                        found, loadouts.list_grid(look.shape[1], look.shape[0]))
                                     miss = loadout_votes.missing() if hud_looks >= LOADOUT_LAST_AFTER else None
                                     if miss:              # 1.57.4: the last one, only at the free row(s)
                                         face = loadout_votes.faces().get(miss[0])
