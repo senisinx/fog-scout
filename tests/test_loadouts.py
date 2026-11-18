@@ -831,3 +831,16 @@ def test_one_short_look_at_the_menu_is_enough():
     assert len(v.scales(1440)) == 3
     from fogscout import worker
     assert worker.LOADOUT_INTERVAL <= 0.5
+
+
+def test_the_map_read_again_at_the_start_keeps_the_loadouts():
+    """User (1.57.14): "Ich öffne oft das Menü, wenn ich in die Runde lade" – the banner is read twice at the start
+    (23:02:37 and 23:02:41 in the diagnosis); each shown map was a new generation and threw the loadouts read in
+    between away. Shown again early in a round not ended: the same round."""
+    from fogscout.worker import LOADOUT_SAME_ROUND_S, same_round_again
+    assert same_round_again((2, "auto"), (1, "auto"), False, 4.0)
+    assert same_round_again((2, "manual"), (1, "auto"), False, 60.0)               # a layout picked early
+    assert not same_round_again((2, "auto"), (1, "auto"), True, 4.0)               # after the round's end
+    assert not same_round_again((2, "auto"), (1, "auto"), False, LOADOUT_SAME_ROUND_S + 1)   # a new round
+    assert not same_round_again((2, "auto"), None, False, 4.0)                     # the first map
+    assert not same_round_again(None, (1, "auto"), False, 4.0)

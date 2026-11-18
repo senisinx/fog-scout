@@ -42,6 +42,7 @@ LOADOUT_HUD_INTERVAL = 0.5        # 1.57.7: seconds between two of those looks (
 LOADOUT_HUD_SLOW = 3.0            # 1.57.12: after those, one look every this many s until all are placed (a teammate
                                   # hooked, downed or hurt shows an icon instead of the portrait for minutes – 1.57.11
                                   # gave up after 40 looks)
+LOADOUT_SAME_ROUND_S = 90.0       # 1.57.14: a map shown again this soon after the round's start is the same round
 LOADOUT_KEPT = 12                 # 1.57.11: debug pictures of menu / HUD looks kept (each)
 IN_MATCH_RATE = 1.0               # scans per second while a detected map is being played (banner only at the start)
 VBAR_STRIP_S = 1.0                # 1.8.65: without a map, a look at the bars above/below at most this often
@@ -102,6 +103,13 @@ def lobby_interval(kind, state) -> float:
     waiting time exact (``QueueTracker`` takes the start from it) –, LOBBY_INTERVAL for everything else (PLAY,
     READY, the lobby countdown, a first search look still to be confirmed)."""
     return SEARCH_INTERVAL if kind == "search" and state == "search" else LOBBY_INTERVAL
+
+
+def same_round_again(gen, previous, ended: bool, since_start: float) -> bool:
+    """1.57.14: a map shown again (a new generation) still belongs to the round on display – the banner read a
+    second time at the start, a layout picked: the round's loadouts stay. Not after its end, not after
+    ``LOADOUT_SAME_ROUND_S`` (a new banner then is a new round)."""
+    return gen is not None and previous is not None and not ended and since_start < LOADOUT_SAME_ROUND_S
 
 
 def scan_rate(base: float, *, in_match: bool, session: bool, since_button: float, since_loading: float,
@@ -317,6 +325,7 @@ class DetectionWorker(threading.Thread):
         tracker = MatchEndTracker()
         tracker_gen = None
         trial_since = 0.0                 # when the map on display appeared (tracker reset)
+        round_since = 0.0                 # 1.57.14: … the round's first map (loadouts: shown again = same round)
         last_end_check = 0.0
         last_hist = 0.0
         last_status = None
@@ -678,11 +687,21 @@ class DetectionWorker(threading.Thread):
                 # ------------------------------------- left the trial? -> hide map
                 gen = self.watch_gen
                 if gen != tracker_gen:
+                    # 1.57.14 (user: "ich öffne oft das Menü, wenn ich in die Runde lade"): the banner is often read
+                    # twice at the start (23:02:37 and 23:02:41) and each shown map is a new generation – the
+                    # loadouts read in between were thrown away. Shown again early in a round not ended: the same
+                    # round, its survivors stay (and are posted for the new generation)
+                    same_round = same_round_again(gen, tracker_gen, tracker.ended, tick - round_since)
                     tracker.reset(gen[0] if gen else None, gen[1] if gen else None, tick)
                     tracker_gen = gen
-                    loadout_votes.reset()         # 1.57: a new map, a new round – other survivors
-                    hud_looks = 0
                     trial_since = tick
+                    if same_round:
+                        if loadout_votes.looks:
+                            self.post("loadouts", gen=gen, board=loadout_votes.board())
+                    else:
+                        loadout_votes.reset()     # 1.57: a new map, a new round – other survivors
+                        hud_looks = 0
+                        round_since = tick
                 use_end = bool(self.settings.get("hide_after_match", True))
                 use_menu = bool(self.settings.get("pause_in_menus", True))
                 watching = (self.map_on_screen and gen is not None and (use_end or use_menu)
