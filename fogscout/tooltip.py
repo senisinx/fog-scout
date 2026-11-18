@@ -113,8 +113,8 @@ TIPS = {
         "verschoben und gelöscht.",
     "Loadouts der Mitspieler zeigen (Perks aus dem Menü)":
         'Neben jedem anderen Survivor in der Liste links erscheinen seine vier Perks als Raute – gelesen aus dem Pausenmenü (Esc), das DBD Survivorn zeigt. Nur das Bild wird gelesen, nur bei offenem Menü, nie als Killer; nichts wird gespeichert oder gesendet.',
-    "Item und Add-ons neben den Perks":
-        'Das Item und seine zwei Add-ons als kleine Kästchen links neben den Perks.',
+    "Opfergabe, Item und Add-ons neben den Perks":
+        "Die Opfergabe (eine verdeckte als „?“), das Item und seine zwei Add-ons als kleine Felder neben den Perks.",
     "Dunkle Fläche hinter den Eingaben":
         "Eine halb durchsichtige dunkle Fläche mit runden Ecken hinter den Tasten.",
     "„Läuft gerade“: Titel, Interpret und Cover":

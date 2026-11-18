@@ -370,3 +370,87 @@ def test_below_each_name_the_perks_stand_in_one_row():
     from fogscout.appconst import LOADOUT_SPOTS, LOADOUT_STYLES
     assert [k for k, _t in LOADOUT_SPOTS] == ["hud", "name", "custom"]
     assert [k for k, _t in LOADOUT_STYLES] == ["diamond", "row"]
+
+
+# ------------------------------------------------------------------ 1.57.4: offerings, the last one missing
+def test_the_offering_is_read_and_a_hidden_one_is_named_so(reader, menu):
+    """User: "Offerings bitte auch", "falls jemand was Verstecktes wirft, soll dies ebenfalls so angezeigt werden"
+    – the own Petrified Oak, the bots' hidden offerings; an empty hexagon stays empty."""
+    board = reader.read(menu)
+    assert [r.offering for r in board.rows] == ["Petrified Oak"] + [loadouts.HIDDEN_OFFERING] * 3
+    third = reader.read(_load("menu_3440_third.jpg"))
+    assert [r.offering for r in third.rows] == ["Petrified Oak", loadouts.HIDDEN_OFFERING,
+                                                loadouts.HIDDEN_OFFERING, None]
+    assert loadouts.icon_file("Petrified Oak", "offerings").endswith(".png")
+    assert loadouts.icon_file(loadouts.HIDDEN_OFFERING, "offerings") is None      # drawn, not a picture
+
+
+def test_a_hidden_offering_is_drawn_with_a_question_mark():
+    from fogscout.app_loadouts import icon_for
+    from fogscout.overlay_render import loadout_card
+    row = Row(perks=("Dead Hard", None, None, None), offering=loadouts.HIDDEN_OFFERING)
+    empty = Row(perks=("Dead Hard", None, None, None))
+    for style in (False, True):
+        a = np.asarray(loadout_card((row,), 96, (0,), 96, True, icon_for, row=style))
+        b = np.asarray(loadout_card((empty,), 96, (0,), 96, True, icon_for, row=style))
+        assert a.shape == b.shape and (a != b).any()                  # the hexagon differs (a "?" inside)
+        assert np.asarray(loadout_card((row,), 96, (0,), 96, False, icon_for, row=style)).shape[1] < a.shape[1]
+
+
+def test_the_third_match_finds_every_portrait(reader):
+    """User (1.57.3): Nancy never placed. Only the round middle of a portrait is compared now (the corners show
+    the game behind it, a framed one its brackets)."""
+    v = Votes()
+    for _ in range(2):
+        v.note(reader.read(_load("menu_3440_third.jpg")))
+    frame = _load("hud_3440_third.jpg")
+    for _ in range(2):
+        v.place(loadouts.HudFinder().find(frame, v.faces(), v.side))
+    assert v.placed
+    rows = sorted(v.board().rows, key=lambda r: r.hud[1])
+    assert [r.who for r in rows] == [0, 3, 1, 2]                  # own, Mikaela, Jeff, Nancy
+    for r, want in zip(rows, (353, 422, 489, 558)):
+        assert abs(r.hud[1] * 837 - want) <= 6
+
+
+def test_the_last_one_missing_is_looked_for_at_the_free_row(reader):
+    """Three of four placed: the fourth is looked for only at the list's free row, with a lower bar – two looks."""
+    v = Votes()
+    for _ in range(2):
+        v.note(reader.read(_load("menu_3440_third.jpg")))
+    frame = _load("hud_3440_third.jpg")
+    places = loadouts.HudFinder().find(frame, v.faces(), v.side)
+    nancy = places.pop(2)
+    for _ in range(2):
+        v.place(places)
+    who, free = v.missing()
+    assert who == 2 and any(abs(p[1] - nancy[1]) < 0.01 for p in free)
+    scores = {p: loadouts.score_at(frame, v.faces()[2], p) for p in free}
+    assert max(scores.values()) >= loadouts.HUD_LAST_FIT
+    assert not v.place_last(2, scores)                            # once: not yet
+    assert v.place_last(2, scores) and v.placed                   # twice the same row: placed
+    assert abs({r.who: r.hud for r in v.board().rows}[2][1] - nancy[1]) < 0.01
+    assert "HUD ja" in v.describe() and "eigener" in v.describe()
+
+
+@pytest.mark.parametrize("quality,noise", [(70, 0), (80, 4), (95, 2)])
+def test_a_row_with_few_perks_is_kept_however_the_picture_is_decoded(reader, quality, noise):
+    """CI on Windows (Python 3.14) decoded the third menu a hair differently: the row with only two perks fell
+    below the bar and was missing. Menu rows are evenly spaced – a row on the grid is read like the others."""
+    base = cv2.imread(os.path.join(DATA, "menu_3440_third.jpg"))
+    _ok, buf = cv2.imencode(".jpg", base, [cv2.IMWRITE_JPEG_QUALITY, quality])
+    pic = cv2.imdecode(buf, cv2.IMREAD_COLOR).astype(np.int16)
+    if noise:
+        pic = pic + np.random.default_rng(quality).normal(0, noise, pic.shape)
+    pic = cv2.resize(np.clip(pic, 0, 255).astype(np.uint8), (3440, 1440), interpolation=cv2.INTER_LANCZOS4)
+    board = reader.read(pic)
+    assert board is not None and len(board.rows) == 4
+    assert [r.offering for r in board.rows] == ["Petrified Oak", loadouts.HIDDEN_OFFERING,
+                                                loadouts.HIDDEN_OFFERING, None]
+
+
+def test_the_menu_rows_follow_their_grid():
+    rows = loadouts._menu_rows([300.0, 450.0, 600.0], 70.0, 1440)          # 150 apart: three found …
+    assert [round(y) for y, _i in rows if not _i] == [300, 450, 600]
+    assert 750 in [round(y) for y, inferred in rows if inferred]         # … the fourth on their grid
+    assert loadouts._menu_rows([300.0, 340.0], 70.0, 1440) == [(300.0, False), (340.0, False)]   # too close: no grid

@@ -6107,10 +6107,8 @@ T = {
         'Только за выжившего: нажмите Esc один раз во время матча – Fog Scout считает снаряжение остальных с изображения меню и затем покажет его рядом с ними. Ничего не сохраняется и не отправляется.',
     'Neben jedem anderen Survivor in der Liste links erscheinen seine vier Perks als Raute – gelesen aus dem Pausenmenü (Esc), das DBD Survivorn zeigt. Nur das Bild wird gelesen, nur bei offenem Menü, nie als Killer; nichts wird gespeichert oder gesendet.':
         'Рядом с каждым другим выжившим в списке слева появляются его четыре навыка ромбом – считанные с меню паузы (Esc), которое DBD показывает выжившим. Считывается только изображение, только при открытом меню, никогда за убийцу; ничего не сохраняется и не отправляется.',
-    'Das Item und seine zwei Add-ons als kleine Kästchen links neben den Perks.':
-        'Предмет и два его улучшения маленькими квадратами слева от навыков.',
-    'Item und Add-ons neben den Perks':
-        'Предмет и улучшения рядом с навыками',
+    'Opfergabe, Item und Add-ons neben den Perks':
+        'Подношение, предмет и улучшения рядом с навыками',
     'LOADOUTS':
         'СНАРЯЖЕНИЕ',
     'Loadouts':
@@ -6134,4 +6132,7 @@ T = {
         'Под именем',
     '„In einer Reihe“ passt am besten unter den Namen oder an eine eigene Position.':
         '«В один ряд» лучше всего под именем или на своей позиции.',
+    # 1.57.4: offerings
+    'Die Opfergabe (eine verdeckte als „?“), das Item und seine zwei Add-ons als kleine Felder neben den Perks.':
+        'Подношение (скрытое — как «?»), предмет и два его улучшения маленькими ячейками рядом с навыками.',
 }

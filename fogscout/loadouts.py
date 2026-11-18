@@ -30,6 +30,11 @@ import numpy as np
 HERE = os.path.dirname(os.path.abspath(__file__))
 NAMES_FILE = os.path.join(HERE, "loadoutnames.json")
 ICONS = os.path.join(HERE, "perkicons")
+# 1.57.4 (user: "Falls jemand was Verstecktes wirft, soll dies ebenfalls so angezeigt werden"): a hidden offering is a
+# brown hexagon with a faint skull – the wiki has no picture of it; its drawing (GLYPH × GLYPH, grey) is the mean of
+# eight bot rows of the user's menu pictures
+HIDDEN_OFFERING = "Hidden offering"
+HIDDEN_FILE = os.path.join(HERE, "loadout_hidden_offering.png")
 
 GLYPH = 32                    # side of the compared drawings
 LOCATE_H = 720                # the picture is searched for diamonds at this height
@@ -48,18 +53,25 @@ MIN_MARGIN = 0.05             # … and this much better than the second best
 SQUARE = 0.80                 # item / add-on square: its side in perk pitches
 ITEM_AT = 2.19                # centre of the item right of the fourth perk, in perk pitches (user's menu)
 ADDONS_AT = (3.43, 4.33)      # … and of the two add-ons
+OFFERING_AT = 1.1             # 1.57.4: the offering's hexagon right of the fourth perk …
+OFFERING = 0.9                # … and its size, in perk pitches
 DIAMOND = 0.88                # a perk diamond's width in perk pitches (user's menu: 37 of 42 px)
 PORTRAIT_AT = 1.74            # the character's portrait: its centre left of the first perk, in perk pitches …
 PORTRAIT_UP = 0.33            # … and above the row's centre
 PORTRAIT = 1.0                # … the square cut out of it (inside the round picture)
 FACE = 24                     # portraits are compared at this size (grey)
 SAME_FACE = 0.8               # two portraits of the menu are the same survivor from this correlation on
-HUD_FIT = 0.7                 # a portrait found in the HUD's list from this correlation on
+HUD_FIT = 0.62                # a portrait found in the HUD's list from this correlation on (its round middle)
+HUD_ROUND = 0.42              # 1.57.4: only the round middle of a portrait is compared (radius in portraits) – the
+                              # corners show the menu's backdrop there and the game behind it in the HUD, and a
+                              # framed portrait (obsession) has its brackets there
+SURE_SCORE, SURE_MARGIN = 0.88, 0.12   # 1.57.4: a slot read this clearly counts as two readings (menu open shortly)
 HUD_STEP = (1.2, 2.4)         # the list's rows: this many portraits apart …
 HUD_ROW = 1.64                # … usually (user's HUD) – of two grids as good, the one nearer to it
 HUD_GRID = 0.15               # a portrait's row on that grid: within this share of a step
 HUD_SAME = 0.3                # two looks agree on a place within this share of a portrait
 HUD_COL = 0.02                # the list is one column: centres within this share of the picture's width
+HUD_LAST_FIT = 0.45           # 1.57.4: the last one missing, looked for only at the free row(s) of the list
 HUD_SCALES = (0.6, 0.7, 0.8, 0.9, 1.0, 1.1, 1.25, 1.4, 1.6)   # HUD portrait / menu portrait (both scales can be set)
 HUD_BOX = (0.0, 0.2, 0.3, 0.88)   # where DBD's survivor list can be: share of the 16:9 picture (x0, y0, x1, y1)
 CORNER = 0.28                 # an add-on's top right corner (DBD's white "+") is left out of the comparison
@@ -71,14 +83,16 @@ class Row:
     perks: tuple = (None, None, None, None)    # names (English, as on the wiki) or None
     item: str | None = None
     addons: tuple = (None, None)
+    offering: str | None = None                 # 1.57.4 (HIDDEN_OFFERING: burnt hidden)
     own: bool = False
     who: int = -1                               # Votes: the survivor (one per portrait)
     face: np.ndarray | None = field(default=None, compare=False, repr=False)    # FACE × FACE grey portrait
     hud: tuple | None = None                    # HudFinder: (x, y, side) of the portrait, shares of the picture
+    sure: tuple = field(default=(), compare=False, repr=False)   # per slot (perks, item, add-ons): read very clearly
 
     @property
     def empty(self) -> bool:
-        return not any(self.perks) and self.item is None and not any(self.addons)
+        return not any(self.perks) and self.item is None and not any(self.addons) and self.offering is None
 
 
 @dataclass(frozen=True)
@@ -94,14 +108,14 @@ class Board:
 
     def key(self) -> tuple:
         """What is shown: the rows with at least one name, with their place in the HUD."""
-        return tuple((r.who, r.perks, r.item, r.addons, r.own, r.hud) for r in self.rows if not r.empty)
+        return tuple((r.who, r.perks, r.item, r.addons, r.offering, r.own, r.hud) for r in self.rows if not r.empty)
 
 
 def load_names(path: str = NAMES_FILE) -> dict:
-    """{"perks"|"items"|"addons": {file: name}} – the pictures the reader knows."""
+    """{"perks"|"items"|"addons"|"offerings": {file: name}} – the pictures the reader knows."""
     with open(path, encoding="utf-8") as f:
         data = json.load(f)
-    return {k: dict(data.get(k, {})) for k in ("perks", "items", "addons")}
+    return {k: dict(data.get(k, {})) for k in ("perks", "items", "addons", "offerings")}
 
 
 def icon_file(name: str, kind: str, names: dict | None = None) -> str | None:
@@ -121,6 +135,15 @@ def _names() -> dict:
     if _NAMES is None:
         _NAMES = load_names()
     return _NAMES
+
+
+def _hidden_offering() -> dict:
+    """{HIDDEN_OFFERING: drawing} – empty when the file is missing."""
+    import cv2
+    pic = cv2.imread(HIDDEN_FILE, cv2.IMREAD_GRAYSCALE)
+    if pic is None:
+        return {}
+    return {HIDDEN_OFFERING: cv2.resize(pic, (GLYPH, GLYPH), interpolation=cv2.INTER_AREA).astype(np.float32) / 255}
 
 
 def _norm(a: np.ndarray) -> np.ndarray:
@@ -151,7 +174,7 @@ def _template(path: str, corner: bool = False) -> np.ndarray | None:
 class Templates:
     """The drawings of one kind of picture ("perks", "items", "addons"), normalised for the correlation."""
 
-    def __init__(self, kind: str, names: dict | None = None, folder: str = ICONS):
+    def __init__(self, kind: str, names: dict | None = None, folder: str = ICONS, extra: dict | None = None):
         files = (names or _names()).get(kind, {})
         self.corner = kind == "addons"
         self.names, rows = [], []
@@ -160,6 +183,9 @@ class Templates:
             if t is not None:
                 self.names.append(name)
                 rows.append(t.ravel())
+        for name, glyph in (extra or {}).items():        # drawings that are no picture file (the hidden offering)
+            self.names.append(name)
+            rows.append(np.asarray(glyph, np.float32).ravel())
         self.matrix = _norm(np.array(rows, dtype=np.float32)) if rows else np.zeros((0, GLYPH * GLYPH), np.float32)
 
     def best(self, glyphs: np.ndarray, at: list | None = None):
@@ -292,6 +318,27 @@ def _red(hsv) -> bool:
     return hsv is not None and (hsv[0] <= 8 or hsv[0] >= 170) and hsv[1] >= 120
 
 
+def _menu_rows(ys: list, pitch: float, height: int) -> list:
+    """1.57.4 (CI on Windows: a survivor with few perks, read a hair below the bar there, was missing): the menu's
+    rows are evenly spaced – [(y, inferred?)] of the rows found by their perks and of the rows on their grid
+    between and after them (up to ``MAX_ROWS``); a grid row is read like the others and kept only when something
+    on it is read."""
+    ys = sorted(ys)
+    gaps = [b - a for a, b in zip(ys, ys[1:])]
+    if not gaps:
+        return [(y, False) for y in ys]
+    base = min(gaps)
+    step = float(np.median([g / max(1, round(g / base)) for g in gaps]))
+    if step < ROW_GAP * pitch:
+        return [(y, False) for y in ys]
+    out = [(y, False) for y in ys]
+    for k in range(-2, MAX_ROWS + 1):                # two above the first found (the own row may lack a perk read)
+        y = ys[0] + k * step
+        if pitch <= y <= height - pitch and all(abs(y - o) > 0.5 * step for o, _i in out):
+            out.append((y, True))
+    return sorted(out)
+
+
 class Reader:
     """Reads the loadout board from a picture of the pause menu (BGR)."""
 
@@ -300,6 +347,7 @@ class Reader:
         self.perks = Templates("perks", names, folder)
         self.items = Templates("items", names, folder)
         self.addons = Templates("addons", names, folder)
+        self.offerings = Templates("offerings", names, folder, extra=_hidden_offering())
         self.last = ""                                    # what the last look found – for the diagnosis
 
     def _perk_hits(self, frame, size: float, peaks: list) -> list:
@@ -360,20 +408,27 @@ class Reader:
         if len(kept) < 2:                     # the menu lists four survivors; one row of perks is no menu (the HUD's own
             self.last = f"{len(peaks)} Rauten, kein Raster"     # perks) – and with only the own row nothing to show
             return None
-        lines = [line for _y, line in kept]
+        found_ys = [y for y, _line in kept]
         rows = []
-        for line in sorted(lines, key=lambda ln: np.mean([p[1] for p in ln]))[:MAX_ROWS]:
-            y = float(np.mean([p[1] for p in line]))
+        for y, inferred in _menu_rows(found_ys, pitch, frame.shape[0]):
+            if len(rows) >= MAX_ROWS:
+                break
             back = _strip(frame, x0 - 1.2 * pitch, x0 - 0.7 * pitch, y, 0.25 * pitch)
             if _red(back):
                 continue                                  # the killer's row
-            perks = tuple(self.perks.best(_cuts(frame, x0 + k * pitch, y, pitch * DIAMOND))[0] for k in range(4))
+            reads = [self.perks.best(_cuts(frame, x0 + k * pitch, y, pitch * DIAMOND)) for k in range(4)]
             last = x0 + 3 * pitch
-            item = self.items.best(_cuts(frame, last + ITEM_AT * pitch, y, pitch * SQUARE, reach=2))[0]
-            addons = tuple(self.addons.best(_cuts(frame, last + a * pitch, y, pitch * SQUARE, reach=2))[0]
-                           for a in ADDONS_AT)
+            reads.append(self.items.best(_cuts(frame, last + ITEM_AT * pitch, y, pitch * SQUARE, reach=2)))
+            reads += [self.addons.best(_cuts(frame, last + a * pitch, y, pitch * SQUARE, reach=2)) for a in ADDONS_AT]
+            reads.append(self.offerings.best(_cuts(frame, last + OFFERING_AT * pitch, y, pitch * OFFERING, reach=2)))
+            names = [n for n, _s, _m in reads]
+            sure = tuple(n is not None and s >= SURE_SCORE and m >= SURE_MARGIN for n, s, m in reads)
+            perks, item, addons, offering = tuple(names[:4]), names[4], tuple(names[5:7]), names[7]
+            if inferred and not any(names):
+                continue                                  # a row of the grid with nothing read: none
             face = _face(frame, x0 - PORTRAIT_AT * pitch, y - PORTRAIT_UP * pitch, PORTRAIT * pitch)
-            rows.append(Row(perks=perks, item=item, addons=addons, own=bool(_gold(back)), face=face))
+            rows.append(Row(perks=perks, item=item, addons=addons, offering=offering, own=bool(_gold(back)), face=face,
+                            sure=sure))
         self.last = f"{len(rows)} Reihen, Raute {size:.0f} px"
         return Board(rows=tuple(rows), size=round(size, 1), pitch=round(pitch, 2)) if rows else None
 
@@ -403,11 +458,17 @@ class HudFinder:
                 if side >= min(box.shape):
                     continue
                 t = cv2.resize(face, (side, side), interpolation=cv2.INTER_AREA)
-                r = cv2.matchTemplate(box, t, cv2.TM_CCOEFF_NORMED)
+                mask = np.zeros((side, side), np.uint8)
+                cv2.circle(mask, (side // 2, side // 2), max(2, int(side * HUD_ROUND)), 255, -1)
+                r = cv2.matchTemplate(box, t, cv2.TM_CCOEFF_NORMED, mask=mask)
+                r[~np.isfinite(r)] = -1
                 _mn, v, _ml, (px, py) = cv2.minMaxLoc(r)
                 found.append((float(v), who, (bx0 + (px + side / 2) / half) / w, (by0 + (py + side / 2) / half) / h,
                               side / half / h))
         found.sort(key=lambda f: -f[0])
+        self.scores = {}
+        for v, who, *_rest in found:                    # each portrait's best fit of this look (diagnosis)
+            self.scores[who] = max(v, self.scores.get(who, -1.0))
         out, taken = {}, []
         for v, who, fx, fy, fs in found:
             if v < HUD_FIT or who in out or any(abs(fy - ty) < 0.6 * fs for ty in taken):
@@ -445,6 +506,27 @@ def on_grid(found: dict) -> dict:
     return best if len(best) >= 2 else {}
 
 
+def score_at(frame, face, place) -> float:
+    """1.57.4: how well ``face`` fits around ``place`` ((x, y, side) as shares of the picture) – the round middle
+    only, a little search around it; −1 outside the picture."""
+    import cv2
+    h, w = frame.shape[:2]
+    x, y, s = place[0] * w, place[1] * h, place[2] * h
+    side = max(8, int(round(s)))
+    pad = side // 3
+    x0, y0 = int(x - side / 2 - pad), int(y - side / 2 - pad)
+    x1, y1 = x0 + side + 2 * pad, y0 + side + 2 * pad
+    if face is None or x0 < 0 or y0 < 0 or x1 > w or y1 > h:
+        return -1.0
+    box = cv2.cvtColor(np.ascontiguousarray(frame[y0:y1, x0:x1]), cv2.COLOR_BGR2GRAY)
+    t = cv2.resize(face, (side, side), interpolation=cv2.INTER_AREA)
+    mask = np.zeros((side, side), np.uint8)
+    cv2.circle(mask, (side // 2, side // 2), max(2, int(side * HUD_ROUND)), 255, -1)
+    r = cv2.matchTemplate(box, t, cv2.TM_CCOEFF_NORMED, mask=mask)
+    r[~np.isfinite(r)] = -1
+    return float(r.max())
+
+
 class Votes:
     """The board of one round from several looks, one entry per survivor (found again by the portrait – the
     menu's order changes): a slot shows a name once it was read ``need`` times and more often than any other name
@@ -455,6 +537,7 @@ class Votes:
         self.looks = 0
         self.side = 0.0                   # the menu portraits' size (px) – HudFinder scales from it
         self._hud_seen: dict = {}         # the places on the grid of the last look at the HUD
+        self._last_seen = None            # (who, place) the last look chose for the only one missing (1.57.4)
         self._people: list = []           # {"face", "counts": {slot: {name: n}}, "own": n, "seen": n, "hud": …}
 
     def _who(self, face, index: int) -> int:
@@ -485,10 +568,11 @@ class Votes:
             p = self._people[self._who(row.face, index)]
             p["seen"] += 1
             p["own"] += 1 if row.own else 0
-            for slot, name in enumerate(row.perks + (row.item,) + row.addons):
-                if name is not None:
-                    c = p["counts"].setdefault(slot, {})
-                    c[name] = c.get(name, 0) + 1
+            for slot, name in enumerate(row.perks + (row.item,) + row.addons + (row.offering,)):
+                if name is not None:              # 1.57.4: a very clear reading counts twice (the menu may be shut
+                    c = p["counts"].setdefault(slot, {})          # after one look)
+                    sure = slot < len(row.sure) and row.sure[slot]
+                    c[name] = c.get(name, 0) + (2 if sure else 1)
         return self.board().key() != before
 
     def faces(self) -> dict:
@@ -513,6 +597,55 @@ class Votes:
                     if all(abs(y - at[1]) >= 0.6 * at[2] for y in taken):
                         self._people[who]["hud"] = at
         return self.board().key() != before
+
+    def missing(self):
+        """1.57.4 (user's pictures: one survivor never placed, the others were): (who, [place, …]) of the only
+        survivor not placed yet and the free rows of the list where it can stand – the list is N rows in steps
+        of the placed ones' grid, the own one on top; None when not exactly one is missing."""
+        faced = [(i, p) for i, p in enumerate(self._people) if p["face"] is not None]
+        left = [i for i, p in faced if p["hud"] is None]
+        done = [p["hud"] for _i, p in faced if p["hud"] is not None]
+        if len(left) != 1 or len(done) < 2:
+            return None
+        ys = sorted(a[1] for a in done)
+        side = sorted(a[2] for a in done)[len(done) // 2]
+        steps = [d / n for d in (b - a for a, b in zip(ys, ys[1:])) for n in (1, 2, 3)
+                 if HUD_STEP[0] * side <= d / n <= HUD_STEP[1] * side]
+        if not steps:
+            return None
+        step = min(steps, key=lambda st: abs(st / side - HUD_ROW))
+        x = sorted(a[0] for a in done)[len(done) // 2]
+        n = len(faced)
+        free = set()
+        for k in range(n):                               # where the list may start so that every placed row fits
+            start = ys[0] - k * step
+            rows = [start + j * step for j in range(n)]
+            if all(any(abs(y - r) <= HUD_GRID * step for r in rows) for y in ys) and start > 0:
+                free |= {round(r, 4) for r in rows if all(abs(r - y) > HUD_GRID * step for y in ys) and r < 1}
+        return left[0], [(x, y, side) for y in sorted(free)]
+
+    def place_last(self, who: int, scores: dict) -> bool:
+        """``scores`` = {place: fit} of the missing survivor at the free rows of one look: the best one, when it fits
+        at least ``HUD_LAST_FIT`` and the look before chose the same row; True when the board changed."""
+        before = self.board().key()
+        best = max(scores.items(), key=lambda kv: kv[1], default=(None, -1.0))
+        last, self._last_seen = self._last_seen, (who, best[0]) if best[1] >= HUD_LAST_FIT else None
+        if best[0] is not None and best[1] >= HUD_LAST_FIT and last == (who, best[0]):
+            self._people[who]["hud"] = best[0]
+        return self.board().key() != before
+
+    def describe(self, scores: dict | None = None) -> str:
+        """1.57.4: per survivor (no names: "S1" … in the order first seen) – own, place in the HUD found (with the
+        last fit), slots read – for the diagnosis."""
+        out = []
+        board = self.board()
+        for i, row in enumerate(board.rows):
+            read = sum(1 for s in row.perks if s)
+            extra = sum(1 for s in (row.item, row.offering) + row.addons if s)
+            fit = f" {scores[i]:.2f}" if scores and i in scores else ""
+            where = "HUD ja" if row.hud else "HUD nein"
+            out.append(f"S{i + 1}{' (eigener)' if row.own else ''}: {where}{fit}, Perks {read}/4, sonst {extra}/4")
+        return " · ".join(out) or "–"
 
     @property
     def placed(self) -> bool:
@@ -543,8 +676,9 @@ class Votes:
         own = self._own()
         rows = []
         for i, p in enumerate(self._people):
-            names = [self._slot(p, s) for s in range(7)]
-            rows.append(Row(perks=tuple(names[:4]), item=names[4], addons=tuple(names[5:]), own=i == own, who=i,
+            names = [self._slot(p, s) for s in range(8)]
+            rows.append(Row(perks=tuple(names[:4]), item=names[4], addons=tuple(names[5:7]), offering=names[7],
+                            own=i == own, who=i,
                             face=p["face"], hud=p["hud"]))
         return Board(rows=tuple(rows))
 
@@ -552,4 +686,5 @@ class Votes:
         self.looks = 0
         self.side = 0.0
         self._hud_seen = {}
+        self._last_seen = None
         self._people.clear()

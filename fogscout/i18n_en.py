@@ -4580,10 +4580,8 @@ EN = {
         "Survivors only: press Esc once during the match – Fog Scout reads the others' loadouts from the menu's picture and then shows them beside them. Nothing is saved or sent.",
     'Neben jedem anderen Survivor in der Liste links erscheinen seine vier Perks als Raute – gelesen aus dem Pausenmenü (Esc), das DBD Survivorn zeigt. Nur das Bild wird gelesen, nur bei offenem Menü, nie als Killer; nichts wird gespeichert oder gesendet.':
         'Beside every other survivor in the list on the left, their four perks appear as a diamond – read from the pause menu (Esc) DBD shows survivors. Only the picture is read, only while the menu is open, never as the killer; nothing is saved or sent.',
-    'Das Item und seine zwei Add-ons als kleine Kästchen links neben den Perks.':
-        'The item and its two add-ons as small squares to the left of the perks.',
-    'Item und Add-ons neben den Perks':
-        'Item and add-ons beside the perks',
+    'Opfergabe, Item und Add-ons neben den Perks':
+        'Offering, item and add-ons beside the perks',
     'LOADOUTS':
         'LOADOUTS',
     'Loadouts':
@@ -4607,4 +4605,7 @@ EN = {
         'Below the name',
     '„In einer Reihe“ passt am besten unter den Namen oder an eine eigene Position.':
         '“In one row” fits best below the name or at a position of your own.',
+    # 1.57.4: offerings
+    'Die Opfergabe (eine verdeckte als „?“), das Item und seine zwei Add-ons als kleine Felder neben den Perks.':
+        'The offering (a hidden one as “?”), the item and its two add-ons as small slots beside the perks.',
 }

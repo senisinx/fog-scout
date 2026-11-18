@@ -21,10 +21,10 @@ log = logging.getLogger("fogscout")
 SAMPLE = loadouts.Board(rows=(
     loadouts.Row(own=True),
     loadouts.Row(perks=("Dead Hard", "Resurgence", "Made for This", "Windows of Opportunity"),
-                 item="Emergency Med-Kit", addons=("Gel Dressings", None)),
+                 item="Emergency Med-Kit", addons=("Gel Dressings", None), offering=loadouts.HIDDEN_OFFERING),
     loadouts.Row(perks=("Sprint Burst", None, "We'll Make It", "Resilience")),
     loadouts.Row(perks=("Sprint Burst", "Vigil", "Resilience", "Finesse"), item="Utility Flashlight",
-                 addons=("Long Life Battery", "Odd Bulb"))))
+                 addons=("Long Life Battery", "Odd Bulb"), offering="Petrified Oak")))
 
 
 def icon_for(name, kind):
