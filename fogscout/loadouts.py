@@ -54,6 +54,10 @@ MIN_MARGIN = 0.05             # … and this much better than the second best
 # clearly – fit + lead ≥ LOOSE_SUM, fit ≥ LOOSE_FLOOR, lead ≥ LOOSE_MARGIN. On the user's four menus every read in
 # this range was right (the same bots' perks across matches); the close ones (Déjà Vu / Kindred, lead 0.04) stay open
 LOOSE_FLOOR, LOOSE_SUM, LOOSE_MARGIN = 0.62, 0.87, 0.04
+# 1.57.7: a perk close to others (within CLOSE_SPAN, ≤ CLOSE_MAX) compared with each again on the CLOSE_PART of the
+# pixels where the two differ most – counts when it fits CLOSE_FIT and beats each by CLOSE_LEAD (only a slot of a
+# found row whose best fit is at least CLOSE_FLOOR; user's menus: Déjà Vu beat Kindred/Obsession by 0.07–0.19)
+CLOSE_FLOOR, CLOSE_SPAN, CLOSE_MAX, CLOSE_PART, CLOSE_FIT, CLOSE_LEAD = 0.72, 0.06, 5, 0.1, 0.6, 0.08
 SQUARE = 0.80                 # item / add-on square: its side in perk pitches
 ITEM_AT = 2.19                # centre of the item right of the fourth perk, in perk pitches (user's menu)
 ADDONS_AT = (3.43, 4.33)      # … and of the two add-ons
@@ -182,6 +186,7 @@ class Templates:
     def __init__(self, kind: str, names: dict | None = None, folder: str = ICONS, extra: dict | None = None):
         files = (names or _names()).get(kind, {})
         self.corner = kind == "addons"
+        self.perks_kind = kind == "perks"
         self.names, rows = [], []
         for f, name in sorted(files.items()):
             t = _template(os.path.join(folder, f), self.corner)
@@ -213,7 +218,35 @@ class Templates:
         ok = top >= MIN_SCORE and lead >= MIN_MARGIN
         if loose and not ok:
             ok = top >= LOOSE_FLOOR and top + lead >= LOOSE_SUM and lead >= LOOSE_MARGIN
+        if loose and not ok and top >= CLOSE_FLOOR:
+            pick = self._apart(glyphs, scores, per, order)
+            if pick is not None:
+                return self.names[pick], top, lead
         return (self.names[order[0]] if ok else None), top, lead
+
+    def _apart(self, glyphs, scores, per, order):
+        """1.57.7 (user: "bei Lara fehlt immer das eine Perk" – Déjà Vu, Kindred and the two Obsession perks are
+        one eye, only the pupil differs; on the whole drawing they are 0.03 apart): the best is compared with each
+        drawing close to it (within ``CLOSE_SPAN``) again only where those two differ (``CLOSE_PART`` of the
+        pixels, any cut) – it counts when it fits there at least ``CLOSE_FIT`` and beats every one of them by
+        ``CLOSE_LEAD``. Perks only (the item kits stayed too close on the user's menus). Its index or None."""
+        if not self.perks_kind:
+            return None
+        top = float(per[order[0]])
+        best = int(order[0])
+        near = [int(i) for i in order[1:CLOSE_MAX] if top - float(per[i]) <= CLOSE_SPAN]
+        if not near:
+            return None
+        g = glyphs.reshape(len(glyphs), -1).astype(np.float32)
+        for other in near:
+            diff = np.abs(self.matrix[best] - self.matrix[other])
+            mask = diff >= np.quantile(diff, 1 - CLOSE_PART)
+            part = _norm(g[:, mask])
+            fa = float((part @ _norm(self.matrix[best][mask][None])[0]).max())
+            fb = float((part @ _norm(self.matrix[other][mask][None])[0]).max())
+            if fa < CLOSE_FIT or fa - fb < CLOSE_LEAD:
+                return None
+        return best
 
 
 def _glyph(bgr: np.ndarray) -> np.ndarray:
@@ -243,6 +276,20 @@ def _cuts(frame, cx: float, cy: float, side: float, reach: int = 1, places: list
                 if places is not None:
                     places.append((cx + dx, cy + dy))
     return np.array(out, dtype=np.float32) if out else np.zeros((0, GLYPH * GLYPH), np.float32)
+
+
+def _fine_cuts(templates, frame, cx: float, cy: float, side: float) -> np.ndarray:
+    """1.57.7 (user: Lara's Déjà Vu missing; the same menu, encoded a little differently, fitted 0.68 … 0.82 – the
+    grid's place was a pixel off and the cuts' steps are side/20): the usual cuts plus finer ones (half the step,
+    every size) around the one that fitted best."""
+    places, at = [], []
+    coarse = _cuts(frame, cx, cy, side, places=places)
+    if not len(coarse):
+        return coarse
+    templates.best(coarse, at)
+    fx, fy = places[at[0]] if at else (cx, cy)
+    fine = _cuts(frame, fx, fy, side, step=max(0.5, side / 40))
+    return np.vstack([coarse, fine]) if len(fine) else coarse
 
 
 def _diamond_mask(s: int) -> np.ndarray:
@@ -425,7 +472,8 @@ class Reader:
             back = _strip(frame, x0 - 1.2 * pitch, x0 - 0.7 * pitch, y, 0.25 * pitch)
             if _red(back):
                 continue                                  # the killer's row
-            reads = [self.perks.best(_cuts(frame, x0 + k * pitch, y, pitch * DIAMOND), loose=True) for k in range(4)]
+            reads = [self.perks.best(_fine_cuts(self.perks, frame, x0 + k * pitch, y, pitch * DIAMOND), loose=True)
+                     for k in range(4)]
             last = x0 + 3 * pitch
             reads.append(self.items.best(_cuts(frame, last + ITEM_AT * pitch, y, pitch * SQUARE, reach=2), loose=True))
             reads += [self.addons.best(_cuts(frame, last + a * pitch, y, pitch * SQUARE, reach=2), loose=True)
@@ -452,7 +500,7 @@ class HudFinder:
     """Finds the menu's portraits in DBD's survivor list (the HUD left in the picture) – by the picture, never by
     a name. ``find`` gives {who: (x, y, side)} as shares of the picture for each portrait found clearly."""
 
-    def find(self, frame, faces: dict, menu_side: float) -> dict:
+    def find(self, frame, faces: dict, menu_side: float, scales=HUD_SCALES) -> dict:
         import cv2
         h, w = frame.shape[:2]
         vw, vh = min(w, h * 16 / 9), min(h, w * 9 / 16)
@@ -468,7 +516,7 @@ class HudFinder:
         for who, face in faces.items():
             if face is None:
                 continue
-            for sc in HUD_SCALES:
+            for sc in scales:
                 side = max(8, int(round(menu_side * sc * half)))
                 if side >= min(box.shape):
                     continue
@@ -555,6 +603,7 @@ class Votes:
         self.side = 0.0                   # the menu portraits' size (px) – HudFinder scales from it
         self._hud_seen: dict = {}         # the places on the grid of the last look at the HUD
         self._last_seen = None            # (who, place) the last look chose for the only one missing (1.57.4)
+        self._missed = 0                  # 1.57.7: HUD looks in a row that found nothing (at the remembered size)
         self._people: list = []           # {"face", "counts": {slot: {name: n}}, "own": n, "seen": n, "hud": …}
 
     def _who(self, face, index: int, used: set = frozenset(), own: bool = False) -> int:
@@ -610,6 +659,7 @@ class Votes:
         lies on the list's grid with the others of that look (same column, rows a whole number of steps apart) and
         the look before found it at the same place – one stray match never sticks for the round."""
         before = self.board().key()
+        self._missed = 0 if found else self._missed + 1           # 1.57.7: two empty looks: all sizes again
         good = self._own_on_top(on_grid({w: a for w, a in found.items() if 0 <= w < len(self._people)}))
         prev = self._hud_seen
         self._hud_seen = good
@@ -685,6 +735,19 @@ class Votes:
             out.append(f"S{i + 1}{' (eigener)' if row.own else ''}: {where}{fit}, Perks {read}/4, sonst {extra}/4")
         return " · ".join(out) or "–"
 
+    def scales(self, height: int) -> tuple:
+        """1.57.7 (user: "geht viel zu lange bis es angezeigt wird"; one look at all nine sizes took 0.48 s): once a
+        portrait is placed, the HUD's size is known – only its nearest size in ``HUD_SCALES`` and the two beside it
+        are searched then."""
+        sides = [p["hud"][2] * height for p in self._people if p["hud"] is not None]
+        if sides and self.side > 0:
+            self._ratio = float(np.median(sides)) / self.side       # kept for the next rounds (reset keeps it)
+        ratio = getattr(self, "_ratio", None)
+        if ratio is None or self.side <= 0 or self._missed >= 2:
+            return HUD_SCALES
+        at = min(range(len(HUD_SCALES)), key=lambda i: abs(HUD_SCALES[i] - ratio))
+        return HUD_SCALES[max(0, at - 1):at + 2]
+
     @property
     def placed(self) -> bool:
         """Every survivor seen with a portrait has its place in the HUD."""
@@ -727,4 +790,5 @@ class Votes:
         self.side = 0.0
         self._hud_seen = {}
         self._last_seen = None
-        self._people.clear()
+        self._missed = 0
+        self._people.clear()                  # (the HUD's size, ``_ratio``, stays for the next round)

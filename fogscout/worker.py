@@ -33,9 +33,11 @@ END_IDLE_INTERVAL = 1.0           # … and while nothing points to the end yet 
 LOADOUT_INTERVAL = 0.9           # 1.57: seconds between two looks at the pause menu's loadouts (while it is open);
                                   # 1.57.4: every whole-screen look (1 s) – before 1.5 s, a menu open for 2 s gave one
 LOADOUT_LOOKS = 8                 # … and after this many looks of a round the board is known: no more looks
-LOADOUT_LAST_AFTER = 3            # 1.57.4: after this many HUD looks the only one missing is looked for at the free row
+LOADOUT_LAST_AFTER = 2            # 1.57.4: after this many HUD looks the only one missing is looked for at the free row (1.57.7: 3 before)
 LOADOUT_HUD_LOOKS = 40            # 1.57.1: looks for the portraits in the HUD after the menu (a hurt survivor's
                                   # portrait is covered for a while)
+LOADOUT_HUD_INTERVAL = 0.5        # 1.57.7: seconds between two of those looks (a place counts after two agreeing ones;
+                                  # 1 s before – the user found it far too slow)
 IN_MATCH_RATE = 1.0               # scans per second while a detected map is being played (banner only at the start)
 VBAR_STRIP_S = 1.0                # 1.8.65: without a map, a look at the bars above/below at most this often
 BLACK_WARN_S = 8.0                # a black banner strip this long (DBD found) = "Aufnahme ist schwarz"
@@ -696,6 +698,9 @@ class DetectionWorker(threading.Thread):
                                                    and window.top <= cy < window.top + window.height)
                     obs = full = look = None
                     interval = END_CHECK_INTERVAL if tracker.candidate else END_IDLE_INTERVAL
+                    if (self.loadouts_wanted and loadout_votes.looks and not loadout_votes.placed
+                            and not pointer and source is None and hud_looks < LOADOUT_HUD_LOOKS):
+                        interval = min(interval, LOADOUT_HUD_INTERVAL)      # 1.57.7: the HUD looks after the menu
                     if sep is None and tick - last_end_check >= interval and (game or source is not None):
                         last_end_check = tick
                         try:
@@ -715,7 +720,7 @@ class DetectionWorker(threading.Thread):
                     # menu is shut, their portraits are looked for in the HUD's survivor list (where to draw them)
                     menu_open = pointer or (source is not None)
                     self.menu_open = bool(pointer)        # 1.57.2: the App hides the loadouts meanwhile
-                    due = tick - last_loadout >= LOADOUT_INTERVAL
+                    due = tick - last_loadout >= (LOADOUT_HUD_INTERVAL if not menu_open else LOADOUT_INTERVAL)
                     if look is not None and self.loadouts_wanted and gen is not None and due:
                         try:
                             if menu_open and loadout_votes.looks < LOADOUT_LOOKS:
@@ -732,7 +737,8 @@ class DetectionWorker(threading.Thread):
                                 last_loadout, hud_looks = tick, hud_looks + 1
                                 finder = loadouts.HudFinder()
                                 with self.times.measure("loadouts"):
-                                    found = finder.find(look, loadout_votes.faces(), loadout_votes.side)
+                                    found = finder.find(look, loadout_votes.faces(), loadout_votes.side,
+                                                        loadout_votes.scales(look.shape[0]))
                                     changed = loadout_votes.place(found)
                                     miss = loadout_votes.missing() if hud_looks >= LOADOUT_LAST_AFTER else None
                                     if miss:              # 1.57.4: the last one, only at the free row(s)
