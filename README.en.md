@@ -415,7 +415,7 @@ The synthetic tests do not replace a real test. If a map is not detected in real
 ## When something does not work
 
 - **The map is not visible:** press "Test overlay" in the Overlay tab. The map then appears for 10 seconds at its normal position, even if it would be hidden right now (press again – "End test" – to hide it at once). If no map was shown before, none is shown after the test either. If it stays invisible, press "Copy diagnostics" and pass the text on. It contains window position, window style and Z-order relative to DBD.
-- **The map is not detected:** tick "Save debug pictures" in the control window and start a match. The folder `debug/` then receives the pictures the program saw, with the text it read.
+- **The map is not detected:** tick "Save debug pictures" in the control window and start a match. The folder `debug/` then receives the pictures the program saw, with the text it read (since 1.57.24 banner, lobby and loadout pictures as lossless WebP – the same pixels, about half the size of PNG, easier to send in a ZIP).
 - **The map does not disappear after the round:** look at the line "End-of-round detection" on the Log page under "Advanced". Right afterwards press "Copy diagnostics": the text contains the latest checks (what was read for "CONTINUE", currencies and loading bar, and whether the mouse pointer was visible). With "Save debug pictures", small screenshots from the round are also saved in `debug/frames/`.
 - **Testing your own screenshots:** drag screenshots with a visible map banner (Win+Print) onto `screenshot_testen.bat`. The window then shows what is detected.
 - **Seeing error messages:** `start_debug.bat` starts with a console. There is also the log file `fogscout.log`.
