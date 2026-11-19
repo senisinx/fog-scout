@@ -49,6 +49,10 @@ PEAK_FIT = 0.3                # any other place looked at: at least this fit (th
 MAX_PEAKS = 60
 PROVEN_ROW = 2                    # 1.57.9: clear reads (MIN_SCORE/MIN_MARGIN) a row needs before LOOSE_*/CLOSE_* count
 SIZE_TRIES, SIZE_SPAN = 3, 0.06   # 1.57.9: diamond sizes fitting within SIZE_SPAN of the best are tried (≤ SIZE_TRIES)
+# 1.57.15 (user's menu of 19.11.: three bots with bright eyes – 52 px fitted 0.77, the right 68 px only 0.64, 56 px 0.71:
+# no size within SIZE_SPAN found a perk): when those sizes find fewer than ENOUGH_HITS perks, up to SIZE_MORE further
+# sizes (by fit, at least MIN_FIT) are tried as well – only then, so a menu read at once costs nothing more
+SIZE_MORE, ENOUGH_HITS = 3, 4
 PITCH = (1.05, 1.45)          # perk pitch / diamond size: the steps between two slots of a row
 ROW_TOL = 0.3                 # perks on one row: heights within this share of their size
 GRID_TOL = 0.25               # a perk's place on the grid: within this share of a step
@@ -321,10 +325,11 @@ def _diamond_mask(s: int) -> np.ndarray:
     return t
 
 
-def _diamonds(frame, sizes: int = 1) -> list:
-    """[(size, [(x, y), …]), …] of the perk diamonds in the picture (full-size pixels) for the ``sizes`` diamond sizes
-    that fit best (1.57.9: the fit is flat over a few sizes – a menu full of bright eyes fitted 26 best, 32 was right),
-    best first; [] when none fits."""
+def _diamonds(frame, sizes: int = 1, more: int = 0) -> list:
+    """[(size, [(x, y), …], near), …] of the perk diamonds in the picture (full-size pixels) for the ``sizes`` diamond
+    sizes that fit best (1.57.9: the fit is flat over a few sizes – a menu full of bright eyes fitted 26 best, 32 was
+    right), best first, ``near`` = within SIZE_SPAN of the best; then up to ``more`` further sizes fitting at least
+    MIN_FIT (``near`` False); [] when none fits."""
     import cv2
     h, w = frame.shape[:2]
     f = LOCATE_H / h
@@ -339,12 +344,16 @@ def _diamonds(frame, sizes: int = 1) -> list:
     fits.sort(key=lambda x: -x[0])
     if not fits or fits[0][0] < MIN_FIT:
         return []
-    out = []
+    out, taken = [], {True: 0, False: 0}
     for fit, s, r in fits:
-        if len(out) >= sizes or fit < fits[0][0] - SIZE_SPAN:
+        near = fit >= fits[0][0] - SIZE_SPAN
+        if fit < MIN_FIT or (not near and taken[False] >= more):
             break
-        if any(abs(s - o) <= 2 for o, _p in out):
+        if near and taken[True] >= sizes:
+            continue                                  # enough near sizes: on to the further ones
+        if any(abs(s - o) <= 2 for o, _p, _n in out):
             continue                                  # a neighbour of a size taken already
+        taken[near] += 1
         peaks = []
         work = r.copy()
         for _ in range(MAX_PEAKS):
@@ -354,8 +363,8 @@ def _diamonds(frame, sizes: int = 1) -> list:
             peaks.append(((px + s / 2) / f, (py + s / 2) / f))
             x0, y0 = max(0, px - s // 2 - 1), max(0, py - s // 2 - 1)
             work[y0:py + s // 2 + 2, x0:px + s // 2 + 2] = -1
-        out.append((s, peaks))
-    return [(s / f, peaks) for s, peaks in out]
+        out.append((s, peaks, near))
+    return [(s / f, peaks, near) for s, peaks, near in out]
 
 
 def _face(frame, cx: float, cy: float, side: float):
@@ -447,12 +456,14 @@ class Reader:
         return out
 
     def read(self, frame) -> Board | None:
-        found = [(s_, p_) for s_, p_ in _diamonds(frame, SIZE_TRIES) if p_]
+        found = [(s_, p_, n_) for s_, p_, n_ in _diamonds(frame, SIZE_TRIES, SIZE_MORE) if p_]
         if not found:
             self.last = "keine Rauten"
             return None
         size, peaks, hits = 0.0, [], []
-        for s_, p_ in found:                              # 1.57.9: the size whose perks are found most often
+        for s_, p_, near in found:                        # 1.57.9: the size whose perks are found most often
+            if not near and len(hits) >= ENOUGH_HITS:
+                break                                     # 1.57.15: further sizes only when the near ones found few
             h_ = self._perk_hits(frame, s_, p_)
             if len(h_) > len(hits):
                 size, peaks, hits = s_, p_, h_
