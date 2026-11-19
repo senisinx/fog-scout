@@ -134,7 +134,8 @@ class LoadoutsCard:
         board = self._loadout_board
         if (board is None or self._loadouts_killer() or self.menu_paused or self.hidden_after_match
                 or getattr(self.worker, "menu_open", False)        # 1.57.2: DBD's menu hides the HUD as well
-                or not self.overlay.has_map() or not self.user_visible):
+                or not self.overlay.has_map() or not self.user_visible
+                or getattr(self, "_map_reason", None)):     # 1.57.23: hidden with the map (DBD not in front …)
             return None, False
         return board, False
 
