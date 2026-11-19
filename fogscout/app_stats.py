@@ -2349,9 +2349,9 @@ class StatsTab:
         t.start()
         return t
 
-    def _joined(self):
-        """_official_join() cached until rounds.jsonl / official.jsonl, the killer assignments or the catalog
-        change (the Qt overview asks 4×/s; a full join of 5000 + 5000 lines takes ~100 ms)."""
+    JOIN_AHEAD_S = 1.0               # 1.57.22: how often the overlay tick looks whether the files changed
+
+    def _joined_key(self) -> list:
         key = [repr(sorted((self.settings.get("killer_aliases") or {}).items())), self.settings.get("farming_region"),
                sorted(self.settings.get("farming_opponents") or [])]
         for p in (self._hist_path(), self._official_path()):
@@ -2360,11 +2360,51 @@ class StatsTab:
                 key.append((st.st_mtime_ns, st.st_size))
             except OSError:
                 key.append(None)
+        return key
+
+    def _joined_ahead_tick(self):
+        """1.57.22 (diagnosis: "Ereignis detected 434 ms", of it "Statistik: Runden und Matches laden 272 ms"): a
+        round written at the end or a bloodpoint balance changes rounds.jsonl, and the next _joined() – the line
+        "Bilanz"/"Zuletzt hier" of the next map – joined both files anew in the window's thread. Now a thread
+        joins them as soon as a file changed (≤ 1×/s looked at); _joined() takes its result when the key still
+        fits and otherwise joins itself as before (never an older state)."""
+        now = time.monotonic()
+        if now - getattr(self, "_join_looked", -1e9) < self.JOIN_AHEAD_S:
+            return
+        self._join_looked = now
+        busy = getattr(self, "_join_thread", None)
+        if busy is not None and busy.is_alive():
+            return
+        key, catalog = self._joined_key(), self.catalog
+        for got in (getattr(self, "_joined_cache", None), getattr(self, "_joined_ahead", None)):
+            if got is not None and got[0] == key and got[1] is catalog:
+                return
+
+        def run():
+            try:
+                self._joined_ahead = (key, catalog, self._official_join())
+            except Exception:                        # never fatal: _joined() joins in the window's thread then
+                log.exception("Statistik: Vorab-Verknüpfung fehlgeschlagen")
+
+        self._join_thread = threading.Thread(target=run, daemon=True, name="stats-join")
+        self._join_thread.start()
+
+    def _joined(self):
+        """_official_join() cached until rounds.jsonl / official.jsonl, the killer assignments or the catalog
+        change (the Qt overview asks 4×/s; a full join of 5000 + 5000 lines takes ~100 ms)."""
+        key = self._joined_key()
         cached = getattr(self, "_joined_cache", None)
         if cached is None or cached[0] != key or cached[1] is not self.catalog:    # rebuilt catalog: may reuse the id
-            t0 = time.perf_counter()
-            cached = self._joined_cache = (key, self.catalog, self._official_join())
-            self.root.note("Statistik: Runden und Matches laden", (time.perf_counter() - t0) * 1000)   # 1.8.67
+            busy = getattr(self, "_join_thread", None)
+            if busy is not None and busy.is_alive():
+                busy.join()                          # already halfway through: waiting is shorter than a second join
+            ahead = getattr(self, "_joined_ahead", None)
+            if ahead is not None and ahead[0] == key and ahead[1] is self.catalog:
+                cached = self._joined_cache = ahead
+            else:
+                t0 = time.perf_counter()
+                cached = self._joined_cache = (key, self.catalog, self._official_join())
+                self.root.note("Statistik: Runden und Matches laden", (time.perf_counter() - t0) * 1000)   # 1.8.67
         return cached[2]
 
     def _official_map_id(self, name):

@@ -958,6 +958,12 @@ class App(ServerTab, StatsTab, ExportDialog, RecordingsTab, DiscordPresence, Spo
 
         def run():
             if mapstyle.styled_path(path, cache, True, style) != path:
+                try:                                 # 1.57.22: the map on display decoded here, not in _style_ready
+                    cur = self.current
+                    if cur and self.catalog.image_path(*cur)[0] == path:
+                        self._map_prefetch(*cur)
+                except Exception:                    # only a head start: _reload_picture decodes it itself then
+                    log.debug("Kartenstil: Vorladen fehlgeschlagen", exc_info=True)
                 self.events.put(("call", self._style_ready, (path,)))
         threading.Thread(target=run, daemon=True, name="mapstyle-one").start()
 
@@ -1376,7 +1382,8 @@ class App(ServerTab, StatsTab, ExportDialog, RecordingsTab, DiscordPresence, Spo
 
     # the tick's steps: (name for errors and the lag list, methods) – each in its own try
     TICK_STEPS = (("overlay", ("_tick_unsure", "_tick_timer", "_place_overlay")), ("layout", ("_layout_size_tick",)),
-                  ("verbindung", ("_conn_tick",)), ("offizielle Daten", ("_official_tick",)), ("show", ("_show_tick",)),
+                  ("verbindung", ("_conn_tick",)), ("offizielle Daten", ("_official_tick", "_joined_ahead_tick")),
+                  ("show", ("_show_tick",)),
                   ("hotkeys", ("_hotkeys_tick",)), ("tray", ("_tray_tick", "_rec_tick", "_hasher_tick")),
                   ("discord", ("_discord_tick",)), ("youtube", ("_youtube_tick",)),
                   ("eigene Last", ("_selfload_tick",)), ("claude", ("_claude_cost_tick",)), ("Qt", ("_qt_refresh",)))
