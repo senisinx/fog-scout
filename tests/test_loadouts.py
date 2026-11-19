@@ -21,6 +21,8 @@ Test pictures (tests/data/loadouts, every player name painted over):
 - ``real_menu_eyes.webp``: the worker's menu crop of a custom game of 1.57.14 (19.11.) – own Jake with one perk, the
   same three bots as ``menu_3440_eyes`` at another UI size: 52 px fitted 0.77, the right size only 0.64–0.71, none
   within SIZE_SPAN – eight menu looks, nothing read. Player names painted over.
+- ``real_menu_two_empty.webp``: the worker's menu crop of the next custom game (1.57.15, 19.11.) – own Jake with
+  Iron Will, Jonah with three eyes and Plot Twist, two bots without any loadout. Player names painted over.
 - ``menu_four_rows.png``: the four icon rows of the picture of the first request (another player's menu, other
   scale; names, pings and the killer's row painted over)."""
 import json
@@ -685,6 +687,20 @@ def test_a_menu_whose_right_size_fits_far_below_the_best_is_read(reader):
         assert got in (want, None)                                       # differently than here)
     near = [n for _s, _p, n in loadouts._diamonds(_crop_frame("real_menu_eyes.webp", True), loadouts.SIZE_TRIES)]
     assert near and all(near)                                     # without "more" only the near sizes, as before
+
+
+def test_eyes_found_a_few_pixels_off_the_diamond_search_still_make_the_grid(reader):
+    """User (1.57.15, diagnosis "Menü-Blicke 0/8" again): two bots had no loadout, so the grid rested on the own
+    Iron Will and Jonah's row – three eyes and Plot Twist. Jonah's eyes fitted 0.46 where the diamond search put
+    them and 0.76 four pixels left; the coarse search's steps (size/10) missed that, one row stayed, no menu. The
+    search goes as far in finer steps now; the person icon before each name is still no perk."""
+    board = reader.read(_crop_frame("real_menu_two_empty.webp", True))
+    assert board is not None and len(board.rows) == 2                  # the empty bots are no rows
+    own, jonah = board.rows
+    assert own.own and own.perks == ("Iron Will", None, None, None)
+    assert not jonah.own and jonah.perks[3] == "Plot Twist" and sum(1 for p in jonah.perks if p) >= 3
+    assert jonah.addons == ("High-End Sapphire Lens", "Long Life Battery")
+    assert not any("This Is Not Happening" in r.perks for r in board.rows)
 
 
 def test_loose_reads_count_only_in_a_proven_row():

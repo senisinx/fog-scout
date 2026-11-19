@@ -161,6 +161,7 @@ class DetectionWorker(threading.Thread):
         self.loadouts_wanted = False     # set by the UI: the loadouts are shown and the round is no killer's (1.57)
         self.loadout_info = "–"          # 1.57: last look at the pause menu's loadouts (diagnosis)
         self.loadout_menu_info = "–"     # 1.57.11: … the last one at the menu itself (not the HUD / result)
+        self.loadout_menu_tally = {}     # 1.57.16: the outcomes of this round's menu looks ("kein Raster": 8)
         self.loadout_state = "–"         # 1.57.11: … and why looks happen (diagnosis)
         self.menu_open = False           # 1.57.2: the pointer is visible over DBD in a round (a menu is open)
         self.guide_rects = ()            # … and of the centre guide lines while moving (1.64.5)
@@ -703,6 +704,7 @@ class DetectionWorker(threading.Thread):
                             self.post("loadouts", gen=gen, board=loadout_votes.board())
                     else:
                         loadout_votes.reset()     # 1.57: a new map, a new round – other survivors
+                        self.loadout_menu_tally = {}
                         hud_looks = 0
                         round_since = tick
                 use_end = bool(self.settings.get("hide_after_match", True))
@@ -777,6 +779,8 @@ class DetectionWorker(threading.Thread):
                                     board = loadout_reader.read(look)
                                 self.loadout_info = f"{time.strftime('%H:%M:%S')} {loadout_reader.last}"
                                 menu_misses = 0 if board is not None else menu_misses + 1
+                                outcome = "gelesen" if board is not None else loadout_reader.last.split(", ")[-1]
+                                self.loadout_menu_tally[outcome] = self.loadout_menu_tally.get(outcome, 0) + 1
                                 if board is not None and loadout_votes.note(board):
                                     self.post("loadouts", gen=gen, board=loadout_votes.board())
                                 # 1.57.11 (user's diagnosis showed only the result screen's look): the last look

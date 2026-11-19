@@ -53,6 +53,10 @@ SIZE_TRIES, SIZE_SPAN = 3, 0.06   # 1.57.9: diamond sizes fitting within SIZE_SP
 # no size within SIZE_SPAN found a perk): when those sizes find fewer than ENOUGH_HITS perks, up to SIZE_MORE further
 # sizes (by fit, at least MIN_FIT) are tried as well – only then, so a menu read at once costs nothing more
 SIZE_MORE, ENOUGH_HITS = 3, 4
+# 1.57.16 (user's menu of 19.11., 16:57: two bots without a loadout, Jonah with three eyes and Plot Twist): a perk's
+# fit swings with a few pixels (Jonah's eyes 0.46 at the diamond search's place, 0.76 four pixels left) – the coarse
+# search around a found diamond goes ± size/5 in HIT_STEPS steps each way (before: 2 steps of size/10, every eye missed)
+HIT_STEPS = 4
 PITCH = (1.05, 1.45)          # perk pitch / diamond size: the steps between two slots of a row
 ROW_TOL = 0.3                 # perks on one row: heights within this share of their size
 GRID_TOL = 0.25               # a perk's place on the grid: within this share of a step
@@ -445,8 +449,9 @@ class Reader:
         search is a few pixels off)."""
         out = []
         for x, y in peaks:
-            places, at = [], []                          # coarse: ± size/5 in steps of size/10, one size …
-            self.perks.best(_cuts(frame, x, y, size, reach=2, places=places, step=size / 10, sizes=False), at)
+            places, at = [], []                          # coarse: ± size/5 in HIT_STEPS steps each way, one size …
+            self.perks.best(_cuts(frame, x, y, size, reach=HIT_STEPS, places=places, step=size / (5 * HIT_STEPS),
+                                  sizes=False), at)
             if not at:
                 continue
             fx, fy = places[at[0]]
