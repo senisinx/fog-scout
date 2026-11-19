@@ -2045,10 +2045,16 @@ def test_a_map_style_click_never_makes_a_picture_in_the_window_thread(app_root, 
         ev = app.events.get(timeout=10)
         while ev[0] != "call" or getattr(ev[1], "__name__", "") != "_style_ready":
             ev = app.events.get(timeout=10)
-        reloads = []
-        monkeypatch.setattr(app, "_reload_picture", lambda: reloads.append(1))
+        from fogscout import overlay
+        decoded = []
+        real_decode = overlay._decode
+        monkeypatch.setattr(overlay, "_decode", lambda *a: decoded.append(a[0]) or real_decode(*a))
+        shown = []
+        real_set = app.overlay.set_map
+        monkeypatch.setattr(app.overlay, "set_map", lambda path, *a, **k: shown.append(path) or real_set(path, *a, **k))
         app._dispatch(ev)                                                     # the map on display takes it
-        assert reloads and app._qt_preview_cache is None
+        assert shown == [styled]                                             # (the preview is drawn anew with it)
+        assert not decoded              # 1.57.22: decoded already in the style's thread, not in the window's
     finally:
         app.quit()
 
@@ -2529,6 +2535,35 @@ def test_the_worker_decodes_a_found_map_and_the_window_thread_only_takes_it(app_
         app._map_prefetch("no-such-map", 1)                               # an unknown map: nothing, no error
     finally:
         overlay.clear_frames()
+        app.quit()
+
+
+def test_a_changed_history_is_joined_in_a_thread_before_the_next_map_asks_for_it(app_root, monkeypatch):
+    """1.57.22 (diagnosis: "Ereignis detected 434 ms", of it "Statistik: Runden und Matches laden 272 ms"): after
+    rounds.jsonl changed, the overlay tick joins rounds and matches in a thread; the window's _joined() only takes
+    the result – and never one that is older than the files."""
+    import threading
+    from fogscout import history
+    from fogscout.app import App
+    app = App(str(app_root), simulate=str(app_root / "sim"))
+    try:
+        app._joined()
+        app._hist_open("coal-tower", 1, "auto")
+        app._hist_close(app._hist["t"] + 300)                       # the round is written: the file changed
+        where = []
+        real = app._official_join
+        monkeypatch.setattr(app, "_official_join", lambda: where.append(threading.current_thread().name) or real())
+        app._join_looked = -1e9
+        app._joined_ahead_tick()
+        app._join_thread.join(10)
+        assert where == ["stats-join"]
+        app._joined_ahead_tick()                                    # nothing new: no second thread
+        assert len(app._joined().rounds) == len(history.load(app._hist_path())) and where == ["stats-join"]
+        app._hist_open("coal-tower", 1, "auto")
+        app._hist_close(app._hist["t"] + 300)                       # changed again, no tick yet
+        assert len(app._joined().rounds) == len(history.load(app._hist_path()))
+        assert where == ["stats-join", threading.current_thread().name]    # joined here: never an older state
+    finally:
         app.quit()
 
 
