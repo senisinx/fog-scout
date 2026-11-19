@@ -810,7 +810,8 @@ def show_control(kind, w, extra, st):
         shown = bool(st.get("visible", True))
         if kind in ("hint", "plain", "big", "label"):
             shown = shown and bool(st.get("text"))            # empty lines take no room
-        w.setVisible(shown)
+        if w.isHidden() == shown:                             # 1.57.19: only a change – setVisible on a widget not
+            w.setVisible(shown)                               # shown yet costs 0.3 ms (calculator: 600 per visit)
     if "enabled" in st:
         w.setEnabled(st["enabled"])
     if st.get("danger") and w.objectName() != "danger":       # 1.12.3: the warning colour (style sheet)
