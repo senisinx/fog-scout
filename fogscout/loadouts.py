@@ -107,6 +107,20 @@ HUD_LIST_SIDE = 0.2           # a portrait found within this share of the list's
 HUD_BOX = (0.0, 0.2, 0.3, 0.88)   # where DBD's survivor list can be: share of the 16:9 picture (x0, y0, x1, y1)
 CORNER = 0.28                 # an add-on's top right corner (DBD's white "+") is left out of the comparison
 MAX_ROWS = 5                  # four survivors and the killer (left out)
+# 1.57.18 (user: "Gelbe Taschenlampe von Jonah wird nicht erkannt", then "Seltenheitsfarbe auswerten"): the slot's
+# fill colour (its corners, not the drawing) narrows an item or add-on to the rarity the wiki gives for that colour –
+# measured on 115 item and add-on slots of the user's menus (OpenCV hue 0…180), every one as the wiki says: brown
+# 11–15 Common, green 62–65 Uncommon, blue 106–111 Rare, purple 139–142 Very Rare, pink 170–171 Visceral (Ultra
+# Rare), yellow 19–21 Event (Winter Party Starter, Masquerade items, Refined Serum, the Banquet Flashlight)
+RARITY_COLOURS = (            # (hue from, hue to, saturation at least, value at least, rarities)
+    (8, 17, 60, 30, frozenset({1, 11})),      # brown: Common (and Limited – bronze, not seen yet)
+    (18, 26, 150, 100, frozenset({8})),       # yellow: Event
+    (55, 72, 120, 35, frozenset({2})),        # green: Uncommon
+    (100, 118, 70, 25, frozenset({3})),       # blue: Rare
+    (132, 150, 90, 35, frozenset({4})),       # purple: Very Rare
+    (162, 178, 150, 60, frozenset({5})),      # pink: Visceral (Ultra Rare)
+)
+RARITY_AT = ((-0.38, -0.38), (-0.38, 0.38), (0.38, 0.38), (0.0, 0.40), (-0.40, 0.0))   # corners (never the "+")
 
 
 @dataclass(frozen=True)
@@ -149,6 +163,32 @@ def load_names(path: str = NAMES_FILE) -> dict:
     return {k: dict(data.get(k, {})) for k in ("perks", "items", "addons", "offerings")}
 
 
+def load_rarity(path: str = NAMES_FILE) -> dict:
+    """1.57.18: {"items"|"addons": {name: rarity}} – the wiki's rarity of each item and add-on (same file)."""
+    with open(path, encoding="utf-8") as f:
+        data = json.load(f)
+    return {k: dict(v) for k, v in data.get("rarity", {}).items()}
+
+
+def slot_rarities(frame, cx: float, cy: float, side: float):
+    """1.57.18: the rarities the fill colour of the square slot around (cx, cy) allows (``RARITY_COLOURS``), or
+    None when the colour says nothing (green, blue, grey, outside the picture)."""
+    import cv2
+    h, w = frame.shape[:2]
+    patches = []
+    for fx, fy in RARITY_AT:
+        x, y = int(round(cx + fx * side)), int(round(cy + fy * side))
+        if x < 2 or y < 2 or x + 3 > w or y + 3 > h:
+            return None
+        patches.append(frame[y - 2:y + 3, x - 2:x + 3].reshape(-1, 3))
+    hsv = cv2.cvtColor(np.vstack(patches).astype(np.uint8)[None], cv2.COLOR_BGR2HSV)[0]
+    hue, sat, val = (float(v) for v in np.median(hsv, axis=0))
+    for lo, hi, s_min, v_min, allowed in RARITY_COLOURS:
+        if lo <= hue <= hi and sat >= s_min and val >= v_min:
+            return allowed
+    return None
+
+
 def icon_file(name: str, kind: str, names: dict | None = None) -> str | None:
     """The picture file (full path) for a name read by the reader, for drawing it."""
     for f, n in (names or _names()).get(kind, {}).items():
@@ -166,6 +206,16 @@ def _names() -> dict:
     if _NAMES is None:
         _NAMES = load_names()
     return _NAMES
+
+
+_RARITY = None
+
+
+def _rarity() -> dict:
+    global _RARITY
+    if _RARITY is None:
+        _RARITY = load_rarity()
+    return _RARITY
 
 
 def _hidden_offering() -> dict:
@@ -222,18 +272,25 @@ class Templates:
         for name, glyph in (extra or {}).items():        # drawings that are no picture file (the hidden offering)
             self.names.append(name)
             rows.append(np.asarray(glyph, np.float32).ravel())
+        known = _rarity().get(kind, {})
+        self.rarity = np.array([known.get(n, 0) for n in self.names], dtype=np.int16)   # 0: not known
         self.matrix = _norm(np.array(rows, dtype=np.float32)) if rows else np.zeros((0, GLYPH * GLYPH), np.float32)
 
-    def best(self, glyphs: np.ndarray, at: list | None = None, loose: bool = False):
+    def best(self, glyphs: np.ndarray, at: list | None = None, loose: bool = False, allowed=None):
         """(name, score, margin) of the best picture for any of ``glyphs`` (n × GLYPH²), or (None, score, margin)
         when it is not clearly the best; ``at`` gets the index of the cut that fitted best. ``loose`` (a slot of a row
-        already found): a weaker fit counts when it leads clearly (``LOOSE_*``)."""
+        already found): a weaker fit counts when it leads clearly (``LOOSE_*``). ``allowed`` (1.57.18): only the
+        pictures of these rarities (and those of no known rarity) compete – the slot's colour said so."""
         if not len(self.names) or not len(glyphs):
             return None, 0.0, 0.0
         glyphs = glyphs.reshape(len(glyphs), GLYPH, GLYPH)
         if self.corner:
             glyphs = np.stack([_no_corner(g) for g in glyphs])
         scores = _norm(glyphs.reshape(len(glyphs), -1).astype(np.float32)) @ self.matrix.T     # n × templates
+        if allowed:
+            other = (self.rarity != 0) & ~np.isin(self.rarity, list(allowed))
+            if not other.all():
+                scores[:, other] = -1.0
         per = scores.max(axis=0)                                    # each picture at its best cut
         order = np.argsort(per)[::-1]
         if at is not None:
@@ -520,8 +577,11 @@ class Reader:
             reads = [self.perks.best(_fine_cuts(self.perks, frame, x0 + k * pitch, y, pitch * DIAMOND), loose=True)
                      for k in range(4)]
             last = x0 + 3 * pitch
-            reads.append(self.items.best(_cuts(frame, last + ITEM_AT * pitch, y, pitch * SQUARE, reach=2), loose=True))
-            reads += [self.addons.best(_cuts(frame, last + a * pitch, y, pitch * SQUARE, reach=2), loose=True)
+            cx = last + ITEM_AT * pitch
+            reads.append(self.items.best(_cuts(frame, cx, y, pitch * SQUARE, reach=2), loose=False,
+                                         allowed=slot_rarities(frame, cx, y, pitch * SQUARE)))
+            reads += [self.addons.best(_cuts(frame, last + a * pitch, y, pitch * SQUARE, reach=2), loose=True,
+                                       allowed=slot_rarities(frame, last + a * pitch, y, pitch * SQUARE))
                       for a in ADDONS_AT]
             reads.append(self.offerings.best(_cuts(frame, last + OFFERING_AT * pitch, y, pitch * OFFERING, reach=2),
                                              loose=True))

@@ -508,9 +508,9 @@ def test_perk_pictures_are_found_by_the_perks_name_or_the_packs_file_name(tmp_pa
 
 # what the wiki has no picture for that can be told apart by its name (1.54) – these entries stand without one
 NO_PICTURE = {("addon", "Anti-Exhaustion Syringe"), ("addon", "Misty Day, Remains of Judgement"),
-              ("addon", "Mysterious Elixir"), ("addon", "Spattered Handkerchief"), ("addon", "Vorpal Sword"),
-              ("items", "Banquet Flashlight"), ("items", "Banquet Med-Kit"),
-              ("items", "Banquet Toolbox")}    # 1.57: the two maps came with the loadout reader
+              ("addon", "Mysterious Elixir"), ("addon", "Spattered Handkerchief"),
+              ("addon", "Vorpal Sword")}    # 1.57: the two maps came with the loadout reader; 1.57.18: the
+                                                # three Banquet items too
 
 
 def test_every_perk_of_the_calculator_has_its_picture_in_the_program():
