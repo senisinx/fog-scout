@@ -18,6 +18,9 @@ Test pictures (tests/data/loadouts, every player name painted over):
 - ``menu_3440_eyes.webp``/``hud_3440_eyes.jpg``: the user's test of the critical perks (1.57.9) – Lara Object of
   Obsession, Kindred, Déjà Vu; Lee Kindred; Jill Déjà Vu, Sole Survivor. All the bright eyes made the diamond size
   fit 52 px best (64 right): nothing was shown. Names, a Discord notice and the music card blacked out.
+- ``real_menu_eyes.webp``: the worker's menu crop of a custom game of 1.57.14 (19.11.) – own Jake with one perk, the
+  same three bots as ``menu_3440_eyes`` at another UI size: 52 px fitted 0.77, the right size only 0.64–0.71, none
+  within SIZE_SPAN – eight menu looks, nothing read. Player names painted over.
 - ``menu_four_rows.png``: the four icon rows of the picture of the first request (another player's menu, other
   scale; names, pings and the killer's row painted over)."""
 import json
@@ -665,6 +668,23 @@ def test_a_menu_full_of_eyes_finds_the_right_diamond_size(reader):
     board_hud = _round("menu_3440_eyes.webp", "hud_3440_eyes.jpg")
     rows = sorted(board_hud.rows, key=lambda r: r.hud[1])
     assert rows[0].own and [r.perks[1] for r in rows[1:]] == ["Sole Survivor", "Kindred", "Small Game"]
+
+
+def test_a_menu_whose_right_size_fits_far_below_the_best_is_read(reader):
+    """User (1.57.14, diagnosis "Menü-Blicke 0/8", eight clear menu pictures): the bright eyes fitted 52 px best and
+    every size within SIZE_SPAN found no perk. When the near sizes find too few, further sizes are tried."""
+    board = reader.read(_crop_frame("real_menu_eyes.webp", True))
+    assert board is not None and len(board.rows) == 4
+    assert board.rows[0].own and board.rows[0].perks == ("Iron Will", None, None, None)
+    others = {r.perks[1]: r.perks for r in board.others}
+    assert others["Small Game"] == ("Kindred", "Small Game", "Adrenaline", "Plot Twist")
+    assert others["Sole Survivor"] == ("Déjà Vu", "Sole Survivor", "Resilience", "Wicked")
+    lara = next(r.perks for r in board.others if "Breakout" in r.perks)     # her eyes differ only in the pupil:
+    assert lara[2] == "Breakout"                                         # open rather than guessed (CI decodes
+    for got, want in zip(lara, ("Object of Obsession", "Kindred", "Breakout", "Déjà Vu")):   # the picture a hair
+        assert got in (want, None)                                       # differently than here)
+    near = [n for _s, _p, n in loadouts._diamonds(_crop_frame("real_menu_eyes.webp", True), loadouts.SIZE_TRIES)]
+    assert near and all(near)                                     # without "more" only the near sizes, as before
 
 
 def test_loose_reads_count_only_in_a_proven_row():
