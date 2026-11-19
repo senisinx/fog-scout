@@ -188,6 +188,7 @@ class App(ServerTab, StatsTab, ExportDialog, RecordingsTab, DiscordPresence, Spo
         self.worker = DetectionWorker(root_dir, self.settings, self.catalog, self.events, simulate=simulate,
                                       data_dir=self.data_dir)
         self.toast.on_rect = lambda r: setattr(self.worker, "toast_rect", r)    # 1.8.13: never read as the game
+        self.worker.prefetch = self._map_prefetch                              # 1.57.20
         self.worker.start()
         self.hotkeys = self._start_hotkeys()
         self._start_step("Erkennung, Hotkeys")
@@ -933,6 +934,18 @@ class App(ServerTab, StatsTab, ExportDialog, RecordingsTab, DiscordPresence, Spo
                 self._style_request(path, style)
             path = styled
         return path, shown
+
+    def _map_prefetch(self, map_id, variant=1):
+        """1.57.20 (user: "Ich will das alles schnell läuft"; the diagnosis showed "Ereignis detected" 212–235 ms in
+        the window thread): called by the worker – in its thread – just before it reports a found map: the picture
+        is decoded into load_frames' cache (thread safe), show_map then takes it at once. Only reads (no style job:
+        ``request=False``); anything wrong is left to show_map."""
+        m = self.catalog.maps.get(map_id)
+        if m is None:
+            return
+        path, shown = self._map_file(map_id, variant, request=False)
+        if path:
+            load_frames(path, self._map_rotation(map_id), self._map_title(m, shown))
 
     def _style_request(self, path, style):
         """1.8.21: one styled picture made in a thread (once per picture and style – one of another kind stays the

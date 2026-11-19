@@ -164,6 +164,7 @@ class DetectionWorker(threading.Thread):
         self.loadout_menu_tally = {}     # 1.57.16: the outcomes of this round's menu looks ("kein Raster": 8)
         self.loadout_state = "–"         # 1.57.11: … and why looks happen (diagnosis)
         self.menu_open = False           # 1.57.2: the pointer is visible over DBD in a round (a menu is open)
+        self.prefetch = None             # 1.57.20: set by the App – decodes a found map's picture in this thread
         self.guide_rects = ()            # … and of the centre guide lines while moving (1.64.5)
         self.toast_rect = None           # … and of the notification window (1.8.13: F8 clip, lobby found)
         self.vbars = None                # (top, bottom, time, (w, h)): black bars above/below the picture
@@ -590,6 +591,11 @@ class DetectionWorker(threading.Thread):
                                 lobby = self.queue.lobby_for_round(tick)   # 1.8.71: also a lobby seen only briefly
                                 self.queue.round_started(tick)  # 1.8.43: the lobby is used up (same custom lobby next)
                                 self._banner_due = None
+                                if self.prefetch is not None:   # 1.57.20 (user: "alles schnell"): the picture is
+                                    try:                        # decoded here, the window thread only takes it
+                                        self.prefetch(d.map_id, d.variant)
+                                    except Exception:
+                                        log.debug("Kartenbild vorab: %s", traceback.format_exc())
                                 self.post("detected", lobby=lobby, map_id=d.map_id, variant=d.variant, probability=d.probability,
                                           variant_probability=d.variant_probability, name_text=d.name_text,
                                           realm_text=d.realm_text, frames=d.frames, name_fit=d.name_fit,

@@ -2505,6 +2505,33 @@ def test_a_map_is_decoded_once_and_the_preview_sample_loads_in_a_thread(app_root
         app.quit()
 
 
+def test_the_worker_decodes_a_found_map_and_the_window_thread_only_takes_it(app_root, monkeypatch):
+    """1.57.20 (user: "Ich will das alles schnell läuft"; diagnosis: "Ereignis detected" 212–235 ms in the window
+    thread): the worker calls App._map_prefetch in its own thread before it reports the map – the picture is in
+    load_frames' cache then, show_map decodes nothing (measured here: the handler 84 → 46 ms, median of 24 maps)."""
+    from fogscout import overlay
+    from fogscout.app import App
+    from fogscout.worker import Event
+    app = App(str(app_root), simulate=str(app_root / "sim"))
+    try:
+        assert app.worker.prefetch == app._map_prefetch
+        decoded = []
+        real = overlay._decode
+        monkeypatch.setattr(overlay, "_decode", lambda *a: decoded.append(a[0]) or real(*a))
+        overlay.clear_frames()
+        mid = next(iter(app.catalog.maps))
+        app._map_prefetch(mid, 1)                                          # in the worker's thread
+        assert len(decoded) == 1
+        app._dispatch(Event("detected", dict(lobby=None, map_id=mid, variant=1, probability=1.0,
+                                             variant_probability=1.0, name_text="X", realm_text="Y", frames=3,
+                                             name_fit=0.0, unsure=False, latency=0.1)))
+        assert app.current and app.current[0] == mid and len(decoded) == 1    # taken from the cache
+        app._map_prefetch("no-such-map", 1)                               # an unknown map: nothing, no error
+    finally:
+        overlay.clear_frames()
+        app.quit()
+
+
 def test_a_search_on_the_maps_page_filters_at_once_without_building_the_tiles_anew(app_root):
     """1.8.72: the page's search went into the event queue and showed its hits with the next overlay tick
     (≤ 250 ms later) by building every tile anew; now the App filters the one grid as soon as the event is in."""
