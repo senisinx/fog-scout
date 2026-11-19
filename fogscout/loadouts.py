@@ -448,14 +448,22 @@ def same_face(a, b) -> float:
     return float(m[0] @ m[1])
 
 
-def _strip(frame, x0: float, x1: float, y: float, half: float):
-    """Mean HSV of the strip x0…x1 around the row's centre (the row's backdrop left of the perks)."""
+def _strip(frame, x0: float, x1: float, y: float, half: float, colour: bool = False):
+    """Mean HSV of the strip x0…x1 around the row's centre (the row's backdrop left of the perks). ``colour``
+    (1.57.21, user's public match: The Pig's hidden offering was read as a fifth survivor "S5" and drawn over the
+    own row): the HSV of the mean colour instead – red lies at both ends of the hue circle (0 and 179), the pixels'
+    hues of the killer's row averaged to 10–46 and it was never red (dropped only while nothing was read on it); the
+    own gold row keeps the pixels' mean (its saturation fell from 98 to 78 as one colour)."""
     import cv2
     h, w = frame.shape[:2]
     a, b = max(0, int(x0)), min(w, int(x1))
     c, d = max(0, int(y - half)), min(h, int(y + half))
     if b - a < 2 or d - c < 2:
         return None
+    if colour:
+        mean = frame[c:d, a:b].reshape(-1, 3).mean(axis=0)
+        return cv2.cvtColor(np.clip(np.rint(mean), 0, 255).astype(np.uint8)[None, None],
+                            cv2.COLOR_BGR2HSV)[0, 0].astype(float)
     return cv2.cvtColor(np.ascontiguousarray(frame[c:d, a:b]), cv2.COLOR_BGR2HSV).reshape(-1, 3).mean(axis=0)
 
 
@@ -465,7 +473,7 @@ def _gold(hsv) -> bool:
 
 
 def _red(hsv) -> bool:
-    """The killer's row: red."""
+    """The killer's row: red (1.57.21: as one colour hue 0, saturation 240 on all of the user's menus, ``_strip``)."""
     return hsv is not None and (hsv[0] <= 8 or hsv[0] >= 170) and hsv[1] >= 120
 
 
@@ -572,7 +580,7 @@ class Reader:
             if len(rows) >= MAX_ROWS:
                 break
             back = _strip(frame, x0 - 1.2 * pitch, x0 - 0.7 * pitch, y, 0.25 * pitch)
-            if _red(back):
+            if _red(_strip(frame, x0 - 1.2 * pitch, x0 - 0.7 * pitch, y, 0.25 * pitch, colour=True)):
                 continue                                  # the killer's row
             reads = [self.perks.best(_fine_cuts(self.perks, frame, x0 + k * pitch, y, pitch * DIAMOND), loose=True)
                      for k in range(4)]

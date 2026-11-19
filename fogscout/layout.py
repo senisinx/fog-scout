@@ -302,7 +302,8 @@ LOADOUT_PER_FACE = 1.3         # a survivor's perk diamond: this many portraits 
 # up to the line of the survivor's status icon (the generator) – measured on the user's HUD in portraits from the
 # portrait's centre: that icon (with its marks) spans 1.06 … 1.96 to the right and 0.75 … 0.10 above, the name begins
 # 0.11 below, the row above ends 1.07 above
-LOADOUT_NAME_X = 2.05          # the row's left edge right of the portrait's centre (right of the status icon)
+# 1.57.21 (user: "Meg Broken-Logo überlappt"): a status (Broken, the "!" marks) widens the status line – room for it
+LOADOUT_NAME_X = 2.5           # the row's left edge right of the portrait's centre (right of the status icon)
 LOADOUT_NAME_Y = -0.42         # its centre relative to the portrait's centre (the status icon's middle)
 LOADOUT_ROW_H = 0.46           # its height (a perk's diamond)
 LOADOUT_NAME_ROOM = 0.6        # at most this tall (more would reach the name or the row above)

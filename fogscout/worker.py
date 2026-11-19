@@ -25,7 +25,7 @@ from .ticktime import CpuShare, LookTimes
 from .matchstart import LOADING_LOOKS, MatchStart
 from .matchend import MatchEndTracker, Signals
 from .ocr import LazyRecognizer, ModelPool
-from .textnorm import MAIN, MODEL_FILES
+from .textnorm import MAIN, MODEL_FILES, fold
 
 log = logging.getLogger("fogscout")
 END_CHECK_INTERVAL = 0.5          # seconds between two looks for result screen / lobby / loading screen …
@@ -43,6 +43,10 @@ LOADOUT_HUD_SLOW = 3.0            # 1.57.12: after those, one look every this ma
                                   # hooked, downed or hurt shows an icon instead of the portrait for minutes – 1.57.11
                                   # gave up after 40 looks)
 LOADOUT_MENU_MISSES = 3           # 1.57.14: after this many menu looks without a board (a pointer over another screen) …
+# 1.57.21 (user: "muss die Maus sichtbar sein? ich spiele meist mit Controller, da kommt nur so ein Kreis"): with a
+# controller DBD draws its own cursor and the Windows pointer stays hidden – the pause menu is known by its "QUIT"
+# bottom right as well (read by the round-end check anyway: "CONTINUE -70 „QUIT“" in the diagnoses), for this long
+MENU_QUIT_HOLD_S = 1.5
 LOADOUT_MENU_SLOW = 2.0           # … one look every this many s only
 LOADOUT_SAME_ROUND_S = 90.0       # 1.57.14: a map shown again this soon after the round's start is the same round
 LOADOUT_KEPT = 12                 # 1.57.11: debug pictures of menu / HUD looks kept (each)
@@ -330,6 +334,7 @@ class DetectionWorker(threading.Thread):
         tracker_gen = None
         trial_since = 0.0                 # when the map on display appeared (tracker reset)
         menu_misses = 0                   # 1.57.14: menu looks in a row without a board (another screen with a pointer)
+        quit_t = -1e9                     # 1.57.21: when "QUIT" (the pause menu) was read last – a controller's menu
         round_since = 0.0                 # 1.57.14: … the round's first map (loadouts: shown again = same round)
         last_end_check = 0.0
         last_hist = 0.0
@@ -734,14 +739,15 @@ class DetectionWorker(threading.Thread):
                                 pointer = vis and (window.left <= cx < window.left + window.width
                                                    and window.top <= cy < window.top + window.height)
                     obs = full = look = None
+                    paused = bool(pointer) or (foreground and tick - quit_t <= MENU_QUIT_HOLD_S)   # 1.57.21
                     interval = END_CHECK_INTERVAL if tracker.candidate else END_IDLE_INTERVAL
                     if (self.loadouts_wanted and loadout_votes.looks and not loadout_votes.placed
-                            and not pointer and source is None and hud_looks < LOADOUT_HUD_LOOKS):
+                            and not paused and source is None and hud_looks < LOADOUT_HUD_LOOKS):
                         interval = min(interval, LOADOUT_HUD_INTERVAL)      # 1.57.7: the HUD looks after the menu
                     # 1.57.14 (user: "sobald die Karte anzeigt, öffne ich das Menü"): with the menu open a look every
                     # LOADOUT_INTERVAL – also while the start banner is still seen (no look was taken then, and the
                     # end check took one a second only); a few menu looks without a board: slower
-                    menu_due = bool(self.loadouts_wanted and pointer and source is None
+                    menu_due = bool(self.loadouts_wanted and paused and source is None
                                     and loadout_votes.looks < LOADOUT_LOOKS)
                     if menu_due:
                         interval = min(interval, LOADOUT_INTERVAL if menu_misses < LOADOUT_MENU_MISSES
@@ -767,8 +773,11 @@ class DetectionWorker(threading.Thread):
                     # 1.57: the pause menu shows the other survivors' loadouts – read while it is open (the
                     # pointer is visible over DBD), a few looks per round, never as the killer; 1.57.1: once the
                     # menu is shut, their portraits are looked for in the HUD's survivor list (where to draw them)
-                    menu_open = pointer or (source is not None)
-                    self.menu_open = bool(pointer)        # 1.57.2: the App hides the loadouts meanwhile
+                    if obs is not None and foreground and "QUIT" in fold(obs.continue_text or ""):
+                        quit_t = tick                     # 1.57.21: the pause menu without a pointer (controller)
+                    paused = bool(pointer) or (foreground and tick - quit_t <= MENU_QUIT_HOLD_S)
+                    menu_open = paused or (source is not None)
+                    self.menu_open = bool(paused)         # 1.57.2: the App hides the loadouts meanwhile
                     due = tick - last_loadout >= (LOADOUT_HUD_INTERVAL if not menu_open else LOADOUT_INTERVAL)
                     # 1.57.11 (user's diagnosis: a menu look, then nothing for five minutes): why a look happens or not
                     self.loadout_state = (f"gewünscht={self.loadouts_wanted} Map={gen is not None} "

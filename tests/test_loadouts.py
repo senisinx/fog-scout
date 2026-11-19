@@ -386,7 +386,7 @@ def test_below_each_name_the_perks_stand_in_one_row():
     assert pic.size == loadout_size(size, round((0.586 - 0.504) * 1440) + size, True, row=True)
     assert y + size <= 0.504 * 1440 + 0.11 * face                     # 1.57.17: above the name and the bar below it
     assert y >= 0.504 * 1440 - 1.07 * face                            # … below the row above
-    assert x >= 0.177 * 3440 + 1.96 * face                            # … right of the status icon
+    assert x >= 0.177 * 3440 + 2.4 * face                             # … right of the status icon and its marks
     big = placed(dict(o, loadouts_scale=2.0), (0, 0, 3440, 1440), Board(rows=rows))
     big_row = big[0].height - round((0.586 - 0.504) * 1440)           # a larger size still fits in between
     assert big[2] >= 0.504 * 1440 - 1.07 * face and big[2] + big_row <= 0.504 * 1440 + 0.11 * face
@@ -988,3 +988,87 @@ def test_the_whole_way_with_the_real_loop(tmp_path, monkeypatch):
     rows = {r.perks[0]: round(r.hud[1] * H) for r in last["board"].rows}
     assert rows == {"Fixated": 608, "Déjà Vu": 726, "Adrenaline": 844, "Prove Thyself": 962}
     assert last["gen"] == (2, "auto")
+
+
+def test_a_controller_menu_without_a_pointer_is_read_by_its_quit(tmp_path, monkeypatch):
+    """User (1.57.20): "Muss die Maus sichtbar sein? Ich spiele meist mit Controller, da kommt nur so ein Kreis" –
+    with a controller the Windows pointer stays hidden, the menu was never read. The round-end check reads the pause
+    menu's "QUIT" bottom right anyway: that counts as the menu open too (MENU_QUIT_HOLD_S), the pointer stays None."""
+    pytest.importorskip("onnxruntime")
+    import queue
+    import time
+    from types import SimpleNamespace
+    from fogscout import config, detector, worker
+    from fogscout.catalog import Catalog
+    W, H = 3440, 1440
+    menu = _crop_frame("real_menu_crop.webp", True)
+    screen = {"menu": True}
+
+    class Grabber:
+        def grab(self, left, top, width, height):
+            return menu[top:top + height, left:left + width].copy()
+
+        def primary_monitor(self):
+            return 0, 0, W, H
+
+        def close(self):
+            pass
+
+    real_observe = detector.OutOfMatchWatcher.observe
+
+    def observe(self, frame, ignore=None):                     # the menu's "QUIT" as the OCR reads it
+        ob = real_observe(self, frame, ignore)
+        if screen["menu"]:
+            ob.continue_fit, ob.continue_text = -70.0, "QUIT"
+        return ob
+    game = SimpleNamespace(hwnd=1, left=0, top=0, width=W, height=H, minimized=False)
+    monkeypatch.setattr(worker, "ScreenGrabber", Grabber)
+    monkeypatch.setattr(worker, "find_game_window", lambda *a, **k: game)
+    monkeypatch.setattr(worker, "foreground_root", lambda: 1)
+    monkeypatch.setattr(worker, "cursor_state", lambda: (False, 1720, 720))      # a controller: no pointer
+    monkeypatch.setattr(detector.OutOfMatchWatcher, "observe", observe)
+    events = queue.Queue()
+    wk = worker.DetectionWorker(ROOT, config.Settings(str(tmp_path / "settings.json")), Catalog(ROOT, ["en"]),
+                                events, data_dir=str(tmp_path))
+    wk.watch_gen, wk.map_on_screen, wk.loadouts_wanted = (1, "auto"), True, True
+    board = None
+    wk.start()
+    try:
+        deadline = time.time() + 60                              # generous: shared CI runners
+        while time.time() < deadline and board is None:
+            try:
+                ev = events.get(timeout=0.1)
+            except queue.Empty:
+                continue
+            if ev.kind == "loadouts":
+                board = ev.data["board"]
+        assert board is not None and wk.menu_open                 # read, and the loadouts hidden meanwhile
+        assert sum(1 for r in board.rows for p in r.perks if p) >= 12
+    finally:
+        wk.stop()
+        wk.join(timeout=10)
+
+
+def test_the_killers_row_is_left_out_even_with_an_offering(reader):
+    """User (1.57.20, public match: The Pig had a hidden offering): the killer's row was read as a fifth survivor
+    with only that offering and drawn over the own row. _strip averaged the pixels' hues – red lies at 0 and 179,
+    the killer's row came out at hue 10–37 and was never red; now the mean colour is converted (hue 0, saturation
+    240 on every menu), the own gold row stays no killer's."""
+    assert loadouts._red((0, 240, 70)) and not loadouts._red((24, 115, 57))   # killer / own gold row
+    assert not loadouts._red((97, 56, 35)) and not loadouts._red(None)
+    menu = _crop_frame("real_menu_two_empty.webp", True)
+    ys = []
+    real = loadouts._strip
+
+    def strip(frame, x0, x1, y, half, colour=False):
+        v = real(frame, x0, x1, y, half, colour)
+        if colour and loadouts._red(v):
+            ys.append(y)
+        return v
+    loadouts._strip = strip
+    try:
+        board = loadouts.Reader().read(menu)
+    finally:
+        loadouts._strip = real
+    assert len(ys) == 1 and ys[0] > 900                               # the red row below the four survivors
+    assert len(board.rows) == 2                                       # and still only the survivors read
