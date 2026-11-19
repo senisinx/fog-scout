@@ -25,6 +25,7 @@ Test pictures (tests/data/loadouts, every player name painted over):
   Iron Will, Jonah with three eyes and Plot Twist, two bots without any loadout. Player names painted over.
 - ``menu_four_rows.png``: the four icon rows of the picture of the first request (another player's menu, other
   scale; names, pings and the killer's row painted over)."""
+import dataclasses
 import json
 import os
 import sys
@@ -814,6 +815,35 @@ def test_debug_pictures_are_lossless_webp_and_old_pngs_go_with_them(tmp_path):
         worker.DetectionWorker._save_loadout_look(stub, np.zeros((1440, 3440, 3), np.uint8), "menu")
     files = sorted(os.listdir(d))
     assert len(files) == worker.LOADOUT_KEPT and all(f.endswith("-menu.webp") for f in files)
+
+
+def test_the_menus_own_slot_pictures_are_cut_and_drawn_beside_the_survivor(reader):
+    """1.57.25 (user: "Könnten wir bei der Perk-Erkennung nicht eine 2. Variante machen, dass wir einen Screenshot vom
+    Menü nehmen, diesen verkleinern und dessen Survivor zuteilen?" – "gerne, die alte Variante soll drin bleiben"):
+    each row keeps its eight slots as the menu showed them; Votes keeps them with the survivor, and with
+    ``loadouts_look`` "picture" (the default) they are drawn instead of the icons of the names read – a slot read
+    wrongly or not at all looks as in the game. "icons" draws as before."""
+    from fogscout.app_loadouts import look_of, placed
+    board = reader.read(_crop_frame("real_menu_two_empty.webp", True))
+    jonah = board.rows[1]
+    assert len(jonah.pics) == 8 and all(p is not None and p.shape == (loadouts.TILE, loadouts.TILE, 4)
+                                        for p in jonah.pics)
+    perk = jonah.pics[3]
+    assert perk[0, 0, 3] == 0 and perk[loadouts.TILE // 2, loadouts.TILE // 2, 3] == 255     # the diamond cut free
+    votes = Votes()
+    votes.note(board)
+    first = votes.board()
+    assert first.rows[1].pics is jonah.pics and first.rows[1].pics_n > 0
+    votes.note(board)
+    assert votes.board().key() != first.key()             # pictures of a newer look redraw the card
+    shown = Board(rows=tuple(dataclasses.replace(r, hud=(0.18, 0.5, 0.05)) for r in votes.board().rows))
+    o = {"loadouts_pos": "hud", "margin": 0.012, "loadouts_items": True}
+    assert look_of(o) == "picture" and look_of(dict(o, loadouts_look="icons")) == "icons"
+    pic = placed(o, (0, 0, 3440, 1440), shown)[0]
+    icons = placed(dict(o, loadouts_look="icons"), (0, 0, 3440, 1440), shown)[0]
+    assert pic.size == icons.size and np.asarray(pic).tobytes() != np.asarray(icons).tobytes()
+    blank = Board(rows=tuple(dataclasses.replace(r, pics=tuple(None for _ in range(8))) for r in shown.rows))
+    assert placed(o, (0, 0, 3440, 1440), blank) is not None              # a slot without a picture: the old way
 
 
 def test_nobody_takes_the_own_top_row():

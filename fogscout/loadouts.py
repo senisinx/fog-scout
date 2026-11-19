@@ -134,6 +134,10 @@ class Row:
     face: np.ndarray | None = field(default=None, compare=False, repr=False)    # FACE × FACE grey portrait
     hud: tuple | None = None                    # HudFinder: (x, y, side) of the portrait, shares of the picture
     sure: tuple = field(default=(), compare=False, repr=False)   # per slot (perks, item, add-ons): read very clearly
+    # 1.57.25 (user: "einen Screenshot vom Menü nehmen, diesen verkleinern und dessen Survivor zuteilen"): the
+    # slots as they look in the menu – perks 1–4, item, add-ons, offering (``TILE`` px BGRA, their shape cut free)
+    pics: tuple = field(default=(), compare=False, repr=False)
+    pics_n: int = 0                             # Votes: which look the pictures are from (a new one redraws)
 
     @property
     def empty(self) -> bool:
@@ -153,7 +157,8 @@ class Board:
 
     def key(self) -> tuple:
         """What is shown: the rows with at least one name, with their place in the HUD."""
-        return tuple((r.who, r.perks, r.item, r.addons, r.offering, r.own, r.hud) for r in self.rows if not r.empty)
+        return tuple((r.who, r.perks, r.item, r.addons, r.offering, r.own, r.hud, r.pics_n) for r in self.rows
+                     if not r.empty or r.pics)
 
 
 def load_names(path: str = NAMES_FILE) -> dict:
@@ -604,12 +609,50 @@ class Reader:
                                                           # own gold row counts empty too – no perks equipped)
             face = _face(frame, x0 - PORTRAIT_AT * pitch, y - PORTRAIT_UP * pitch, PORTRAIT * pitch)
             rows.append(Row(perks=perks, item=item, addons=addons, offering=offering, own=bool(_gold(back)), face=face,
-                            sure=sure))
+                            sure=sure, pics=slot_pictures(frame, x0, y, pitch)))
         empty_own = [r for r in rows if r.own and r.empty]
         if empty_own and (len(empty_own) > 1 or any(r.own and not r.empty for r in rows)):
             rows = [r for r in rows if not (r.own and r.empty)]  # a gold patch above a read own row: no row
         self.last = f"{len(rows)} Reihen, Raute {size:.0f} px"
         return Board(rows=tuple(rows), size=round(size, 1), pitch=round(pitch, 2)) if rows else None
+
+
+TILE = 64                     # 1.57.25: a slot's picture cut from the menu (px, square)
+
+
+def _tile(frame, cx: float, cy: float, side: float, shape: str = "square"):
+    """1.57.25: the slot around (cx, cy), ``side`` px, as DBD draws it – ``TILE`` × ``TILE`` BGRA, outside its shape
+    ("diamond" perk, "hexagon" offering, "square") transparent; None when it runs off the picture."""
+    import cv2
+    h, w = frame.shape[:2]
+    x0, y0 = int(round(cx - side / 2)), int(round(cy - side / 2))
+    x1, y1 = int(round(cx + side / 2)), int(round(cy + side / 2))
+    if x0 < 0 or y0 < 0 or x1 > w or y1 > h or x1 - x0 < 4 or y1 - y0 < 4:
+        return None
+    cut = cv2.resize(np.ascontiguousarray(frame[y0:y1, x0:x1, :3]), (TILE, TILE), interpolation=cv2.INTER_AREA)
+    mask = np.full((TILE, TILE), 255, np.uint8)
+    c = (TILE - 1) / 2
+    if shape == "diamond":
+        pts = [(c, 0), (TILE - 1, c), (c, TILE - 1), (0, c)]
+    elif shape == "hexagon":
+        pts = [(c + c * np.cos(np.radians(a)), c + c * np.sin(np.radians(a))) for a in range(30, 390, 60)]
+    else:
+        pts = None
+    if pts is not None:
+        mask[:] = 0
+        cv2.fillConvexPoly(mask, np.round(np.array(pts)).astype(np.int32), 255, lineType=cv2.LINE_AA)
+    return np.dstack([cut, mask])
+
+
+def slot_pictures(frame, x0: float, y: float, pitch: float) -> tuple:
+    """1.57.25: the eight slots of a menu row whose first perk is at (x0, y): perks 1–4, item, two add-ons,
+    offering – the order of ``Row``'s names."""
+    last = x0 + 3 * pitch
+    out = [_tile(frame, x0 + k * pitch, y, pitch * DIAMOND, "diamond") for k in range(4)]
+    out.append(_tile(frame, last + ITEM_AT * pitch, y, pitch * SQUARE))
+    out += [_tile(frame, last + a * pitch, y, pitch * SQUARE) for a in ADDONS_AT]
+    out.append(_tile(frame, last + OFFERING_AT * pitch, y, pitch * OFFERING, "hexagon"))
+    return tuple(out)
 
 
 class HudFinder:
@@ -729,6 +772,7 @@ class Votes:
     def __init__(self, need: int = 2):
         self.need = need
         self.looks = 0
+        self._pics_n = 0                  # 1.57.25: counts the looks whose slot pictures were taken
         self.side = 0.0                   # the menu portraits' size (px) – HudFinder scales from it
         self._hud_seen: dict = {}         # the places on the grid of the last look at the HUD
         self._last_seen = None            # (who, place) the last look chose for the only one missing (1.57.4)
@@ -781,6 +825,10 @@ class Votes:
             p = self._people[who]
             p["seen"] += 1
             p["own"] += 1 if row.own else 0
+            read = sum(1 for n in row.perks + (row.item,) + row.addons + (row.offering,) if n is not None)
+            if row.pics and read >= p.get("pics_read", -1):      # 1.57.25: the pictures of the clearest look
+                self._pics_n += 1
+                p["pics"], p["pics_read"], p["pics_n"] = row.pics, read, self._pics_n
             for slot, name in enumerate(row.perks + (row.item,) + row.addons + (row.offering,)):
                 if name is not None:              # 1.57.4: a very clear reading counts twice (the menu may be shut
                     c = p["counts"].setdefault(slot, {})          # after one look)
@@ -1007,7 +1055,7 @@ class Votes:
             names = [self._slot(p, s) for s in range(8)]
             rows.append(Row(perks=tuple(names[:4]), item=names[4], addons=tuple(names[5:7]), offering=names[7],
                             own=i == own, who=i,
-                            face=p["face"], hud=p["hud"]))
+                            face=p["face"], hud=p["hud"], pics=p.get("pics", ()), pics_n=p.get("pics_n", 0)))
         return Board(rows=tuple(rows))
 
     def reset(self) -> None:
