@@ -715,22 +715,23 @@ def test_eyes_found_a_few_pixels_off_the_diamond_search_still_make_the_grid(read
 
 
 def test_the_slots_colour_narrows_items_and_addons_to_their_rarity(reader):
-    """User (1.57.17: "Gelbe Taschenlampe von Jonah wird nicht erkannt", then "Seltenheitsfarbe auswerten"): the own
-    Worn-Out Tools (Common, brown) stayed open – the Toolbox (Uncommon) fitted its drawing 0.916 against 0.927; Jonah's
-    yellow Flashlight was once read as the Masquerade Flashlight (Event – the same yellow in the menu). The slot's
-    colour now leaves only the rarities it can be, and an item is read strictly: open rather than a wrong name."""
+    """User (1.57.17: "Gelbe Taschenlampe von Jonah wird nicht erkannt", "Seltenheitsfarbe auswerten", "Mach dass die
+    gelbe Taschenlampe erkannt wird"): the own Worn-Out Tools (Common, brown) stayed open – the Toolbox (Uncommon)
+    fitted its drawing 0.916 against 0.927; Jonah's yellow flashlight is the Banquet Flashlight (Event, patch 10.0.1),
+    which had no picture – it was read as the Masquerade Flashlight once. The slot's colour leaves only its rarity
+    (yellow = Event, green = Uncommon), the Banquet items have their pictures, an item is read strictly."""
     board = reader.read(_crop_frame("real_menu_two_empty.webp", True))
     own, jonah = board.rows
     assert own.item == "Worn-Out Tools" and own.addons[0] == "Scraps"
-    assert jonah.item in (None, "Flashlight")
+    assert jonah.item == "Banquet Flashlight"
     assert jonah.addons == ("High-End Sapphire Lens", "Long Life Battery")
     names, rarity = loadouts.load_names(), loadouts.load_rarity()
     assert rarity["items"]["Worn-Out Tools"] == 1 and rarity["items"]["Toolbox"] == 2
-    assert rarity["items"]["Masquerade Flashlight"] == 8
+    assert rarity["items"]["Masquerade Flashlight"] == 8 and rarity["items"]["Banquet Flashlight"] == 8
     assert set(rarity["items"]) == set(names["items"].values())              # every item has its rarity
     assert set(rarity["addons"]) == set(names["addons"].values())
-    for hue, sat, val, want in ((12, 117, 48, {1, 11}), (19, 238, 200, {2, 8}), (141, 165, 64, {4}),
-                                (171, 222, 104, {5}), (64, 216, 62, None), (108, 143, 41, None), (96, 60, 44, None)):
+    for hue, sat, val, want in ((12, 117, 48, {1, 11}), (19, 238, 200, {8}), (64, 216, 62, {2}), (108, 143, 41, {3}),
+                                (141, 165, 64, {4}), (171, 222, 104, {5}), (96, 60, 44, None)):
         bgr = cv2.cvtColor(np.full((1, 1, 3), (hue, sat, val), np.uint8), cv2.COLOR_HSV2BGR)[0, 0]
         frame = np.zeros((100, 100, 3), np.uint8)
         frame[:] = bgr

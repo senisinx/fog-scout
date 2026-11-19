@@ -108,15 +108,16 @@ HUD_BOX = (0.0, 0.2, 0.3, 0.88)   # where DBD's survivor list can be: share of t
 CORNER = 0.28                 # an add-on's top right corner (DBD's white "+") is left out of the comparison
 MAX_ROWS = 5                  # four survivors and the killer (left out)
 # 1.57.18 (user: "Gelbe Taschenlampe von Jonah wird nicht erkannt", then "Seltenheitsfarbe auswerten"): the slot's
-# fill colour (its corners, not the drawing) narrows an item or add-on to the rarities the wiki gives for that
-# colour – measured on the user's menus (OpenCV hue 0…180): brown 12 (Worn-Out Tools, Scraps, Butterfly Tape),
-# yellow 19 (Flashlight – Uncommon – and Winter Party Starter, Refined Serum – Event: the same yellow), purple 141
-# (Ranger Med-Kit, High-End Sapphire Lens), pink 171 (Potent Extract). Green and blue are left open: Artisan's Fog
-# Vial and Reactive Compound (Uncommon in the wiki) are green there, Long Life Battery (Rare) dark blue
+# fill colour (its corners, not the drawing) narrows an item or add-on to the rarity the wiki gives for that colour –
+# measured on 115 item and add-on slots of the user's menus (OpenCV hue 0…180), every one as the wiki says: brown
+# 11–15 Common, green 62–65 Uncommon, blue 106–111 Rare, purple 139–142 Very Rare, pink 170–171 Visceral (Ultra
+# Rare), yellow 19–21 Event (Winter Party Starter, Masquerade items, Refined Serum, the Banquet Flashlight)
 RARITY_COLOURS = (            # (hue from, hue to, saturation at least, value at least, rarities)
-    (6, 16, 70, 30, frozenset({1, 11})),      # brown: Common (and Limited – bronze, not seen yet)
-    (17, 26, 170, 120, frozenset({2, 8})),    # yellow: Uncommon and Event
-    (132, 152, 110, 40, frozenset({4})),      # purple: Very Rare
+    (8, 17, 60, 30, frozenset({1, 11})),      # brown: Common (and Limited – bronze, not seen yet)
+    (18, 26, 150, 100, frozenset({8})),       # yellow: Event
+    (55, 72, 120, 35, frozenset({2})),        # green: Uncommon
+    (100, 118, 70, 25, frozenset({3})),       # blue: Rare
+    (132, 150, 90, 35, frozenset({4})),       # purple: Very Rare
     (162, 178, 150, 60, frozenset({5})),      # pink: Visceral (Ultra Rare)
 )
 RARITY_AT = ((-0.38, -0.38), (-0.38, 0.38), (0.38, 0.38), (0.0, 0.40), (-0.40, 0.0))   # corners (never the "+")
