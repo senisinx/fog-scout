@@ -785,11 +785,35 @@ def test_debug_pictures_of_menu_and_hud_looks_are_kept_few(tmp_path):
         worker.DetectionWorker._save_loadout_look(stub, frame, "menu")
     worker.DetectionWorker._save_loadout_look(stub, frame, "hud")
     files = sorted(os.listdir(tmp_path / "debug" / "loadouts"))
-    assert sum(f.endswith("-menu.png") for f in files) == worker.LOADOUT_KEPT
-    hud = [f for f in files if f.endswith("-hud.png")]
+    assert sum(f.endswith("-menu.webp") for f in files) == worker.LOADOUT_KEPT    # 1.57.24: lossless WebP
+    hud = [f for f in files if f.endswith("-hud.webp")]
     menu = cv2.imread(str(tmp_path / "debug" / "loadouts" / files[0]))
     assert len(hud) == 1 and menu.shape[:2] == (1440, 2560 * 3 // 5)
     assert cv2.imread(str(tmp_path / "debug" / "loadouts" / hud[0])).shape[:2] == (1440, 2560 * 2 // 5)
+
+
+def test_debug_pictures_are_lossless_webp_and_old_pngs_go_with_them(tmp_path):
+    """1.57.24 (user: "Speichere die Debug-Bilder künftig als WebP" – a ZIP of the looks ran over 30 MB): the same
+    pixels as before, as lossless WebP; the PNGs of an older version count towards LOADOUT_KEPT and are cleaned up."""
+    from types import SimpleNamespace
+    from fogscout import worker
+    rng = np.random.default_rng(3)
+    pic = rng.integers(0, 256, (90, 160, 3), dtype=np.uint8)
+    worker.write_lossless(str(tmp_path / "a.webp"), pic)
+    worker.write_lossless(str(tmp_path / "b.webp"), np.dstack([pic, np.full(pic.shape[:2], 255, np.uint8)]))
+    worker.write_lossless(str(tmp_path / "c.webp"), pic[:, :, 0])
+    assert np.array_equal(cv2.imread(str(tmp_path / "a.webp")), pic)
+    assert np.array_equal(cv2.imread(str(tmp_path / "b.webp")), pic)
+    assert np.array_equal(cv2.imread(str(tmp_path / "c.webp"), cv2.IMREAD_GRAYSCALE), pic[:, :, 0])
+    d = tmp_path / "debug" / "loadouts"
+    d.mkdir(parents=True)
+    for i in range(3):
+        (d / f"20200101-00000{i}-000-menu.png").write_bytes(b"old")
+    stub = SimpleNamespace(data_dir=str(tmp_path))
+    for _ in range(worker.LOADOUT_KEPT):
+        worker.DetectionWorker._save_loadout_look(stub, np.zeros((1440, 3440, 3), np.uint8), "menu")
+    files = sorted(os.listdir(d))
+    assert len(files) == worker.LOADOUT_KEPT and all(f.endswith("-menu.webp") for f in files)
 
 
 def test_nobody_takes_the_own_top_row():

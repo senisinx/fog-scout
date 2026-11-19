@@ -27,6 +27,17 @@ from .matchend import MatchEndTracker, Signals
 from .ocr import LazyRecognizer, ModelPool
 from .textnorm import MAIN, MODEL_FILES, fold
 
+
+def write_lossless(path: str, img) -> None:
+    """1.57.24 (user: "Speichere die Debug-Bilder künftig als WebP" – a ZIP of the full-size looks ran over the 30 MB
+    an upload takes): a debug picture as lossless WebP (Pillow, method 0 – measured on the loadouts test pictures:
+    38–50 % smaller than PNG, ~70 ms instead of 30–50 ms; OpenCV's lossless WebP took 0.5–0.9 s). Same pixels."""
+    from PIL import Image
+    if img.ndim == 3 and img.shape[2] == 4:
+        img = img[:, :, :3]
+    pic = Image.fromarray(img[:, :, ::-1].copy() if img.ndim == 3 else img)
+    pic.save(path, "WEBP", lossless=True, method=0, quality=0)
+
 log = logging.getLogger("fogscout")
 END_CHECK_INTERVAL = 0.5          # seconds between two looks for result screen / lobby / loading screen …
 END_IDLE_INTERVAL = 1.0           # … and while nothing points to the end yet (whole-screen grab: ~14 MB each)
@@ -1112,8 +1123,8 @@ class DetectionWorker(threading.Thread):
         try:
             d = os.path.join(self.data_dir, "debug", "lobby")
             os.makedirs(d, exist_ok=True)
-            name = time.strftime("%Y%m%d-%H%M%S") + f"-crossplay-{button or 'x'}.png"
-            cv2.imencode(".png", img)[1].tofile(os.path.join(d, name))
+            name = time.strftime("%Y%m%d-%H%M%S") + f"-crossplay-{button or 'x'}.webp"
+            write_lossless(os.path.join(d, name), img)
             for old in sorted(f for f in os.listdir(d) if "-crossplay-" in f)[:-GLOBE_KEPT]:
                 os.remove(os.path.join(d, old))
         except Exception:
@@ -1177,8 +1188,9 @@ class DetectionWorker(threading.Thread):
             else:
                 part = frame[:, vx:vx + vw * 2 // 5]
             stamp = time.strftime("%Y%m%d-%H%M%S") + f"-{int(time.time() * 1000) % 1000:03d}"
-            cv2.imencode(".png", part)[1].tofile(os.path.join(d, f"{stamp}-{tag}.png"))
-            for old in sorted(f for f in os.listdir(d) if f.endswith(f"-{tag}.png"))[:-LOADOUT_KEPT]:
+            write_lossless(os.path.join(d, f"{stamp}-{tag}.webp"), part)
+            for old in sorted(f for f in os.listdir(d)
+                              if f.endswith((f"-{tag}.webp", f"-{tag}.png")))[:-LOADOUT_KEPT]:   # .png: before 1.57.24
                 os.remove(os.path.join(d, old))
         except Exception:
             pass
@@ -1213,7 +1225,7 @@ class DetectionWorker(threading.Thread):
             stamp = time.strftime("%Y%m%d-%H%M%S") + f"-{int(time.time() * 1000) % 1000:03d}"
             vis = img.copy()
             cv2.line(vis, (sep.x0, sep.y), (sep.x1, sep.y), (0, 0, 255), 1)
-            cv2.imencode(".png", vis)[1].tofile(os.path.join(d, f"{stamp}.png"))
+            write_lossless(os.path.join(d, f"{stamp}.webp"), vis)
             with open(os.path.join(d, f"{stamp}.txt"), "w", encoding="utf-8") as fh:
                 fh.write(f"name: {res.name_text}\nrealm: {res.realm_text}\nbest: {res.best}\nfit: {res.name_fit:.2f}\n")
             files = sorted(f for f in os.listdir(d) if os.path.isfile(os.path.join(d, f)))

@@ -1095,7 +1095,7 @@ def test_an_unreadable_globe_crop_is_kept_for_a_look(tmp_path):
         worker.DetectionWorker._save_globe(fake, img, "cancel")
         time.sleep(0.001)
     files = os.listdir(os.path.join(str(tmp_path), "debug", "lobby"))
-    assert files and len(files) <= worker.GLOBE_KEPT and all("-crossplay-cancel.png" in f for f in files)
+    assert files and len(files) <= worker.GLOBE_KEPT and all("-crossplay-cancel.webp" in f for f in files)
 
 
 def test_a_farming_mark_from_the_statistics_moves_the_recording(tmp_path):
