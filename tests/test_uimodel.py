@@ -2567,6 +2567,28 @@ def test_a_changed_history_is_joined_in_a_thread_before_the_next_map_asks_for_it
         app.quit()
 
 
+def test_the_loadouts_hide_with_the_map_when_dbd_is_not_in_front(app_root):
+    """1.57.23 (user's screenshot of a controller menu with the setting "Nur zeigen, wenn DBD das aktive Fenster ist":
+    the map was hidden, the loadouts row stayed on its own in the middle of the screen): whatever hides the map –
+    another window in front, a menu, hidden by hand – hides the loadouts too."""
+    import types
+    from fogscout.app import App
+    from fogscout.app_loadouts import SAMPLE
+    app = App(str(app_root), simulate=str(app_root / "sim"))
+    try:
+        app.loadouts_win = types.SimpleNamespace(editing=False)
+        app.settings["overlay"]["show_loadouts"] = True
+        app.show_map(next(iter(app.catalog.maps)), 1, "manual")
+        app._loadout_board, app._loadout_gen = SAMPLE, app.worker.watch_gen
+        app._map_reason = None
+        assert app._loadouts_board() == (SAMPLE, False)
+        app._map_reason = "aktives Fenster ist Browser"
+        assert app._loadouts_board() == (None, False)
+    finally:
+        app.loadouts_win = None
+        app.quit()
+
+
 def test_a_search_on_the_maps_page_filters_at_once_without_building_the_tiles_anew(app_root):
     """1.8.72: the page's search went into the event queue and showed its hits with the next overlay tick
     (≤ 250 ms later) by building every tile anew; now the App filters the one grid as soon as the event is in."""

@@ -141,6 +141,7 @@ class OverlayPlacement:
             reason = _("nichts anzuzeigen")          # info only, but no timer/server yet
         else:
             reason = self._focus_reason(o)
+        self._map_reason = reason                           # 1.57.23: the loadouts follow the map (app_loadouts)
         if wait:
             self._vis_state = "wartet"                      # the waiting card is not logged
         elif not forced:
