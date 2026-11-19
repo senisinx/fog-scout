@@ -6122,6 +6122,10 @@ T = {
     # 1.57.3: the loadouts' look
     'In einer Reihe':
         'In una riga',
+    'Bild aus dem Menü (wie im Spiel)':
+        'Immagine dal menu (come nel gioco)',
+    'Erkannte Perks (eigene Icons)':
+        'Perk riconosciuti (icone proprie)',
     'Raute (2×2)':
         'Rombo (2×2)',
     'Unter dem Namen':

@@ -10,8 +10,10 @@ from __future__ import annotations
 
 import logging
 
+import numpy as np
+
 from . import layout, loadouts
-from .appconst import LOADOUT_SPOTS, LOADOUT_STYLES
+from .appconst import LOADOUT_LOOKS, LOADOUT_SPOTS, LOADOUT_STYLES
 from .capture import IS_WIN
 from .i18n import _
 
@@ -28,8 +30,30 @@ SAMPLE = loadouts.Board(rows=(
 
 
 def icon_for(name, kind):
-    """The picture file of a name the reader gave (overlay_render.loadout_card's ``icon``)."""
-    return loadouts.icon_file(name, kind) if name else None
+    """The picture file of a name the reader gave (overlay_render.loadout_card's ``icon``); a slot cut from the
+    menu (1.57.25, a PIL picture) as it is."""
+    if name is None or not isinstance(name, str):
+        return name
+    return loadouts.icon_file(name, kind)
+
+
+def look_of(o: dict) -> str:
+    """1.57.25: "picture" – the slots as cut from the menu (default), "icons" – the names read, drawn with the
+    wiki's pictures (until 1.57.24 the only way)."""
+    return "icons" if o.get("loadouts_look", "picture") == "icons" else "picture"
+
+
+def with_pictures(row):
+    """1.57.25: ``row`` with each slot the menu showed as its picture (PIL) instead of the name read – what the menu
+    showed is what is drawn, read or not. A row without pictures stays as it is."""
+    import dataclasses
+    from PIL import Image
+    if not row.pics:
+        return row
+    names = row.perks + (row.item,) + row.addons + (row.offering,)
+    pics = [Image.fromarray(np.ascontiguousarray(p[:, :, [2, 1, 0, 3]]), "RGBA") if p is not None else name
+            for p, name in zip(row.pics, names)]          # a slot cut off the picture: its name read, as before
+    return dataclasses.replace(row, perks=tuple(pics[:4]), item=pics[4], addons=tuple(pics[5:7]), offering=pics[7])
 
 
 def style_of(o: dict) -> str:
@@ -51,6 +75,9 @@ def placed(o: dict, game, board, editing: bool = False, sample: bool = False):
     if board is None:
         return None
     rows = [r for r in board.others if sample or r.hud]
+    if not sample and look_of(o) == "picture":       # 1.57.25: the menu's own pictures
+        rows = [with_pictures(r) for r in rows]
+    rows = [r for r in rows if not r.empty]
     if not rows:
         return None
     from .overlay_render import add_border, loadout_card
@@ -159,7 +186,7 @@ class LoadoutsCard:
             self._loadouts_hide()
             return
         key = (board.key(), game, o.get("loadouts_scale"), o.get("loadouts_pos"), o.get("loadouts_xy"),
-               o.get("loadouts_style"),
+               o.get("loadouts_style"), look_of(o),
                bool(o.get("loadouts_items", True)), win.editing, sample)
         if key != getattr(self, "_loadout_key", None):
             self._loadout_key = key
@@ -221,6 +248,13 @@ class LoadoutsCard:
         """1.57.3: the perks as a 2×2 diamond or in one row."""
         key = dict((_(label), k) for k, label in LOADOUT_STYLES).get(self.loadouts_style_var.get(), "diamond")
         self.settings["overlay"]["loadouts_style"] = key
+        self._save_soon()
+        self._tick_overlay(reschedule=False)
+
+    def _loadouts_look_changed(self) -> None:
+        """1.57.25: the slots as the menu shows them, or the perks read drawn with the program's own icons."""
+        key = dict((_(label), k) for k, label in LOADOUT_LOOKS).get(self.loadouts_look_var.get(), "picture")
+        self.settings["overlay"]["loadouts_look"] = key
         self._save_soon()
         self._tick_overlay(reschedule=False)
 

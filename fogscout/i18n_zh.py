@@ -6122,6 +6122,10 @@ T = {
     # 1.57.3: the loadouts' look
     'In einer Reihe':
         '排成一行',
+    'Bild aus dem Menü (wie im Spiel)':
+        '菜单中的图像（与游戏中相同）',
+    'Erkannte Perks (eigene Icons)':
+        '识别出的技能（自带图标）',
     'Raute (2×2)':
         '菱形（2×2）',
     'Unter dem Namen':

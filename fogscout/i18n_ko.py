@@ -6122,6 +6122,10 @@ T = {
     # 1.57.3: the loadouts' look
     'In einer Reihe':
         '한 줄로',
+    'Bild aus dem Menü (wie im Spiel)':
+        '메뉴의 이미지 (게임과 동일)',
+    'Erkannte Perks (eigene Icons)':
+        '인식된 퍽 (자체 아이콘)',
     'Raute (2×2)':
         '마름모 (2×2)',
     'Unter dem Namen':

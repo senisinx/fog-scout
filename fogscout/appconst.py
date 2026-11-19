@@ -62,6 +62,8 @@ INPUT_SPOTS = [("bottom_left", N_("Links unten im Balken")), ("bottom_right", N_
 LOADOUT_SPOTS = [("hud", N_("Neben der Survivor-Liste")), ("name", N_("Unter dem Namen")),
                  ("custom", N_("Eigene Position (mit der Maus verschieben)"))]
 LOADOUT_STYLES = [("diamond", N_("Raute (2×2)")), ("row", N_("In einer Reihe"))]     # 1.57.3
+LOADOUT_LOOKS = [("picture", N_("Bild aus dem Menü (wie im Spiel)")),                  # 1.57.25
+                 ("icons", N_("Erkannte Perks (eigene Icons)"))]
 INPUT_LAYOUTS = [("auto", N_("Automatisch (zuletzt benutztes Gerät)")), ("keyboard", N_("Tastatur und Maus")),
                  ("gamepad", N_("Gamepad"))]
 

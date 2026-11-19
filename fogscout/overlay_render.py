@@ -1241,6 +1241,16 @@ _LOADOUT_ICONS: dict = {}
 
 
 def _loadout_icon(path, side: int):
+    """A slot's picture ``side`` px: ``path`` a picture file, or (1.57.25) the slot itself cut from the menu (a PIL
+    picture – cached by its identity, kept alive with it)."""
+    if isinstance(path, Image.Image):
+        key = ("menu", id(path), side)
+        got = _LOADOUT_ICONS.get(key)
+        if got is None or got[0] is not path:
+            got = _LOADOUT_ICONS[key] = (path, path.convert("RGBA").resize((side, side), Image.LANCZOS))
+            while len(_LOADOUT_ICONS) > 400:
+                _LOADOUT_ICONS.pop(next(iter(_LOADOUT_ICONS)))
+        return got[1]
     key = (path, side)
     pic = _LOADOUT_ICONS.get(key)
     if pic is None and path:

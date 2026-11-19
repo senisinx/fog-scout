@@ -7,7 +7,8 @@ from . import layout
 from . import uimodel as ui
 from .i18n import N_, _
 from .skin import STYLE_LABELS
-from .appconst import INPUT_LAYOUTS, INPUT_SPOTS, LOADOUT_SPOTS, LOADOUT_STYLES, MEDIA_NEXT_N, MEDIA_NEXT_SPOTS
+from .appconst import (INPUT_LAYOUTS, INPUT_SPOTS, LOADOUT_LOOKS, LOADOUT_SPOTS, LOADOUT_STYLES, MEDIA_NEXT_N,
+                       MEDIA_NEXT_SPOTS)
 from .appconst import (BAR_ALIGNS, HUD_ROW_LABELS, HUD_SIDES, MAP_SCALE, MEDIA_SPOTS, MEDIA_STYLES,
                           OPACITY_KEYS, PRESET_LABELS, SELECTABLE, TODAY_SPOTS)
 from .appconst import INFO_SPOTS   # noqa: F401 – 1.38.36: shared choices live in appconst
@@ -443,6 +444,15 @@ class OverlayTab:
         scb.bind("<<ComboboxSelected>>", lambda e: self._loadouts_style_changed())
         self.loadouts_style_cb = scb
         self._loadouts_style_sync()                                                   # 1.57.9
+        lr = ui.Frame(lf)                                                              # 1.57.25
+        lr.pack(fill="x", pady=(4, 0))
+        self._reg("ov.loadouts_look.label", ui.Label(lr, text=_("Bilder"), width=12)).pack(side="left")
+        looks = dict(LOADOUT_LOOKS)
+        self.loadouts_look_var = ui.StringVar(value=_(looks.get(o.get("loadouts_look", "picture"), looks["picture"])))
+        lcb = self._reg("ov.loadouts_look", ui.Combobox(lr, textvariable=self.loadouts_look_var, state="readonly",
+                                                         width=38, values=[_(t) for _k, t in LOADOUT_LOOKS]))
+        lcb.pack(side="left", padx=6)
+        lcb.bind("<<ComboboxSelected>>", lambda e: self._loadouts_look_changed())
         self.loadouts_items_var = ui.BooleanVar(value=bool(o.get("loadouts_items", True)))
         self._reg("ov.loadouts_items", ui.Checkbutton(lf, text=_("Opfergabe, Item und Add-ons neben den Perks"),
                                                       variable=self.loadouts_items_var,

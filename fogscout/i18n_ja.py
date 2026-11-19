@@ -6122,6 +6122,10 @@ T = {
     # 1.57.3: the loadouts' look
     'In einer Reihe':
         '一列に並べる',
+    'Bild aus dem Menü (wie im Spiel)':
+        'メニューの画像（ゲーム内と同じ）',
+    'Erkannte Perks (eigene Icons)':
+        '認識したパーク（独自アイコン）',
     'Raute (2×2)':
         'ひし形（2×2）',
     'Unter dem Namen':
