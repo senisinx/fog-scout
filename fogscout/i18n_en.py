@@ -4594,8 +4594,6 @@ EN = {
     # 1.57.3: the loadouts' look
     'In einer Reihe':
         'In one row',
-    'Bilder':
-        'Pictures',
     'Bild aus dem Menü (wie im Spiel)':
         'Picture from the menu (as in the game)',
     'Erkannte Perks (eigene Icons)':
