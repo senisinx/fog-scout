@@ -375,10 +375,15 @@ def test_below_each_name_the_perks_stand_in_one_row():
     pic, x, y = placed(o, (0, 0, 3440, 1440), Board(rows=rows))
     face = 0.05 * 1440
     size = int(face * layout.LOADOUT_ROW_H)
-    assert abs(x - (0.177 * 3440 + face * layout.LOADOUT_NAME_X)) <= 1          # where the names begin
-    assert abs(y - (0.504 * 1440 + face * layout.LOADOUT_NAME_Y)) <= 1          # just below the first name
+    assert abs(x - (0.177 * 3440 + face * layout.LOADOUT_NAME_X)) <= 1          # right of the status icon
+    assert abs(y - (0.504 * 1440 + face * layout.LOADOUT_NAME_Y - size / 2)) <= 1   # beside the status icon
     assert pic.size == loadout_size(size, round((0.586 - 0.504) * 1440) + size, True, row=True)
-    assert y + size < 0.586 * 1440 - face / 2                         # above the next portrait
+    assert y + size <= 0.504 * 1440 + 0.11 * face                     # 1.57.17: above the name and the bar below it
+    assert y >= 0.504 * 1440 - 1.07 * face                            # … below the row above
+    assert x >= 0.177 * 3440 + 1.96 * face                            # … right of the status icon
+    big = placed(dict(o, loadouts_scale=2.0), (0, 0, 3440, 1440), Board(rows=rows))
+    big_row = big[0].height - round((0.586 - 0.504) * 1440)           # a larger size still fits in between
+    assert big[2] >= 0.504 * 1440 - 1.07 * face and big[2] + big_row <= 0.504 * 1440 + 0.11 * face
     assert pic.width > 4 * size                                       # four perks side by side, then the item
     custom = dict(o, loadouts_pos="custom", loadouts_xy=[0.2, 0.4])
     diamond = placed(custom, (0, 0, 3440, 1440), Board(rows=rows))[0]
