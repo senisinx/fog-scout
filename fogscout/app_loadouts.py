@@ -60,6 +60,8 @@ def placed(o: dict, game, board, editing: bool = False, sample: bool = False):
     row = style_of(o) == "row"
     if row:                                          # a row of perks: as tall as the room below a name
         cluster = max(10, int(face * layout.LOADOUT_ROW_H * layout.loadout_scale(o)))
+        if spot == "name":                           # 1.57.17: between the hook / health bar and the next row
+            cluster = min(cluster, max(10, int(face * layout.LOADOUT_NAME_ROOM)))
     if spot == "name":                               # each row's top just below its name
         starts = [c + face * layout.LOADOUT_NAME_Y for _r, c in centres]
     else:                                            # beside the portrait: centred on it

@@ -379,6 +379,11 @@ def test_below_each_name_the_perks_stand_in_one_row():
     assert abs(y - (0.504 * 1440 + face * layout.LOADOUT_NAME_Y)) <= 1          # just below the first name
     assert pic.size == loadout_size(size, round((0.586 - 0.504) * 1440) + size, True, row=True)
     assert y + size < 0.586 * 1440 - face / 2                         # above the next portrait
+    assert y >= 0.504 * 1440 + 0.57 * face                            # 1.57.17: below the hook / health bar
+    assert y + size <= 0.504 * 1440 + 0.94 * face                     # … and above the next row's status icon
+    big = placed(dict(o, loadouts_scale=2.0), (0, 0, 3440, 1440), Board(rows=rows))
+    big_row = big[0].height - round((0.586 - 0.504) * 1440)           # a larger size still fits in between
+    assert big[2] == y and y + big_row <= 0.504 * 1440 + 0.94 * face
     assert pic.width > 4 * size                                       # four perks side by side, then the item
     custom = dict(o, loadouts_pos="custom", loadouts_xy=[0.2, 0.4])
     diamond = placed(custom, (0, 0, 3440, 1440), Board(rows=rows))[0]

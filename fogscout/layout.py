@@ -297,9 +297,13 @@ LOADOUT_PER_FACE = 1.3         # a survivor's perk diamond: this many portraits 
 # 1.57.3 (user: "evtl. unter dem Namen der entsprechenden Person", "Perks in einer Reihe"): the four perks in one row
 # below the name – measured on the user's HUD in portraits from the portrait's centre: the name begins 1.1 to the
 # right and ends 0.37 below; the next row's status icon begins 0.9 below
+# 1.57.17 (user: "Das Problem unter dem Namen ist, dass es Hook-State-Bar und Health-Bar versteckt"): right below
+# the name DBD draws the hook stages and the health state – measured on the user's HUD (a hooked bot): that bar ends
+# 0.57 portraits below the centre, the next row's status icon begins 0.94 below; the row goes in between
 LOADOUT_NAME_X = 1.1           # the row's left edge right of the portrait's centre
-LOADOUT_NAME_Y = 0.42          # its top below the portrait's centre
-LOADOUT_ROW_H = 0.46           # its height (a perk's diamond)
+LOADOUT_NAME_Y = 0.62          # its top below the portrait's centre (below the hook / health bar)
+LOADOUT_ROW_H = 0.30           # its height (a perk's diamond)
+LOADOUT_NAME_ROOM = 0.31       # at most this tall (a larger size would cover the next row's status icon)
 
 
 def loadout_scale(o: dict) -> float:
