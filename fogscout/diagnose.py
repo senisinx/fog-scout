@@ -216,6 +216,8 @@ def collect(app) -> str:
         lines.append(f"Loadouts (Pausenmenü): gewünscht={getattr(w, 'loadouts_wanted', None)} · letzter Blick "
                      f"{getattr(w, 'loadout_info', '–')}")            # 1.57: no names – what was found, not read
         lines.append(f"  letzter Menü-Blick: {getattr(w, 'loadout_menu_info', '–')}")      # 1.57.11
+        tally = getattr(w, "loadout_menu_tally", None) or {}     # 1.57.16: a later look hid why the others failed
+        lines.append("  Menü-Blicke dieser Runde: " + (" · ".join(f"{k} {v}×" for k, v in tally.items()) or "–"))
         lines.append(f"  Zustand: {getattr(w, 'loadout_state', '–')}")
         lines.append(f"Runde: {getattr(app, '_hist', None)} · Lobby der App: "
                      f"{ {k: v for k, v in getattr(app, '_queue', {}).items() if k != 'since'} }")
