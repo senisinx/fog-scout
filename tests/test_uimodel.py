@@ -2589,6 +2589,35 @@ def test_the_loadouts_hide_with_the_map_when_dbd_is_not_in_front(app_root):
         app.quit()
 
 
+def test_the_overview_picture_of_a_found_map_is_made_by_the_worker(app_root, monkeypatch):
+    """1.57.34 (user: "Weiter mit Optimierungen"): with the map's picture the worker makes the overview's picture
+    too – the window's thread only takes it (a map change 39 → 27 ms there, median of 12 maps); a picture of
+    another map is never taken."""
+    import threading
+    from PIL import Image
+    from fogscout.app import App
+    from fogscout.worker import Event
+    app = App(str(app_root), simulate=str(app_root / "sim"))
+    try:
+        mids = list(app.catalog.maps)[:2]
+        where = []
+        real = Image.Image.thumbnail
+        monkeypatch.setattr(Image.Image, "thumbnail",
+                            lambda self, *a, **k: where.append(threading.current_thread().name) or real(self, *a, **k))
+        done = threading.Thread(target=app._map_prefetch, args=(mids[0], 1), name="worker-like")
+        done.start()
+        done.join()
+        app._dispatch(Event("detected", dict(lobby=None, map_id=mids[0], variant=1, probability=1.0,
+                                             variant_probability=1.0, name_text="X", realm_text="Y", frames=3,
+                                             name_fit=0.0, unsure=False, latency=0.1)))
+        assert app._overview_thumb() is app._thumb_ahead[1]
+        assert "worker-like" in where and threading.main_thread().name not in where   # never the window's thread
+        app.show_map(mids[1], 1, "manual")                                # not prefetched: made here, as before
+        assert app._overview_thumb() is not None and app._overview_thumb() is not app._thumb_ahead[1]
+    finally:
+        app.quit()
+
+
 def test_a_search_on_the_maps_page_filters_at_once_without_building_the_tiles_anew(app_root):
     """1.8.72: the page's search went into the event queue and showed its hits with the next overlay tick
     (≤ 250 ms later) by building every tile anew; now the App filters the one grid as soon as the event is in."""
@@ -3762,3 +3791,25 @@ def test_a_slow_click_names_its_control_in_the_lag_list_never_its_value():
     assert _event_name(("ui", "page", "stats")) == "ui page stats"
     assert _event_name(("ui", "act", (None, "x"))) == "ui act"
     assert "secret" not in _event_name(("ui", "act", ("st.claude_key", "secret")))
+
+
+def test_the_first_looks_wait_until_the_window_is_up(app_root):
+    """1.57.34 (user: "Weiter mit Optimierungen"): with DBD already running the worker loaded its OCR models while
+    the window was being built (window 119–191 → ~97 ms on Linux without it). The App holds the worker's looks until
+    the first turn of its event loop; a worker without an App never waits."""
+    from fogscout import config, worker
+    from fogscout.app import App
+    from fogscout.catalog import Catalog
+    alone = worker.DetectionWorker(str(app_root), config.Settings(str(app_root / "alone.json")),
+                                   Catalog(str(app_root), ["en"]), queue.Queue())
+    assert alone.ui_ready.is_set()
+    app = App(str(app_root), simulate=str(app_root / "sim"))
+    try:
+        assert not app.worker.ui_ready.is_set()                 # built, the event loop has not turned yet
+        deadline = time.monotonic() + 10
+        while not app.worker.ui_ready.is_set() and time.monotonic() < deadline:
+            app.root.qapp.processEvents()
+        assert app.worker.ui_ready.is_set()
+        assert worker.UI_WAIT_S <= 10                            # never longer than a moment without a window
+    finally:
+        app.quit()
