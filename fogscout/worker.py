@@ -824,11 +824,13 @@ class DetectionWorker(threading.Thread):
                                 last_loadout, hud_looks = tick, hud_looks + 1
                                 finder = loadouts.HudFinder()
                                 with self.times.measure("loadouts"):
-                                    found = finder.find(look, loadout_votes.faces(), loadout_votes.side,
-                                                        loadout_votes.scales(look.shape[0]))
-                                    changed = loadout_votes.place(
-                                        found, loadouts.list_grid(look.shape[1], look.shape[0]))
                                     grid = loadouts.list_grid(look.shape[1], look.shape[0])
+                                    # 1.57.32: once DBD's list was seen, only its column is searched
+                                    box = (loadouts.list_box(grid, look.shape[1], look.shape[0])
+                                           if loadout_votes.list_seen else None)
+                                    found = finder.find(look, loadout_votes.faces(), loadout_votes.side,
+                                                        loadout_votes.scales(look.shape[0]), box=box)
+                                    changed = loadout_votes.place(found, grid)
                                     rows = loadout_votes.name_rows(grid)
                                     if rows:                  # 1.57.29: alike portraits – their names below them
                                         gx, gy, step, side = grid

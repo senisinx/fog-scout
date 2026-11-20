@@ -1088,6 +1088,50 @@ def test_alike_survivors_are_told_apart_even_when_their_names_are_misread():
     assert loadouts.name_cost("Thalita Lyra_O2BOT", "THAUTA LYRA Thalita Lyra O3 Oms BOT") == 1
 
 
+@pytest.mark.parametrize("before, after", [(1.0, 0.8), (0.8, 1.2), (1.2, 0.8), (1.0, 1.0)])
+def test_the_last_diamond_size_is_tried_first_and_a_new_ui_size_still_found(menu, before, after):
+    """1.57.32 (user: "Weiter mit Optimierungen"; a look took 625 ms on average): the reader tries the last board's
+    diamond size and its neighbours first (533 → 317 ms per menu look on the user's menus) – when DBD's UI size was
+    changed meanwhile the size found lies at that window's edge and all sizes are tried, the board the same as a
+    fresh reader's."""
+    def scaled(scale):
+        small = cv2.resize(menu, None, fx=scale, fy=scale,
+                           interpolation=cv2.INTER_AREA if scale < 1 else cv2.INTER_CUBIC)
+        frame = np.zeros((1440, 3440, 3), np.uint8)
+        h, w = min(1440, small.shape[0]), min(3440, small.shape[1])
+        frame[:h, :w] = small[:h, :w]
+        return frame
+    warm = loadouts.Reader()
+    warm.read(scaled(before))
+    assert warm._known is not None
+    got, fresh = warm.read(scaled(after)), loadouts.Reader().read(scaled(after))
+    assert [r.perks for r in got.rows] == [r.perks for r in fresh.rows]
+    assert got.size == fresh.size
+
+
+def test_once_the_list_is_known_only_its_column_is_searched():
+    """1.57.32: a HUD look searched 30 % × 68 % of the 16:9 picture (104–148 ms) – once DBD's list was seen at its
+    place only places on it count (``place_on_list``), so only its column is searched (``list_box``, 21–28 ms).
+    The places on the list are the same as with the whole search."""
+    for menu_name, hud_name in (("real_menu_thalitas.webp", "real_hud_thalitas.jpg"),
+                                ("real_menu_claudettes.webp", "real_hud_claudettes.jpg"),
+                                ("real_menu_twins.webp", "real_hud_twins_2.jpg")):
+        v = Votes()
+        board = loadouts.Reader().read(_crop_frame(menu_name, True))
+        v.note(board)
+        v.note(board)
+        hud = _crop_frame(hud_name, False)
+        grid = loadouts.list_grid(3440, 1440)
+        box = loadouts.list_box(grid, 3440, 1440)
+        on = lambda found: {k: a for k, a in found.items() if abs(a[0] - grid[0]) <= loadouts.HUD_COL}  # noqa: E731
+        whole = loadouts.HudFinder().find(hud, v.faces(), v.side, v.scales(1440))
+        column = loadouts.HudFinder().find(hud, v.faces(), v.side, v.scales(1440), box=box)
+        assert on(whole) == on(column), hud_name
+    assert not v.list_seen
+    v.place(column, grid)
+    assert v.list_seen
+
+
 def test_one_short_look_at_the_menu_is_enough():
     """User (1.57.14, a real match: the menu open twice for a moment – once under an add-on's tooltip, once just
     before the end – nothing shown): every strict read counts after one look (none ever differed between looks on
