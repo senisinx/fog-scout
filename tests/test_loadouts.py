@@ -945,6 +945,32 @@ def test_two_survivors_with_the_same_look_are_never_guessed():
                       "Iron Will": None}
 
 
+def test_two_alike_survivors_whose_pictures_differ_are_twins_even_when_nothing_is_read():
+    """User (1.57.25, after the slots are drawn as the menu's pictures: "Was wenn mehrere gleiche Survivor in der
+    Runde sind"): twins were told apart only by the names read – two Kates whose perks were read alike (none, or the
+    same misreading) were placed by their portraits and one Kate's pictures could stand at the other. Now their slot
+    pictures of one look decide too (one grid for all rows of a look: the same loadout ≤ 11, other loadouts 58–93
+    at 8 px); the same pictures still let either place be right."""
+    reader = loadouts.Reader()
+    board = reader.read(_crop_frame("real_menu_twins.webp", True))
+    unread = Board(rows=tuple(dataclasses.replace(r, perks=(None,) * 4, item=None, addons=(None, None), offering=None)
+                              for r in board.rows), pitch=board.pitch)
+    v = Votes()
+    for _ in range(2):
+        v.note(unread)
+    assert v.twins() == {1, 3}
+    kates = list(unread.rows)
+    kates[3] = dataclasses.replace(kates[3], pics=kates[1].pics)            # both Kates bring the same
+    same = Votes()
+    for _ in range(2):
+        same.note(Board(rows=tuple(kates), pitch=board.pitch))
+    assert same.twins() == set()
+    blind = Votes()                                                        # no pictures: as before 1.57.26
+    for _ in range(2):
+        blind.note(Board(rows=tuple(dataclasses.replace(r, pics=()) for r in unread.rows), pitch=board.pitch))
+    assert blind.twins() == set()
+
+
 def test_one_short_look_at_the_menu_is_enough():
     """User (1.57.14, a real match: the menu open twice for a moment – once under an add-on's tooltip, once just
     before the end – nothing shown): every strict read counts after one look (none ever differed between looks on
