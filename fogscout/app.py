@@ -609,10 +609,18 @@ class App(ServerTab, StatsTab, ExportDialog, RecordingsTab, DiscordPresence, Spo
         """The current map's picture for the overview page (≤ 480 px), made once per map."""
         full = getattr(self, "_thumb_full", None)
         if getattr(self, "_thumb_src", None) is None and full is not None:
-            src = full.copy()
-            src.thumbnail((480, 480))
-            self._thumb_src = src
+            ahead = getattr(self, "_thumb_ahead", None)       # 1.57.34: made by the worker with the picture
+            if ahead is not None and ahead[0] is full:
+                self._thumb_src = ahead[1]
+            else:
+                self._thumb_src = self._thumb_of(full)
         return getattr(self, "_thumb_src", None)
+
+    @staticmethod
+    def _thumb_of(full):
+        src = full.copy()
+        src.thumbnail((480, 480))
+        return src
 
     @staticmethod
     def _map_title(m, variant) -> str:
@@ -947,7 +955,12 @@ class App(ServerTab, StatsTab, ExportDialog, RecordingsTab, DiscordPresence, Spo
             return
         path, shown = self._map_file(map_id, variant, request=False)
         if path:
-            load_frames(path, self._map_rotation(map_id), self._map_title(m, shown))
+            frames = load_frames(path, self._map_rotation(map_id), self._map_title(m, shown))
+            if frames:                   # 1.57.34: the overview's picture too (~12 ms less in the window's thread)
+                full = frames[0][0]
+                ahead = getattr(self, "_thumb_ahead", None)
+                if ahead is None or ahead[0] is not full:
+                    self._thumb_ahead = (full, self._thumb_of(full))
 
     def _style_request(self, path, style):
         """1.8.21: one styled picture made in a thread (once per picture and style – one of another kind stays the
