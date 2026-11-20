@@ -27,6 +27,9 @@ Test pictures (tests/data/loadouts, every player name painted over):
   – four Claudettes in one skin, own one with Empathy, a bot without any loadout, the Obsession (DBD's brackets
   around her portrait) in the menu's last row and the HUD's second. Only the own player name painted over (the bots'
   names are DBD's: "Claudette Morel_01" …, used by the name test).
+- ``real_menu_thalitas.webp``/``real_hud_thalitas.jpg``: the worker's crops of a custom game of 1.57.30 (20.11.) –
+  own Claudette, three "Thalita Lyra" bots (one empty), the Obsession in the menu's second row. Only the own player
+  name painted over.
 - ``menu_four_rows.png``: the four icon rows of the picture of the first request (another player's menu, other
   scale; names, pings and the killer's row painted over)."""
 import dataclasses
@@ -1033,8 +1036,8 @@ def test_alike_survivors_are_told_apart_by_the_names_below_them():
     at = {r.perks[0]: round((r.hud[1] - gy) / step) if r.hud else None for r in v.board().rows}
     assert at == {"Empathy": 0, "Déjà Vu": 2, "Kindred": 1}             # _02 third in the HUD, _01 second
     assert v.name_rows(grid) == []                                      # all placed: no more reading
-    assert loadouts.name_fit("Claudette Morel o2EeT", "CLAUDETTE MOREL Claudette Morel O1 Oms BOT") < \
-        loadouts.name_fit("Claudette Morel o2EeT", "CLAUDETTE MOREL Claudette Morel O2 Oms BOT")
+    assert loadouts.name_cost("Claudette Morel o2EeT", "CLAUDETTE MOREL Claudette Morel O1 Oms BOT") > \
+        loadouts.name_cost("Claudette Morel o2EeT", "CLAUDETTE MOREL Claudette Morel O2 Oms BOT")
 
 
 def test_a_menu_a_pixel_further_is_read_on_the_same_grid():
@@ -1055,6 +1058,34 @@ def test_a_menu_a_pixel_further_is_read_on_the_same_grid():
     icon = _crop_frame("real_menu_two_empty.webp", True)
     assert loadouts._coloured(icon, 1434, 424, 52) < loadouts.PERK_COLOUR    # a bot row header's person icon
     assert loadouts._coloured(icon, 1434, 340, 64) >= loadouts.PERK_COLOUR   # the own Iron Will below it
+
+
+def test_alike_survivors_are_told_apart_even_when_their_names_are_misread():
+    """User (1.57.30, a custom game with three "Thalita Lyra" bots, one empty, ZIP of the looks): the menu's lines
+    were read "THAUTA LYRA Thalita Lyra_03 …" – one misread letter broke 1.57.29's longest common run and nobody was
+    placed in 56 HUD looks. Now the twins get the free rows all at once by the fewest changes for each HUD name to
+    stand in a menu line (``name_cost``; here 1 for the right row, 2 for the other). Only the own name is painted
+    over (the bots' names are DBD's)."""
+    from fogscout.ocr import Recognizer
+    rec = Recognizer(os.path.join(ROOT, "models", "ch_PP-OCRv4_rec_infer.onnx"))
+    text = lambda img: rec.text(rec.probs(img))                          # noqa: E731
+    menu = loadouts.Reader().read(_crop_frame("real_menu_thalitas.webp", True), text=text)
+    v = Votes()
+    for _ in range(2):
+        v.note(menu)
+    assert v.twins() == {1, 2}
+    hud = _crop_frame("real_hud_thalitas.jpg", False)
+    grid = loadouts.list_grid(3440, 1440)
+    gx, gy, step, side = grid
+    for _ in range(3):
+        v.place(loadouts.HudFinder().find(hud, v.faces(), v.side, v.scales(1440)), grid)
+        rows = v.name_rows(grid)
+        v.place_by_names({k: text(loadouts.name_box(hud, loadouts.hud_name_box((gx, gy + k * step, side), 3440,
+                                                                                1440))) for k in rows}, grid)
+    at = {r.perks[0]: round((r.hud[1] - gy) / step) if r.hud else None for r in v.board().rows}
+    assert at == {"Empathy": 0, "Déjà Vu": 1, "Kindred": 2}             # Lyra_02 second in the HUD, Lyra_03 third
+    assert loadouts.name_cost("Thalita Lyra_O2BT", "THAUTA LYRA Thalita Lyra O2 Oms BOT") == 0
+    assert loadouts.name_cost("Thalita Lyra_O2BOT", "THAUTA LYRA Thalita Lyra O3 Oms BOT") == 1
 
 
 def test_one_short_look_at_the_menu_is_enough():
