@@ -453,6 +453,30 @@ def same_face(a, b) -> float:
     return float(m[0] @ m[1])
 
 
+HUD_TWIN = 0.8                # 1.57.28: two portraits the HUD can't tell apart (their round middles, as HudFinder
+                              # compares them) – user's menus: one Claudette with and without DBD's brackets 0.89–1.00,
+                              # other survivors ≤ 0.54
+
+
+def hud_alike(a, b) -> float:
+    """1.57.28 (user's match with four Claudettes in one skin, one of them with DBD's brackets "( )" around her
+    portrait: 0.70 by ``same_face``, so no twin – and her perks were drawn one row too low): the correlation of two
+    portraits' round middles (radius ``HUD_ROUND``), the only part HudFinder compares – what decides whether the HUD
+    can tell two survivors apart. 0 when one is missing."""
+    import cv2
+    if a is None or b is None or a.shape != b.shape:
+        return 0.0
+    n = a.shape[0]
+    mask = np.zeros(a.shape[:2], np.uint8)
+    cv2.circle(mask, (n // 2, n // 2), max(2, int(n * HUD_ROUND)), 1, -1)
+    inside = mask.astype(bool)
+    x, y = a[inside].astype(np.float32), b[inside].astype(np.float32)
+    x -= x.mean()
+    y -= y.mean()
+    den = float(np.sqrt((x @ x) * (y @ y)))
+    return float(x @ y / den) if den > 1e-6 else 0.0
+
+
 def _strip(frame, x0: float, x1: float, y: float, half: float, colour: bool = False):
     """Mean HSV of the strip x0…x1 around the row's centre (the row's backdrop left of the perks). ``colour``
     (1.57.21, user's public match: The Pig's hidden offering was read as a fifth survivor "S5" and drawn over the
@@ -847,7 +871,7 @@ class Votes:
             who = self._who(row.face, index, used, row.own)
             used.add(who)
             for other, prev in seen:              # 1.57.26: two alike portraits of one look, other pictures
-                if (row.face is not None and prev.face is not None and same_face(row.face, prev.face) >= TWIN_FACE
+                if (row.face is not None and prev.face is not None and hud_alike(row.face, prev.face) >= HUD_TWIN
                         and _pics_apart(row.pics, prev.pics)):
                     self._apart.add(frozenset((who, other)))
             seen.append((who, row))
@@ -883,7 +907,7 @@ class Votes:
         for i, p in enumerate(self._people):
             for j, q in enumerate(self._people):
                 if i < j and own not in (i, j) and p["face"] is not None and q["face"] is not None \
-                        and same_face(p["face"], q["face"]) >= TWIN_FACE \
+                        and hud_alike(p["face"], q["face"]) >= HUD_TWIN \
                         and (_kit(board[i]) != _kit(board[j]) or frozenset((i, j)) in self._apart):
                     out |= {i, j}
         return out

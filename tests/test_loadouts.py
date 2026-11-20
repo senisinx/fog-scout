@@ -23,6 +23,9 @@ Test pictures (tests/data/loadouts, every player name painted over):
   within SIZE_SPAN – eight menu looks, nothing read. Player names painted over.
 - ``real_menu_two_empty.webp``: the worker's menu crop of the next custom game (1.57.15, 19.11.) – own Jake with
   Iron Will, Jonah with three eyes and Plot Twist, two bots without any loadout. Player names painted over.
+- ``real_menu_claudettes.webp``/``real_hud_claudettes.jpg``: the worker's crops of a custom game of 1.57.26 (20.11.)
+  – four Claudettes in one skin, own one with Empathy, a bot without any loadout, the Obsession (DBD's brackets
+  around her portrait) in the menu's last row and the HUD's second. Player names painted over.
 - ``menu_four_rows.png``: the four icon rows of the picture of the first request (another player's menu, other
   scale; names, pings and the killer's row painted over)."""
 import dataclasses
@@ -969,6 +972,34 @@ def test_two_alike_survivors_whose_pictures_differ_are_twins_even_when_nothing_i
     for _ in range(2):
         blind.note(Board(rows=tuple(dataclasses.replace(r, pics=()) for r in unread.rows), pitch=board.pitch))
     assert blind.twins() == set()
+
+
+def test_an_obsession_bracket_does_not_hide_that_two_survivors_look_the_same():
+    """User (1.57.26, a custom game with four Claudettes in one skin: "hier wurde den falschen Survivors die Perks
+    zugeteilt"; "Die Klammer bedeutet Obsession und dies kann immer anders sein"): one bot Claudette was the
+    Obsession – DBD's brackets "( )" around her portrait made it 0.70 like the other by ``same_face``, so the two were
+    no twins, and HudFinder (which compares only the round middle – 0.98–1.00 there) put each one's perks one row
+    too low. Now twins are decided by the round middle (``hud_alike``): neither is placed by a portrait, nothing is
+    drawn at a wrong survivor. Player names painted over."""
+    reader = loadouts.Reader()
+    menu = reader.read(_crop_frame("real_menu_claudettes.webp", True))
+    assert [r.own for r in menu.rows] == [True, False, False]          # the bot without anything is no row
+    faces = [r.face for r in menu.rows]
+    assert loadouts.same_face(faces[1], faces[2]) < loadouts.TWIN_FACE <= loadouts.hud_alike(faces[1], faces[2])
+    v = Votes()
+    for _ in range(2):
+        v.note(menu)
+    assert v.twins() == {1, 2}
+    hud = _crop_frame("real_hud_claudettes.jpg", False)
+    grid = loadouts.list_grid(3440, 1440)
+    for look in range(4):
+        v.place(loadouts.HudFinder().find(hud, v.faces(), v.side, v.scales(1440)), grid)
+        miss = v.missing() if look >= 1 else None
+        if miss:
+            v.place_last(miss[0], {c: loadouts.score_at(hud, v.faces().get(miss[0]), c) for c in miss[1]})
+    rows = v.board().rows
+    assert rows[0].own and rows[0].hud is not None
+    assert rows[1].hud is None and rows[2].hud is None              # never at the other Claudette's row
 
 
 def test_one_short_look_at_the_menu_is_enough():
