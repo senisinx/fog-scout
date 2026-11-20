@@ -802,7 +802,8 @@ class DetectionWorker(threading.Thread):
                                 if loadout_reader is None:
                                     loadout_reader = loadouts.Reader()
                                 with self.times.measure("loadouts"):
-                                    board = loadout_reader.read(look)
+                                    # 1.57.29: names only for alike portraits, only in memory (never logged)
+                                    board = loadout_reader.read(look, text=lambda img: rec.text(rec.probs(img)))
                                 self.loadout_info = f"{time.strftime('%H:%M:%S')} {loadout_reader.last}"
                                 menu_misses = 0 if board is not None else menu_misses + 1
                                 outcome = "gelesen" if board is not None else loadout_reader.last.split(", ")[-1]
@@ -827,6 +828,17 @@ class DetectionWorker(threading.Thread):
                                                         loadout_votes.scales(look.shape[0]))
                                     changed = loadout_votes.place(
                                         found, loadouts.list_grid(look.shape[1], look.shape[0]))
+                                    grid = loadouts.list_grid(look.shape[1], look.shape[0])
+                                    rows = loadout_votes.name_rows(grid)
+                                    if rows:                  # 1.57.29: alike portraits – their names below them
+                                        gx, gy, step, side = grid
+                                        read = {}
+                                        for k in rows:
+                                            cut = loadouts.name_box(look, loadouts.hud_name_box(
+                                                (gx, gy + k * step, side), look.shape[1], look.shape[0]))
+                                            if cut is not None:
+                                                read[k] = rec.text(rec.probs(cut))
+                                        changed |= loadout_votes.place_by_names(read, grid)
                                     miss = loadout_votes.missing() if hud_looks >= LOADOUT_LAST_AFTER else None
                                     if miss:              # 1.57.4: the last one, only at the free row(s)
                                         face = loadout_votes.faces().get(miss[0])

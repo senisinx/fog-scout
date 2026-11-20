@@ -138,6 +138,9 @@ class Row:
     # slots as they look in the menu – perks 1–4, item, add-ons, offering (``TILE`` px BGRA, their shape cut free)
     pics: tuple = field(default=(), compare=False, repr=False)
     pics_n: int = 0                             # Votes: which look the pictures are from (a new one redraws)
+    # 1.57.29 (user: "ja, setz das so um" – names only to tell alike portraits apart, only in memory): the menu
+    # row's line of text (character, player name, ping) as read – only for rows whose portraits look alike
+    line: str = field(default="", compare=False, repr=False)
 
     @property
     def empty(self) -> bool:
@@ -453,6 +456,30 @@ def same_face(a, b) -> float:
     return float(m[0] @ m[1])
 
 
+HUD_TWIN = 0.8                # 1.57.28: two portraits the HUD can't tell apart (their round middles, as HudFinder
+                              # compares them) – user's menus: one Claudette with and without DBD's brackets 0.89–1.00,
+                              # other survivors ≤ 0.54
+
+
+def hud_alike(a, b) -> float:
+    """1.57.28 (user's match with four Claudettes in one skin, one of them with DBD's brackets "( )" around her
+    portrait: 0.70 by ``same_face``, so no twin – and her perks were drawn one row too low): the correlation of two
+    portraits' round middles (radius ``HUD_ROUND``), the only part HudFinder compares – what decides whether the HUD
+    can tell two survivors apart. 0 when one is missing."""
+    import cv2
+    if a is None or b is None or a.shape != b.shape:
+        return 0.0
+    n = a.shape[0]
+    mask = np.zeros(a.shape[:2], np.uint8)
+    cv2.circle(mask, (n // 2, n // 2), max(2, int(n * HUD_ROUND)), 1, -1)
+    inside = mask.astype(bool)
+    x, y = a[inside].astype(np.float32), b[inside].astype(np.float32)
+    x -= x.mean()
+    y -= y.mean()
+    den = float(np.sqrt((x @ x) * (y @ y)))
+    return float(x @ y / den) if den > 1e-6 else 0.0
+
+
 def _strip(frame, x0: float, x1: float, y: float, half: float, colour: bool = False):
     """Mean HSV of the strip x0…x1 around the row's centre (the row's backdrop left of the perks). ``colour``
     (1.57.21, user's public match: The Pig's hidden offering was read as a fifth survivor "S5" and drawn over the
@@ -530,7 +557,9 @@ class Reader:
                 out.append(places[at[0]])
         return out
 
-    def read(self, frame) -> Board | None:
+    def read(self, frame, text=None) -> Board | None:
+        """``text`` (1.57.29): reads a line of text from a picture (the worker's OCR) – only the rows whose portraits
+        look alike get their line read (``Row.line``), to tell them apart in the HUD; None: no names at all."""
         found = [(s_, p_, n_) for s_, p_, n_ in _diamonds(frame, SIZE_TRIES, SIZE_MORE) if p_]
         if not found:
             self.last = "keine Rauten"
@@ -609,12 +638,37 @@ class Reader:
                                                           # own gold row counts empty too – no perks equipped)
             face = _face(frame, x0 - PORTRAIT_AT * pitch, y - PORTRAIT_UP * pitch, PORTRAIT * pitch)
             rows.append(Row(perks=perks, item=item, addons=addons, offering=offering, own=bool(_gold(back)), face=face,
-                            sure=sure, pics=slot_pictures(frame, x0, y, pitch)))
+                            sure=sure, pics=slot_pictures(frame, x0, y, pitch), line=f"@{x0:.1f},{y:.1f}"))
         empty_own = [r for r in rows if r.own and r.empty]
         if empty_own and (len(empty_own) > 1 or any(r.own and not r.empty for r in rows)):
             rows = [r for r in rows if not (r.own and r.empty)]  # a gold patch above a read own row: no row
+        rows = self._lines(frame, rows, pitch, text)
         self.last = f"{len(rows)} Reihen, Raute {size:.0f} px"
         return Board(rows=tuple(rows), size=round(size, 1), pitch=round(pitch, 2)) if rows else None
+
+    @staticmethod
+    def _lines(frame, rows: list, pitch: float, text) -> list:
+        """1.57.29: the line of text of each row whose portrait looks like another row's (not the own one) – the
+        rest get none (``line`` held only the row's place until here)."""
+        import dataclasses
+        alike = set()
+        for i, a in enumerate(rows):
+            for j, b in enumerate(rows):
+                if i < j and not a.own and not b.own and hud_alike(a.face, b.face) >= HUD_TWIN:
+                    alike |= {i, j}
+        out = []
+        for i, r in enumerate(rows):
+            line = ""
+            if text is not None and i in alike:
+                x0, y = (float(v) for v in r.line[1:].split(","))
+                cut = name_box(frame, menu_name_box(x0, y, pitch))
+                if cut is not None:
+                    try:
+                        line = text(cut) or ""
+                    except Exception:
+                        line = ""
+            out.append(dataclasses.replace(r, line=line))
+        return out
 
 
 TILE = 64                     # 1.57.25: a slot's picture cut from the menu (px, square)
@@ -653,6 +707,58 @@ def slot_pictures(frame, x0: float, y: float, pitch: float) -> tuple:
     out += [_tile(frame, last + a * pitch, y, pitch * SQUARE) for a in ADDONS_AT]
     out.append(_tile(frame, last + OFFERING_AT * pitch, y, pitch * OFFERING, "hexagon"))
     return tuple(out)
+
+
+NAME_LINE = (0.3, -1.48, 11.0, -0.92)   # 1.57.29: the menu row's line of text – x0, y0, x1, y1 in perk pitches from
+                                        # its first perk (user's menus: person icon, name, player name, ping, BOT)
+HUD_NAME = (1.1, 0.02, 5.5, 0.42)       # … the player name right below a HUD portrait, in portraits from its centre
+NAME_MIN = 5                            # a name tells twins apart from this many characters in common …
+NAME_AHEAD = 1                          # … and this many more than with the other twin
+
+
+def name_box(frame, box) -> object:
+    """1.57.29: the picture inside ``box`` (x0, y0, x1, y1 px) with DBD's orange "BOT" tag darkened (it is no part
+    of a name); None when it lies off the picture."""
+    import cv2
+    h, w = frame.shape[:2]
+    x0, y0, x1, y1 = (int(round(v)) for v in box)
+    x0, y0, x1, y1 = max(0, x0), max(0, y0), min(w, x1), min(h, y1)
+    if x1 - x0 < 8 or y1 - y0 < 6:
+        return None
+    cut = np.ascontiguousarray(frame[y0:y1, x0:x1, :3]).copy()
+    hsv = cv2.cvtColor(cut, cv2.COLOR_BGR2HSV)
+    cut[(hsv[:, :, 0] >= 5) & (hsv[:, :, 0] <= 28) & (hsv[:, :, 1] > 110) & (hsv[:, :, 2] > 90)] = 0
+    return cut
+
+
+def menu_name_box(x0: float, y: float, pitch: float) -> tuple:
+    a, b, c, d = NAME_LINE
+    return x0 + a * pitch, y + b * pitch, x0 + c * pitch, y + d * pitch
+
+
+def hud_name_box(at: tuple, width: int, height: int) -> tuple:
+    """``at`` = (x, y, side) of a HUD portrait as shares of the picture (HudFinder, list_grid)."""
+    x, y, side = at[0] * width, at[1] * height, at[2] * height
+    a, b, c, d = HUD_NAME
+    return x + a * side, y + b * side, x + c * side, y + d * side
+
+
+_SAME_LOOK = str.maketrans({"O": "0", "I": "1", "L": "1", "|": "1"})
+
+
+def fold_name(text: str) -> str:
+    """Letters and digits upper case, the ones OCR mixes up made one (O/0, I/l/1)."""
+    return "".join(ch for ch in (text or "").upper() if ch.isalnum()).translate(_SAME_LOOK)
+
+
+def name_fit(hud_text: str, line: str) -> int:
+    """1.57.29: how much of the name read in the HUD stands in a menu row's line – the longest run of characters
+    both have (folded). The character's name is in every line of alike portraits; the player name decides."""
+    import difflib
+    a, b = fold_name(hud_text), fold_name(line)
+    if not a or not b:
+        return 0
+    return difflib.SequenceMatcher(None, a, b, autojunk=False).find_longest_match(0, len(a), 0, len(b)).size
 
 
 class HudFinder:
@@ -847,13 +953,15 @@ class Votes:
             who = self._who(row.face, index, used, row.own)
             used.add(who)
             for other, prev in seen:              # 1.57.26: two alike portraits of one look, other pictures
-                if (row.face is not None and prev.face is not None and same_face(row.face, prev.face) >= TWIN_FACE
+                if (row.face is not None and prev.face is not None and hud_alike(row.face, prev.face) >= HUD_TWIN
                         and _pics_apart(row.pics, prev.pics)):
                     self._apart.add(frozenset((who, other)))
             seen.append((who, row))
             p = self._people[who]
             p["seen"] += 1
             p["own"] += 1 if row.own else 0
+            if row.line:                          # 1.57.29: the menu line of an alike portrait (memory only)
+                p["line"] = row.line
             read = sum(1 for n in row.perks + (row.item,) + row.addons + (row.offering,) if n is not None)
             if row.pics and read >= p.get("pics_read", -1):      # 1.57.25: the pictures of the clearest look
                 self._pics_n += 1
@@ -883,7 +991,7 @@ class Votes:
         for i, p in enumerate(self._people):
             for j, q in enumerate(self._people):
                 if i < j and own not in (i, j) and p["face"] is not None and q["face"] is not None \
-                        and same_face(p["face"], q["face"]) >= TWIN_FACE \
+                        and hud_alike(p["face"], q["face"]) >= HUD_TWIN \
                         and (_kit(board[i]) != _kit(board[j]) or frozenset((i, j)) in self._apart):
                     out |= {i, j}
         return out
@@ -931,6 +1039,44 @@ class Votes:
             left = [i for i in left if i not in twins]      # 1.57.13: the twins' rows (seen twice) are theirs
             if len(left) == 1 and len(rows) == 1:
                 self._people[left[0]]["hud"] = (gx, gy + rows[0] * step, side)
+        return self.board().key() != before
+
+    def name_rows(self, grid) -> list:
+        """1.57.29: the list's rows (1–3, DBD's list ``grid``) where an unplaced twin may stand – their names are
+        read only there and only while twins are left; [] otherwise."""
+        twins = [i for i in self.twins() if self._people[i]["hud"] is None and self._people[i].get("line")]
+        if not twins:
+            return []
+        gx, gy, step, side = grid
+        taken = [p["hud"][1] for p in self._people if p["hud"] is not None]
+        return [k for k in (1, 2, 3) if all(abs(y - (gy + k * step)) >= 0.5 * step for y in taken)]
+
+    def place_by_names(self, read: dict, grid) -> bool:
+        """1.57.29 (user: four Claudettes in one skin; "Weshalb sollte das mit dem Namen ein Problem sein?" – "ja"):
+        ``read`` = {row: name read below the HUD portrait there}. A twin goes to the row whose name stands in its
+        menu line clearly best (``NAME_MIN`` characters in common, ``NAME_AHEAD`` more than any other twin there
+        and than at any other row), after two looks agreeing. Names are kept nowhere else."""
+        gx, gy, step, side = grid
+        twins = [i for i in self.twins() if self._people[i]["hud"] is None and self._people[i].get("line")]
+        before = self.board().key()
+        choice = {}
+        for i in twins:
+            fits = {k: name_fit(t, self._people[i]["line"]) for k, t in read.items()}
+            if not fits:
+                continue
+            k, best = max(fits.items(), key=lambda kv: kv[1])
+            if best < NAME_MIN or any(v > best - NAME_AHEAD for kk, v in fits.items() if kk != k):
+                continue
+            others = [name_fit(read[k], self._people[j]["line"]) for j in twins if j != i]
+            if any(v > best - NAME_AHEAD for v in others):
+                continue
+            choice[i] = k
+        if len(set(choice.values())) != len(choice):
+            choice = {}                                   # two on one row: nobody
+        prev, self._name_seen = getattr(self, "_name_seen", {}), choice
+        for i, k in choice.items():
+            if prev.get(i) == k and self._people[i]["hud"] is None:
+                self._people[i]["hud"] = (gx, gy + k * step, side)
         return self.board().key() != before
 
     def place(self, found: dict, grid=None) -> bool:
@@ -1098,4 +1244,5 @@ class Votes:
         self._missed = 0
         self._twin_rows = {}
         self._apart = set()
+        self._name_seen = {}
         self._people.clear()                  # (the HUD's size, ``_ratio``, stays for the next round)
