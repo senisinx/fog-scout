@@ -30,6 +30,9 @@ Test pictures (tests/data/loadouts, every player name painted over):
 - ``real_menu_thalitas.webp``/``real_hud_thalitas.jpg``: the worker's crops of a custom game of 1.57.30 (20.11.) –
   own Claudette, three "Thalita Lyra" bots (one empty), the Obsession in the menu's second row. Only the own player
   name painted over.
+- ``real_menu_toothy_torte.webp``: the user's 2000×837 pause menu of a public match (1.57.35, 20.11.) – own Dwight
+  with the 10th anniversary event's Toothy Torte (gold hexagon), Feng without an offering, Yui a Sealed Envelope,
+  Thalita a hidden one. All player names painted over.
 - ``menu_four_rows.png``: the four icon rows of the picture of the first request (another player's menu, other
   scale; names, pings and the killer's row painted over)."""
 import dataclasses
@@ -419,6 +422,18 @@ def test_the_offering_is_read_and_a_hidden_one_is_named_so(reader, menu):
                                                 loadouts.HIDDEN_OFFERING, None]
     assert loadouts.icon_file("Petrified Oak", "offerings").endswith(".png")
     assert loadouts.icon_file(loadouts.HIDDEN_OFFERING, "offerings") is None      # drawn, not a picture
+
+
+def test_the_anniversary_toothy_torte_is_read():
+    """1.57.35 (user: "der neue kuchen wird nicht angezeigt im Spiel bei den Survivor" – "toothy torte"): the 10th
+    anniversary event's cake was no known offering (best fit Shiny Coin 0.75) and its slot stayed empty; its drawing
+    is cut from the user's menu, as the wiki's picture could not be fetched."""
+    for size in ((3440, 1440), (2560, 1071), None):
+        board = loadouts.Reader().read(           # its own reader: the shared one keeps the last grid
+            _load("real_menu_toothy_torte.webp", size))
+        assert [r.offering for r in board.rows] == ["Toothy Torte", None, "Sealed Envelope",
+                                                    loadouts.HIDDEN_OFFERING]
+    assert loadouts.icon_file("Toothy Torte", "offerings").endswith("IconFavors_toothyTorte.png")
 
 
 def test_a_hidden_offering_is_drawn_with_a_question_mark():
