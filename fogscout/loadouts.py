@@ -757,8 +757,8 @@ def slot_pictures(frame, x0: float, y: float, pitch: float) -> tuple:
 NAME_LINE = (0.3, -1.48, 11.0, -0.92)   # 1.57.29: the menu row's line of text – x0, y0, x1, y1 in perk pitches from
                                         # its first perk (user's menus: person icon, name, player name, ping, BOT)
 HUD_NAME = (1.1, 0.02, 5.5, 0.42)       # … the player name right below a HUD portrait, in portraits from its centre
-NAME_MIN = 5                            # a name tells twins apart from this many characters in common …
-NAME_AHEAD = 1                          # … and this many more than with the other twin
+NAME_COST = 0.34                        # 1.57.31: a name fits a line with at most this share of its characters changed …
+NAME_AHEAD = 1                          # … and the twins' best assignment by this many changes fewer than the next
 
 
 def name_box(frame, box) -> object:
@@ -796,14 +796,25 @@ def fold_name(text: str) -> str:
     return "".join(ch for ch in (text or "").upper() if ch.isalnum()).translate(_SAME_LOOK)
 
 
-def name_fit(hud_text: str, line: str) -> int:
-    """1.57.29: how much of the name read in the HUD stands in a menu row's line – the longest run of characters
-    both have (folded). The character's name is in every line of alike portraits; the player name decides."""
-    import difflib
+def name_cost(hud_text: str, line: str) -> int:
+    """1.57.31 (user's custom game with two "Thalita Lyra" bots: the menu's line was read "THAUTA LYRA…" – one
+    misread letter broke 1.57.29's longest common run, nobody was placed): how many characters must change (insert,
+    drop, replace) for the name read in the HUD to stand somewhere in a menu row's line – an edit distance that lets
+    the line begin and end anywhere. DBD's "BOT" tag after the HUD name is left out."""
     a, b = fold_name(hud_text), fold_name(line)
-    if not a or not b:
-        return 0
-    return difflib.SequenceMatcher(None, a, b, autojunk=False).find_longest_match(0, len(a), 0, len(b)).size
+    for tag in ("B0T", "BT", "B0"):                    # the tag, also read in part
+        if a.endswith(tag):
+            a = a[:-len(tag)]
+            break
+    if not a:
+        return 99
+    prev = [0] * (len(b) + 1)                          # free start anywhere in the line
+    for ch in a:
+        cur = [prev[0] + 1]
+        for k, bc in enumerate(b, 1):
+            cur.append(min(prev[k] + 1, cur[k - 1] + 1, prev[k - 1] + (ch != bc)))
+        prev = cur
+    return min(prev)                                   # free end anywhere
 
 
 class HudFinder:
@@ -1098,26 +1109,28 @@ class Votes:
 
     def place_by_names(self, read: dict, grid) -> bool:
         """1.57.29 (user: four Claudettes in one skin; "Weshalb sollte das mit dem Namen ein Problem sein?" – "ja"):
-        ``read`` = {row: name read below the HUD portrait there}. A twin goes to the row whose name stands in its
-        menu line clearly best (``NAME_MIN`` characters in common, ``NAME_AHEAD`` more than any other twin there
-        and than at any other row), after two looks agreeing. Names are kept nowhere else."""
+        ``read`` = {row: name read below the HUD portrait there}. 1.57.31: the twins are given the free rows all at
+        once – the assignment whose names stand best in the twins' menu lines compared with the other twins'
+        (``name_cost`` minus the best other twin's at that row), each within ``NAME_COST`` of its name and
+        ``NAME_AHEAD`` better than any other assignment – after two looks agreeing. Names are kept nowhere else."""
+        import itertools
         gx, gy, step, side = grid
         twins = [i for i in self.twins() if self._people[i]["hud"] is None and self._people[i].get("line")]
         before = self.board().key()
+        rows = [k for k, t in read.items() if t]
         choice = {}
-        for i in twins:
-            fits = {k: name_fit(t, self._people[i]["line"]) for k, t in read.items()}
-            if not fits:
-                continue
-            k, best = max(fits.items(), key=lambda kv: kv[1])
-            if best < NAME_MIN or any(v > best - NAME_AHEAD for kk, v in fits.items() if kk != k):
-                continue
-            others = [name_fit(read[k], self._people[j]["line"]) for j in twins if j != i]
-            if any(v > best - NAME_AHEAD for v in others):
-                continue
-            choice[i] = k
-        if len(set(choice.values())) != len(choice):
-            choice = {}                                   # two on one row: nobody
+        if twins and len(rows) >= len(twins):
+            cost = {(i, k): name_cost(read[k], self._people[i]["line"]) for i in twins for k in rows}
+            limit = {k: max(1, int(NAME_COST * len(fold_name(read[k])))) for k in rows}
+            # how much better a row fits this twin than the best other twin (a row that fits all alike – another
+            # alike bot's, an empty one's – says nothing; 1.57.31: the Claudettes' third row tied otherwise)
+            rel = {(i, k): cost[i, k] - min(cost[j, k] for j in twins if j != i) for i in twins for k in rows}
+            ranked = sorted((sum(rel[i, k] for i, k in zip(twins, ks)), ks)
+                            for ks in itertools.permutations(rows, len(twins)))
+            best, ks = ranked[0]
+            if (len(ranked) == 1 or ranked[1][0] - best >= NAME_AHEAD) \
+                    and all(cost[i, k] <= limit[k] for i, k in zip(twins, ks)):
+                choice = dict(zip(twins, ks))
         prev, self._name_seen = getattr(self, "_name_seen", {}), choice
         for i, k in choice.items():
             if prev.get(i) == k and self._people[i]["hud"] is None:
