@@ -764,6 +764,28 @@ def _kit(row) -> tuple:
     return row.perks, row.item, row.addons, row.offering
 
 
+PICS_APART = 25.0             # 1.57.26: two rows' slot pictures of one look differ from this mean difference on
+PICS_SIDE = 8                 # … compared at this size (user's menu with two Kates: other loadouts 58–93, the same
+                              # loadout re-encoded ≤ 11 – the rows of one look share their grid, two looks may not)
+
+
+def _pics_apart(a: tuple, b: tuple) -> bool:
+    """1.57.26 (user: "Was wenn mehrere gleiche Survivor in der Runde sind"): whether two rows of **one** look show
+    other loadouts by their slot pictures – the largest mean difference of a slot both have, inside its shape, at
+    ``PICS_SIDE`` px. Without pictures: not known – False."""
+    import cv2
+    worst = -1.0
+    for p, q in zip(a or (), b or ()):
+        if p is None or q is None:
+            continue
+        ps = cv2.resize(p, (PICS_SIDE, PICS_SIDE), interpolation=cv2.INTER_AREA).astype(np.int16)
+        qs = cv2.resize(q, (PICS_SIDE, PICS_SIDE), interpolation=cv2.INTER_AREA).astype(np.int16)
+        inside = (ps[:, :, 3] > 200) & (qs[:, :, 3] > 200)
+        if inside.any():
+            worst = max(worst, float(np.abs(ps[:, :, :3] - qs[:, :, :3])[inside].mean()))
+    return worst >= PICS_APART
+
+
 class Votes:
     """The board of one round from several looks, one entry per survivor (found again by the portrait – the
     menu's order changes): a slot shows a name once it was read ``need`` times and more often than any other name
@@ -773,6 +795,7 @@ class Votes:
         self.need = need
         self.looks = 0
         self._pics_n = 0                  # 1.57.25: counts the looks whose slot pictures were taken
+        self._apart: set = set()          # 1.57.26: {who, who} alike portraits whose pictures differed in one look
         self.side = 0.0                   # the menu portraits' size (px) – HudFinder scales from it
         self._hud_seen: dict = {}         # the places on the grid of the last look at the HUD
         self._last_seen = None            # (who, place) the last look chose for the only one missing (1.57.4)
@@ -819,9 +842,15 @@ class Votes:
         if board.pitch:
             self.side = board.pitch * PORTRAIT
         used = set()
+        seen = []                                 # (who, row) of this look
         for index, row in enumerate(board.rows):
             who = self._who(row.face, index, used, row.own)
             used.add(who)
+            for other, prev in seen:              # 1.57.26: two alike portraits of one look, other pictures
+                if (row.face is not None and prev.face is not None and same_face(row.face, prev.face) >= TWIN_FACE
+                        and _pics_apart(row.pics, prev.pics)):
+                    self._apart.add(frozenset((who, other)))
+            seen.append((who, row))
             p = self._people[who]
             p["seen"] += 1
             p["own"] += 1 if row.own else 0
@@ -845,14 +874,17 @@ class Votes:
     def twins(self) -> set:
         """1.57.13 (user's real match with two Kate Densons, one skin): survivors other than the own one whose
         portraits are the same (``TWIN_FACE``) and whose loadouts differ – the HUD can't tell which is which, so they
-        are never placed by their portrait (with the same loadout either place is right)."""
+        are never placed by their portrait (with the same loadout either place is right). 1.57.26: "differ" also
+        when their slot pictures differed in one look (``_apart``) – names read alike (none, or the same misreading)
+        must not make two loadouts the same."""
         own = self._own(gold_only=True)
         board = self.board().rows
         out = set()
         for i, p in enumerate(self._people):
             for j, q in enumerate(self._people):
                 if i < j and own not in (i, j) and p["face"] is not None and q["face"] is not None \
-                        and same_face(p["face"], q["face"]) >= TWIN_FACE and _kit(board[i]) != _kit(board[j]):
+                        and same_face(p["face"], q["face"]) >= TWIN_FACE \
+                        and (_kit(board[i]) != _kit(board[j]) or frozenset((i, j)) in self._apart):
                     out |= {i, j}
         return out
 
@@ -1065,4 +1097,5 @@ class Votes:
         self._last_seen = None
         self._missed = 0
         self._twin_rows = {}
+        self._apart = set()
         self._people.clear()                  # (the HUD's size, ``_ratio``, stays for the next round)
