@@ -191,6 +191,7 @@ class App(ServerTab, StatsTab, ExportDialog, RecordingsTab, DiscordPresence, Spo
                                       data_dir=self.data_dir)
         self.toast.on_rect = lambda r: setattr(self.worker, "toast_rect", r)    # 1.8.13: never read as the game
         self.worker.prefetch = self._map_prefetch                              # 1.57.20
+        self.worker.ui_ready.clear()            # 1.57.34: no look until the window is up (set after _qt_build)
         self.worker.start()
         self.hotkeys = self._start_hotkeys()
         self._start_step("Erkennung, Hotkeys")
@@ -232,6 +233,7 @@ class App(ServerTab, StatsTab, ExportDialog, RecordingsTab, DiscordPresence, Spo
         self._start_step("Infobereich")
         self._qt_build(start_in_tray)
         self._start_step("Steuerfenster")
+        self.root.after(0, self.worker.ui_ready.set)     # 1.57.34: the first turn of the event loop – window up
         # 1.65.1: a second start (shortcut while this one sits in the tray) asks for the window instead of
         # only saying "läuft bereits"
         self._show_event = restart.show_event_create() if IS_WIN else None

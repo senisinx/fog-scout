@@ -44,6 +44,7 @@ END_IDLE_INTERVAL = 1.0           # … and while nothing points to the end yet 
 LOADOUT_INTERVAL = 0.5           # 1.57: seconds between two looks at the pause menu's loadouts (while it is open);
                                   # 1.57.14: 0.9 before – the user opens it for a second or two
                                   # 1.57.4: every whole-screen look (1 s) – before 1.5 s, a menu open for 2 s gave one
+UI_WAIT_S = 8.0                   # 1.57.34: the first looks wait at most this long for the App's window
 LOADOUT_LOOKS = 8                 # … and after this many looks of a round the board is known: no more looks
 LOADOUT_LAST_AFTER = 2            # 1.57.4: after this many HUD looks the only one missing is looked for at the free row (1.57.7: 3 before)
 LOADOUT_HUD_LOOKS = 40            # 1.57.1: looks for the portraits in the HUD after the menu (a hurt survivor's
@@ -156,6 +157,12 @@ class DetectionWorker(threading.Thread):
     def __init__(self, root_dir: str, settings, catalog, events: queue.Queue, simulate: str | None = None,
                  data_dir: str | None = None):
         super().__init__(daemon=True, name="detector")
+        # 1.57.34 (user: "Weiter mit Optimierungen"): the looks (and the OCR models they load) wait until the App's
+        # window is up – with DBD already running both shared the start (window 119–191 → ~97 ms on Linux) – at
+        # most UI_WAIT_S; the App clears it before the start and sets it with its window. Without an App: set.
+        self.ui_ready = threading.Event()
+        self.ui_ready.set()
+        self._born = time.monotonic()
         self.root_dir = root_dir
         self.data_dir = data_dir or root_dir     # 1.30.1: debug pictures go there (models stay in root_dir)
         self.settings = settings
@@ -381,6 +388,9 @@ class DetectionWorker(threading.Thread):
                     pass
                 if not self.running:
                     break                        # 1.8.38: not return – the capture below is closed
+                if not self.ui_ready.is_set() and time.monotonic() - self._born < UI_WAIT_S:
+                    self._nap(0.1)               # 1.57.34: the window is being built – no look yet
+                    continue
 
                 # 1.16.2 (A7): the whole picture of this tick, when the look for the loading screen takes one anyway
                 # (menus and lobby, once a second) – banner strip, lobby corner, globe and currency bar are cut from

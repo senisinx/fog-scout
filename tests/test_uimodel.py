@@ -3791,3 +3791,25 @@ def test_a_slow_click_names_its_control_in_the_lag_list_never_its_value():
     assert _event_name(("ui", "page", "stats")) == "ui page stats"
     assert _event_name(("ui", "act", (None, "x"))) == "ui act"
     assert "secret" not in _event_name(("ui", "act", ("st.claude_key", "secret")))
+
+
+def test_the_first_looks_wait_until_the_window_is_up(app_root):
+    """1.57.34 (user: "Weiter mit Optimierungen"): with DBD already running the worker loaded its OCR models while
+    the window was being built (window 119–191 → ~97 ms on Linux without it). The App holds the worker's looks until
+    the first turn of its event loop; a worker without an App never waits."""
+    from fogscout import config, worker
+    from fogscout.app import App
+    from fogscout.catalog import Catalog
+    alone = worker.DetectionWorker(str(app_root), config.Settings(str(app_root / "alone.json")),
+                                   Catalog(str(app_root), ["en"]), queue.Queue())
+    assert alone.ui_ready.is_set()
+    app = App(str(app_root), simulate=str(app_root / "sim"))
+    try:
+        assert not app.worker.ui_ready.is_set()                 # built, the event loop has not turned yet
+        deadline = time.monotonic() + 10
+        while not app.worker.ui_ready.is_set() and time.monotonic() < deadline:
+            app.root.qapp.processEvents()
+        assert app.worker.ui_ready.is_set()
+        assert worker.UI_WAIT_S <= 10                            # never longer than a moment without a window
+    finally:
+        app.quit()
