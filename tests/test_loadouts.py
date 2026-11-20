@@ -1132,6 +1132,35 @@ def test_once_the_list_is_known_only_its_column_is_searched():
     assert v.list_seen
 
 
+def test_the_next_look_reads_the_last_grid_and_falls_back_when_the_menu_differs(menu):
+    """1.57.33 (user: "Loadout-Erkennung weiter optimieren"): DBD draws the menu at the same pixels every time – the
+    next look reads the last board's grid directly, without searching diamonds and perks (510 → 127 ms per look on
+    the user's menus), the board the same. Another UI size, the menu elsewhere or no menu: the search as before."""
+    key = lambda b: [(r.own, r.perks, r.item, r.addons, r.offering) for r in b.rows] if b else None  # noqa: E731
+    for name in ("real_menu_twins.webp", "real_menu_thalitas.webp", "real_menu_two_empty.webp"):
+        frame = _crop_frame(name, True)
+        reader = loadouts.Reader()
+        first = reader.read(frame)
+        again = reader.read(frame)
+        assert key(again) == key(first) and "Raster wie zuvor" in reader.last, name
+
+    def placed(scale, dx=0, dy=0):
+        small = cv2.resize(menu, None, fx=scale, fy=scale,
+                           interpolation=cv2.INTER_AREA if scale < 1 else cv2.INTER_CUBIC)
+        frame = np.zeros((1440, 3440, 3), np.uint8)
+        h, w = min(1440 - dy, small.shape[0]), min(3440 - dx, small.shape[1])
+        frame[dy:dy + h, dx:dx + w] = small[:h, :w]
+        return frame
+    for other in (placed(0.8), placed(1.2), placed(1.0, dx=300, dy=60)):
+        reader = loadouts.Reader()
+        reader.read(placed(1.0))
+        got = reader.read(other)
+        assert key(got) == key(loadouts.Reader().read(other)) and "Raster wie zuvor" not in reader.last
+    reader = loadouts.Reader()
+    reader.read(placed(1.0))
+    assert reader.read(_crop_frame("real_hud_thalitas.jpg", False)) is None
+
+
 def test_one_short_look_at_the_menu_is_enough():
     """User (1.57.14, a real match: the menu open twice for a moment – once under an add-on's tooltip, once just
     before the end – nothing shown): every strict read counts after one look (none ever differed between looks on
