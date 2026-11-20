@@ -268,4 +268,5 @@ def LOADOUTS_NOTE() -> str:        # noqa: N802 – a text, translated when aske
     return _("Als Survivor zeigt Dead by Daylight im Pausenmenü (Esc), was die anderen Survivor mitnehmen. Fog "
              "Scout liest das nur aus dem Bild, solange das Menü offen ist (ein paar Blicke je Runde), und zeigt die "
              "Perks danach als Raute neben jedem Mitspieler – Item und Add-ons auf Wunsch daneben. Als Killer wird "
-             "nichts gelesen. Nichts wird gespeichert oder gesendet, keine Namen. Einmal kurz Esc drücken reicht.")
+             "nichts gelesen. Nichts wird gespeichert oder gesendet; Spielernamen liest es nur, um gleich aussehende "
+             "Survivor auseinanderzuhalten, und nur im Arbeitsspeicher. Einmal kurz Esc drücken reicht.")

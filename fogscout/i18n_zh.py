@@ -6097,8 +6097,8 @@ T = {
     'Kommt eine Minute nach dem Ladebildschirm kein Map-Banner, sagt Fog Scout einmal je Runde, wie du mit „Bildschirm scannen“ nachhilfst – mit Ton und Meldung, auch wenn DBD im Vordergrund ist; nie in Custom Games.':
         '加载画面结束一分钟后仍没有地图横幅时，Fog Scout 每局提醒一次如何用“扫描屏幕”补救——带提示音和通知，即使 DBD 在前台；自定义对局中从不提醒。',
     # 1.57: the other survivors' loadouts
-    'Als Survivor zeigt Dead by Daylight im Pausenmenü (Esc), was die anderen Survivor mitnehmen. Fog Scout liest das nur aus dem Bild, solange das Menü offen ist (ein paar Blicke je Runde), und zeigt die Perks danach als Raute neben jedem Mitspieler – Item und Add-ons auf Wunsch daneben. Als Killer wird nichts gelesen. Nichts wird gespeichert oder gesendet, keine Namen. Einmal kurz Esc drücken reicht.':
-        '作为幸存者时，Dead by Daylight 的暂停菜单（Esc）会显示其他幸存者携带的配置。Fog Scout 只在菜单打开时从画面读取（每局看几眼），之后在每位队友旁以菱形显示技能——可选在旁边显示道具和配件。作为杀手时不读取任何内容。不保存、不发送任何东西，也不读取名字。按一次 Esc 即可。',
+    'Als Survivor zeigt Dead by Daylight im Pausenmenü (Esc), was die anderen Survivor mitnehmen. Fog Scout liest das nur aus dem Bild, solange das Menü offen ist (ein paar Blicke je Runde), und zeigt die Perks danach als Raute neben jedem Mitspieler – Item und Add-ons auf Wunsch daneben. Als Killer wird nichts gelesen. Nichts wird gespeichert oder gesendet; Spielernamen liest es nur, um gleich aussehende Survivor auseinanderzuhalten, und nur im Arbeitsspeicher. Einmal kurz Esc drücken reicht.':
+        '作为幸存者时，Dead by Daylight 的暂停菜单（Esc）会显示其他幸存者携带的配置。Fog Scout 只在菜单打开时从画面读取（每局看几眼），之后在每位队友旁以菱形显示技能——可选在旁边显示道具和配件。作为杀手时不读取任何内容。不保存、不发送任何东西；只为区分外观相同的幸存者才读取玩家名字，且只在内存中。按一次 Esc 即可。',
     'Nur als Survivor: im Match einmal Esc drücken – Fog Scout liest die Loadouts der anderen aus dem Bild des Menüs und zeigt sie danach neben ihnen. Nichts wird gespeichert oder gesendet.':
         '仅限幸存者：比赛中按一次 Esc——Fog Scout 从菜单画面读取其他人的配置，之后显示在他们旁边。不保存也不发送任何内容。',
     'Neben jedem anderen Survivor in der Liste links erscheinen seine vier Perks als Raute – gelesen aus dem Pausenmenü (Esc), das DBD Survivorn zeigt. Nur das Bild wird gelesen, nur bei offenem Menü, nie als Killer; nichts wird gespeichert oder gesendet.':

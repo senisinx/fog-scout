@@ -25,7 +25,8 @@ Test pictures (tests/data/loadouts, every player name painted over):
   Iron Will, Jonah with three eyes and Plot Twist, two bots without any loadout. Player names painted over.
 - ``real_menu_claudettes.webp``/``real_hud_claudettes.jpg``: the worker's crops of a custom game of 1.57.26 (20.11.)
   – four Claudettes in one skin, own one with Empathy, a bot without any loadout, the Obsession (DBD's brackets
-  around her portrait) in the menu's last row and the HUD's second. Player names painted over.
+  around her portrait) in the menu's last row and the HUD's second. Only the own player name painted over (the bots'
+  names are DBD's: "Claudette Morel_01" …, used by the name test).
 - ``menu_four_rows.png``: the four icon rows of the picture of the first request (another player's menu, other
   scale; names, pings and the killer's row painted over)."""
 import dataclasses
@@ -1000,6 +1001,40 @@ def test_an_obsession_bracket_does_not_hide_that_two_survivors_look_the_same():
     rows = v.board().rows
     assert rows[0].own and rows[0].hud is not None
     assert rows[1].hud is None and rows[2].hud is None              # never at the other Claudette's row
+
+
+def test_alike_survivors_are_told_apart_by_the_names_below_them():
+    """User (1.57.28: "Erkläre mir, wie du unterscheidest, zu wem das gehört, wenn alle 4 Porträts gleich aussehen" –
+    "Weshalb sollte das mit dem Namen ein Problem sein? Wir laden dies ja nirgends hoch" – "ja, setz das so um"):
+    for portraits the HUD can't tell apart the worker reads the menu row's line and the name below each free HUD
+    portrait (OCR, only there, only in memory) – each Claudette goes to the row whose name stands in her line
+    ("Claudette Morel_02" in the HUD, "… Claudette Morel_02 0 ms BOT" in the menu; O/0, I/l/1 alike). Only the own
+    player name is painted over in these pictures (the bots' names are DBD's)."""
+    from fogscout.ocr import Recognizer
+    rec = Recognizer(os.path.join(ROOT, "models", "ch_PP-OCRv4_rec_infer.onnx"))
+    text = lambda img: rec.text(rec.probs(img))                          # noqa: E731
+    reader = loadouts.Reader()
+    menu = reader.read(_crop_frame("real_menu_claudettes.webp", True), text=text)
+    assert [bool(r.line) for r in menu.rows] == [False, True, True]       # the own row and lone faces: never read
+    assert "02" in loadouts.fold_name(menu.rows[1].line) and "01" in loadouts.fold_name(menu.rows[2].line)
+    assert not reader.read(_crop_frame("real_menu_claudettes.webp", True)).rows[1].line     # no OCR: no names
+    v = Votes()
+    for _ in range(2):
+        v.note(menu)
+    hud = _crop_frame("real_hud_claudettes.jpg", False)
+    grid = loadouts.list_grid(3440, 1440)
+    gx, gy, step, side = grid
+    for _ in range(3):
+        v.place(loadouts.HudFinder().find(hud, v.faces(), v.side, v.scales(1440)), grid)
+        rows = v.name_rows(grid)
+        read = {k: text(loadouts.name_box(hud, loadouts.hud_name_box((gx, gy + k * step, side), 3440, 1440)))
+                for k in rows}
+        v.place_by_names(read, grid)
+    at = {r.perks[0]: round((r.hud[1] - gy) / step) if r.hud else None for r in v.board().rows}
+    assert at == {"Empathy": 0, "Déjà Vu": 2, "Kindred": 1}             # _02 third in the HUD, _01 second
+    assert v.name_rows(grid) == []                                      # all placed: no more reading
+    assert loadouts.name_fit("Claudette Morel o2EeT", "CLAUDETTE MOREL Claudette Morel O1 Oms BOT") < \
+        loadouts.name_fit("Claudette Morel o2EeT", "CLAUDETTE MOREL Claudette Morel O2 Oms BOT")
 
 
 def test_one_short_look_at_the_menu_is_enough():
