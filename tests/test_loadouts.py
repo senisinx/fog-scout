@@ -1037,6 +1037,26 @@ def test_alike_survivors_are_told_apart_by_the_names_below_them():
         loadouts.name_fit("Claudette Morel o2EeT", "CLAUDETTE MOREL Claudette Morel O2 Oms BOT")
 
 
+def test_a_menu_a_pixel_further_is_read_on_the_same_grid():
+    """User (1.57.26: "untersuche den 1-Pixel-Raster-Fehler"): the coarse search (at half size) found the first perk
+    column 7–9 px too far right – one pixel more and no first perk was hit: the second column became "perk 1" and
+    every slot was read one place too far right; and the grey person icon of each row's header (read as "This Is
+    Not Happening" at a smaller size) won the size choice at every odd offset. Now a clearly read column left of
+    the grid moves it there, and a hit needs a coloured diamond (``PERK_COLOUR``) – measured on five real menus
+    shifted 1–3 px: 32.2 % → 1.5 % of the slots read otherwise, 7 → 0 boards lost."""
+    reader = loadouts.Reader()
+    for name, first in (("real_menu_twins.webp", ("Fixated", "We're Gonna Live Forever")),
+                        ("real_menu_two_empty.webp", ("Iron Will", None))):
+        frame = _crop_frame(name, True)
+        for dx in (0, 1, 2, 3):
+            board = reader.read(np.roll(frame, dx, axis=1))
+            assert board.rows[0].perks[:2] == first, (name, dx)
+            assert not any("This Is Not Happening" in r.perks for r in board.rows), (name, dx)
+    icon = _crop_frame("real_menu_two_empty.webp", True)
+    assert loadouts._coloured(icon, 1434, 424, 52) < loadouts.PERK_COLOUR    # a bot row header's person icon
+    assert loadouts._coloured(icon, 1434, 340, 64) >= loadouts.PERK_COLOUR   # the own Iron Will below it
+
+
 def test_one_short_look_at_the_menu_is_enough():
     """User (1.57.14, a real match: the menu open twice for a moment – once under an add-on's tooltip, once just
     before the end – nothing shown): every strict read counts after one look (none ever differed between looks on

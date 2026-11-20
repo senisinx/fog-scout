@@ -436,6 +436,25 @@ def _diamonds(frame, sizes: int = 1, more: int = 0) -> list:
     return [(s / f, peaks, near) for s, peaks, near in out]
 
 
+PERK_COLOUR = 0.04            # 1.57.30: a perk hit's diamond has at least this share of coloured pixels (user's menus:
+                              # perks 0.07–0.83; the grey person icon of the other rows' headers 0.00 – read as "This
+                              # Is Not Happening" 0.82 at a smaller size, it won the size choice at every odd pixel
+                              # offset; the own row's icon on gold reaches 0.16, but one row alone never wins it)
+
+
+def _coloured(frame, cx: float, cy: float, side: float) -> float:
+    """Share of coloured pixels (saturation > 70, value > 50) inside the diamond of ``side`` px around (cx, cy)."""
+    import cv2
+    n = int(side)
+    x0, y0 = int(round(cx - n / 2)), int(round(cy - n / 2))
+    h, w = frame.shape[:2]
+    if n < 4 or x0 < 0 or y0 < 0 or x0 + n > w or y0 + n > h:
+        return 0.0
+    hsv = cv2.cvtColor(np.ascontiguousarray(frame[y0:y0 + n, x0:x0 + n, :3]), cv2.COLOR_BGR2HSV)
+    inside = _diamond_mask(n) > 0
+    return float(((hsv[:, :, 1] > 70) & (hsv[:, :, 2] > 50))[inside].mean())
+
+
 def _face(frame, cx: float, cy: float, side: float):
     """The grey FACE × FACE picture of the square around (cx, cy), None outside the picture."""
     import cv2
@@ -554,8 +573,33 @@ class Reader:
             fx, fy = places[at[0]]
             places, at = [], []                          # … then fine around the best place
             if self.perks.best(_cuts(frame, fx, fy, size, places=places), at)[0] is not None:
-                out.append(places[at[0]])
+                if _coloured(frame, *places[at[0]], size) >= PERK_COLOUR:
+                    out.append(places[at[0]])
         return out
+
+    def _first_column(self, frame, hits: list, x0: float, pitch: float, size: float) -> tuple:
+        """1.57.30 (user: "untersuche den 1-Pixel-Raster-Fehler"): the coarse search (at ``LOCATE_H``) finds the
+        first perk column 7–9 px too far right – on the user's menu one of four first perks was hit, one pixel more
+        and none: the second column became "perk 1", every slot was read (and cut) one place too far right. While
+        fewer than four columns are hit, a column left of the grid is looked at: a perk read there clearly (strict,
+        like any other slot) moves the grid's start to it."""
+        for _ in range(3):
+            cols = {round((x - x0) / pitch) for x, _y in hits}
+            if not cols or max(cols) >= 3:
+                break
+            rows = []
+            for y in sorted(y for _x, y in hits):
+                if rows and y - rows[-1][-1] <= ROW_TOL * size:
+                    rows[-1].append(y)
+                else:
+                    rows.append([y])
+            left = x0 - pitch
+            found = [(left, float(np.mean(r))) for r in rows
+                     if self.perks.best(_fine_cuts(self.perks, frame, left, float(np.mean(r)), pitch * DIAMOND))[0]]
+            if not found:
+                break
+            x0, hits = left, hits + found
+        return x0, hits
 
     def read(self, frame, text=None) -> Board | None:
         """``text`` (1.57.29): reads a line of text from a picture (the worker's OCR) – only the rows whose portraits
@@ -588,6 +632,7 @@ class Reader:
         # only perks on that grid (the HUD's own perks bottom right sit half a step apart: no menu)
         hits = [(x, y) for x, y in hits
                 if abs((x - x0) / pitch - round((x - x0) / pitch)) <= GRID_TOL and 0 <= round((x - x0) / pitch) <= 3]
+        x0, hits = self._first_column(frame, hits, x0, pitch, size)
         lines = []
         for x, y in sorted(hits, key=lambda p: p[1]):
             for line in lines:
