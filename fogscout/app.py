@@ -70,6 +70,8 @@ def _event_name(ev) -> str:
     """Short name of an event for the lag list of the diagnosis ("ui page stats", "detected" …)."""
     if isinstance(ev, tuple):
         parts = [str(x) for x in ev[:3] if isinstance(x, str)]
+        if len(ev) >= 3 and isinstance(ev[2], tuple) and ev[2] and isinstance(ev[2][0], str):
+            parts.append(ev[2][0])            # 1.57.27: "ui act st.update_check" – the control, never its value
         return " ".join(parts)[:60]
     return str(getattr(ev, "kind", type(ev).__name__))
 

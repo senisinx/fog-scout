@@ -3752,3 +3752,13 @@ def test_the_new_statistics_say_what_is_missing_and_how_to_get_it(app_root):
         assert not app.stats_pairs.get_children()
     finally:
         app.quit()
+
+
+def test_a_slow_click_names_its_control_in_the_lag_list_never_its_value():
+    """1.57.27 (user's diagnosis 1.57.26: "Ereignis ui act 11052 ms" – which click was it?): the lag list names the
+    control of a click ("ui act ov.loadouts_look"), never the value typed or chosen (could be a path or a name)."""
+    from fogscout.app import _event_name
+    assert _event_name(("ui", "act", ("ov.loadouts_look", "Bild aus dem Menü"))) == "ui act ov.loadouts_look"
+    assert _event_name(("ui", "page", "stats")) == "ui page stats"
+    assert _event_name(("ui", "act", (None, "x"))) == "ui act"
+    assert "secret" not in _event_name(("ui", "act", ("st.claude_key", "secret")))
