@@ -608,8 +608,11 @@ class Reader:
         1.57.32 (user: "Weiter mit Optimierungen"; diagnosis: a look 625 ms on average, half of it trying 25 diamond
         sizes): the size of the last board read is tried first with its neighbours (``KNOWN_SPAN``) – DBD's UI size
         stays put; only when that gives no board of two rows are all sizes tried."""
+        board = self._again(frame, text)               # 1.57.33: the last grid, read directly
+        if board is not None:
+            self.last = f"{len(board.rows)} Reihen, Raute {board.size:.0f} px (Raster wie zuvor)"
+            return board
         known = getattr(self, "_known", None)
-        board = None
         if known is not None:
             board = self._read(frame, text, [s for s in SIZES if abs(s - known) <= KNOWN_SPAN])
             if board is not None and (len(board.rows) < 2  # the size chosen at the window's edge: the UI size
@@ -672,8 +675,29 @@ class Reader:
             self.last = f"{len(peaks)} Rauten, kein Raster"     # perks) – and with only the own row nothing to show
             return None
         found_ys = [y for y, _line in kept]
+        grid_rows = list(_menu_rows(found_ys, pitch, frame.shape[0]))
+        self._grid = (frame.shape[:2], x0, pitch, size, tuple(y for y, _i in grid_rows), tuple(found_ys))
+        return self._rows_on(frame, text, x0, pitch, size, grid_rows, found_ys)
+
+    def _again(self, frame, text) -> Board | None:
+        """1.57.33 (user: "Loadout-Erkennung weiter optimieren"): DBD draws the menu at the same pixels every time –
+        the grid of the last board read is read again directly (no diamond or perk search); a row counts as found
+        (not inferred) where a perk diamond is coloured (``PERK_COLOUR``). None when that gives no board of two rows
+        with a clear perk – then the search as before."""
+        known = getattr(self, "_grid", None)
+        if known is None or known[0] != frame.shape[:2]:
+            return None
+        _shape, x0, pitch, size, ys, found_ys = known
+        grid_rows = [(y, not any(_coloured(frame, x0 + k * pitch, y, pitch * DIAMOND) >= PERK_COLOUR
+                                 for k in range(4))) for y in ys]
+        board = self._rows_on(frame, text, x0, pitch, size, grid_rows, list(found_ys))
+        if board is None or len(board.rows) < 2 or not any(r.sure and any(r.sure[:4]) for r in board.rows):
+            return None
+        return board
+
+    def _rows_on(self, frame, text, x0: float, pitch: float, size: float, grid_rows, found_ys) -> Board | None:
         rows = []
-        for y, inferred in _menu_rows(found_ys, pitch, frame.shape[0]):
+        for y, inferred in grid_rows:
             if len(rows) >= MAX_ROWS:
                 break
             back = _strip(frame, x0 - 1.2 * pitch, x0 - 0.7 * pitch, y, 0.25 * pitch)
