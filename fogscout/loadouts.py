@@ -44,6 +44,7 @@ LOCATE_H = 720                # the picture is searched for diamonds at this hei
 FILL_VAL = 90                 # a slot (rarity fill + white drawing) is brighter than this; the menu's backdrop and the
                               # own row's gold are darker (user's 3440×1440 menu: 45–80, diamonds ≥ 100)
 SIZES = range(14, 64, 2)      # diamond sizes tried at LOCATE_H (≈ 2–9 % of the height)
+KNOWN_SPAN = 4                # 1.57.32: after a board, first only the sizes this close to its size (at LOCATE_H)
 MIN_FIT = 0.5                 # the best diamond: its share of bright pixels where they should be
 PEAK_FIT = 0.3                # any other place looked at: at least this fit (the perk's drawing decides)
 MAX_PEAKS = 60
@@ -394,11 +395,11 @@ def _diamond_mask(s: int) -> np.ndarray:
     return t
 
 
-def _diamonds(frame, sizes: int = 1, more: int = 0) -> list:
+def _diamonds(frame, sizes: int = 1, more: int = 0, only=None) -> list:
     """[(size, [(x, y), …], near), …] of the perk diamonds in the picture (full-size pixels) for the ``sizes`` diamond
     sizes that fit best (1.57.9: the fit is flat over a few sizes – a menu full of bright eyes fitted 26 best, 32 was
     right), best first, ``near`` = within SIZE_SPAN of the best; then up to ``more`` further sizes fitting at least
-    MIN_FIT (``near`` False); [] when none fits."""
+    MIN_FIT (``near`` False); [] when none fits. ``only`` (1.57.32): try just these sizes (at LOCATE_H)."""
     import cv2
     h, w = frame.shape[:2]
     f = LOCATE_H / h
@@ -406,7 +407,7 @@ def _diamonds(frame, sizes: int = 1, more: int = 0) -> list:
     hsv = cv2.cvtColor(small, cv2.COLOR_BGR2HSV)
     fill = (hsv[..., 2] > FILL_VAL).astype(np.float32)
     fits = []
-    for s in SIZES:
+    for s in (SIZES if only is None else only):
         t = _diamond_mask(s)
         r = cv2.matchTemplate(fill, t, cv2.TM_CCORR) / float((t > 0).sum())
         fits.append((float(r.max()), s, r))
@@ -603,8 +604,25 @@ class Reader:
 
     def read(self, frame, text=None) -> Board | None:
         """``text`` (1.57.29): reads a line of text from a picture (the worker's OCR) – only the rows whose portraits
-        look alike get their line read (``Row.line``), to tell them apart in the HUD; None: no names at all."""
-        found = [(s_, p_, n_) for s_, p_, n_ in _diamonds(frame, SIZE_TRIES, SIZE_MORE) if p_]
+        look alike get their line read (``Row.line``), to tell them apart in the HUD; None: no names at all.
+        1.57.32 (user: "Weiter mit Optimierungen"; diagnosis: a look 625 ms on average, half of it trying 25 diamond
+        sizes): the size of the last board read is tried first with its neighbours (``KNOWN_SPAN``) – DBD's UI size
+        stays put; only when that gives no board of two rows are all sizes tried."""
+        known = getattr(self, "_known", None)
+        board = None
+        if known is not None:
+            board = self._read(frame, text, [s for s in SIZES if abs(s - known) <= KNOWN_SPAN])
+            if board is not None and (len(board.rows) < 2  # the size chosen at the window's edge: the UI size
+                                      or abs(board.size * LOCATE_H / frame.shape[0] - known) >= KNOWN_SPAN - 0.5):
+                board = None                               # changed, the right one may lie outside – all sizes
+        if board is None:
+            board = self._read(frame, text, None)
+        if board is not None and board.size:
+            self._known = round(board.size * LOCATE_H / frame.shape[0])
+        return board
+
+    def _read(self, frame, text, only) -> Board | None:
+        found = [(s_, p_, n_) for s_, p_, n_ in _diamonds(frame, SIZE_TRIES, SIZE_MORE, only) if p_]
         if not found:
             self.last = "keine Rauten"
             return None
@@ -821,13 +839,18 @@ class HudFinder:
     """Finds the menu's portraits in DBD's survivor list (the HUD left in the picture) – by the picture, never by
     a name. ``find`` gives {who: (x, y, side)} as shares of the picture for each portrait found clearly."""
 
-    def find(self, frame, faces: dict, menu_side: float, scales=HUD_SCALES) -> dict:
+    def find(self, frame, faces: dict, menu_side: float, scales=HUD_SCALES, box=None) -> dict:
+        """``box`` (1.57.32): only this part of the picture (x0, y0, x1, y1 as shares) – DBD's list column once it
+        was seen there (``list_box``); otherwise the whole ``HUD_BOX``."""
         import cv2
         h, w = frame.shape[:2]
         vw, vh = min(w, h * 16 / 9), min(h, w * 9 / 16)
         vx, vy = (w - vw) / 2, (h - vh) / 2
         bx0, by0 = int(vx + HUD_BOX[0] * vw), int(vy + HUD_BOX[1] * vh)
         bx1, by1 = int(vx + HUD_BOX[2] * vw), int(vy + HUD_BOX[3] * vh)
+        if box is not None:
+            bx0, by0 = max(bx0, int(box[0] * w)), max(by0, int(box[1] * h))
+            bx1, by1 = min(bx1, int(box[2] * w)), min(by1, int(box[3] * h))
         if bx1 - bx0 < 20 or by1 - by0 < 20 or not faces or menu_side <= 0:
             return {}
         half = 0.5                                       # searched at half size: four times faster
@@ -870,6 +893,18 @@ def list_grid(width: int, height: int):
     vx = (width - vw) / 2
     x, y, step, side = HUD_LIST
     return ((vx + x * vw) / width, y, step, side)
+
+
+def list_box(grid, width: int, height: int) -> tuple:
+    """1.57.32 (user: "Weiter mit Optimierungen"; a HUD look 106–141 ms, 56 looks in one round): the part of the
+    picture DBD's list ``grid`` (list_grid) can hold – its column (``HUD_COL`` and a portrait each side) and its four
+    rows (a portrait above and below) – as shares (x0, y0, x1, y1). Only places in it count once the list was seen
+    (``Votes.place_on_list``)."""
+    gx, gy, step, side = grid
+    pad = 1.6 * side * height                        # a portrait and a half: bigger HUD sizes (Votes.scales) fit
+    x0, x1 = gx * width - HUD_COL * width - pad, gx * width + HUD_COL * width + pad
+    y0, y1 = (gy - 1.6 * side) * height, (gy + 3 * step + 1.6 * side) * height
+    return max(0.0, x0 / width), max(0.0, y0 / height), min(1.0, x1 / width), min(1.0, y1 / height)
 
 
 def on_grid(found: dict) -> dict:
@@ -1028,6 +1063,11 @@ class Votes:
                     sure = slot < len(row.sure) and row.sure[slot]
                     c[name] = c.get(name, 0) + (2 if sure else 1)
         return self.board().key() != before
+
+    @property
+    def list_seen(self) -> bool:
+        """DBD's list was found at its usual place (``place_on_list``) – from then on only it counts."""
+        return bool(self._list_seen)
 
     def faces(self) -> dict:
         """{who: portrait} of every survivor with a portrait – all are looked for in each look (one found at a wrong
