@@ -6097,12 +6097,12 @@ T = {
     'Kommt eine Minute nach dem Ladebildschirm kein Map-Banner, sagt Fog Scout einmal je Runde, wie du mit „Bildschirm scannen“ nachhilfst – mit Ton und Meldung, auch wenn DBD im Vordergrund ist; nie in Custom Games.':
         'ロード画面の1分後にマップバナーが出ない場合、Fog Scout はラウンドごとに1回「画面をスキャン」での補い方を知らせます。DBD が前面でも音と通知あり。カスタムゲームでは知らせません。',
     # 1.57: the other survivors' loadouts
-    'Als Survivor zeigt Dead by Daylight im Pausenmenü (Esc), was die anderen Survivor mitnehmen. Fog Scout liest das nur aus dem Bild, solange das Menü offen ist (ein paar Blicke je Runde), und zeigt die Perks danach als Raute neben jedem Mitspieler – Item und Add-ons auf Wunsch daneben. Als Killer wird nichts gelesen. Nichts wird gespeichert oder gesendet; Spielernamen liest es nur, um gleich aussehende Survivor auseinanderzuhalten, und nur im Arbeitsspeicher. Einmal kurz Esc drücken reicht.':
-        'サバイバーの時、Dead by Daylight のポーズメニュー（Esc）に他のサバイバーの持ち物が表示されます。Fog Scout はメニューが開いている間だけ画面から読み取り（1ラウンドに数回）、その後、各味方の横にパークをひし形で表示します。アイテムとアドオンも横に表示できます。キラーの時は何も読み取りません。何も保存・送信しません。プレイヤー名は見た目が同じサバイバーを区別するためだけに、メモリ内でのみ読み取ります。Esc を一度押すだけで十分です。',
-    'Nur als Survivor: im Match einmal Esc drücken – Fog Scout liest die Loadouts der anderen aus dem Bild des Menüs und zeigt sie danach neben ihnen. Nichts wird gespeichert oder gesendet.':
-        'サバイバーのみ：試合中に Esc を一度押すと、Fog Scout がメニュー画面から他の人のロードアウトを読み取り、その後それぞれの横に表示します。何も保存・送信しません。',
-    'Neben jedem anderen Survivor in der Liste links erscheinen seine vier Perks als Raute – gelesen aus dem Pausenmenü (Esc), das DBD Survivorn zeigt. Nur das Bild wird gelesen, nur bei offenem Menü, nie als Killer; nichts wird gespeichert oder gesendet.':
-        '左のリストの他のサバイバーそれぞれの横に、その4つのパークがひし形で表示されます。DBD がサバイバーに見せるポーズメニュー（Esc）から読み取ります。読むのは画面だけ、メニューが開いている間だけ、キラーの時は読みません。何も保存・送信しません。',
+    'Als Survivor zeigt Dead by Daylight im Pausenmenü (Esc), was die anderen Survivor mitnehmen. Fog Scout liest das nur aus dem Bild, solange das Menü offen ist (ein paar Blicke je Runde), und zeigt die Perks danach als Raute neben jedem Mitspieler – Item und Add-ons auf Wunsch daneben. Als Killer zeigt das Menü nur die Opfergaben der Survivor – die stehen dann neben ihnen. Nichts wird gespeichert oder gesendet; Spielernamen liest es nur, um gleich aussehende Survivor auseinanderzuhalten, und nur im Arbeitsspeicher. Einmal kurz Esc drücken reicht.':
+        'サバイバーの時、Dead by Daylight のポーズメニュー（Esc）に他のサバイバーの持ち物が表示されます。Fog Scout はメニューが開いている間だけ画面から読み取り（1ラウンドに数回）、その後、各味方の横にパークをひし形で表示します。アイテムとアドオンも横に表示できます。キラーの時はメニューにサバイバーの供物だけが表示され、それを各サバイバーの横に表示します。何も保存・送信しません。プレイヤー名は見た目が同じサバイバーを区別するためだけに、メモリ内でのみ読み取ります。Esc を一度押すだけで十分です。',
+    'Im Match einmal Esc drücken – Fog Scout liest die Loadouts der anderen Survivor (als Killer ihre Opfergaben) aus dem Bild des Menüs und zeigt sie danach neben ihnen. Nichts wird gespeichert oder gesendet.':
+        '試合中に Esc を一度押すと、Fog Scout がメニュー画面から他のサバイバーのロードアウト（キラーの時は供物）を読み取り、その後それぞれの横に表示します。何も保存・送信しません。',
+    'Neben jedem anderen Survivor in der Liste links erscheinen seine vier Perks als Raute – gelesen aus dem Pausenmenü (Esc); als Killer seine Opfergabe. Nur das Bild wird gelesen, nur bei offenem Menü; nichts wird gespeichert oder gesendet.':
+        '左のリストの他のサバイバーそれぞれの横に、その4つのパークがひし形で表示されます。ポーズメニュー（Esc）から読み取ります。キラーの時はその供物を表示します。読むのは画面だけ、メニューが開いている間だけです。何も保存・送信しません。',
     'Opfergabe, Item und Add-ons neben den Perks':
         'パークの横に供物、アイテムとアドオン',
     'LOADOUTS':
@@ -6113,6 +6113,8 @@ T = {
         '味方のロードアウト',
     'Loadouts der Mitspieler aus dem Menü gelesen ({n} Perks).':
         'メニューから味方のロードアウトを読み取りました（パーク {n} 個）。',
+    'Opfergaben der Survivor aus dem Menü gelesen ({n}).':
+        'メニューからサバイバーの供物を読み取りました（{n} 個）。',
     'Loadouts der Mitspieler zeigen (Perks aus dem Menü)':
         '味方のロードアウトを表示（メニューのパーク）',
     'Neben der Survivor-Liste':

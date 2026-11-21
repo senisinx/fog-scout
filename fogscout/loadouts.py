@@ -12,7 +12,8 @@ How a row is found without knowing where the menu sits or how large DBD draws it
    perks, so the step between two perks (``pitch``) and the left edge of the rows (``x0``) come from perks only.
 3. Each row: the four slots on that grid, the item and add-ons at fixed steps (``ITEM_AT``, ``ADDONS_AT``), the
    character's portrait left of it (``PORTRAIT_AT``/``PORTRAIT_UP``) – all measured on the user's 3440×1440 menu.
-   An unknown or unsure slot stays ``None``, never a guess. The killer's row (red) is left out.
+   An unknown or unsure slot stays ``None``, never a guess. The killer's row (red) is left out. 1.57.36: as the
+   killer, DBD's menu shows only the survivors' offerings – ``Reader._killer`` reads those (``Board.killer``).
 
 Which survivor is which (1.57.1, user's pictures: the menu's order is not the HUD's, and the own row is not always
 first): never by the names (any script, never read) but by the character's portrait – each survivor character is
@@ -108,6 +109,14 @@ HUD_LIST_SIDE = 0.2           # a portrait found within this share of the list's
 HUD_BOX = (0.0, 0.2, 0.3, 0.88)   # where DBD's survivor list can be: share of the 16:9 picture (x0, y0, x1, y1)
 CORNER = 0.28                 # an add-on's top right corner (DBD's white "+") is left out of the comparison
 MAX_ROWS = 5                  # four survivors and the killer (left out)
+# 1.57.36 (user: "Ich meine die Offerings der Survivor. Die sieht man als killer im spiel"): the killer's menu – the
+# own red row with the killer's perks at the bottom (no survivor perk: found by its diamonds, not their drawings),
+# above it the four survivors' rows with only their offering, on the same grid as a survivor's menu. Measured on the
+# user's killer menu (2000×837, pitch 42.5 px): the rows 2.08 pitches apart (a survivor's menu: 2.08 too), the
+# killer's row 2.21 pitches below the last survivor's
+KILLER_STEP = 2.08
+KILLER_GAP = 2.21
+KILLER_ROWS = 4
 # 1.57.18 (user: "Gelbe Taschenlampe von Jonah wird nicht erkannt", then "Seltenheitsfarbe auswerten"): the slot's
 # fill colour (its corners, not the drawing) narrows an item or add-on to the rarity the wiki gives for that colour –
 # measured on 115 item and add-on slots of the user's menus (OpenCV hue 0…180), every one as the wiki says: brown
@@ -153,6 +162,7 @@ class Board:
     rows: tuple = ()
     size: float = 0.0                           # the diamonds' size in the picture (px) – for the diagnosis
     pitch: float = 0.0                          # the step between two perks (px): the portraits' size follows
+    killer: bool = False                        # 1.57.36: the killer's menu – the survivors' offerings only
 
     @property
     def others(self) -> tuple:
@@ -161,7 +171,7 @@ class Board:
 
     def key(self) -> tuple:
         """What is shown: the rows with at least one name, with their place in the HUD."""
-        return tuple((r.who, r.perks, r.item, r.addons, r.offering, r.own, r.hud, r.pics_n) for r in self.rows
+        return (self.killer,) + tuple((r.who, r.perks, r.item, r.addons, r.offering, r.own, r.hud, r.pics_n) for r in self.rows
                      if not r.empty or r.pics)
 
 
@@ -550,6 +560,35 @@ def _menu_rows(ys: list, pitch: float, height: int) -> list:
     return sorted(out)
 
 
+def _diamond_rows(peaks: list, size: float) -> list:
+    """1.57.36: [(x0, pitch, y)] of rows of four diamonds evenly spaced (``PITCH`` × ``size`` apart) among the
+    diamond search's ``peaks`` – the perks of a row whose drawings need not be known (the killer's own row)."""
+    out = []
+    for _x, y in sorted(peaks, key=lambda p: p[1]):
+        line = sorted(p for p in peaks if abs(p[1] - y) <= ROW_TOL * size)
+        for a in range(len(line)):
+            for b in range(a + 1, len(line)):
+                for n in (3, 2, 1):                       # the coarse places are a few pixels off: the widest
+                    pitch = (line[b][0] - line[a][0]) / n  # pair that fits gives the step best
+                    if PITCH[0] * size <= pitch <= PITCH[1] * size:
+                        break
+                else:
+                    continue
+                chain = []
+                for k in range(4):
+                    want = line[a][0] + k * pitch
+                    nxt = [p for p in line if abs(p[0] - want) <= GRID_TOL * pitch]
+                    if not nxt:
+                        break
+                    chain.append(min(nxt, key=lambda p: abs(p[0] - want)))
+                if len(chain) == 4:
+                    p, x0 = (float(v) for v in np.polyfit(range(4), [c[0] for c in chain], 1))
+                    row = (x0, p, float(np.mean([c[1] for c in chain])))
+                    if all(abs(row[0] - o[0]) > GRID_TOL * p or abs(row[2] - o[2]) > ROW_TOL * size for o in out):
+                        out.append(row)
+    return out
+
+
 class Reader:
     """Reads the loadout board from a picture of the pause menu (BGR)."""
 
@@ -636,6 +675,10 @@ class Reader:
             h_ = self._perk_hits(frame, s_, p_)
             if len(h_) > len(hits):
                 size, peaks, hits = s_, p_, h_
+        if len(hits) < 2:                                 # 1.57.36: the killer's menu has one row of (killer) perks
+            board = self._killer(frame, text, found)
+            if board is not None:
+                return board
         if not hits:
             self.last = f"{len(peaks)} Rauten, kein Perk"
             return None
@@ -672,12 +715,51 @@ class Reader:
                 continue
             kept.append((y, line))
         if len(kept) < 2:                     # the menu lists four survivors; one row of perks is no menu (the HUD's own
-            self.last = f"{len(peaks)} Rauten, kein Raster"     # perks) – and with only the own row nothing to show
+            board = self._killer(frame, text, found)            # perks) – and with only the own row nothing to show
+            if board is not None:                               # 1.57.36: unless it is the killer's own row
+                return board
+            self.last = f"{len(peaks)} Rauten, kein Raster"
             return None
         found_ys = [y for y, _line in kept]
         grid_rows = list(_menu_rows(found_ys, pitch, frame.shape[0]))
         self._grid = (frame.shape[:2], x0, pitch, size, tuple(y for y, _i in grid_rows), tuple(found_ys))
         return self._rows_on(frame, text, x0, pitch, size, grid_rows, found_ys)
+
+    def _killer(self, frame, text, found) -> Board | None:
+        """1.57.36: the killer's pause menu – four diamonds in a row on a red backdrop (the killer's own perks;
+        the program knows only the survivors' perks, so the diamonds' places count, not their drawings), the
+        survivors' rows ``KILLER_STEP`` apart above it, ``KILLER_GAP`` from it, each with only its offering (the
+        place of a survivor's menu). A Board(killer=True) of the survivors' rows – offering and portrait – or None."""
+        h = frame.shape[0]
+        for size, peaks, _near in found:
+            for x0, pitch, yk in _diamond_rows(peaks, size):
+                if not _red(_strip(frame, x0 - 1.2 * pitch, x0 - 0.7 * pitch, yk, 0.25 * pitch, colour=True)):
+                    continue
+                cx = x0 + 3 * pitch + OFFERING_AT * pitch
+                rows = []
+                for j in range(KILLER_ROWS):
+                    y = yk - (KILLER_GAP + j * KILLER_STEP) * pitch
+                    if y < pitch:
+                        break
+                    near = [(px, py) for px, py in peaks
+                            if abs(px - cx) <= 0.4 * pitch and abs(py - y) <= 0.4 * pitch]
+                    if near:                              # the offering's hexagon was found: its height
+                        y = min(near, key=lambda p: abs(p[1] - y))[1]
+                    name, score, lead = self.offerings.best(      # finer cuts: the place comes from the
+                        _fine_cuts(self.offerings, frame, cx, y, pitch * OFFERING), loose=True)   # coarse search
+                    sure = name is not None and score >= SURE_SCORE and lead >= SURE_MARGIN
+                    tile = None
+                    if name is not None or _coloured(frame, cx, y, pitch * OFFERING) >= PERK_COLOUR:
+                        tile = _tile(frame, cx, y, pitch * OFFERING, "hexagon")    # an empty slot: no picture
+                    face = _face(frame, x0 - PORTRAIT_AT * pitch, y - PORTRAIT_UP * pitch, PORTRAIT * pitch)
+                    rows.append(Row(offering=name, face=face, sure=(False,) * 7 + (sure,),
+                                    pics=(None,) * 7 + (tile,), line=f"@{x0:.1f},{y:.1f}"))
+                if len(rows) < 2 or yk >= h:
+                    continue
+                rows = self._lines(frame, rows[::-1], pitch, text)
+                self.last = f"Killer-Menü: {len(rows)} Survivor, Raute {size:.0f} px"
+                return Board(rows=tuple(rows), size=round(size, 1), pitch=round(pitch, 2), killer=True)
+        return None
 
     def _again(self, frame, text) -> Board | None:
         """1.57.33 (user: "Loadout-Erkennung weiter optimieren"): DBD draws the menu at the same pixels every time –
@@ -1025,6 +1107,7 @@ class Votes:
         self._list_seen = False           # 1.57.12: portraits were found on DBD's usual list (kept across rounds)
         self._twin_rows: dict = {}        # 1.57.13: rows of the list where one of two alike survivors was seen (count)
         self._people: list = []           # {"face", "counts": {slot: {name: n}}, "own": n, "seen": n, "hud": …}
+        self.killer = False               # 1.57.36: the killer's menu – no own survivor, the list's rows 0–3 theirs
 
     def _who(self, face, index: int, used: set = frozenset(), own: bool = False) -> int:
         """The survivor of a row: the one with the same portrait; a row without one (cut off) by its place.
@@ -1060,6 +1143,7 @@ class Votes:
             return False
         before = self.board().key()
         self.looks += 1
+        self.killer = self.killer or board.killer
         if board.pitch:
             self.side = board.pitch * PORTRAIT
         used = set()
@@ -1131,7 +1215,7 @@ class Votes:
             if who == own or not 0 <= who < len(self._people):
                 continue
             k = round((y - gy) / step)
-            if (abs(s - side) <= HUD_LIST_SIDE * side and abs(x - gx) <= HUD_COL and 1 <= k <= 3
+            if (abs(s - side) <= HUD_LIST_SIDE * side and abs(x - gx) <= HUD_COL and self._first_row <= k <= 3
                     and abs(y - (gy + k * step)) <= HUD_GRID * step):
                 if who in twins:                          # one of them is there – which one is unknown
                     self._twin_rows[k] = self._twin_rows.get(k, 0) + 1
@@ -1151,15 +1235,21 @@ class Votes:
                 if all(p["hud"] is None or abs(p["hud"][1] - at[1]) >= 0.5 * step for p in self._people):
                     self._people[who]["hud"] = at
         # the last one by elimination: four survivors, four rows – three placed (the own one among them), one row
-        # left; its portrait need not be seen (hooked or downed all the time)
-        if own >= 0 and len(self._people) == 4:
+        # left; its portrait need not be seen (hooked or downed all the time). 1.57.36: as the killer all four rows
+        if (own >= 0 or self.killer) and len(self._people) == 4:
             left = [i for i, p in enumerate(self._people) if p["hud"] is None]
-            rows = [k for k in (1, 2, 3) if all(p["hud"] is None or abs(p["hud"][1] - (gy + k * step)) >= 0.5 * step
+            rows = [k for k in range(self._first_row, 4) if all(p["hud"] is None or abs(p["hud"][1] - (gy + k * step)) >= 0.5 * step
                                                 for p in self._people) and self._twin_rows.get(k, 0) < 2]
             left = [i for i in left if i not in twins]      # 1.57.13: the twins' rows (seen twice) are theirs
             if len(left) == 1 and len(rows) == 1:
                 self._people[left[0]]["hud"] = (gx, gy + rows[0] * step, side)
         return self.board().key() != before
+
+    @property
+    def _first_row(self) -> int:
+        """1.57.36: the first row of DBD's list another survivor can stand on – 1 below the own one, 0 as the
+        killer (the list holds the four survivors only)."""
+        return 0 if self.killer else 1
 
     def name_rows(self, grid) -> list:
         """1.57.29: the list's rows (1–3, DBD's list ``grid``) where an unplaced twin may stand – their names are
@@ -1169,7 +1259,7 @@ class Votes:
             return []
         gx, gy, step, side = grid
         taken = [p["hud"][1] for p in self._people if p["hud"] is not None]
-        return [k for k in (1, 2, 3) if all(abs(y - (gy + k * step)) >= 0.5 * step for y in taken)]
+        return [k for k in range(self._first_row, 4) if all(abs(y - (gy + k * step)) >= 0.5 * step for y in taken)]
 
     def place_by_names(self, read: dict, grid) -> bool:
         """1.57.29 (user: four Claudettes in one skin; "Weshalb sollte das mit dem Namen ein Problem sein?" – "ja"):
@@ -1342,7 +1432,7 @@ class Votes:
         gold = [(p["own"], i) for i, p in enumerate(self._people) if p["own"] * 2 > p["seen"]]
         if gold:
             return max(gold)[1]
-        if gold_only:
+        if gold_only or self.killer:                  # 1.57.36: the killer is none of the survivors
             return -1
         if self.placed and len(self._people) > 1:
             return min(range(len(self._people)), key=lambda i: self._people[i]["hud"][1])
@@ -1356,7 +1446,7 @@ class Votes:
             rows.append(Row(perks=tuple(names[:4]), item=names[4], addons=tuple(names[5:7]), offering=names[7],
                             own=i == own, who=i,
                             face=p["face"], hud=p["hud"], pics=p.get("pics", ()), pics_n=p.get("pics_n", 0)))
-        return Board(rows=tuple(rows))
+        return Board(rows=tuple(rows), killer=self.killer)
 
     def reset(self) -> None:
         self.looks = 0
@@ -1367,4 +1457,5 @@ class Votes:
         self._twin_rows = {}
         self._apart = set()
         self._name_seen = {}
+        self.killer = False
         self._people.clear()                  # (the HUD's size, ``_ratio``, stays for the next round)

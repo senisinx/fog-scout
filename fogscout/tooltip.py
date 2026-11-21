@@ -112,7 +112,7 @@ TIPS = {
         "Clip-Editor zeigt sie als Spur und kann die Karte ins Video einbrennen. Die Datei wird mit der Aufnahme "
         "verschoben und gelöscht.",
     "Loadouts der Mitspieler zeigen (Perks aus dem Menü)":
-        'Neben jedem anderen Survivor in der Liste links erscheinen seine vier Perks als Raute – gelesen aus dem Pausenmenü (Esc), das DBD Survivorn zeigt. Nur das Bild wird gelesen, nur bei offenem Menü, nie als Killer; nichts wird gespeichert oder gesendet.',
+        'Neben jedem anderen Survivor in der Liste links erscheinen seine vier Perks als Raute – gelesen aus dem Pausenmenü (Esc); als Killer seine Opfergabe. Nur das Bild wird gelesen, nur bei offenem Menü; nichts wird gespeichert oder gesendet.',
     "Opfergabe, Item und Add-ons neben den Perks":
         "Die Opfergabe (eine verdeckte als „?“), das Item und seine zwei Add-ons als kleine Felder neben den Perks.",
     "Dunkle Fläche hinter den Eingaben":

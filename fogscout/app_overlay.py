@@ -458,10 +458,10 @@ class OverlayTab:
                                                       variable=self.loadouts_items_var,
                                                       command=self._loadouts_items_changed)).pack(anchor="w",
                                                                                                   pady=(2, 0))
-        self._reg("ov.loadouts_hint", ui.Label(lf, text=_("Nur als Survivor: im Match einmal Esc drücken – Fog Scout "
-                                                          "liest die Loadouts der anderen aus dem Bild des Menüs und "
-                                                          "zeigt sie danach neben ihnen. Nichts wird gespeichert "
-                                                          "oder gesendet.") + " " +
+        self._reg("ov.loadouts_hint", ui.Label(lf, text=_("Im Match einmal Esc drücken – Fog Scout liest die Loadouts "
+                                                          "der anderen Survivor (als Killer ihre Opfergaben) aus dem "
+                                                          "Bild des Menüs und zeigt sie danach neben ihnen. Nichts "
+                                                          "wird gespeichert oder gesendet.") + " " +
                                                         _("Neben der Liste stehen die Perks als Raute, unter dem "
                                                           "Namen in einer Reihe; die Darstellung ist an einer eigenen "
                                                           "Position wählbar."),
