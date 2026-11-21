@@ -845,7 +845,7 @@ class Reader:
         empty_own = [r for r in rows if r.own and r.empty]
         if empty_own and (len(empty_own) > 1 or any(r.own and not r.empty for r in rows)):
             rows = [r for r in rows if not (r.own and r.empty)]  # a gold patch above a read own row: no row
-        rows = self._lines(frame, rows, pitch, text)
+        rows = self._lines(frame, rows, pitch, text, every=True)
         self.last = f"{len(rows)} Reihen, Raute {size:.0f} px"
         return Board(rows=tuple(rows), size=round(size, 1), pitch=round(pitch, 2)) if rows else None
 
@@ -853,9 +853,10 @@ class Reader:
     def _lines(frame, rows: list, pitch: float, text, every: bool = False) -> list:
         """1.57.29: the line of text of each row whose portrait looks like another row's (not the own one) – the
         rest get none (``line`` held only the row's place until here). 1.57.45: ``every`` (the killer's menu) –
-        every row's line."""
+        every row's line; 1.57.47 (user: "Namen für alle erlauben" – escaped and dead teammates are icons in the HUD,
+        their portraits never seen): the survivor's menu too, every row but the own one."""
         import dataclasses
-        alike = set(range(len(rows))) if every else set()
+        alike = {i for i, r in enumerate(rows) if not r.own} if every else set()
         for i, a in enumerate(rows):
             for j, b in enumerate(rows):
                 if i < j and not a.own and not b.own and hud_alike(a.face, b.face) >= HUD_TWIN:

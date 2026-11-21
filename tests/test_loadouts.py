@@ -1530,6 +1530,24 @@ def test_a_framed_portrait_in_the_menu_is_the_same_survivor():
     assert [r.perks for r in v.board().rows] == list(kits)
 
 
+def test_as_a_survivor_every_teammate_s_line_is_read_never_the_own():
+    """User (1.57.46, Forgotten Ruins: two teammates escaped, one dead – icons in the HUD, their portraits never seen,
+    two of three never placed; "Namen für alle erlauben"): the menu line of every teammate is read, not only of
+    alike portraits – never the own row's; the names stay in memory (``Row.line``)."""
+    frame = np.zeros((1440, 3440, 3), np.uint8)
+    faces = [np.full((loadouts.FACE, loadouts.FACE), 40 * i, np.uint8) for i in range(4)]
+    rows = [Row(perks=("Lithe", None, None, None), face=f, own=i == 0, line=f"@1200.0,{500 + 120 * i}.0")
+            for i, f in enumerate(faces)]
+    read = []
+
+    def text(img):
+        read.append(img.shape)
+        return f"NAME {len(read)}"
+    out = loadouts.Reader._lines(frame, rows, 60.0, text, every=True)
+    assert [r.line for r in out] == ["", "NAME 1", "NAME 2", "NAME 3"]
+    assert [r.line for r in loadouts.Reader._lines(frame, rows, 60.0, None, every=True)] == [""] * 4   # no OCR
+
+
 def test_as_the_killer_only_the_offerings_are_drawn():
     from fogscout import config
     from fogscout.app_loadouts import placed
