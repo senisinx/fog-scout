@@ -301,8 +301,14 @@ def test_beside_the_portraits_found_in_the_hud():
     far = tuple(Row(perks=r.perks, own=r.own, hud=(0.13, r.hud[1], r.hud[2])) if r.hud else r for r in rows)
     pic3, x3, y3 = placed(o, (0, 0, 3440, 1440), Board(rows=far))     # no room before them: in the black bar
     assert x3 + pic3.width <= 440 and x3 > 440 - pic3.width - 20
-    assert abs(y + cluster / 2 - 0.504 * 1440) <= 1                   # the first row at the first portrait
-    assert abs(pic.height - (0.586 - 0.504) * 1440 - cluster) <= 2
+    # 1.57.41: the column of small slots may reach past the diamond (``over`` above and below)
+    from fogscout.app_loadouts import extra_side
+    _c, _centres, found_left, face, _mid = layout.loadout_rows(o, (0, 0, 3440, 1440), [r for r in rows if r.hud])
+    side = extra_side(o, (0, 0, 3440, 1440), cluster, face, found_left)
+    assert side > cluster // 4                                        # bigger than until 1.57.40
+    over = max(0.0, (4 * side + 3 * max(1, cluster // 48) - cluster) / 2)
+    assert abs(y + over + cluster / 2 - 0.504 * 1440) <= 1            # the first row's diamond at the first portrait
+    assert abs(pic.height - 2 * over - (0.586 - 0.504) * 1440 - cluster) <= 2
     assert placed(o, (0, 0, 3440, 1440), Board(rows=rows[3:])) is None    # nothing found yet: nothing shown
     pic, x, y = placed(o, (0, 0, 2560, 1440), Board(rows=rows))
     assert 0 <= x and x + pic.width <= 0.177 * 2560 - 36              # a 16:9 window: before the portraits too
