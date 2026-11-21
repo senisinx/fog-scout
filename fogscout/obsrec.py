@@ -1700,6 +1700,11 @@ class Recorder(threading.Thread):
             self.paused = False
             return
         rec.update({k: v for k, v in meta.items() if v})
+        if rec.get("role") == "survivor":
+            # 1.57.39 (user: "Ich queue nebenbei für Killer und habe eine Survivor runde gespielt"): the killer came
+            # from the killer lobby queued meanwhile, the result screen said survivor – the file and the index name
+            # no killer then ("Torment Creek – The Hillbilly" was filed as a killer round)
+            rec["killer"] = ""
         # 1.55.1 (audit R-1, reproduced): the round was forgotten before StopRecord – OBS busy or restarting at that
         # moment, and OBS recorded on, the file was never filed and every later round found "OBS nimmt schon auf".
         # Now it stays ours until OBS confirms the stop: a failure is retried (``_pending`` → _due, or _flush at the

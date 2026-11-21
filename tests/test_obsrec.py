@@ -701,6 +701,24 @@ def test_the_tail_keeps_recording_after_the_end(obs, tmp_path):
     assert r.recording is False
 
 
+def test_a_survivor_round_never_carries_the_killer_of_another_lobby(obs, tmp_path):
+    """1.57.39 (user: "Ich queue nebenbei für Killer und habe eine Survivor runde gespielt in der zwischenzeit"):
+    the round began with the killer lobby's role and killer, the result screen said survivor – the recording was
+    filed as "… – The Hillbilly" and listed as a killer round. Now it is the survivor's, a killer round keeps its
+    killer."""
+    r, _posted = _recorder(obs, str(tmp_path), pre=False)
+    r._begin({"t": 1.0, "map_id": "torment-creek", "label": "Torment Creek", "role": "killer",
+              "killer": "The Hillbilly"})
+    r._finish({"role": "survivor", "killer": "The Hillbilly"})
+    r._begin({"t": 2.0, "map_id": "torment-creek", "label": "Torment Creek", "role": "killer",
+              "killer": "The Hillbilly"})
+    r._finish({"role": "killer", "killer": "The Hillbilly"})
+    recs = sorted(obsrec.load_index(str(tmp_path)), key=lambda x: x.t)
+    assert [(x.role, x.killer) for x in recs] == [("survivor", ""), ("killer", "The Hillbilly")]
+    assert "Torment Creek – Survivor" in recs[0].file
+    assert "The Hillbilly" in recs[1].file
+
+
 def test_broken_recordings_are_reported(tmp_path):
     f = tmp_path / "a.mkv"
     f.write_bytes(b"")
