@@ -43,6 +43,9 @@ Test pictures (tests/data/loadouts, every player name painted over):
 - ``real_menu_killer_pies.webp``: the worker's menu look of the user's killer match of 1.57.42 (3440×1440, the
   middle 1536 px) – Leon Toothy Torte, Kate Coconut Scream Pie, Sable Screech Cobbler, Ada Coconut Scream Pie; the
   pie was no known offering (best fit 0.69). All player names painted over.
+- ``real_menu_escape_cake.webp``: the worker's menu look of the user's survivor match of 1.57.42 (3440×1440, the
+  middle 1536 px, lossless – a lossy copy reads differently) – own Renato with an Escape! Cake, unread from the
+  coarse cuts. All player names painted over.
 - ``menu_four_rows.png``: the four icon rows of the picture of the first request (another player's menu, other
   scale; names, pings and the killer's row painted over)."""
 import dataclasses
@@ -538,13 +541,13 @@ def test_the_menu_rows_follow_their_grid():
     assert loadouts._menu_rows([300.0, 340.0], 70.0, 1440) == [(300.0, False), (340.0, False)]   # too close: no grid
 
 
-def test_a_clear_lead_lets_a_weaker_fit_count(reader):
+def test_a_clear_lead_lets_a_weaker_fit_count():
     """User (1.57.5): "Perks werden nicht alle sauber erkannt" – Small Game (fit 0.76, far ahead of the second
     best) and Saboteur stayed open. A slot of a found row counts with a weaker fit when it leads clearly, and most
     slots count after one look. (Lara's Déjà Vu, 0.04 ahead of Kindred, is read since 1.57.7 – where the eyes
     differ.)"""
-    board = reader.read(_load("menu_3440_fourth.jpg"))
-    assert board is not None and len(board.rows) == 4
+    board = loadouts.Reader().read(_load("menu_3440_fourth.jpg"))     # 1.57.44: its own reader – under pytest-xdist
+    assert board is not None and len(board.rows) == 4                  # the shared one kept another menu's grid
     assert [r.perks for r in board.rows[1:]] == [
         ("Balanced Landing", "Boon: Dark Theory", "Breakout", "Déjà Vu"),   # Lara (1.57.7: told from Kindred)
         ("Wicked", "Small Game", "Adrenaline", "Plot Twist"),               # Vittorio
@@ -1500,4 +1503,20 @@ def test_the_ninth_anniversary_pie_and_the_offerings_missing_until_then_are_know
     names = set(loadouts.load_names()["offerings"].values())
     assert {"Coconut Scream Pie", "Grandma's Cookbook", "Mistle Toes"} <= names
     assert not {"Shroud of Vanishing", "Survivor Pudding", "Ebony Memento Mori"} & names     # killers' own
+
+
+def test_the_offering_is_read_with_finer_cuts():
+    """1.57.44 (user's survivor match: the own Escape! Cake stayed empty): the offering was read from the coarse
+    cuts only – 0.85, lead 0.03 against Shiny Coin; with the finer cuts (as the killer's menu, 1.57.40) 0.96, lead
+    0.14. On all 90 menus at hand only readings were added (and the older picture's Shiny Coin, its hidden one)."""
+    menu = _crop_frame("real_menu_escape_cake.webp", True)             # lossless, back where the worker saw it
+    reader = loadouts.Reader()
+    board = reader.read(menu)
+    assert [r.offering for r in board.rows] == ["Escape! Cake", "Toothy Torte", None, loadouts.HIDDEN_OFFERING]
+    assert board.rows[0].own
+    _shape, x0, pitch, _size, ys, _found = reader._grid
+    own_y = min(ys, key=lambda y: abs(y - 341.4))
+    coarse = reader.offerings.best(loadouts._cuts(menu, x0 + (3 + loadouts.OFFERING_AT) * pitch, own_y,
+                                                  pitch * loadouts.OFFERING, reach=2), loose=True)
+    assert coarse[0] is None                                           # the coarse cuts alone: unread (1.57.43)
 
