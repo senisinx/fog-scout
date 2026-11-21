@@ -8,6 +8,7 @@ from __future__ import annotations
 import json
 import math
 import os
+import re
 import threading
 from dataclasses import dataclass, fields
 
@@ -174,9 +175,22 @@ def _tidy(path: str) -> None:
         pass
 
 
-def _rewrite(path: str, rounds, lost) -> None:
-    """Write rounds and lost-round lines (as ``_lost_lines()`` returns them) back in time order (atomic)."""
-    lines = [(r.t, _dump(r)) for r in rounds] + \
+def _rewrite(path: str, rounds, lost, stored: dict | None = None, changed=()) -> None:
+    """Write rounds and lost-round lines (as ``_lost_lines()`` returns them) back in time order (atomic).
+    1.57.36 (user's diagnosis: "Ereignis bloodpoints 81 ms" – one balance rewrote 1814 rounds, ~25 of 29 ms here
+    went to dumping every one of them again): ``stored`` = {start: [line as stored, …]} (``_file_lines``) – a round
+    not in ``changed`` keeps its stored line as it is; only the changed ones (and any without one) are dumped."""
+    changed = {id(r) for r in changed}
+    count = {}
+    for r in rounds:
+        count[r.t] = count.get(r.t, 0) + 1
+    # a start whose stored lines are not exactly its rounds (a broken line beginning with it): all dumped anew
+    stored = {t: list(ls) for t, ls in (stored or {}).items() if len(ls) == count.get(t)}
+
+    def line(r):
+        own = stored[r.t].pop(0) if stored.get(r.t) else None    # the file's order: each round of one start its own
+        return own if own is not None and id(r) not in changed else _dump(r)
+    lines = [(r.t, line(r)) for r in rounds] + \
         [(d["t"], json.dumps(d, ensure_ascii=False)) for d in lost]
     text = "".join(line + "\n" for _t, line in sorted(lines, key=lambda x: x[0]))
     data = text.encode("utf-8")
@@ -200,8 +214,20 @@ def append_lost(path: str, t: float, map_label: str, reason: str, **known) -> No
         _append_line(path, json.dumps(rec, ensure_ascii=False))
 
 
-def _lost_lines(path: str) -> list:
-    """The lost-round lines as stored (dicts with a float ``t``), oldest first."""
+_START = re.compile(r'^\{"t": (-?[0-9][0-9.eE+-]*)[,}]')   # a stored round line begins with its start (_dump)
+
+
+def _file_lines(path: str) -> tuple:
+    """1.57.36: (``_lost_lines``, {start: [line, …]}) in one reading – the stored round lines in the file's order,
+    their start read from the line's beginning, never parsed whole; a line not beginning so is left out (dumped
+    anew by ``_rewrite``)."""
+    stored = {}
+    return _lost_lines(path, stored), stored
+
+
+def _lost_lines(path: str, stored: dict | None = None) -> list:
+    """The lost-round lines as stored (dicts with a float ``t``), oldest first. ``stored`` (1.57.36): gets the
+    round lines by their start (``_file_lines``)."""
     out = []
     try:
         # 1.12.3: errors="replace" – a line cut inside a character (crash while appending) raised from the loop
@@ -209,6 +235,12 @@ def _lost_lines(path: str) -> list:
         with open(path, encoding="utf-8", errors="replace") as fh:
             for line in fh:
                 if '"lost"' not in line:           # quick skip: parsing all 5000 rounds took ~50 ms
+                    m = _START.match(line) if stored is not None else None
+                    if m:
+                        try:
+                            stored.setdefault(float(m.group(1)), []).append(line.rstrip("\r\n"))
+                        except ValueError:
+                            pass
                     continue
                 try:
                     d = json.loads(line)
@@ -572,7 +604,8 @@ def _change(path: str, ts, fn) -> list:
             if fn is _drop:
                 gone = {id(r) for r in done}
                 rounds = [r for r in rounds if id(r) not in gone]
-            _rewrite(path, rounds, _lost_lines(path))
+            lost, stored = _file_lines(path)
+            _rewrite(path, rounds, lost, stored, done)
         return done
 
 
