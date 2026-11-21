@@ -561,7 +561,7 @@ def _menu_rows(ys: list, pitch: float, height: int) -> list:
 
 
 def _diamond_rows(peaks: list, size: float) -> list:
-    """1.57.36: [(x0, pitch, y)] of rows of four diamonds evenly spaced (``PITCH`` × ``size`` apart) among the
+    """1.57.36: [(x0, pitch, y, xs)] of rows of four diamonds evenly spaced (``PITCH`` × ``size`` apart) among the
     diamond search's ``peaks`` – the perks of a row whose drawings need not be known (the killer's own row)."""
     out = []
     for _x, y in sorted(peaks, key=lambda p: p[1]):
@@ -583,10 +583,27 @@ def _diamond_rows(peaks: list, size: float) -> list:
                     chain.append(min(nxt, key=lambda p: abs(p[0] - want)))
                 if len(chain) == 4:
                     p, x0 = (float(v) for v in np.polyfit(range(4), [c[0] for c in chain], 1))
-                    row = (x0, p, float(np.mean([c[1] for c in chain])))
+                    row = (x0, p, float(np.mean([c[1] for c in chain])), tuple(c[0] for c in chain))
                     if all(abs(row[0] - o[0]) > GRID_TOL * p or abs(row[2] - o[2]) > ROW_TOL * size for o in out):
                         out.append(row)
     return out
+
+
+def _best_place(templates, frame, cx: float, cy: float, side: float):
+    """1.57.40: (name, score, lead, (x, y)) of the best picture around (cx, cy) – ``_fine_cuts`` that also gives the
+    place of the cut that fitted best (where the slot's picture is cut from)."""
+    places, at = [], []
+    coarse = _cuts(frame, cx, cy, side, places=places)
+    if not len(coarse):
+        return None, 0.0, 0.0, (cx, cy)
+    templates.best(coarse, at)
+    fx, fy = places[at[0]] if at else (cx, cy)
+    fine_places = []
+    fine = _cuts(frame, fx, fy, side, step=max(0.5, side / 40), places=fine_places)
+    allc, allp = (np.vstack([coarse, fine]), places + fine_places) if len(fine) else (coarse, places)
+    at = []
+    name, score, lead = templates.best(allc, at, loose=True)
+    return name, score, lead, (allp[at[0]] if at else (fx, fy))
 
 
 class Reader:
@@ -732,10 +749,21 @@ class Reader:
         place of a survivor's menu). A Board(killer=True) of the survivors' rows – offering and portrait – or None."""
         h = frame.shape[0]
         for size, peaks, _near in found:
-            for x0, pitch, yk in _diamond_rows(peaks, size):
+            for x0, pitch, yk, xs in _diamond_rows(peaks, size):
                 if not _red(_strip(frame, x0 - 1.2 * pitch, x0 - 0.7 * pitch, yk, 0.25 * pitch, colour=True)):
                     continue
                 cx = x0 + 3 * pitch + OFFERING_AT * pitch
+                # 1.57.40 (user's killer menu at 3440×1440: every offering unread, the pictures cut off-centre – the
+                # coarse diamonds gave x0 6 px and the step 2 % off): the killer's own offering on its row joins the
+                # straight line through its perks, and the survivors' hexagons found in that column give its place
+                own = [(px, py) for px, py in peaks if abs(px - cx) <= 0.5 * pitch and abs(py - yk) <= 0.4 * pitch]
+                if own:
+                    ks = [0, 1, 2, 3, 3 + OFFERING_AT]
+                    pitch, x0 = (float(v) for v in np.polyfit(ks, list(xs) + [own[0][0]], 1))
+                    cx = x0 + 3 * pitch + OFFERING_AT * pitch
+                column = [px for px, py in peaks if abs(px - cx) <= 0.4 * pitch and py < yk - pitch]
+                if column:
+                    cx = float(np.median(column))
                 rows = []
                 for j in range(KILLER_ROWS):
                     y = yk - (KILLER_GAP + j * KILLER_STEP) * pitch
@@ -745,12 +773,13 @@ class Reader:
                             if abs(px - cx) <= 0.4 * pitch and abs(py - y) <= 0.4 * pitch]
                     if near:                              # the offering's hexagon was found: its height
                         y = min(near, key=lambda p: abs(p[1] - y))[1]
-                    name, score, lead = self.offerings.best(      # finer cuts: the place comes from the
-                        _fine_cuts(self.offerings, frame, cx, y, pitch * OFFERING), loose=True)   # coarse search
+                    name, score, lead, (tx, ty) = _best_place(self.offerings, frame, cx, y, pitch * OFFERING)
                     sure = name is not None and score >= SURE_SCORE and lead >= SURE_MARGIN
+                    if name is None:                      # nothing read: the picture where the slot should be
+                        tx, ty = cx, y
                     tile = None
-                    if name is not None or _coloured(frame, cx, y, pitch * OFFERING) >= PERK_COLOUR:
-                        tile = _tile(frame, cx, y, pitch * OFFERING, "hexagon")    # an empty slot: no picture
+                    if name is not None or _coloured(frame, tx, ty, pitch * OFFERING) >= PERK_COLOUR:
+                        tile = _tile(frame, tx, ty, pitch * OFFERING, "hexagon")    # an empty slot: no picture
                     face = _face(frame, x0 - PORTRAIT_AT * pitch, y - PORTRAIT_UP * pitch, PORTRAIT * pitch)
                     rows.append(Row(offering=name, face=face, sure=(False,) * 7 + (sure,),
                                     pics=(None,) * 7 + (tile,), line=f"@{x0:.1f},{y:.1f}"))

@@ -37,6 +37,9 @@ Test pictures (tests/data/loadouts, every player name painted over):
   public matches) – the menu shows only the survivors' offerings (two Vees, two Kates: Fresh Bog Laurel, hidden,
   Toothy Torte, Escape! Cake) above the own red row with Mephisto's perks; the HUD lists four survivors on the rows
   where a survivor's own row and the three below sit. All player names painted over.
+- ``real_menu_killer_3440.webp``: the worker's menu look of the user's killer match (1.57.40, 3440×1440, the middle
+  1536 px) – Meg Toothy Torte, Carlos Screech Cobbler, Trevor and Alucard Bloody Party Streamers; every offering
+  was unread with 1.57.37 (the coarse grid 6 px off). All player names painted over.
 - ``menu_four_rows.png``: the four icon rows of the picture of the first request (another player's menu, other
   scale; names, pings and the killer's row painted over)."""
 import dataclasses
@@ -1421,4 +1424,22 @@ def test_as_the_killer_only_the_offerings_are_drawn():
     centres = [int((grid[1] + k * grid[2]) * 1440 - killer[2]) for k in range(4)]
     assert all((a[c, :, 3] > 0).any() for c in centres[:3])           # a hexagon beside each of the first three
     assert a.shape[0] <= centres[3]                                   # a survivor without an offering: nothing
+
+
+def test_the_killers_menu_at_the_users_size_reads_every_offering_and_cuts_it_centred():
+    """1.57.40 (user: "Recognised perks own icons … Da wird mir nichts angezeigt", "Das erste Bild sieht auch kacke
+    aus. Richtig unsauber geschnitten"; diagnosis: S1–S4 "sonst 0/4"): at 3440×1440 the killer's diamonds gave the
+    grid's start 6 px and its step 2 % off – no offering was read and the menu pictures were cut beside them. The
+    killer's own offering and the survivors' hexagons now fix the grid, each picture is cut where it fitted best."""
+    menu = _load("real_menu_killer_3440.webp", None)
+    board = loadouts.Reader().read(menu)
+    assert board is not None and board.killer
+    assert [r.offering for r in board.rows] == ["Toothy Torte", "Screech Cobbler", "Bloody Party Streamers",
+                                                "Bloody Party Streamers"]
+    assert all(r.sure[7] for r in board.rows)                          # each a clear reading
+    offerings = loadouts.Templates("offerings")
+    for r in board.rows:                                               # each picture shows its offering centred:
+        glyph = loadouts._glyph(r.pics[7][:, :, :3]).reshape(1, -1).astype(np.float32)   # 1.57.37 cut beside it
+        fit = float((loadouts._norm(glyph) @ offerings.matrix[offerings.names.index(r.offering)])[0])
+        assert fit >= 0.8, (r.offering, fit)                           # (user's menu: then −0.16 … 0.43, now ≥ 0.85)
 
