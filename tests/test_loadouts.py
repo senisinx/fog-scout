@@ -319,6 +319,21 @@ def test_beside_the_portraits_found_in_the_hud():
     assert big.width > pic.width                                      # the size slider (capped at 200 %)
 
 
+def test_the_loadouts_stay_before_the_portraits_when_room_is_short():
+    """1.57.42 (user's screenshot: the loadouts on the map in the black bar): with larger portraits found in the HUD
+    the room before them was too small – they went beside the 16:9 picture, where the map stands. Now the small
+    slots and then the diamond shrink until they fit before the portraits."""
+    import dataclasses
+    from fogscout import config
+    from fogscout.app_loadouts import SAMPLE, placed
+    o = dict(config.DEFAULTS["overlay"], show_loadouts=True, loadouts_look="icons")
+    gx, gy, step, _side = loadouts.list_grid(3440, 1440)
+    for side in (0.05, 0.053, 0.056, 0.06):
+        rows = tuple(dataclasses.replace(r, hud=(gx, gy + k * step, side)) for k, r in enumerate(SAMPLE.rows))
+        pic, x, _y = placed(o, (0, 0, 3440, 1440), Board(rows=rows))
+        assert x >= 440 and x + pic.width <= gx * 3440 - side * 1440 / 2, side     # inside, before the portraits
+
+
 def test_the_preview_shows_the_sample_beside_the_list():
     from fogscout import config, layout, preview
     from fogscout.app_loadouts import SAMPLE, placed
@@ -785,7 +800,9 @@ def test_loose_reads_count_only_in_a_proven_row():
 def test_the_style_follows_the_position():
     """User (1.57.9): "Die Einstellung macht keinen Sinn – wie kann es Raute 2×2 sein, wenn es in einer Reihe sein
     soll". Beside the list always the diamond, below the name always a row; only at a place of one's own the
-    setting counts – the box shows what is drawn and is greyed out otherwise."""
+    setting counts – the box shows what is drawn. 1.57.42 (user: "es soll sich live ändern im spiel wenn ich zb
+    die option in one row zu 2x2 ändere"): the box is never locked – a pick beside the list / below the name moves
+    the loadouts where that style goes, at once."""
     from fogscout.app_loadouts import LoadoutsCard, placed, style_of
     from fogscout.appconst import LOADOUT_STYLES
     from fogscout import uimodel as ui
@@ -803,13 +820,32 @@ def test_the_style_follows_the_position():
             self.settings = {"overlay": overlay}
             self.loadouts_style_var = ui.StringVar()
             self.loadouts_style_cb = ui.Combobox(textvariable=self.loadouts_style_var, state="readonly")
+            self.loadouts_pos_var = ui.StringVar()
+            self.ticks = 0
+
+        def _layout_mark(self):
+            pass
+
+        def _save_soon(self):
+            pass
+
+        def _tick_overlay(self, reschedule=True):
+            self.ticks += 1
     labels = dict(LOADOUT_STYLES)
-    for spot, style, shown, free in (("name", "diamond", "row", False), ("hud", "row", "diamond", False),
-                                     ("custom", "row", "row", True)):
+    for spot, style, shown in (("name", "diamond", "row"), ("hud", "row", "diamond"), ("custom", "row", "row")):
         app = App({"loadouts_pos": spot, "loadouts_style": style})
         app._loadouts_style_sync()
         assert app.loadouts_style_var.get() == labels[shown]
-        assert app.loadouts_style_cb.instate(["!disabled"]) == free
+        assert app.loadouts_style_cb.instate(["!disabled"])                # 1.57.42: always free
+    from fogscout.appconst import LOADOUT_SPOTS
+    for spot, pick, where in (("hud", "row", "name"), ("name", "diamond", "hud"), ("custom", "row", "custom")):
+        app = App({"loadouts_pos": spot, "loadouts_style": "diamond" if pick == "row" else "row"})
+        app.loadouts_style_var.set(labels[pick])
+        app._loadouts_style_changed()
+        o = app.settings["overlay"]
+        assert (o["loadouts_pos"], style_of(o), app.ticks) == (where, pick, 1)     # drawn at once
+        if where != spot:
+            assert app.loadouts_pos_var.get() == dict(LOADOUT_SPOTS)[where]
 
 
 def test_debug_pictures_of_menu_and_hud_looks_are_kept_few(tmp_path):

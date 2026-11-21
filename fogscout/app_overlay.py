@@ -108,8 +108,9 @@ class OverlayTab:
         self._reg("ov.preset.label", ui.Label(pr, text=_("Vorlage"), width=12)).pack(side="left")
         self.preset_var = ui.StringVar(value=_(PRESET_LABELS[0][1]))
         pcb = self._reg("ov.preset", ui.Combobox(pr, textvariable=self.preset_var, state="readonly", width=30,
-                                                  values=[_(t) for _k, t in PRESET_LABELS]))
+                                                  values=self._preset_values()))
         pcb.pack(side="left", padx=6)
+        self.preset_cb = pcb
         self._reg("ov.preset_apply", ui.Button(pr, text=_("Vorlage anwenden"), command=self._preset_apply)
                   ).pack(side="left")
         self.size_scope_var = ui.StringVar(value="")     # 1.65.5: this map only / all maps
@@ -156,6 +157,18 @@ class OverlayTab:
                   ).pack(anchor="w", pady=(4, 0))
         self.per_size_text = ui.StringVar(value="")
         self._reg("ov.per_size_hint", ui.Label(pos, textvariable=self.per_size_text, style="Dim.TLabel")).pack(anchor="w")
+        op = ui.Frame(pos)                              # 1.57.42 (user: "Gerne" – own named layouts)
+        op.pack(fill="x", pady=(4, 0))
+        self._reg("ov.own_preset.label", ui.Label(op, text=_("Name"), width=8)).pack(side="left")
+        self.own_preset_var = ui.StringVar(value="")
+        self._reg("ov.own_preset", ui.Entry(op, textvariable=self.own_preset_var, width=24)).pack(side="left", padx=6)
+        self._reg("ov.own_preset_save", ui.Button(op, text=_("Als Vorlage merken"), command=self._own_preset_save)
+                  ).pack(side="left")
+        self._reg("ov.own_preset_delete", ui.Button(op, text=_("Eigene Vorlage löschen"), command=self._own_preset_delete)
+                  ).pack(side="left", padx=(6, 0))
+        self._reg("ov.own_preset_hint", ui.Label(pos, style="Dim.TLabel", text=_(
+            "Speichert Position und Grösse aller Elemente unter diesem Namen – danach oben unter „Vorlage“ wählbar.")
+        )).pack(anchor="w")
         self.pos_hint_var = ui.StringVar(value="")
         self._reg("ov.pos_hint", ui.Label(pos, textvariable=self.pos_hint_var, style="Dim.TLabel",
                                            wraplength=520)).pack(anchor="w", pady=(4, 0))

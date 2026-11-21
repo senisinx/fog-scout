@@ -135,6 +135,11 @@ TIPS = {
     "Zeile FPS (HWiNFO)":
         "Zeile in den Systemwerten an/aus: die Bilder pro Sekunde, nur wenn HWiNFO sie misst (gelesen aus "
         "HWiNFOs Shared Memory, nie aus dem Spiel). Standard aus.",
+    "Als Vorlage merken":
+        "Merkt Position und Grösse aller Elemente unter dem eingegebenen Namen. Derselbe Name ersetzt die alte "
+        "Vorlage. Danach oben unter „Vorlage“ wählbar.",
+    "Eigene Vorlage löschen":
+        "Löscht die oben unter „Vorlage“ gewählte eigene Vorlage (oder die mit dem eingegebenen Namen).",
     "Vorlage anwenden":
         "Setzt Karte, Systemwerte, „Heute“ und Musik auf einmal auf die gewählte Anordnung. „Rückgängig“ holt "
         "die vorherige zurück.",

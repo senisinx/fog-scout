@@ -2579,6 +2579,25 @@ T = {
         'Area scura dietro «Oggi»',
     'Vorlage':
         'Preimpostazione',
+    # 1.57.42: own presets
+    'Eigene Vorlagen':
+        'Preset personali',
+    'Eigene: {name}':
+        'Personale: {name}',
+    'Gib zuerst einen Namen für die Vorlage ein.':
+        'Inserisci prima un nome per il preset.',
+    'Speichert Position und Grösse aller Elemente unter diesem Namen – danach oben unter „Vorlage“ wählbar.':
+        'Salva posizione e dimensione di tutti gli elementi con questo nome – poi è selezionabile in alto sotto «Preset».',
+    'Wähle oben unter „Vorlage“ eine eigene Vorlage aus.':
+        'Scegli in alto sotto «Preset» uno dei tuoi preset.',
+    'Löscht die oben unter „Vorlage“ gewählte eigene Vorlage (oder die mit dem eingegebenen Namen).':
+        'Elimina il preset personale scelto in alto sotto «Preset» (o quello con il nome inserito).',
+    'Merkt Position und Grösse aller Elemente unter dem eingegebenen Namen. Derselbe Name ersetzt die alte Vorlage. Danach oben unter „Vorlage“ wählbar.':
+        'Memorizza posizione e dimensione di tutti gli elementi con il nome inserito. Lo stesso nome sostituisce il vecchio preset. Poi è selezionabile in alto sotto «Preset».',
+    'Als Vorlage merken':
+        'Salva come preset',
+    'Eigene Vorlage löschen':
+        'Elimina preset personale',
     'Vorlage anwenden':
         'Applica preimpostazione',
     'Alles links':

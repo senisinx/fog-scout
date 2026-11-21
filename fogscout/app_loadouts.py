@@ -87,6 +87,9 @@ def placed(o: dict, game, board, editing: bool = False, sample: bool = False):
     spot = o.get("loadouts_pos", "hud")
     cluster, centres, left, face, mid = layout.loadout_rows(o, game, rows)
     row = style_of(o) == "row"
+    items = bool(o.get("loadouts_items", True))
+    if not row and spot == "hud" and not board.killer:
+        cluster = fit_before(o, game, cluster, face, left, items)   # 1.57.42: never into the bar for want of room
     if row:                                          # a row of perks: as tall as the room below a name
         cluster = max(10, int(face * layout.LOADOUT_ROW_H * layout.loadout_scale(o)))
         if spot == "name":                           # 1.57.17: between the row above and the name
@@ -96,7 +99,7 @@ def placed(o: dict, game, board, editing: bool = False, sample: bool = False):
     else:                                            # beside the portrait: centred on it
         starts = [c - cluster / 2 for _r, c in centres]
     extra, over = None, 0.0
-    if not row and not board.killer and o.get("loadouts_items", True):
+    if not row and not board.killer and items:
         extra = extra_side(o, game, cluster, face, left)
         over = max(0.0, (4 * extra + 3 * max(1, cluster // 48) - cluster) / 2)   # the column past the diamond
     top = starts[0] - over
@@ -105,7 +108,7 @@ def placed(o: dict, game, board, editing: bool = False, sample: bool = False):
         pic = offering_card([r for r, _c in centres], cluster, [s - top for s in starts], height, icon_for)
     else:
         pic = loadout_card([r for r, _c in centres], cluster, [s - top for s in starts], height,
-                           bool(o.get("loadouts_items", True)), icon_for, row=row, extra=extra)
+                           items, icon_for, row=row, extra=extra)
     if editing:
         pic = add_border(pic, _("LOADOUTS"))
     if spot == "name":
@@ -131,6 +134,27 @@ def extra_side(o: dict, game, cluster: int, face: float, left: float) -> int:
         vx = gx + (gw - min(gw, gh * 16 / 9)) / 2
         side = min(side, left - vx - 2 - cluster - max(2, cluster // 16))
     return max(cluster // 4, int(side))
+
+
+FIT_SMALLEST = 0.6          # 1.57.42: the diamond shrinks down to this share to stay before the portraits
+
+
+def fit_before(o: dict, game, cluster: int, face: float, left: float, items: bool) -> int:
+    """1.57.42 (user's screenshot: the loadouts on the map in the black bar – no room before the portraits, so
+    loadouts_xy put them beside the 16:9 picture, where the map stands): the diamond's size that lets the loadouts
+    stand right before the portraits – the small slots first give up their extra size (``extra_side`` follows the
+    room), then the diamond shrinks, down to ``FIT_SMALLEST``; below that the old place in the bar."""
+    gx, gy, gw, gh = game
+    if left is None:
+        return cluster
+    vx = gx + (gw - min(gw, gh * 16 / 9)) / 2
+    room = left - vx - 2
+    for k in range(0, 9):
+        c = max(10, int(cluster * (1 - k * (1 - FIT_SMALLEST) / 8)))
+        w = c + ((extra_side(o, game, c, face, left) + max(2, c // 16)) if items else 0)
+        if w <= room:
+            return c
+    return cluster
 
 
 class LoadoutsCard:
@@ -271,18 +295,31 @@ class LoadoutsCard:
         self._tick_overlay(reschedule=False)
 
     def _loadouts_style_sync(self) -> None:
-        """1.57.9: the box "Darstellung" shows the style drawn; only at a place of one's own it can be chosen."""
+        """1.57.9: the box "Darstellung" shows the style drawn. 1.57.42: it can always be chosen (see
+        ``_loadouts_style_changed``)."""
         box = getattr(self, "loadouts_style_cb", None)
         if box is None:
             return
         o = self.settings["overlay"]
         self.loadouts_style_var.set(_(dict(LOADOUT_STYLES)[style_of(o)]))
-        box.state(["!disabled"] if o.get("loadouts_pos", "hud") == "custom" else ["disabled"])
+        box.state(["!disabled"])
 
     def _loadouts_style_changed(self) -> None:
-        """1.57.3: the perks as a 2×2 diamond or in one row."""
+        """1.57.3: the perks as a 2×2 diamond or in one row. 1.57.42 (user: "es soll sich live ändern im spiel wenn
+        ich zb die option in one row zu 2x2 ändere"): beside the list only the diamond fits and below the name only
+        the row (1.57.9) – the box was locked there and a pick did nothing; now the pick moves them where that style
+        goes (row → below the name, diamond → beside the list), at once in the game; at a place of one's own only
+        the style changes."""
         key = dict((_(label), k) for k, label in LOADOUT_STYLES).get(self.loadouts_style_var.get(), "diamond")
-        self.settings["overlay"]["loadouts_style"] = key
+        o = self.settings["overlay"]
+        o["loadouts_style"] = key
+        spot = o.get("loadouts_pos", "hud")
+        new = {"row": "name", "diamond": "hud"}[key] if spot in ("hud", "name") else spot
+        if new != spot:
+            self._layout_mark()
+            o["loadouts_pos"] = new
+            if hasattr(self, "loadouts_pos_var"):
+                self.loadouts_pos_var.set(_(dict(LOADOUT_SPOTS)[new]))
         self._save_soon()
         self._tick_overlay(reschedule=False)
 
