@@ -2579,6 +2579,25 @@ T = {
         'Тёмный фон за «Сегодня»',
     'Vorlage':
         'Шаблон',
+    # 1.57.42: own presets
+    'Eigene Vorlagen':
+        'Свои шаблоны',
+    'Eigene: {name}':
+        'Свой: {name}',
+    'Gib zuerst einen Namen für die Vorlage ein.':
+        'Сначала введите имя шаблона.',
+    'Speichert Position und Grösse aller Elemente unter diesem Namen – danach oben unter „Vorlage“ wählbar.':
+        'Сохраняет положение и размер всех элементов под этим именем – затем его можно выбрать вверху в «Шаблон».',
+    'Wähle oben unter „Vorlage“ eine eigene Vorlage aus.':
+        'Выберите вверху в «Шаблон» один из своих шаблонов.',
+    'Löscht die oben unter „Vorlage“ gewählte eigene Vorlage (oder die mit dem eingegebenen Namen).':
+        'Удаляет свой шаблон, выбранный вверху в «Шаблон» (или с введённым именем).',
+    'Merkt Position und Grösse aller Elemente unter dem eingegebenen Namen. Derselbe Name ersetzt die alte Vorlage. Danach oben unter „Vorlage“ wählbar.':
+        'Запоминает положение и размер всех элементов под введённым именем. То же имя заменяет старый шаблон. Затем его можно выбрать вверху в «Шаблон».',
+    'Als Vorlage merken':
+        'Сохранить как шаблон',
+    'Eigene Vorlage löschen':
+        'Удалить свой шаблон',
     'Vorlage anwenden':
         'Применить шаблон',
     'Alles links':

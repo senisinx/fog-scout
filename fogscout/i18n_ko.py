@@ -2579,6 +2579,25 @@ T = {
         '‘오늘’ 뒤 어두운 영역',
     'Vorlage':
         '프리셋',
+    # 1.57.42: own presets
+    'Eigene Vorlagen':
+        '내 프리셋',
+    'Eigene: {name}':
+        '내 프리셋: {name}',
+    'Gib zuerst einen Namen für die Vorlage ein.':
+        '먼저 프리셋 이름을 입력하세요.',
+    'Speichert Position und Grösse aller Elemente unter diesem Namen – danach oben unter „Vorlage“ wählbar.':
+        '모든 요소의 위치와 크기를 이 이름으로 저장합니다. 이후 위의 「프리셋」에서 고를 수 있습니다.',
+    'Wähle oben unter „Vorlage“ eine eigene Vorlage aus.':
+        '위의 「프리셋」에서 내 프리셋을 고르세요.',
+    'Löscht die oben unter „Vorlage“ gewählte eigene Vorlage (oder die mit dem eingegebenen Namen).':
+        '위의 「프리셋」에서 고른 내 프리셋(또는 입력한 이름의 프리셋)을 삭제합니다.',
+    'Merkt Position und Grösse aller Elemente unter dem eingegebenen Namen. Derselbe Name ersetzt die alte Vorlage. Danach oben unter „Vorlage“ wählbar.':
+        '모든 요소의 위치와 크기를 입력한 이름으로 기억합니다. 같은 이름이면 기존 프리셋을 바꿉니다. 이후 위의 「프리셋」에서 고를 수 있습니다.',
+    'Als Vorlage merken':
+        '프리셋으로 저장',
+    'Eigene Vorlage löschen':
+        '내 프리셋 삭제',
     'Vorlage anwenden':
         '프리셋 적용',
     'Alles links':

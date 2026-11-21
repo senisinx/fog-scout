@@ -418,10 +418,67 @@ class SysInfo:
         self._save_soon()
         self._tick_overlay(reschedule=False)
 
+    def _own_presets(self) -> dict:
+        """1.57.42: {name: layout} of the user's own presets (settings ``own_presets``)."""
+        own = self.settings.get("own_presets") or {}
+        return own if isinstance(own, dict) else {}
+
+    @staticmethod
+    def _own_label(name: str) -> str:
+        return _("Eigene: {name}", name=name)
+
+    def _preset_values(self) -> list:
+        """The list of the box "Vorlage": the program's presets, then the user's own (1.57.42)."""
+        return [_(t) for _k, t in PRESET_LABELS] + [self._own_label(n) for n in sorted(self._own_presets())]
+
+    def _preset_list_sync(self, pick: str | None = None) -> None:
+        box = getattr(self, "preset_cb", None)
+        if box is not None:
+            box.configure(values=self._preset_values())
+        if pick is not None:
+            self.preset_var.set(pick)
+
+    def _own_preset_save(self):
+        """1.57.42 (user: "Kannst du mir Preset möglichkeiten geben? … 1920x1080 oder meine normale Grösse" –
+        "Gerne"): the layout in use (place and size of every element, as kept per window size) under a name of the
+        user's choice; the same name again replaces it."""
+        from . import layoutmem
+        name = " ".join((self.own_preset_var.get() or "").split())[:40]
+        if not name:
+            self._inform(_("Eigene Vorlagen"), _("Gib zuerst einen Namen für die Vorlage ein."))
+            return
+        own = dict(self._own_presets())
+        own[name] = layoutmem.snapshot(self.settings.data)
+        self.settings.set("own_presets", own)
+        self._save_soon()
+        self._preset_list_sync(self._own_label(name))
+        self._log(_("Vorlage „{name}“ gespeichert.", name=name), "Overlay")
+
+    def _own_preset_delete(self):
+        """1.57.42: the own preset picked in the box "Vorlage" (or named in the field) is removed."""
+        own = dict(self._own_presets())
+        picked = {self._own_label(n): n for n in own}.get(self.preset_var.get())
+        name = picked or " ".join((self.own_preset_var.get() or "").split())
+        if name not in own:
+            self._inform(_("Eigene Vorlagen"), _("Wähle oben unter „Vorlage“ eine eigene Vorlage aus."))
+            return
+        del own[name]
+        self.settings.set("own_presets", own)
+        self._save_soon()
+        self._preset_list_sync(_(PRESET_LABELS[0][1]))
+        self._log(_("Vorlage „{name}“ gelöscht.", name=name), "Overlay")
+
     def _preset_apply(self):
-        """Button "Vorlage anwenden" (1.2.9): one of layoutmem.PRESETS as a layout change (undo works)."""
+        """Button "Vorlage anwenden" (1.2.9): one of layoutmem.PRESETS as a layout change (undo works); 1.57.42: or
+        one of the user's own presets."""
         from . import layoutmem
         from .config import DEFAULTS
+        own = {self._own_label(n): n for n in self._own_presets()}.get(self.preset_var.get())
+        if own is not None:
+            self._layout_mark()
+            self._layout_apply(self._own_presets()[own])
+            self._log(_("Vorlage „{name}“ angewendet.", name=own), "Overlay")
+            return
         key = dict((_(label), k) for k, label in PRESET_LABELS).get(self.preset_var.get(), "left")
         self._layout_mark()
         self._layout_apply(layoutmem.standard_layout(DEFAULTS) if key == layoutmem.STANDARD

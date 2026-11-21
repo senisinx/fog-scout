@@ -140,6 +140,7 @@ DEFAULTS = {
     "hidden_columns": {},             # 1.3.6: {"col|col|…" of a table: [column ids]} hidden by a right-click
     "layout_per_size": True,            # overlay: place and size of every element per DBD window size (1.65)
     "layouts": {},                      # {"3440x1440": layoutmem.snapshot(...)}
+    "own_presets": {},                  # 1.57.42: the user's named layouts {name: layoutmem.snapshot(...)}
     "layout_key": "",                   # the window size the current layout belongs to                   # control window: own order of the cards {page: {run: [card ids]}}
     "log_categories": ["Erkennung", "Overlay", "System", "Fehler"],
     "ocr_threads": 2,

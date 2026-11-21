@@ -224,7 +224,11 @@ SPECS = {
                   ("hint", "ov.limits_hint"),
                   ("row", (("check", "ov.same_width"), ("button", "ov.merge_column"), ("stretch",))),   # 1.8.29
                   ("sub", N_("Verhalten")),
-                  ("check", "ov.fade"), ("check", "ov.per_size"), ("hint", "ov.per_size_hint"))))))),
+                  ("check", "ov.fade"), ("check", "ov.per_size"), ("hint", "ov.per_size_hint"),
+                  ("sub", N_("Eigene Vorlagen")),                                                  # 1.57.42
+                  ("row", (("label", "ov.own_preset.label"), ("entry", "ov.own_preset"),
+                           ("button", "ov.own_preset_save"), ("button", "ov.own_preset_delete"), ("stretch",))),
+                  ("hint", "ov.own_preset_hint"))))))),
     ),
     "settings": (
         # 1.8.90 (user: "Bei Settings ist es riesig geworden"): six tabs instead of one column of 15 cards and the

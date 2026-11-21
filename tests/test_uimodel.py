@@ -2597,6 +2597,36 @@ def test_the_loadouts_hide_with_the_map_when_dbd_is_not_in_front(app_root):
         app.quit()
 
 
+def test_own_presets_are_saved_listed_applied_and_deleted(app_root):
+    """1.57.42 (user: "Kannst du mir Preset möglichkeiten geben? falls ich 1920x1080 oder meine normale grösse
+    spiele?" – "Gerne"): the layout in use under a name, listed in the box "Vorlage" after the program's presets,
+    applied like one (undo works), deleted again; without a name nothing is saved."""
+    from fogscout.app import App
+    app = App(str(app_root), simulate=str(app_root / "sim"))
+    try:
+        app.inform_calls = []
+        app._inform = lambda title, text: app.inform_calls.append(text)
+        app.own_preset_var.set("   ")
+        app._own_preset_save()
+        assert app.settings.get("own_presets") == {} and len(app.inform_calls) == 1
+        o = app.settings["overlay"]
+        o["loadouts_scale"], o["pos_x"] = 1.4, 0.2
+        app.own_preset_var.set("  Turnier  1080 ")
+        app._own_preset_save()
+        assert set(app.settings.get("own_presets")) == {"Turnier 1080"}
+        label = app._own_label("Turnier 1080")
+        assert app.preset_cb.cget("values")[-1] == label and app.preset_var.get() == label
+        o["loadouts_scale"], o["pos_x"] = 0.8, 0.5
+        app._preset_apply()
+        assert (o["loadouts_scale"], o["pos_x"]) == (1.4, 0.2)
+        app.undo_layout()
+        assert (o["loadouts_scale"], o["pos_x"]) == (0.8, 0.5)
+        app._own_preset_delete()
+        assert app.settings.get("own_presets") == {} and label not in app.preset_cb.cget("values")
+    finally:
+        app.quit()
+
+
 def test_the_overview_picture_of_a_found_map_is_made_by_the_worker(app_root, monkeypatch):
     """1.57.34 (user: "Weiter mit Optimierungen"): with the map's picture the worker makes the overview's picture
     too – the window's thread only takes it (a map change 39 → 27 ms there, median of 12 maps); a picture of

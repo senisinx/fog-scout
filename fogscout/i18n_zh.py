@@ -2579,6 +2579,25 @@ T = {
         '“今日”后面的深色背景',
     'Vorlage':
         '预设',
+    # 1.57.42: own presets
+    'Eigene Vorlagen':
+        '自定义预设',
+    'Eigene: {name}':
+        '自定义：{name}',
+    'Gib zuerst einen Namen für die Vorlage ein.':
+        '请先输入预设名称。',
+    'Speichert Position und Grösse aller Elemente unter diesem Namen – danach oben unter „Vorlage“ wählbar.':
+        '以此名称保存所有元素的位置和大小——之后可在上方“预设”中选择。',
+    'Wähle oben unter „Vorlage“ eine eigene Vorlage aus.':
+        '请在上方“预设”中选择一个自定义预设。',
+    'Löscht die oben unter „Vorlage“ gewählte eigene Vorlage (oder die mit dem eingegebenen Namen).':
+        '删除上方“预设”中选中的自定义预设（或与输入名称相同的预设）。',
+    'Merkt Position und Grösse aller Elemente unter dem eingegebenen Namen. Derselbe Name ersetzt die alte Vorlage. Danach oben unter „Vorlage“ wählbar.':
+        '以输入的名称记住所有元素的位置和大小。同名会替换旧预设。之后可在上方“预设”中选择。',
+    'Als Vorlage merken':
+        '保存为预设',
+    'Eigene Vorlage löschen':
+        '删除自定义预设',
     'Vorlage anwenden':
         '应用预设',
     'Alles links':

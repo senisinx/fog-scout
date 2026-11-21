@@ -2045,6 +2045,25 @@ EN = {
         'slider (pick "Today").',
     'Dunkle Fläche hinter „Heute“': 'Dark area behind "Today"',
     'Vorlage': 'Preset',
+    # 1.57.42: own presets
+    'Eigene Vorlagen':
+        'Own presets',
+    'Eigene: {name}':
+        'Own: {name}',
+    'Gib zuerst einen Namen für die Vorlage ein.':
+        'Enter a name for the preset first.',
+    'Speichert Position und Grösse aller Elemente unter diesem Namen – danach oben unter „Vorlage“ wählbar.':
+        'Saves the place and size of every element under this name – then it can be picked above under “Preset”.',
+    'Wähle oben unter „Vorlage“ eine eigene Vorlage aus.':
+        'Pick one of your own presets above under “Preset”.',
+    'Löscht die oben unter „Vorlage“ gewählte eigene Vorlage (oder die mit dem eingegebenen Namen).':
+        'Deletes the own preset picked above under “Preset” (or the one with the name entered).',
+    'Merkt Position und Grösse aller Elemente unter dem eingegebenen Namen. Derselbe Name ersetzt die alte Vorlage. Danach oben unter „Vorlage“ wählbar.':
+        'Remembers the place and size of every element under the name entered. The same name replaces the old preset. Then it can be picked above under “Preset”.',
+    'Als Vorlage merken':
+        'Save as preset',
+    'Eigene Vorlage löschen':
+        'Delete own preset',
     'Vorlage anwenden': 'Apply preset',
     'Alles links': 'Everything left',
     'Alles rechts': 'Everything right',

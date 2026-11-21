@@ -2579,6 +2579,25 @@ T = {
         '「今日」の背後に暗い領域',
     'Vorlage':
         'プリセット',
+    # 1.57.42: own presets
+    'Eigene Vorlagen':
+        '自分のプリセット',
+    'Eigene: {name}':
+        '自分: {name}',
+    'Gib zuerst einen Namen für die Vorlage ein.':
+        '先にプリセットの名前を入力してください。',
+    'Speichert Position und Grösse aller Elemente unter diesem Namen – danach oben unter „Vorlage“ wählbar.':
+        'すべての要素の位置とサイズをこの名前で保存します。その後、上の「プリセット」で選べます。',
+    'Wähle oben unter „Vorlage“ eine eigene Vorlage aus.':
+        '上の「プリセット」で自分のプリセットを選んでください。',
+    'Löscht die oben unter „Vorlage“ gewählte eigene Vorlage (oder die mit dem eingegebenen Namen).':
+        '上の「プリセット」で選んだ自分のプリセット（または入力した名前のもの）を削除します。',
+    'Merkt Position und Grösse aller Elemente unter dem eingegebenen Namen. Derselbe Name ersetzt die alte Vorlage. Danach oben unter „Vorlage“ wählbar.':
+        'すべての要素の位置とサイズを入力した名前で記憶します。同じ名前なら古いプリセットを置き換えます。その後、上の「プリセット」で選べます。',
+    'Als Vorlage merken':
+        'プリセットとして保存',
+    'Eigene Vorlage löschen':
+        '自分のプリセットを削除',
     'Vorlage anwenden':
         'プリセットを適用',
     'Alles links':
