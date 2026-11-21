@@ -1,4 +1,5 @@
 """Round history (fogscout/history.py)."""
+import json
 import os
 import sys
 import pytest
@@ -389,6 +390,36 @@ def test_a_later_balance_is_stored_with_the_round(tmp_path):
         h.set_balance(path, 100, -1)
     with pytest.raises(ValueError):
         h.set_balance(path, 100, True)
+
+
+def test_a_correction_keeps_the_other_lines_as_stored(tmp_path):
+    """1.57.36 (user's diagnosis: "Ereignis bloodpoints 81 ms" – one balance dumped all 1814 rounds again): only
+    the changed round is written anew; every other line stays byte for byte (an old line without the newer fields,
+    two rounds of one start), a broken line goes and a lost round's line is written as before, and the file reads the
+    same."""
+    path = str(tmp_path / "rounds.jsonl")
+    h.append(path, h.Round(100, 600, "a", "A", role="killer"))
+    old = '{"t": 200, "seconds": 600, "map_id": "b", "map": "B", "wait": -5}'
+    twin_a = '{"t": 300, "seconds": 500, "map_id": "c", "map": "C"}'
+    twin_b = '{"t": 300, "seconds": 700, "map_id": "d", "map": "D"}'
+    with open(path, "a", encoding="utf-8") as fh:
+        fh.write(old + "\n" + twin_a + "\n" + "{broken\n" + twin_b + "\n")
+    h.append_lost(path, 250, "Lost", "no end")
+    before = [(r.t, r.map, r.wait) for r in h.load(path)]
+    assert h.set_balance(path, 100, 7).balance == 7
+    lines = open(path, encoding="utf-8").read().splitlines()
+    assert lines[0] == h._dump(next(r for r in h.load(path) if r.t == 100))     # the changed one, dumped anew
+    assert lines[1] == old and lines[3:] == [twin_a, twin_b]                     # the rest as stored, in time order
+    assert json.loads(lines[2]) == {"lost": True, "t": 250.0, "map": "Lost", "reason": "no end"}
+    h._LINES.forget(path)                                                        # read from the file itself
+    assert [(r.t, r.map, r.wait) for r in h.load(path)] == before
+    assert [r.balance for r in h.load(path)] == [7, None, None, None]
+    assert h.set_balance(path, 300, 9).map == "C"                                # the first of one start
+    assert open(path, encoding="utf-8").read().splitlines()[4] == twin_b
+    with open(path, "a", encoding="utf-8") as fh:                                # a cut line of a known start
+        fh.write('{"t": 200, "seconds": 6\n')
+    h.set_balance(path, 100, 8)
+    assert [(r.t, r.map, r.wait) for r in h.load(path)] == before
 
 
 def test_a_rounds_dropouts_are_stored_and_read_back(tmp_path):
