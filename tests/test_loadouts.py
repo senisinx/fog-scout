@@ -691,12 +691,14 @@ def test_a_perk_with_two_names_is_read_as_one():
             assert perks.best(loadouts._fine_cuts(perks, pic, cx, cy, side), loose=True)[0] == loadouts.SAME_AS[name]
 
 
-def test_a_menu_full_of_eyes_finds_the_right_diamond_size(reader):
+def test_a_menu_full_of_eyes_finds_the_right_diamond_size():
     """User (1.57.9, test of the critical perks: nothing shown): the brightness fit is flat over a few sizes; with
     bright eyes everywhere 26 (52 px) won, the grid slipped, and the person icon before each name was read as "This
     Is Not Happening" in every row. The sizes fitting nearly as well are tried with real perk hits now, and the
-    looser rules count only in a row with two clear reads."""
-    board = reader.read(_load("menu_3440_eyes.webp"))
+    looser rules count only in a row with two clear reads. 1.57.36: a reader of its own – the shared one keeps the
+    last menu's grid (``_again``, 1.57.33), and under pytest-xdist another menu of another UI size read before it in
+    the same worker (menu_3440_dejavu, …_third, …_twins_second) gave its 56 px grid instead of the size search."""
+    board = loadouts.Reader().read(_load("menu_3440_eyes.webp"))
     assert board is not None and board.size >= 60
     assert board.rows[0].own and board.rows[0].perks == ("Ace in the Hole", "Adrenaline", "Bardic Inspiration", None)
     others = {r.perks[1]: r.perks for r in board.others}
