@@ -95,13 +95,17 @@ def placed(o: dict, game, board, editing: bool = False, sample: bool = False):
         starts = [c + face * layout.LOADOUT_NAME_Y - cluster / 2 for _r, c in centres]
     else:                                            # beside the portrait: centred on it
         starts = [c - cluster / 2 for _r, c in centres]
-    top = starts[0]
-    height = int(round(starts[-1] - top + cluster))
+    extra, over = None, 0.0
+    if not row and not board.killer and o.get("loadouts_items", True):
+        extra = extra_side(o, game, cluster, face, left)
+        over = max(0.0, (4 * extra + 3 * max(1, cluster // 48) - cluster) / 2)   # the column past the diamond
+    top = starts[0] - over
+    height = int(round(starts[-1] + over - top + cluster))
     if board.killer:                                 # 1.57.36: as the killer only the survivors' offerings
         pic = offering_card([r for r, _c in centres], cluster, [s - top for s in starts], height, icon_for)
     else:
         pic = loadout_card([r for r, _c in centres], cluster, [s - top for s in starts], height,
-                           bool(o.get("loadouts_items", True)), icon_for, row=row)
+                           bool(o.get("loadouts_items", True)), icon_for, row=row, extra=extra)
     if editing:
         pic = add_border(pic, _("LOADOUTS"))
     if spot == "name":
@@ -109,6 +113,24 @@ def placed(o: dict, game, board, editing: bool = False, sample: bool = False):
         return pic, x, int(round(top))
     x, y = layout.loadouts_xy(spot, game, pic.size, int(gh * o.get("margin", 0.012)), top, o.get("loadouts_xy"), left)
     return pic, x, y
+
+
+EXTRA_ROOM = 0.92            # 1.57.41: the small slots' column may fill this share of the step between two rows
+
+
+def extra_side(o: dict, game, cluster: int, face: float, left: float) -> int:
+    """1.57.41 (user to "the small slots are tiny – bigger?": "gern"): the side of the four small slots beside a
+    perk diamond – as tall as the step between two rows of the list allows (``EXTRA_ROOM``) and, beside the
+    portraits, as wide as the room between the 16:9 picture's edge and them allows; never smaller than before (a
+    quarter of the diamond)."""
+    gx, gy, gw, gh = game
+    gap = max(1, cluster // 48)
+    step = face * layout.LOADOUT_STEP / layout.LOADOUT_FACE
+    side = (EXTRA_ROOM * step - 3 * gap) / 4
+    if o.get("loadouts_pos", "hud") == "hud" and left is not None:
+        vx = gx + (gw - min(gw, gh * 16 / 9)) / 2
+        side = min(side, left - vx - 2 - cluster - max(2, cluster // 16))
+    return max(cluster // 4, int(side))
 
 
 class LoadoutsCard:

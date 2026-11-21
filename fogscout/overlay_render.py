@@ -1265,7 +1265,7 @@ def _loadout_icon(path, side: int):
     return pic
 
 
-def loadout_size(cluster: int, height: int, items: bool = True, row: bool = False) -> tuple:
+def loadout_size(cluster: int, height: int, items: bool = True, row: bool = False, extra: int | None = None) -> tuple:
     """(width, height) of the loadout picture – its width the same for every board (it never breathes). ``row``
     (1.57.3): the four perks side by side, ``cluster`` = their height. 1.57.4: with ``items`` four small slots
     (offering, item, two add-ons)."""
@@ -1273,7 +1273,7 @@ def loadout_size(cluster: int, height: int, items: bool = True, row: bool = Fals
         gap = max(1, cluster // 10)
         w = 4 * cluster + (gap * 3 + 4 * (int(cluster * 0.86) + gap) if items else 0)
         return w, max(cluster, int(height))
-    sq = max(6, cluster // 4)
+    sq = max(6, extra or cluster // 4)
     w = cluster + (sq + max(2, cluster // 16) if items else 0)
     return w, max(cluster, int(height))
 
@@ -1302,20 +1302,23 @@ def _loadout_slot(out, d, name, kind, x, y, s, edge, icon):
         d.text((x + s / 2, y + s / 2), "?", font=f, fill=(235, 225, 205, 255), anchor="mm")
 
 
-def loadout_card(rows, cluster: int, tops, height: int, items: bool = True, icon=None, row: bool = False) -> Image.Image:
+def loadout_card(rows, cluster: int, tops, height: int, items: bool = True, icon=None, row: bool = False,
+                 extra: int | None = None) -> Image.Image:
     """1.57: the other survivors' loadouts – per row (``loadouts.Row``) DBD's four perk diamonds as one large diamond
     (top, left, right, bottom) ``cluster`` px tall, its top at ``tops[i]`` px (beside that survivor's portrait in
     the HUD); with ``items`` the offering, item and two add-ons as small slots on its left. ``icon(name, kind)``
     gives a picture file. A slot not read stays empty; a row without anything is not drawn. ``row`` (1.57.3): each
-    survivor's perks side by side like in DBD's menu, ``cluster`` px tall, offering, item and add-ons after them."""
+    survivor's perks side by side like in DBD's menu, ``cluster`` px tall, offering, item and add-ons after them.
+    ``extra`` (1.57.41): the small slots' side – a column centred on the diamond, taller than it when the rows of
+    the list leave room (default a quarter of the diamond)."""
     if row:
         return _loadout_rows(rows, cluster, tops, height, items, icon)
-    w, h = loadout_size(cluster, height, items)
+    w, h = loadout_size(cluster, height, items, extra=extra)
     out = Image.new("RGBA", (w, h), (0, 0, 0, 0))
     d = ImageDraw.Draw(out)
     half = cluster / 2
     side = int(cluster * 0.5)                          # one perk's diamond: its bounding square
-    sq = max(6, cluster // 4)
+    sq = max(6, extra or cluster // 4)
     edge = max(1, cluster // 48)
     for row, top in zip(rows, tops):
         if row is None or row.empty:
@@ -1331,9 +1334,10 @@ def loadout_card(rows, cluster: int, tops, height: int, items: bool = True, icon
             if pic is not None:
                 out.alpha_composite(pic, (int(px - side / 2), int(py - side / 2)))
         if items:
-            gap = max(0, (cluster - 4 * sq) // 3)
+            gap = max(1, (cluster - 4 * sq) // 3) if 4 * sq < cluster else max(1, cluster // 48)
+            y0 = top + (cluster - (4 * sq + 3 * gap)) / 2          # 1.57.41: centred, may reach past the diamond
             for k, (name, kind) in enumerate(_loadout_extras(row)):
-                _loadout_slot(out, d, name, kind, 0, int(top + k * (sq + gap)), sq, edge, icon)
+                _loadout_slot(out, d, name, kind, 0, int(y0 + k * (sq + gap)), sq, edge, icon)
     return out
 
 
