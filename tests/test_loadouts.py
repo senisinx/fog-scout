@@ -1506,6 +1506,30 @@ def test_a_name_that_fits_two_survivors_places_neither():
     assert hud[0] is None and hud[1] is None and hud[2] is not None
 
 
+def test_a_framed_portrait_in_the_menu_is_the_same_survivor():
+    """User (1.57.45, screenshot on Rancid Abattoir: Obscarius's loadout drawn twice, once a row above DBD's list):
+    in a later menu look his portrait wore the hook stage's frame – no longer the same face, so 1.57.45 made a fifth
+    survivor with his loadout. The same perks are the same survivor, and a match never has more than four."""
+    faces = [np.zeros((loadouts.FACE, loadouts.FACE), np.uint8) for _ in range(4)]
+    for i, f in enumerate(faces):
+        f[i * 6:(i + 1) * 6, :] = 200
+    kits = (("Fixated", "Lithe", "Dead Hard", "Kindred"), ("Dead Hard", "Resilience", "Lithe", "Sprint Burst"),
+            ("Lithe", "Iron Will", "Kindred", "Bond"), ("Boon: Shadow Step", "Vigil", "Adrenaline", "Spine Chill"))
+    rows = tuple(Row(perks=k, face=f, own=i == 0) for i, (k, f) in enumerate(zip(kits, faces)))
+    v = Votes()
+    for _ in range(2):
+        v.note(Board(rows=rows))
+    framed = np.full((loadouts.FACE, loadouts.FACE), 90, np.uint8)       # the frame: another picture altogether
+    framed[::3, :] = 230
+    assert loadouts.same_face(framed, faces[1]) < loadouts.SAME_FACE
+    v.note(Board(rows=(rows[0], dataclasses.replace(rows[1], face=framed)) + rows[2:]))
+    assert len(v.board().rows) == 4
+    unknown = dataclasses.replace(rows[3], face=framed, perks=("Bond", None, None, None))
+    v.note(Board(rows=rows[:3] + (unknown,)))                         # nothing alike at all: still not a fifth
+    assert len(v.board().rows) == 4
+    assert [r.perks for r in v.board().rows] == list(kits)
+
+
 def test_as_the_killer_only_the_offerings_are_drawn():
     from fogscout import config
     from fogscout.app_loadouts import placed

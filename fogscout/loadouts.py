@@ -84,6 +84,9 @@ PORTRAIT_UP = 0.33            # … and above the row's centre
 PORTRAIT = 1.0                # … the square cut out of it (inside the round picture)
 FACE = 24                     # portraits are compared at this size (grey)
 SAME_FACE = 0.8               # two portraits of the menu are the same survivor from this correlation on
+KIT_SAME = 3                  # 1.57.46: a row with this many perks of a survivor's is that survivor (its portrait
+                              # may wear a hook stage's frame in the menu)
+MAX_PEOPLE = 4                # 1.57.46: survivors in a match – never more people than that
 HUD_FIT = 0.62                # a portrait found in the HUD's list from this correlation on (its round middle)
 HUD_ROUND = 0.42              # 1.57.4: only the round middle of a portrait is compared (radius in portraits) – the
                               # corners show the menu's backdrop there and the game behind it in the HUD, and a
@@ -1141,7 +1144,7 @@ class Votes:
         self._people: list = []           # {"face", "counts": {slot: {name: n}}, "own": n, "seen": n, "hud": …}
         self.killer = False               # 1.57.36: the killer's menu – no own survivor, the list's rows 0–3 theirs
 
-    def _who(self, face, index: int, used: set = frozenset(), own: bool = False) -> int:
+    def _who(self, face, index: int, used: set = frozenset(), own: bool = False, perks: tuple = ()) -> int:
         """The survivor of a row: the one with the same portrait; a row without one (cut off) by its place.
         1.57.6 (user's match with the own Dwight and a bot Dwight): two rows of one look are never one survivor –
         of the same portrait the own row is the one seen gold before. 1.57.12 (user's debug pictures: the two
@@ -1166,8 +1169,25 @@ class Votes:
             for i, p in enumerate(self._people):
                 if p["face"] is None and p["index"] == index:
                     return i
+        # 1.57.46 (user's screenshot: Obscarius's loadout twice, once a row above DBD's list – in the menu his
+        # portrait wore the hook stage's frame, no longer the same face, so a fifth survivor was made): the same
+        # perks are the same survivor, and there are never more than four
+        free = [i for i, p in enumerate(self._people)
+                if i not in used and (own or not p["own"] * 2 > p["seen"] > 0)]
+        kits = {i: sum(1 for a, b in zip(perks, self._perks_of(i)) if a is not None and a == b) for i in free}
+        best = sorted(kits.values(), reverse=True)
+        if best and best[0] >= KIT_SAME and (len(best) == 1 or best[1] < best[0]):
+            return max(kits, key=kits.get)
+        if len(self._people) >= MAX_PEOPLE and free:
+            return max(free, key=lambda i: (kits[i], self._people[i]["index"] == index,
+                                            same_face(face, self._people[i]["face"])))
         self._people.append({"face": face, "index": index, "counts": {}, "own": 0, "seen": 0, "hud": None})
         return len(self._people) - 1
+
+    def _perks_of(self, who: int) -> tuple:
+        """1.57.46: the perks counted most often for ``who`` (slots 0–3, None where nothing was read)."""
+        counts = self._people[who]["counts"]
+        return tuple(max(counts[k], key=counts[k].get) if counts.get(k) else None for k in range(4))
 
     def note(self, board: Board | None) -> bool:
         """Count a look; True when the shown board changed."""
@@ -1181,7 +1201,7 @@ class Votes:
         used = set()
         seen = []                                 # (who, row) of this look
         for index, row in enumerate(board.rows):
-            who = self._who(row.face, index, used, row.own)
+            who = self._who(row.face, index, used, row.own, row.perks)
             used.add(who)
             for other, prev in seen:              # 1.57.26: two alike portraits of one look, other pictures
                 if (row.face is not None and prev.face is not None and hud_alike(row.face, prev.face) >= HUD_TWIN
@@ -1415,7 +1435,7 @@ class Votes:
             return None
         step = min(steps, key=lambda st: abs(st / side - HUD_ROW))
         x = sorted(a[0] for a in done)[len(done) // 2]
-        n = len(faced)
+        n = min(len(faced), MAX_PEOPLE)                  # 1.57.46: DBD's list holds four, never a fifth row
         free = set()
         for k in range(n):                               # where the list may start so that every placed row fits
             start = ys[0] - k * step
