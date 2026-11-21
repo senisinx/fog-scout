@@ -40,6 +40,9 @@ Test pictures (tests/data/loadouts, every player name painted over):
 - ``real_menu_killer_3440.webp``: the worker's menu look of the user's killer match (1.57.40, 3440×1440, the middle
   1536 px) – Meg Toothy Torte, Carlos Screech Cobbler, Trevor and Alucard Bloody Party Streamers; every offering
   was unread with 1.57.37 (the coarse grid 6 px off). All player names painted over.
+- ``real_menu_killer_pies.webp``: the worker's menu look of the user's killer match of 1.57.42 (3440×1440, the
+  middle 1536 px) – Leon Toothy Torte, Kate Coconut Scream Pie, Sable Screech Cobbler, Ada Coconut Scream Pie; the
+  pie was no known offering (best fit 0.69). All player names painted over.
 - ``menu_four_rows.png``: the four icon rows of the picture of the first request (another player's menu, other
   scale; names, pings and the killer's row painted over)."""
 import dataclasses
@@ -1484,4 +1487,17 @@ def test_the_killers_menu_at_the_users_size_reads_every_offering_and_cuts_it_cen
         glyph = loadouts._glyph(r.pics[7][:, :, :3]).reshape(1, -1).astype(np.float32)   # 1.57.37 cut beside it
         fit = float((loadouts._norm(glyph) @ offerings.matrix[offerings.names.index(r.offering)])[0])
         assert fit >= 0.8, (r.offering, fit)                           # (user's menu: then −0.16 … 0.43, now ≥ 0.85)
+
+
+def test_the_ninth_anniversary_pie_and_the_offerings_missing_until_then_are_known():
+    """1.57.43 (user's killer match, diagnosis S2/S4 "sonst 0/4"): two survivors brought the Coconut Scream Pie (the
+    ninth anniversary's cake) – no picture of it, best fit 0.69, the slots stayed empty. Compared with the wiki's
+    Module:Datatable/Loadout: of the offerings a survivor can bring, Grandma's Cookbook and the event's Mistle Toes
+    were missing too; the killers' own (charType K) stay out – a survivor never brings them."""
+    board = loadouts.Reader().read(_load("real_menu_killer_pies.webp", None))
+    assert board.killer and [r.offering for r in board.rows] == ["Toothy Torte", "Coconut Scream Pie",
+                                                                  "Screech Cobbler", "Coconut Scream Pie"]
+    names = set(loadouts.load_names()["offerings"].values())
+    assert {"Coconut Scream Pie", "Grandma's Cookbook", "Mistle Toes"} <= names
+    assert not {"Shroud of Vanishing", "Survivor Pudding", "Ebony Memento Mori"} & names     # killers' own
 
