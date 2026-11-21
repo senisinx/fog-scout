@@ -1457,6 +1457,55 @@ def test_as_the_killer_all_four_rows_of_the_list_are_survivors():
     assert {r.offering: round((r.hud[1] - gy) / step) for r in board.rows} == dict(zip(KILLER_OFFERINGS, range(4)))
 
 
+def test_as_the_killer_hooked_survivors_and_twins_are_placed_by_their_names():
+    """User (1.57.42, killer match on Ormond: two Mikaelas in one skin, one named in Cyrillic, which the Latin OCR
+    reads as garbage in the menu and differently in the HUD; Ada only a skull all the time): 1.57.31 placed the
+    twins all at once or none and read only the twins' lines – two survivors stayed unplaced for 205 looks. As the
+    killer every menu line is read, each survivor whose name stands below a HUD row goes there on its own, a twin
+    whose twin is placed is no longer in doubt, and the last one follows by elimination. Invented names here (the
+    real ones are other players')."""
+    faces = [np.zeros((loadouts.FACE, loadouts.FACE), np.uint8) for _ in range(4)]
+    for i, k in enumerate((0, 1, 2, 1)):                               # rows 1 and 3: the same portrait
+        faces[i][k * 10:(k + 1) * 10, :] = 200
+    lines = ("NEA KARLSSON Morningstar 36 ms", "MIKAELA REID Teapotfox 40 ms",
+             "ADA WONG Quiet Lantern 56 ms", "MIKAELA REID OD od T mo")
+    offers = ("Terrormisu", "Bog Laurel Sachet", "Coconut Scream Pie", "Bound Envelope")
+    rows = tuple(Row(offering=o, face=f, line=t) for o, f, t in zip(offers, faces, lines))
+    v = Votes()
+    for _ in range(2):
+        v.note(Board(rows=rows, killer=True))
+    assert v.twins() == {1, 3}
+    grid = loadouts.list_grid(3440, 1440)
+    gx, gy, step, side = grid
+    assert v.name_rows(grid) == [0, 1, 2, 3]                          # every row: everybody's line was read
+    read = {0: "BOPnAO TOHKC", 1: "Morningstar", 2: "Teapotfox", 3: "Quiet Lantern"}
+    v.place_by_names(read, grid)
+    assert all(r.hud is None for r in v.board().rows)                  # one look: not yet
+    v.place_by_names(read, grid)
+    assert v.twins() == set()                                          # the other Mikaela is placed
+    assert v.placed
+    at = {r.offering: round((r.hud[1] - gy) / step) for r in v.board().rows}
+    assert at == {"Terrormisu": 1, "Bog Laurel Sachet": 2, "Coconut Scream Pie": 3, "Bound Envelope": 0}
+
+
+def test_a_name_that_fits_two_survivors_places_neither():
+    """Names place someone only clearly: a HUD name that fits two menu lines alike says nothing."""
+    faces = [np.zeros((loadouts.FACE, loadouts.FACE), np.uint8) for _ in range(3)]
+    for i, k in enumerate((0, 0, 2)):                                  # the two bots: one portrait
+        faces[i][k * 10:(k + 1) * 10, :] = 200
+    lines = ("CLAUDETTE MOREL Claudette Morel 0 ms BOT", "CLAUDETTE MOREL Claudette Morel 0 ms BOT",
+             "DWIGHT FAIRFIELD Lamplighter 30 ms")
+    rows = tuple(Row(perks=(f"P{i}", None, None, None), face=f, line=t) for i, (f, t) in enumerate(zip(faces, lines)))
+    v = Votes()
+    for _ in range(2):
+        v.note(Board(rows=rows, killer=True))
+    grid = loadouts.list_grid(3440, 1440)
+    for _ in range(3):
+        v.place_by_names({0: "Claudette Morel", 1: "Lamplighter"}, grid)
+    hud = [r.hud for r in v.board().rows]
+    assert hud[0] is None and hud[1] is None and hud[2] is not None
+
+
 def test_as_the_killer_only_the_offerings_are_drawn():
     from fogscout import config
     from fogscout.app_loadouts import placed
