@@ -180,7 +180,7 @@ class DetectionWorker(threading.Thread):
         self.info_rect = None            # … and of the map's lines when they are their own element (1.8.24)
         self.inputs_rect = None          # … and of the input card (1.39)
         self.loadouts_rect = None        # … and of the survivors' loadouts (1.57)
-        self.loadouts_wanted = False     # set by the UI: the loadouts are shown and the round is no killer's (1.57)
+        self.loadouts_wanted = False     # set by the UI: the loadouts are shown (1.57; 1.57.36 as the killer too)
         self.loadout_info = "–"          # 1.57: last look at the pause menu's loadouts (diagnosis)
         self.loadout_menu_info = "–"     # 1.57.11: … the last one at the menu itself (not the HUD / result)
         self.loadout_menu_tally = {}     # 1.57.16: the outcomes of this round's menu looks ("kein Raster": 8)
@@ -792,8 +792,8 @@ class DetectionWorker(threading.Thread):
                         except Exception:
                             self._report("Rundenende-Prüfung", traceback.format_exc())
                     # 1.57: the pause menu shows the other survivors' loadouts – read while it is open (the
-                    # pointer is visible over DBD), a few looks per round, never as the killer; 1.57.1: once the
-                    # menu is shut, their portraits are looked for in the HUD's survivor list (where to draw them)
+                    # pointer is visible over DBD), a few looks per round (1.57.36: as the killer too – the
+                    # survivors' offerings); 1.57.1: once the menu is shut, their portraits are looked for in the HUD's survivor list (where to draw them)
                     if obs is not None and foreground and "QUIT" in fold(obs.continue_text or ""):
                         quit_t = tick                     # 1.57.21: the pause menu without a pointer (controller)
                     paused = bool(pointer) or (foreground and tick - quit_t <= MENU_QUIT_HOLD_S)

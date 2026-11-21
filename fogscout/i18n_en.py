@@ -4569,12 +4569,12 @@ EN = {
     'Kommt eine Minute nach dem Ladebildschirm kein Map-Banner, sagt Fog Scout einmal je Runde, wie du mit „Bildschirm scannen“ nachhilfst – mit Ton und Meldung, auch wenn DBD im Vordergrund ist; nie in Custom Games.':
         'If no map banner comes a minute after the loading screen, Fog Scout says once per round how to help with “Scan screen” – with sound and notification, even with DBD in front; never in custom games.',
     # 1.57: the other survivors' loadouts
-    'Als Survivor zeigt Dead by Daylight im Pausenmenü (Esc), was die anderen Survivor mitnehmen. Fog Scout liest das nur aus dem Bild, solange das Menü offen ist (ein paar Blicke je Runde), und zeigt die Perks danach als Raute neben jedem Mitspieler – Item und Add-ons auf Wunsch daneben. Als Killer wird nichts gelesen. Nichts wird gespeichert oder gesendet; Spielernamen liest es nur, um gleich aussehende Survivor auseinanderzuhalten, und nur im Arbeitsspeicher. Einmal kurz Esc drücken reicht.':
-        "As a survivor, Dead by Daylight's pause menu (Esc) shows what the other survivors bring. Fog Scout reads this from the picture only, while the menu is open (a few looks per round), and then shows the perks as a diamond beside each teammate – item and add-ons beside them if you like. Nothing is read as the killer. Nothing is saved or sent; player names are read only to tell alike-looking survivors apart, and only in memory. Pressing Esc once briefly is enough.",
-    'Nur als Survivor: im Match einmal Esc drücken – Fog Scout liest die Loadouts der anderen aus dem Bild des Menüs und zeigt sie danach neben ihnen. Nichts wird gespeichert oder gesendet.':
-        "Survivors only: press Esc once during the match – Fog Scout reads the others' loadouts from the menu's picture and then shows them beside them. Nothing is saved or sent.",
-    'Neben jedem anderen Survivor in der Liste links erscheinen seine vier Perks als Raute – gelesen aus dem Pausenmenü (Esc), das DBD Survivorn zeigt. Nur das Bild wird gelesen, nur bei offenem Menü, nie als Killer; nichts wird gespeichert oder gesendet.':
-        'Beside every other survivor in the list on the left, their four perks appear as a diamond – read from the pause menu (Esc) DBD shows survivors. Only the picture is read, only while the menu is open, never as the killer; nothing is saved or sent.',
+    'Als Survivor zeigt Dead by Daylight im Pausenmenü (Esc), was die anderen Survivor mitnehmen. Fog Scout liest das nur aus dem Bild, solange das Menü offen ist (ein paar Blicke je Runde), und zeigt die Perks danach als Raute neben jedem Mitspieler – Item und Add-ons auf Wunsch daneben. Als Killer zeigt das Menü nur die Opfergaben der Survivor – die stehen dann neben ihnen. Nichts wird gespeichert oder gesendet; Spielernamen liest es nur, um gleich aussehende Survivor auseinanderzuhalten, und nur im Arbeitsspeicher. Einmal kurz Esc drücken reicht.':
+        "As a survivor, Dead by Daylight's pause menu (Esc) shows what the other survivors bring. Fog Scout reads this from the picture only, while the menu is open (a few looks per round), and then shows the perks as a diamond beside each teammate – item and add-ons beside them if you like. As the killer the menu shows only the survivors' offerings – those then appear beside them. Nothing is saved or sent; player names are read only to tell alike-looking survivors apart, and only in memory. Pressing Esc once briefly is enough.",
+    'Im Match einmal Esc drücken – Fog Scout liest die Loadouts der anderen Survivor (als Killer ihre Opfergaben) aus dem Bild des Menüs und zeigt sie danach neben ihnen. Nichts wird gespeichert oder gesendet.':
+        "Press Esc once during the match – Fog Scout reads the other survivors' loadouts (as the killer their offerings) from the menu's picture and then shows them beside them. Nothing is saved or sent.",
+    'Neben jedem anderen Survivor in der Liste links erscheinen seine vier Perks als Raute – gelesen aus dem Pausenmenü (Esc); als Killer seine Opfergabe. Nur das Bild wird gelesen, nur bei offenem Menü; nichts wird gespeichert oder gesendet.':
+        'Beside every other survivor in the list on the left, their four perks appear as a diamond – read from the pause menu (Esc); as the killer their offering. Only the picture is read, only while the menu is open; nothing is saved or sent.',
     'Opfergabe, Item und Add-ons neben den Perks':
         'Offering, item and add-ons beside the perks',
     'LOADOUTS':
@@ -4585,6 +4585,8 @@ EN = {
         "Teammates' loadouts",
     'Loadouts der Mitspieler aus dem Menü gelesen ({n} Perks).':
         "Teammates' loadouts read from the menu ({n} perks).",
+    'Opfergaben der Survivor aus dem Menü gelesen ({n}).':
+        "Survivors' offerings read from the menu ({n}).",
     'Loadouts der Mitspieler zeigen (Perks aus dem Menü)':
         "Show teammates' loadouts (perks from the menu)",
     'Neben der Survivor-Liste':

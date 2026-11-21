@@ -6097,12 +6097,12 @@ T = {
     'Kommt eine Minute nach dem Ladebildschirm kein Map-Banner, sagt Fog Scout einmal je Runde, wie du mit „Bildschirm scannen“ nachhilfst – mit Ton und Meldung, auch wenn DBD im Vordergrund ist; nie in Custom Games.':
         'Если через минуту после экрана загрузки баннер карты не появился, Fog Scout один раз за раунд подскажет, как помочь кнопкой «Сканировать экран» — со звуком и уведомлением, даже когда DBD на переднем плане; никогда в своих играх.',
     # 1.57: the other survivors' loadouts
-    'Als Survivor zeigt Dead by Daylight im Pausenmenü (Esc), was die anderen Survivor mitnehmen. Fog Scout liest das nur aus dem Bild, solange das Menü offen ist (ein paar Blicke je Runde), und zeigt die Perks danach als Raute neben jedem Mitspieler – Item und Add-ons auf Wunsch daneben. Als Killer wird nichts gelesen. Nichts wird gespeichert oder gesendet; Spielernamen liest es nur, um gleich aussehende Survivor auseinanderzuhalten, und nur im Arbeitsspeicher. Einmal kurz Esc drücken reicht.':
-        'Играя за выжившего, меню паузы Dead by Daylight (Esc) показывает, что взяли другие выжившие. Fog Scout считывает это только с изображения, пока меню открыто (несколько взглядов за раунд), и затем показывает навыки ромбом рядом с каждым союзником – предмет и улучшения рядом по желанию. За убийцу ничего не считывается. Ничего не сохраняется и не отправляется; имена игроков читаются только чтобы различить одинаково выглядящих выживших, и только в памяти. Достаточно один раз нажать Esc.',
-    'Nur als Survivor: im Match einmal Esc drücken – Fog Scout liest die Loadouts der anderen aus dem Bild des Menüs und zeigt sie danach neben ihnen. Nichts wird gespeichert oder gesendet.':
-        'Только за выжившего: нажмите Esc один раз во время матча – Fog Scout считает снаряжение остальных с изображения меню и затем покажет его рядом с ними. Ничего не сохраняется и не отправляется.',
-    'Neben jedem anderen Survivor in der Liste links erscheinen seine vier Perks als Raute – gelesen aus dem Pausenmenü (Esc), das DBD Survivorn zeigt. Nur das Bild wird gelesen, nur bei offenem Menü, nie als Killer; nichts wird gespeichert oder gesendet.':
-        'Рядом с каждым другим выжившим в списке слева появляются его четыре навыка ромбом – считанные с меню паузы (Esc), которое DBD показывает выжившим. Считывается только изображение, только при открытом меню, никогда за убийцу; ничего не сохраняется и не отправляется.',
+    'Als Survivor zeigt Dead by Daylight im Pausenmenü (Esc), was die anderen Survivor mitnehmen. Fog Scout liest das nur aus dem Bild, solange das Menü offen ist (ein paar Blicke je Runde), und zeigt die Perks danach als Raute neben jedem Mitspieler – Item und Add-ons auf Wunsch daneben. Als Killer zeigt das Menü nur die Opfergaben der Survivor – die stehen dann neben ihnen. Nichts wird gespeichert oder gesendet; Spielernamen liest es nur, um gleich aussehende Survivor auseinanderzuhalten, und nur im Arbeitsspeicher. Einmal kurz Esc drücken reicht.':
+        'Играя за выжившего, меню паузы Dead by Daylight (Esc) показывает, что взяли другие выжившие. Fog Scout считывает это только с изображения, пока меню открыто (несколько взглядов за раунд), и затем показывает навыки ромбом рядом с каждым союзником – предмет и улучшения рядом по желанию. За убийцу меню показывает только подношения выживших – они появляются рядом с ними. Ничего не сохраняется и не отправляется; имена игроков читаются только чтобы различить одинаково выглядящих выживших, и только в памяти. Достаточно один раз нажать Esc.',
+    'Im Match einmal Esc drücken – Fog Scout liest die Loadouts der anderen Survivor (als Killer ihre Opfergaben) aus dem Bild des Menüs und zeigt sie danach neben ihnen. Nichts wird gespeichert oder gesendet.':
+        'Нажмите Esc один раз во время матча – Fog Scout считает снаряжение других выживших (за убийцу – их подношения) с изображения меню и затем покажет его рядом с ними. Ничего не сохраняется и не отправляется.',
+    'Neben jedem anderen Survivor in der Liste links erscheinen seine vier Perks als Raute – gelesen aus dem Pausenmenü (Esc); als Killer seine Opfergabe. Nur das Bild wird gelesen, nur bei offenem Menü; nichts wird gespeichert oder gesendet.':
+        'Рядом с каждым другим выжившим в списке слева появляются его четыре навыка ромбом – считанные с меню паузы (Esc); за убийцу – его подношение. Считывается только изображение, только при открытом меню; ничего не сохраняется и не отправляется.',
     'Opfergabe, Item und Add-ons neben den Perks':
         'Подношение, предмет и улучшения рядом с навыками',
     'LOADOUTS':
@@ -6113,6 +6113,8 @@ T = {
         'Снаряжение союзников',
     'Loadouts der Mitspieler aus dem Menü gelesen ({n} Perks).':
         'Снаряжение союзников считано из меню ({n} навыков).',
+    'Opfergaben der Survivor aus dem Menü gelesen ({n}).':
+        'Подношения выживших считаны из меню ({n}).',
     'Loadouts der Mitspieler zeigen (Perks aus dem Menü)':
         'Показывать снаряжение союзников (навыки из меню)',
     'Neben der Survivor-Liste':

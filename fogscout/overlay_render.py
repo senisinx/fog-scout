@@ -1337,6 +1337,24 @@ def loadout_card(rows, cluster: int, tops, height: int, items: bool = True, icon
     return out
 
 
+def offering_card(rows, cluster: int, tops, height: int, icon=None) -> Image.Image:
+    """1.57.36 (user: "Ich meine die Offerings der Survivor. Die sieht man als killer im spiel"): as the killer only
+    each survivor's offering – one hexagon ``OFFERING_SHARE`` × ``cluster`` px, centred on the ``cluster`` px tall
+    place that starts at ``tops[i]``; a row without an offering is not drawn (a hidden one shows its "?")."""
+    s = max(8, int(cluster * OFFERING_SHARE))
+    out = Image.new("RGBA", (s, max(cluster, int(height))), (0, 0, 0, 0))
+    d = ImageDraw.Draw(out)
+    edge = max(1, s // 24)
+    for row, top in zip(rows, tops):
+        if row is None or row.offering is None:
+            continue
+        _loadout_slot(out, d, row.offering, "offerings", 0, int(round(top + (cluster - s) / 2)), s, edge, icon)
+    return out
+
+
+OFFERING_SHARE = 0.7          # 1.57.36: the killer's view – an offering's hexagon, a share of a perk diamond's place
+
+
 def _loadout_rows(rows, size: int, tops, height: int, items: bool, icon) -> Image.Image:
     """``loadout_card`` with the perks in one row (``size`` = a diamond's width and height)."""
     w, h = loadout_size(size, height, items, row=True)

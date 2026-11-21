@@ -33,6 +33,10 @@ Test pictures (tests/data/loadouts, every player name painted over):
 - ``real_menu_toothy_torte.webp``: the user's 2000×837 pause menu of a public match (1.57.35, 20.11.) – own Dwight
   with the 10th anniversary event's Toothy Torte (gold hexagon), Feng without an offering, Yui a Sealed Envelope,
   Thalita a hidden one. All player names painted over.
+- ``real_menu_killer.webp``/``real_hud_killer.jpg``: the user's killer menu and killer HUD (1.57.36, 2000×837, two
+  public matches) – the menu shows only the survivors' offerings (two Vees, two Kates: Fresh Bog Laurel, hidden,
+  Toothy Torte, Escape! Cake) above the own red row with Mephisto's perks; the HUD lists four survivors on the rows
+  where a survivor's own row and the three below sit. All player names painted over.
 - ``menu_four_rows.png``: the four icon rows of the picture of the first request (another player's menu, other
   scale; names, pings and the killer's row painted over)."""
 import dataclasses
@@ -687,12 +691,14 @@ def test_a_perk_with_two_names_is_read_as_one():
             assert perks.best(loadouts._fine_cuts(perks, pic, cx, cy, side), loose=True)[0] == loadouts.SAME_AS[name]
 
 
-def test_a_menu_full_of_eyes_finds_the_right_diamond_size(reader):
+def test_a_menu_full_of_eyes_finds_the_right_diamond_size():
     """User (1.57.9, test of the critical perks: nothing shown): the brightness fit is flat over a few sizes; with
     bright eyes everywhere 26 (52 px) won, the grid slipped, and the person icon before each name was read as "This
     Is Not Happening" in every row. The sizes fitting nearly as well are tried with real perk hits now, and the
-    looser rules count only in a row with two clear reads."""
-    board = reader.read(_load("menu_3440_eyes.webp"))
+    looser rules count only in a row with two clear reads. 1.57.36: a reader of its own – the shared one keeps the
+    last menu's grid (``_again``, 1.57.33), and under pytest-xdist another menu of another UI size read before it in
+    the same worker (menu_3440_dejavu, …_third, …_twins_second) gave its 56 px grid instead of the size search."""
+    board = loadouts.Reader().read(_load("menu_3440_eyes.webp"))
     assert board is not None and board.size >= 60
     assert board.rows[0].own and board.rows[0].perks == ("Ace in the Hole", "Adrenaline", "Bardic Inspiration", None)
     others = {r.perks[1]: r.perks for r in board.others}
@@ -1357,3 +1363,62 @@ def test_the_killers_row_is_left_out_even_with_an_offering(reader):
         loadouts._strip = real
     assert len(ys) == 1 and ys[0] > 900                               # the red row below the four survivors
     assert len(board.rows) == 2                                       # and still only the survivors read
+
+
+# ------------------------------------------------------------------ 1.57.36: the killer sees the survivors' offerings
+KILLER_OFFERINGS = ["Fresh Bog Laurel", loadouts.HIDDEN_OFFERING, "Toothy Torte", "Escape! Cake"]
+
+
+def test_the_killers_menu_gives_the_survivors_offerings():
+    """User: "Ich meine die Offerings der Survivor. Die sieht man als killer im spiel" – the killer's menu has no
+    survivor perk (the own red row holds the killer's, unknown to the reader: "kein Raster" before); its diamonds
+    find the grid, the four survivors' rows above give their offerings and portraits, at any size."""
+    for size in ((3440, 1440), (2560, 1071), None):
+        reader = loadouts.Reader()
+        board = reader.read(_load("real_menu_killer.webp", size))
+        assert board is not None and board.killer, reader.last
+        assert [r.offering for r in board.rows] == KILLER_OFFERINGS
+        assert all(r.face is not None and not r.own and not any(r.perks) and r.item is None for r in board.rows)
+        assert all(r.pics[:7] == (None,) * 7 and r.pics[7] is not None for r in board.rows)   # the hexagon only
+    assert not loadouts.Reader().read(_load("real_menu_toothy_torte.webp")).killer          # a survivor's menu
+
+
+def test_as_the_killer_all_four_rows_of_the_list_are_survivors():
+    """The killer's HUD lists the four survivors where a survivor sees the own row and the three below (the
+    user's killer HUD: its portraits found exactly on DBD's list, rows 0–3); no survivor is "the own one", the
+    top row is placed like the others and the last one follows by elimination."""
+    hud = _load("real_hud_killer.jpg")
+    h, w = hud.shape[:2]
+    grid = loadouts.list_grid(w, h)
+    gx, gy, step, side = grid
+    faces = {k: loadouts._face(hud, gx * w, (gy + k * step) * h, side * h * loadouts.PORTRAIT) for k in range(4)}
+    found = loadouts.HudFinder().find(hud, faces, side * h, (1.0,))
+    assert sorted(round((a[1] - gy) / step) for a in found.values()) == [0, 1, 2, 3]
+    votes = loadouts.Votes()
+    rows = tuple(Row(offering=name, face=faces[k]) for k, name in enumerate(KILLER_OFFERINGS))
+    for _ in range(2):
+        votes.note(Board(rows=rows, killer=True))
+    seen = {k: a for k, a in found.items() if k != 3}                  # the last one hooked all the time
+    votes.place(seen, grid)
+    votes.place(seen, grid)
+    board = votes.board()
+    assert board.killer and votes.placed and len(board.others) == 4
+    assert {r.offering: round((r.hud[1] - gy) / step) for r in board.rows} == dict(zip(KILLER_OFFERINGS, range(4)))
+
+
+def test_as_the_killer_only_the_offerings_are_drawn():
+    from fogscout import config
+    from fogscout.app_loadouts import placed
+    o = dict(config.DEFAULTS["overlay"], show_loadouts=True, loadouts_look="icons")
+    grid = loadouts.list_grid(3440, 1440)
+    rows = tuple(Row(offering=name, who=k, hud=(grid[0], grid[1] + k * grid[2], grid[3]))
+                 for k, name in enumerate(KILLER_OFFERINGS[:3] + [None]))
+    killer = placed(o, (0, 0, 3440, 1440), Board(rows=rows, killer=True))
+    survivor = placed(o, (0, 0, 3440, 1440), Board(rows=rows))
+    assert killer is not None and survivor is not None
+    assert killer[0].width < 0.6 * survivor[0].width                  # a hexagon, no perk diamond beside it
+    a = np.asarray(killer[0])
+    centres = [int((grid[1] + k * grid[2]) * 1440 - killer[2]) for k in range(4)]
+    assert all((a[c, :, 3] > 0).any() for c in centres[:3])           # a hexagon beside each of the first three
+    assert a.shape[0] <= centres[3]                                   # a survivor without an offering: nothing
+

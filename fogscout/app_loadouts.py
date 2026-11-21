@@ -2,8 +2,10 @@
 man ins Menü geht. Wäre es möglich, die Perks so anzeigen zu lassen links vom entsprechenden Spieler?" – Killer
 sehen es nicht): the other survivors' perks (and item, add-ons) as DBD's 2×2 perk diamond beside each of them in
 the HUD's survivor list. Read by the worker from the pause menu (loadouts.Reader, only the screen picture, only
-while the menu is open, a few looks per round, never as the killer); drawn by overlay_render.loadout_card; placed
-by layout.loadouts_xy (shared with the preview).
+while the menu is open, a few looks per round); drawn by overlay_render.loadout_card; placed by layout.loadouts_xy
+(shared with the preview). 1.57.36 (user: "Ich meine die Offerings der Survivor. Die sieht man als killer im
+spiel"): as the killer DBD's menu shows the survivors' offerings – those are read and drawn beside each of them
+(overlay_render.offering_card).
 
 Mixin of App (app.py) – the methods use App's attributes. Imports no other mixin (tests/test_mixins.py)."""
 from __future__ import annotations
@@ -80,7 +82,7 @@ def placed(o: dict, game, board, editing: bool = False, sample: bool = False):
     rows = [r for r in rows if not r.empty]
     if not rows:
         return None
-    from .overlay_render import add_border, loadout_card
+    from .overlay_render import add_border, loadout_card, offering_card
     gx, gy, gw, gh = game
     spot = o.get("loadouts_pos", "hud")
     cluster, centres, left, face, mid = layout.loadout_rows(o, game, rows)
@@ -95,8 +97,11 @@ def placed(o: dict, game, board, editing: bool = False, sample: bool = False):
         starts = [c - cluster / 2 for _r, c in centres]
     top = starts[0]
     height = int(round(starts[-1] - top + cluster))
-    pic = loadout_card([r for r, _c in centres], cluster, [s - top for s in starts], height,
-                       bool(o.get("loadouts_items", True)), icon_for, row=row)
+    if board.killer:                                 # 1.57.36: as the killer only the survivors' offerings
+        pic = offering_card([r for r, _c in centres], cluster, [s - top for s in starts], height, icon_for)
+    else:
+        pic = loadout_card([r for r, _c in centres], cluster, [s - top for s in starts], height,
+                           bool(o.get("loadouts_items", True)), icon_for, row=row)
     if editing:
         pic = add_border(pic, _("LOADOUTS"))
     if spot == "name":
@@ -130,13 +135,14 @@ class LoadoutsCard:
         return bool(self.settings["overlay"].get("show_loadouts", False))
 
     def _loadouts_killer(self) -> bool:
-        """The round is the killer's (lobby or round said so): DBD shows no loadouts then – nothing is read."""
+        """The round is the killer's (lobby or round said so). 1.57.36: DBD's menu shows the survivors' offerings
+        then (no perks) – read like a survivor's menu (``loadouts.Reader._killer``)."""
         role = (getattr(self, "_hist", None) or {}).get("role") or (getattr(self, "_queue", None) or {}).get("role")
         return role == "killer"
 
     def _loadouts_want(self) -> None:
-        """Tell the worker whether to look at the pause menu (the element on, a round of a survivor or unknown)."""
-        self.worker.loadouts_wanted = self._loadouts_on() and not self._loadouts_killer()
+        """Tell the worker whether to look at the pause menu (the element on; 1.57.36: as the killer too)."""
+        self.worker.loadouts_wanted = self._loadouts_on()
 
     def _loadouts_event(self, d: dict) -> None:
         """The worker read (more of) the board of the round on display."""
@@ -146,8 +152,12 @@ class LoadoutsCard:
         first = self._loadout_board is None
         self._loadout_board, self._loadout_gen = board, d.get("gen")
         if first and board is not None:
-            n = sum(1 for r in board.others for p in r.perks if p)
-            self._log(_("Loadouts der Mitspieler aus dem Menü gelesen ({n} Perks).", n=n), "Erkennung")
+            if board.killer:                         # 1.57.36: the killer's menu – offerings only
+                n = sum(1 for r in board.rows if r.offering)
+                self._log(_("Opfergaben der Survivor aus dem Menü gelesen ({n}).", n=n), "Erkennung")
+            else:
+                n = sum(1 for r in board.others for p in r.perks if p)
+                self._log(_("Loadouts der Mitspieler aus dem Menü gelesen ({n} Perks).", n=n), "Erkennung")
         self._tick_overlay(reschedule=False)
 
     def _loadouts_board(self):
@@ -159,7 +169,7 @@ class LoadoutsCard:
         if self._loadout_gen != self.worker.watch_gen:
             self._loadout_board = None                 # a new map: the old round's survivors are gone
         board = self._loadout_board
-        if (board is None or self._loadouts_killer() or self.menu_paused or self.hidden_after_match
+        if (board is None or self.menu_paused or self.hidden_after_match
                 or getattr(self.worker, "menu_open", False)        # 1.57.2: DBD's menu hides the HUD as well
                 or not self.overlay.has_map() or not self.user_visible
                 or getattr(self, "_map_reason", None)):     # 1.57.23: hidden with the map (DBD not in front …)
@@ -267,6 +277,6 @@ class LoadoutsCard:
 def LOADOUTS_NOTE() -> str:        # noqa: N802 – a text, translated when asked for
     return _("Als Survivor zeigt Dead by Daylight im Pausenmenü (Esc), was die anderen Survivor mitnehmen. Fog "
              "Scout liest das nur aus dem Bild, solange das Menü offen ist (ein paar Blicke je Runde), und zeigt die "
-             "Perks danach als Raute neben jedem Mitspieler – Item und Add-ons auf Wunsch daneben. Als Killer wird "
-             "nichts gelesen. Nichts wird gespeichert oder gesendet; Spielernamen liest es nur, um gleich aussehende "
+             "Perks danach als Raute neben jedem Mitspieler – Item und Add-ons auf Wunsch daneben. Als Killer zeigt "
+             "das Menü nur die Opfergaben der Survivor – die stehen dann neben ihnen. Nichts wird gespeichert oder gesendet; Spielernamen liest es nur, um gleich aussehende "
              "Survivor auseinanderzuhalten, und nur im Arbeitsspeicher. Einmal kurz Esc drücken reicht.")
