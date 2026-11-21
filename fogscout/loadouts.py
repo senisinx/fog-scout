@@ -823,8 +823,10 @@ class Reader:
             reads += [self.addons.best(_cuts(frame, last + a * pitch, y, pitch * SQUARE, reach=2), loose=True,
                                        allowed=slot_rarities(frame, last + a * pitch, y, pitch * SQUARE))
                       for a in ADDONS_AT]
-            reads.append(self.offerings.best(_cuts(frame, last + OFFERING_AT * pitch, y, pitch * OFFERING, reach=2),
-                                             loose=True))
+            # 1.57.44 (user's menu: the own Escape! Cake fitted 0.85, lead 0.03 from the coarse cuts – unread;
+            # finer cuts 0.96, lead 0.14): the offering read with finer cuts, as in the killer's menu (1.57.40)
+            reads.append(self.offerings.best(
+                _fine_cuts(self.offerings, frame, last + OFFERING_AT * pitch, y, pitch * OFFERING), loose=True))
             strict = [n is not None and sc >= MIN_SCORE and m >= MIN_MARGIN for n, sc, m in reads]
             if sum(strict) < PROVEN_ROW:              # 1.57.9: the looser rules only in a row proven by clear reads
                 reads = [r if ok else (None, r[1], r[2]) for r, ok in zip(reads, strict)]
