@@ -127,6 +127,7 @@ class OverlayPlacement:
         wait = [] if forced else self._waiting_lines()
         self.overlay.set_waiting(wait, self._waiting_memo() if wait else ())
         reason = None
+        by_menu = False                                     # 1.57.40: the loadouts stay while only a menu hides the map
         if forced:
             pass
         elif wait:
@@ -136,12 +137,13 @@ class OverlayPlacement:
         elif not ((self.user_visible and not self.hidden_after_match) or self.overlay.editing):
             reason = _("ausgeblendet")
         elif self.menu_paused and not self.overlay.editing:
-            reason = _("Menü offen")
+            reason, by_menu = _("Menü offen"), True
         elif not o.get("show_map", True) and not self.overlay.has_info() and not self.overlay.editing:
             reason = _("nichts anzuzeigen")          # info only, but no timer/server yet
         else:
             reason = self._focus_reason(o)
         self._map_reason = reason                           # 1.57.23: the loadouts follow the map (app_loadouts)
+        self._map_by_menu = by_menu
         if wait:
             self._vis_state = "wartet"                      # the waiting card is not logged
         elif not forced:
