@@ -169,11 +169,14 @@ class LoadoutsCard:
         if self._loadout_gen != self.worker.watch_gen:
             self._loadout_board = None                 # a new map: the old round's survivors are gone
         board = self._loadout_board
-        if (board is None or self.menu_paused or self.hidden_after_match
-                or getattr(self.worker, "menu_open", False)        # 1.57.2: DBD's menu hides the HUD as well
+        # 1.57.40 (user: "wieso verschwindet die perk ansicht immer wenn ich ins menü gehe? Die soll drin bleiben"):
+        # the pause menu no longer hides them (1.57.2 did: DBD hides its HUD there) – neither DBD's menu read by
+        # the worker nor the map's menu pause; everything else that hides the map still hides them (1.57.23)
+        menu_only = getattr(self, "_map_by_menu", False)
+        if (board is None or self.hidden_after_match
                 or not self.overlay.has_map() or not self.user_visible
-                or getattr(self, "_map_reason", None)):     # 1.57.23: hidden with the map (DBD not in front …)
-            return None, False
+                or (getattr(self, "_map_reason", None) and not menu_only)):     # hidden with the map (DBD not in
+            return None, False                                                   # front, hidden by hand …)
         return board, False
 
     # ---- placing (every overlay tick)

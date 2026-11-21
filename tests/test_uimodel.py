@@ -2584,6 +2584,14 @@ def test_the_loadouts_hide_with_the_map_when_dbd_is_not_in_front(app_root):
         assert app._loadouts_board() == (SAMPLE, False)
         app._map_reason = "aktives Fenster ist Browser"
         assert app._loadouts_board() == (None, False)
+        # 1.57.40 (user: "wieso verschwindet die perk ansicht immer wenn ich ins menü gehe? Die soll drin bleiben"):
+        # DBD's pause menu and the map's menu pause leave them on
+        app._map_reason, app._map_by_menu, app.menu_paused = "Menü offen", True, True
+        app.worker.menu_open = True
+        assert app._loadouts_board() == (SAMPLE, False)
+        app._map_by_menu = False
+        app._map_reason = "aktives Fenster ist Browser"
+        assert app._loadouts_board() == (None, False)
     finally:
         app.loadouts_win = None
         app.quit()
