@@ -785,7 +785,7 @@ class Reader:
                                     pics=(None,) * 7 + (tile,), line=f"@{x0:.1f},{y:.1f}"))
                 if len(rows) < 2 or yk >= h:
                     continue
-                rows = self._lines(frame, rows[::-1], pitch, text)
+                rows = self._lines(frame, rows[::-1], pitch, text, every=True)
                 self.last = f"Killer-Menü: {len(rows)} Survivor, Raute {size:.0f} px"
                 return Board(rows=tuple(rows), size=round(size, 1), pitch=round(pitch, 2), killer=True)
         return None
@@ -847,11 +847,12 @@ class Reader:
         return Board(rows=tuple(rows), size=round(size, 1), pitch=round(pitch, 2)) if rows else None
 
     @staticmethod
-    def _lines(frame, rows: list, pitch: float, text) -> list:
+    def _lines(frame, rows: list, pitch: float, text, every: bool = False) -> list:
         """1.57.29: the line of text of each row whose portrait looks like another row's (not the own one) – the
-        rest get none (``line`` held only the row's place until here)."""
+        rest get none (``line`` held only the row's place until here). 1.57.45: ``every`` (the killer's menu) –
+        every row's line."""
         import dataclasses
-        alike = set()
+        alike = set(range(len(rows))) if every else set()
         for i, a in enumerate(rows):
             for j, b in enumerate(rows):
                 if i < j and not a.own and not b.own and hud_alike(a.face, b.face) >= HUD_TWIN:
@@ -1225,7 +1226,9 @@ class Votes:
         out = set()
         for i, p in enumerate(self._people):
             for j, q in enumerate(self._people):
+                # 1.57.45: once one of them is placed (by its name) the other's portrait is no longer in doubt
                 if i < j and own not in (i, j) and p["face"] is not None and q["face"] is not None \
+                        and p["hud"] is None and q["hud"] is None \
                         and hud_alike(p["face"], q["face"]) >= HUD_TWIN \
                         and (_kit(board[i]) != _kit(board[j]) or frozenset((i, j)) in self._apart):
                     out |= {i, j}
@@ -1265,16 +1268,22 @@ class Votes:
             if prev.get(who) == at and self._people[who]["hud"] is None:
                 if all(p["hud"] is None or abs(p["hud"][1] - at[1]) >= 0.5 * step for p in self._people):
                     self._people[who]["hud"] = at
-        # the last one by elimination: four survivors, four rows – three placed (the own one among them), one row
-        # left; its portrait need not be seen (hooked or downed all the time). 1.57.36: as the killer all four rows
-        if (own >= 0 or self.killer) and len(self._people) == 4:
+        self._eliminate(grid)
+        return self.board().key() != before
+
+    def _eliminate(self, grid) -> None:
+        """The last one by elimination: four survivors, four rows – three placed (the own one among them), one row
+        left; its portrait need not be seen (hooked or downed all the time). 1.57.36: as the killer all four rows.
+        1.57.45: also after a name placed someone (``place_by_names``)."""
+        gx, gy, step, side = grid
+        if (self._own(gold_only=True) >= 0 or self.killer) and len(self._people) == 4:
+            twins = self.twins()
             left = [i for i, p in enumerate(self._people) if p["hud"] is None]
             rows = [k for k in range(self._first_row, 4) if all(p["hud"] is None or abs(p["hud"][1] - (gy + k * step)) >= 0.5 * step
                                                 for p in self._people) and self._twin_rows.get(k, 0) < 2]
             left = [i for i in left if i not in twins]      # 1.57.13: the twins' rows (seen twice) are theirs
             if len(left) == 1 and len(rows) == 1:
                 self._people[left[0]]["hud"] = (gx, gy + rows[0] * step, side)
-        return self.board().key() != before
 
     @property
     def _first_row(self) -> int:
@@ -1284,42 +1293,54 @@ class Votes:
 
     def name_rows(self, grid) -> list:
         """1.57.29: the list's rows (1–3, DBD's list ``grid``) where an unplaced twin may stand – their names are
-        read only there and only while twins are left; [] otherwise."""
-        twins = [i for i in self.twins() if self._people[i]["hud"] is None and self._people[i].get("line")]
-        if not twins:
+        read only there and only while twins are left; [] otherwise. 1.57.45: also any other unplaced survivor whose
+        menu line was read (as the killer every row's, ``_named``)."""
+        if not self._named():
             return []
         gx, gy, step, side = grid
         taken = [p["hud"][1] for p in self._people if p["hud"] is not None]
         return [k for k in range(self._first_row, 4) if all(abs(y - (gy + k * step)) >= 0.5 * step for y in taken)]
 
+    def _named(self) -> list:
+        """1.57.45: the unplaced survivors whose menu line was read – the twins (1.57.29) and, as the killer, every
+        survivor (``Reader._lines(every=True)``: the HUD shows them hooked, dead or escaped most of the round)."""
+        return [i for i, p in enumerate(self._people) if p["hud"] is None and p.get("line")]
+
     def place_by_names(self, read: dict, grid) -> bool:
         """1.57.29 (user: four Claudettes in one skin; "Weshalb sollte das mit dem Namen ein Problem sein?" – "ja"):
-        ``read`` = {row: name read below the HUD portrait there}. 1.57.31: the twins are given the free rows all at
-        once – the assignment whose names stand best in the twins' menu lines compared with the other twins'
-        (``name_cost`` minus the best other twin's at that row), each within ``NAME_COST`` of its name and
-        ``NAME_AHEAD`` better than any other assignment – after two looks agreeing. Names are kept nowhere else."""
-        import itertools
+        ``read`` = {row: name read below the HUD portrait there}. Names are kept nowhere else. 1.57.45 (user's killer
+        match: two Mikaelas in one skin, one with a Cyrillic name the Latin OCR can't read – 1.57.31 gave the twins
+        their rows all at once or none, so neither was placed; the others' portraits were hooks and skulls): each
+        survivor with a read line (``_named``) on its own – a row k counts for i when the name there is within
+        ``NAME_COST`` of i's line, fits i ``NAME_AHEAD`` better than any other row (both against the others'
+        lines: a row that fits all alike – an alike bot's, an empty one's – says nothing, ``rel``) and fits nobody
+        else as well – after two looks agreeing. Who stays unread is left to elimination."""
         gx, gy, step, side = grid
-        twins = [i for i in self.twins() if self._people[i]["hud"] is None and self._people[i].get("line")]
+        named = self._named()
         before = self.board().key()
         rows = [k for k, t in read.items() if t]
         choice = {}
-        if twins and len(rows) >= len(twins):
-            cost = {(i, k): name_cost(read[k], self._people[i]["line"]) for i in twins for k in rows}
+        if named and rows:
+            cost = {(i, k): name_cost(read[k], self._people[i]["line"]) for i in named for k in rows}
             limit = {k: max(1, int(NAME_COST * len(fold_name(read[k])))) for k in rows}
-            # how much better a row fits this twin than the best other twin (a row that fits all alike – another
-            # alike bot's, an empty one's – says nothing; 1.57.31: the Claudettes' third row tied otherwise)
-            rel = {(i, k): cost[i, k] - min(cost[j, k] for j in twins if j != i) for i in twins for k in rows}
-            ranked = sorted((sum(rel[i, k] for i, k in zip(twins, ks)), ks)
-                            for ks in itertools.permutations(rows, len(twins)))
-            best, ks = ranked[0]
-            if (len(ranked) == 1 or ranked[1][0] - best >= NAME_AHEAD) \
-                    and all(cost[i, k] <= limit[k] for i, k in zip(twins, ks)):
-                choice = dict(zip(twins, ks))
+            others = {i: [j for j in named if j != i] for i in named}
+            rel = {(i, k): cost[i, k] - min((cost[j, k] for j in others[i]), default=0) for i in named for k in rows}
+            for i in named:
+                k = min(rows, key=lambda r: (rel[i, r], cost[i, r]))
+                if cost[i, k] > limit[k]:
+                    continue
+                if any(rel[i, r] - rel[i, k] < NAME_AHEAD for r in rows if r != k):
+                    continue                              # another row fits i as well
+                if any(cost[j, k] - cost[i, k] < NAME_AHEAD for j in others[i]):
+                    continue                              # the name there fits another survivor as well
+                choice[i] = k
         prev, self._name_seen = getattr(self, "_name_seen", {}), choice
         for i, k in choice.items():
             if prev.get(i) == k and self._people[i]["hud"] is None:
-                self._people[i]["hud"] = (gx, gy + k * step, side)
+                if all(p["hud"] is None or abs(p["hud"][1] - (gy + k * step)) >= 0.5 * step for p in self._people):
+                    self._people[i]["hud"] = (gx, gy + k * step, side)
+                    self._list_seen = True                # DBD's list, where the names stand
+        self._eliminate(grid)
         return self.board().key() != before
 
     def place(self, found: dict, grid=None) -> bool:
