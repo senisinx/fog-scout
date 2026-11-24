@@ -641,15 +641,17 @@ def cut(path: str, start: float, end: float, out: str, mode: str = "copy", ffmpe
     ffmpeg = ffmpeg or ffmpeg_exe()
     if not ffmpeg:
         return False, "ffmpeg fehlt"
-    censor = list(censor or ())
     enc = encoding or Encoding()
     if mode == "discord" and enc.codec == "hevc":
         enc = replace(enc, codec="h264")                  # Discord's players do not show HEVC – H.264 for it
-    if mode == "copy" and (censor or not copyable(path)):
-        mode = "exact"
     start, end = max(0.0, float(start)), float(end)
     if end <= start:
         return False, "Ende vor Anfang"
+    # CR-012 (code review): only the boxes that hide something in this stretch – one that ended before it made a
+    # copy cut re-encode and flashed for a frame at its start (enable between 0 and 0)
+    censor = boxes_in(list(censor or ()), start, end)
+    if mode == "copy" and (censor or not copyable(path)):
+        mode = "exact"
     if (censor or mix or (enc.height and mode == "exact")) and (info is None or not info.ok):
         info = probe(path, ffmpeg)
     flt, amap = audio_graph(info.audio_tracks if info else 0, mix)
@@ -768,6 +770,8 @@ def censor_graph(boxes, style: str, width: int, height: int, tail: str = "", src
             if still_at is not None:
                 if not box_active(box, still_at):
                     continue
+            elif win[1] <= base:                # CR-012: over before this input starts – never shown
+                continue
             else:
                 when = f":enable='between(t,{max(0.0, win[0] - base):.3f},{max(0.0, win[1] - base):.3f})'"
         x, y, w, h = box_px(box, width, height)
@@ -951,6 +955,8 @@ class FramePlayer(threading.Thread):
         self.position = self.start_t
 
     def stop(self):
+        """Ends the player (any thread): ffmpeg is killed and reaped; its pipe is closed by the player's own thread
+        (CR-012: closed from the window's thread while the player read it, the read raised ValueError there)."""
         self._stop.set()
         p = self._proc
         if p is not None:
@@ -962,17 +968,23 @@ class FramePlayer(threading.Thread):
                 p.wait(1.0)                           # 1.16.1: reaped now, not at the next Popen's clean-up
             except (OSError, subprocess.TimeoutExpired):
                 pass
-            try:
-                if p.stdout is not None:
-                    p.stdout.close()
-            except OSError:
-                pass
+
+    def _close(self):
+        p = self._proc
+        try:
+            if p is not None and p.stdout is not None:
+                p.stdout.close()
+        except OSError:
+            pass
 
     def _read(self, n: int) -> bytes:
         out = bytearray()
         stream = self._proc.stdout
         while len(out) < n and not self._stop.is_set():
-            chunk = stream.read(n - len(out))
+            try:
+                chunk = stream.read(n - len(out))
+            except (OSError, ValueError):             # CR-012: the pipe ended under us – that is the end
+                break
             if not chunk:
                 break
             out += chunk
@@ -1021,6 +1033,7 @@ class FramePlayer(threading.Thread):
                 self.on_frame(t, Image.frombytes("RGB", (w, h), buf))
         finally:
             self.stop()
+            self._close()
             self.on_end()                                 # the window ignores it when it stopped the player itself
 
 

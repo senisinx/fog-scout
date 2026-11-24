@@ -687,6 +687,23 @@ class SettingsTab:
                            "Bilder bleiben. Das Programm startet danach neu."), self._reset_all_settings,
                          ok_text=_("Zurücksetzen"), danger=True):
             return
+        self._reset_all_settings_go()
+
+    def _restart_blocked(self, title) -> bool:
+        """CR-013 (code review): settings.json was replaced and the restart helper started while a round ran, OBS
+        recorded, a clip was being written or an editor's project was not secured yet – the restart then ended
+        those. True = not now (said to the user); the same checks as before an update."""
+        if self._update_blocked():
+            self._inform(title, _("Neustart gerade nicht möglich: eine Runde läuft, OBS nimmt auf oder ein Clip "
+                                  "wird gespeichert. Danach noch einmal versuchen."))
+            return True
+        return False
+
+    def _reset_all_settings_go(self):
+        if self._restart_blocked(_("Alle Einstellungen zurücksetzen")):
+            return
+        if not self._quit_phase1(self._reset_all_settings_go):   # editor projects secured first, then again here
+            return
         from .config import reset_data
         self.settings.data = reset_data(self.settings.data)
         self._no_bar_defaults(self.settings.data)       # 1.46.8: the defaults of this screen, like a first start
@@ -717,6 +734,13 @@ class SettingsTab:
         if not self._ask(_("Einstellungen importieren"),
                          _("Alle Einstellungen durch die aus der Datei ersetzen? Das Programm startet danach neu."),
                          lambda: self._import_settings(path), ok_text=_("Importieren"), danger=True):
+            return
+        self._import_settings_go(path, data)
+
+    def _import_settings_go(self, path, data):
+        if self._restart_blocked(_("Einstellungen importieren")):                     # CR-013
+            return
+        if not self._quit_phase1(lambda: self._import_settings_go(path, data)):
             return
         self.settings.data = data
         self.settings.save()

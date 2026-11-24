@@ -3732,8 +3732,8 @@ T = {
         'YouTube: 업로드되지 않음 – {file}: {why}',
     'YouTube: in die Warteschlange – {file}':
         'YouTube: 대기열에 추가됨 – {file}',
-    'YouTube-Link kopiert: {url}':
-        'YouTube 링크 복사됨: {url}',
+    'YouTube-Link kopiert.':
+        'YouTube 링크 복사됨.',
     'Clip: {what}':
         '클립: {what}',
     'Dauer {d}':
@@ -6155,4 +6155,6 @@ T = {
         '오버레이에 정보를 표시합니다.',
     'Infos im Overlay ausgeblendet.':
         '오버레이에서 정보를 숨깁니다.',
+    'Neustart gerade nicht möglich: eine Runde läuft, OBS nimmt auf oder ein Clip wird gespeichert. Danach noch einmal versuchen.':
+        '지금은 다시 시작할 수 없습니다: 라운드 진행 중이거나 OBS가 녹화 중이거나 클립을 저장하는 중입니다. 나중에 다시 시도하세요.',
 }

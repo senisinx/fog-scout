@@ -1117,7 +1117,7 @@ class StatsTab:
         for r in sorted(farm, key=lambda r: r.t, reverse=True)[:self._stats_last_limit]:
             m = off.get(id(r))
             role = killer_label(r.killer) if r.role == "killer" and r.killer else self._role_name(r.role) or "–"
-            t.insert("", "end", iid=repr(r.t), values=(
+            t.insert("", "end", iid=t.free_iid(repr(r.t)), values=(
                 time.strftime("%d.%m.%y %H:%M", time.localtime(r.t)), shown(r.map), fmt_duration(r.seconds),
                 self._wait_text(r), role,
                 _bp(m.bp) if m is not None and m.bp > 0 else "–",
@@ -1518,7 +1518,8 @@ class StatsTab:
                                                       else self._role_name(r.role) or "–")
             if r.farming and not r.custom:
                 role += " · " + _("Farming")
-            t.insert("", "end", iid=repr(r.t), values=(time.strftime("%d.%m.%y %H:%M", time.localtime(r.t)), shown(r.map),
+            t.insert("", "end", iid=t.free_iid(repr(r.t)),
+                     values=(time.strftime("%d.%m.%y %H:%M", time.localtime(r.t)), shown(r.map),
                                                        fmt_duration(r.seconds),
                                                        self._wait_text(r), role,
                                                        self._official_result(off.get(id(r))),
@@ -1660,7 +1661,7 @@ class StatsTab:
     def _stats_role_buttons(self):
         sel = self.stats_last.selection()
         rescued = getattr(self, "_off_rescued", ())
-        state = "normal" if sel and not any(s in rescued for s in sel) else "disabled"
+        state = "normal" if sel and not any(ui.iid_base(s) in rescued for s in sel) else "disabled"
         for b in self.stats_role_btns:
             b.configure(state=state)
         self.stats_round_killer_cb.configure(state="readonly" if state == "normal" else "disabled")
@@ -1858,7 +1859,7 @@ class StatsTab:
         out = []
         for iid in self.stats_last.selection():
             try:
-                out.append(float(iid))
+                out.append(float(ui.iid_base(iid)))
             except ValueError:
                 continue
         return out
@@ -1962,7 +1963,8 @@ class StatsTab:
             m = off.get(id(r))
             opp = ", ".join(killer_label(o.name) if o.role == "killer" else o.name
                             for o in official.opponents([(r, m)])[:2]) if m is not None else "–"
-            t.insert("", "end", iid=repr(r.t), values=(time.strftime("%d.%m.%y %H:%M", time.localtime(r.t)), shown(r.map),
+            t.insert("", "end", iid=t.free_iid(repr(r.t)),
+                     values=(time.strftime("%d.%m.%y %H:%M", time.localtime(r.t)), shown(r.map),
                                                        fmt_duration(r.seconds), role, opp or "–",
                                                        self._stats_farm_why(r)))
         kept = [k for k in keep if t.exists(k)]
@@ -1973,7 +1975,7 @@ class StatsTab:
         """1.38.41: the answer for the marked rows – "Ist Farming" marks them (custom dropped, the recordings
         follow), "Kein Farming" leaves them as they are and never suggests them again. No question: one click on
         rows the user picked, and "Farming an/aus" under "Letzte Runden" takes it back."""
-        picked = set(self.stats_farm_tree.selection())
+        picked = {ui.iid_base(i) for i in self.stats_farm_tree.selection()}
         rounds = [r for r in self._stats_farm_candidates() if repr(r.t) in picked]
         if not rounds:
             return

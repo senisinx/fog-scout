@@ -3732,8 +3732,8 @@ T = {
         'YouTube: non caricato – {file}: {why}',
     'YouTube: in die Warteschlange – {file}':
         'YouTube: in coda – {file}',
-    'YouTube-Link kopiert: {url}':
-        'Link YouTube copiato: {url}',
+    'YouTube-Link kopiert.':
+        'Link YouTube copiato.',
     'Clip: {what}':
         'Clip: {what}',
     'Dauer {d}':
@@ -6155,4 +6155,6 @@ T = {
         "Info mostrate nell'overlay.",
     'Infos im Overlay ausgeblendet.':
         "Info nascoste nell'overlay.",
+    'Neustart gerade nicht möglich: eine Runde läuft, OBS nimmt auf oder ein Clip wird gespeichert. Danach noch einmal versuchen.':
+        'Riavvio non possibile ora: è in corso una partita, OBS sta registrando o si sta salvando una clip. Riprova dopo.',
 }

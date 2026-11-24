@@ -1731,3 +1731,64 @@ def test_a_player_reports_its_own_end_not_the_current_players(monkeypatch):
     qt_clip.ClipBase._run_player(s, (5.0, 9.0, 1.0, 0.0))
     made[0].on_end()                                                # the old player's thread ends late
     assert ended == [made[0]] and s.player is made[1]
+
+
+# ---- CR-012 (code review)
+def test_a_censor_box_that_ended_before_the_cut_neither_reencodes_nor_flashes(tmp_path):
+    seen = []
+
+    def run(args):
+        seen.append(args)
+        open(args[-1], "wb").write(b"x")
+        return 0, b""
+    src = tmp_path / "a.mkv"
+    src.write_bytes(b"x")
+    info = clipedit.Info(duration=100.0, width=1920, height=1080, fps=30.0)
+    ok, _why = clipedit.cut(str(src), 50.0, 60.0, str(tmp_path / "o.mkv"), "copy", ffmpeg="ffmpeg", run=run,
+                            info=info, censor=[[0.1, 0.1, 0.2, 0.2, 10.0, 20.0]])
+    assert ok and "-filter_complex" not in seen[0] and "copy" in seen[0]            # stays a stream copy
+    graph = clipedit.censor_graph([[0.1, 0.1, 0.2, 0.2, 10.0, 20.0], [0.1, 0.1, 0.2, 0.2]], "black", 100, 100,
+                                  base=50.0)
+    assert graph.count("drawbox") == 1 and "between(t,0.000,0.000)" not in graph
+
+
+def test_a_player_whose_pipe_is_closed_under_it_just_ends():
+    class Pipe:
+        def read(self, n):
+            raise ValueError("read of closed file")
+    p = clipedit.FramePlayer.__new__(clipedit.FramePlayer)
+    p._stop = threading.Event()
+    p._proc = type("P", (), {"stdout": Pipe()})()
+    assert p._read(10) == b""
+
+
+def test_rows_with_the_same_start_get_their_own_ids():
+    pytest.importorskip("PySide6")
+    from fogscout import uimodel as ui
+    t = ui.Treeview(None, columns=("a",))
+    first = t.free_iid("1700000000.5")
+    t.insert("", "end", iid=first, values=("x",))
+    second = t.free_iid("1700000000.5")
+    t.insert("", "end", iid=second, values=("y",))
+    assert (first, second) == ("1700000000.5", "1700000000.5#2") and ui.iid_base(second) == "1700000000.5"
+
+
+def test_i_and_o_trim_the_edges_a_backwards_clip_shows():
+    pytest.importorskip("PySide6")
+    from types import SimpleNamespace
+    from fogscout import qt_editor
+    from fogscout.clipedit import Part
+    calls = []
+    s = SimpleNamespace(parts=[Part(10.0, 20.0, reverse=True)], timeline=SimpleNamespace(set_parts=lambda p: None),
+                        _commit=lambda: None, goto=lambda t: None, _still_untrimmable=lambda i: False,
+                        _clip_at_playhead=lambda: (0, 15.0), _src_info=lambda p: SimpleNamespace(duration=100.0))
+    real = qt_editor.sequence.trim
+    qt_editor.sequence.trim = lambda parts, i, edge, src, total: calls.append(edge) or real(parts, i, edge, src, total)
+    try:
+        qt_editor.EditorWindow.set_start(s)
+        assert calls == ["end"] and (s.parts[0].start, s.parts[0].end) == (10.0, 15.0)   # what plays first goes
+        s.parts = [Part(10.0, 20.0, reverse=True)]
+        qt_editor.EditorWindow.set_end(s)
+        assert calls == ["end", "start"] and (s.parts[0].start, s.parts[0].end) == (15.0, 20.0)
+    finally:
+        qt_editor.sequence.trim = real

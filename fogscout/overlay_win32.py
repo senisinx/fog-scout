@@ -1041,12 +1041,16 @@ class PictureOverlay:
         return self._pics[min(self._frame_i, len(self._pics) - 1)]
 
     def _keep_on_top(self):
+        # CR-013 (code review): a destroyed overlay (another overlay kind chosen) stops this 1-s timer – it kept
+        # the old overlay and its pictures alive for the rest of the run
+        if getattr(self, "_destroyed", False):
+            return
         try:
             if self._shown:
                 self._raise()
         except Exception as e:
             self.last_error = repr(e)
-        self.root.after(1000, self._keep_on_top)
+        self._top_job = self.root.after(1000, self._keep_on_top)
 
     # ----------------------------------------------------------- edit mode
     def set_editing(self, on: bool):
@@ -1076,6 +1080,13 @@ class PictureOverlay:
         return bool(getattr(self, "_moving", False)) and self._editing
 
     def destroy(self):
+        self._destroyed = True
+        job, self._top_job = getattr(self, "_top_job", None), None
+        if job is not None:
+            try:
+                self.root.after_cancel(job)
+            except Exception:
+                pass
         self._stop_anim()
         try:
             self._destroy_window()

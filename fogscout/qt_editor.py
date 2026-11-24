@@ -1933,7 +1933,10 @@ class EditorWindow(ClaudeMixin, InputMixin, MomentsMixin, MontageMixin, MusicMix
         i, src = self._clip_at_playhead()
         if i is None or self._still_untrimmable(i):
             return
-        self.parts = sequence.trim(self.parts, i, "start", src, self._src_info(self.parts[i]).duration)
+        # CR-012 (code review): a clip played backwards begins (on the timeline) at its source end – as dragging its
+        # left edge does (qt_timeline), I trims that end; before, the wrong half of a backwards clip went
+        edge = "end" if self.parts[i].reverse else "start"
+        self.parts = sequence.trim(self.parts, i, edge, src, self._src_info(self.parts[i]).duration)
         self.timeline.set_parts(self.parts)
         self._commit()
         self.goto(sequence.starts(self.parts)[i])
@@ -1942,7 +1945,8 @@ class EditorWindow(ClaudeMixin, InputMixin, MomentsMixin, MontageMixin, MusicMix
         i, src = self._clip_at_playhead()
         if i is None or self._still_untrimmable(i):
             return
-        self.parts = sequence.trim(self.parts, i, "end", src, self._src_info(self.parts[i]).duration)
+        edge = "start" if self.parts[i].reverse else "end"          # CR-012: see set_start
+        self.parts = sequence.trim(self.parts, i, edge, src, self._src_info(self.parts[i]).duration)
         self.timeline.set_parts(self.parts)
         self._commit()
         self.goto(sequence.starts(self.parts)[i + 1])

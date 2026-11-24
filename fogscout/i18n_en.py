@@ -2726,7 +2726,7 @@ EN = {
     'Hochgeladen: {file}': 'Uploaded: {file}',
     'YouTube: nicht hochgeladen – {file}: {why}': 'YouTube: not uploaded – {file}: {why}',
     'YouTube: in die Warteschlange – {file}': 'YouTube: queued – {file}',
-    'YouTube-Link kopiert: {url}': 'YouTube link copied: {url}',
+    'YouTube-Link kopiert.': 'YouTube link copied.',
     'Clip: {what}': 'Clip: {what}',
     'Dauer {d}': 'Length {d}',
     'Aufgenommen mit Fog Scout': 'Recorded with Fog Scout',
@@ -4629,4 +4629,6 @@ EN = {
         'Info shown in the overlay.',
     'Infos im Overlay ausgeblendet.':
         'Info hidden in the overlay.',
+    'Neustart gerade nicht möglich: eine Runde läuft, OBS nimmt auf oder ein Clip wird gespeichert. Danach noch einmal versuchen.':
+        'Cannot restart right now: a round is running, OBS is recording or a clip is being saved. Try again afterwards.',
 }

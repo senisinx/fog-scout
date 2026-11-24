@@ -320,7 +320,7 @@ class YouTubeUpload:
 
     def _yt_copy_link(self, video_id: str):
         self.root.clipboard_set(ytupload.video_url(video_id))
-        self._log(_("YouTube-Link kopiert: {url}", url=ytupload.video_url(video_id)), "System")
+        self._log(_("YouTube-Link kopiert."), "System")      # CR-013: never the video's link in the log (1.38.57)
 
     def _yt_open_link(self, video_id: str):
         launch.open_url(ytupload.video_url(video_id))

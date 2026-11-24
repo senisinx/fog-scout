@@ -248,6 +248,11 @@ class Label(Widget):
     "Big.TLabel" = big value, "Dim.TLabel" = grey hint, "Note.TLabel" = a hint that warns (1.23, amber)."""
 
 
+def iid_base(iid) -> str:
+    """The ``base`` of a row id made by ``Treeview.free_iid`` (the round's ``repr(t)``)."""
+    return str(iid).split("#", 1)[0]
+
+
 def danger(w):
     """1.12.3: a button that deletes or resets data – drawn in the warning colour (Qt object name "danger")."""
     w._dbdms_danger = True
@@ -519,6 +524,14 @@ class Treeview(Widget):
         it["parent"] = parent
         kids = self._kids.setdefault(parent, [])
         kids.insert(len(kids) if index == "end" else max(0, min(int(index), len(kids))), str(iid))
+
+    def free_iid(self, base: str) -> str:
+        """CR-012 (code review): ``base`` when no row has it yet, else ``base#2``, ``base#3`` … – two rounds with the
+        same start time (a restored backup) made ``insert`` raise and the whole page stayed empty."""
+        iid, n = str(base), 2
+        while iid in self._items:
+            iid, n = f"{base}#{n}", n + 1
+        return iid
 
     def exists(self, iid) -> bool:
         return str(iid) in self._items

@@ -3732,8 +3732,8 @@ T = {
         'YouTube：アップロードされませんでした – {file}：{why}',
     'YouTube: in die Warteschlange – {file}':
         'YouTube：キューに追加 – {file}',
-    'YouTube-Link kopiert: {url}':
-        'YouTube のリンクをコピーしました：{url}',
+    'YouTube-Link kopiert.':
+        'YouTube のリンクをコピーしました。',
     'Clip: {what}':
         'クリップ：{what}',
     'Dauer {d}':
@@ -6155,4 +6155,6 @@ T = {
         'オーバーレイに情報を表示しました。',
     'Infos im Overlay ausgeblendet.':
         'オーバーレイの情報を非表示にしました。',
+    'Neustart gerade nicht möglich: eine Runde läuft, OBS nimmt auf oder ein Clip wird gespeichert. Danach noch einmal versuchen.':
+        '今は再起動できません：ラウンド中、OBS が録画中、またはクリップを保存中です。後でもう一度お試しください。',
 }

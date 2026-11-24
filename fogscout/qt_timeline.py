@@ -648,9 +648,9 @@ class SequenceTimeline(QWidget):
             s0 = part.end - off - per_px if part.reverse else part.start + off     # 1.19: backwards
             b0 = int(s0 * self.wave_per_s)
             b1 = max(b0 + 1, int((s0 + per_px) * self.wave_per_s))
-            if b0 >= n:
-                break
-            v = max(wave[b0:min(n, b1)], default=0.0)
+            if b0 >= n or b1 <= 0:          # CR-012: outside the known wave – backwards, the rest may still be in it
+                continue
+            v = max(wave[max(0, b0):min(n, b1)], default=0.0)
             h = max(1.0, v * half)
             p.drawLine(QPointF(x + 0.5, mid - h), QPointF(x + 0.5, mid + h))
 
@@ -673,9 +673,9 @@ class SequenceTimeline(QWidget):
             s0 = part.end - off - per_px if part.reverse else part.start + off
             b0 = int(s0 * self.input_per_s)
             b1 = max(b0 + 1, int((s0 + per_px) * self.input_per_s))
-            if b0 >= n:
-                break
-            v = max(bins[b0:min(n, b1)], default=0.0)
+            if b0 >= n or b1 <= 0:          # CR-012: see _paint_wave (backwards)
+                continue
+            v = max(bins[max(0, b0):min(n, b1)], default=0.0)
             if v <= 0:
                 continue
             c = QColor(accent)
