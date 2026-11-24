@@ -702,6 +702,11 @@ class Config:
         return self.pre or self.instant
 
 
+def OBS_ELEVATED() -> str:
+    """Red-team audit RS-003: why Fog Scout, running as administrator, does not start OBS itself."""
+    return _("OBS bitte selbst starten – Fog Scout läuft als Administrator und startet OBS nicht mit diesen Rechten.")
+
+
 def obs_window_open(windows) -> bool:
     """1.8.47 (pure): an OBS main window among ``windows`` [(title, class)] – also hidden in the tray (EnumWindows
     lists hidden windows too). A second start would only open OBS's "already running" question."""
@@ -1510,8 +1515,14 @@ class Recorder(threading.Thread):
         except Exception:
             log.debug("OBS-Fenster nicht geprüft", exc_info=True)
             return False
-        exe = obs_exe()
         self._obs_started = True
+        if launch.elevated():
+            # red-team audit RS-003: started from here OBS would run with Fog Scout's administrator rights and load
+            # the scripts and plugins of the user's OBS profile (%APPDATA%, any program of the user may write it)
+            self._obs_late = True                       # nothing was started: no "started but not reachable" later
+            self._warn(OBS_ELEVATED())
+            return False
+        exe = obs_exe()
         if exe is None:
             self._warn(_("OBS nicht gefunden – bitte OBS selbst starten (gesucht unter Programme\\obs-studio)."))
             return False
@@ -1529,6 +1540,8 @@ class Recorder(threading.Thread):
     @staticmethod
     def _start_obs_process(exe: str):
         """OBS in its own folder (it finds its data there), minimised to the tray, detached from this program."""
+        if launch.elevated():                           # red-team audit RS-003: never with our administrator token
+            raise PermissionError(OBS_ELEVATED())
         flags = getattr(subprocess, "DETACHED_PROCESS", 0) | getattr(subprocess, "CREATE_NEW_PROCESS_GROUP", 0)
         # 1.33.3: never with the packaged program's DLL search and PATH – OBS loaded _internal\msvcp140.dll and held it
         launch.start_program([exe, *OBS_ARGS], cwd=os.path.dirname(exe), creationflags=flags)

@@ -1,5 +1,7 @@
 # Red-Team-Audit Fog Scout – 04 Befunde und Behebungsplan
 
+**Stand 24.11.2026:** freigegeben („Weiter“) und in 1.57.48 umgesetzt (RS-003 Variante A, RS-002, RS-001 + RS-001b, RS-008) – siehe `05_FINAL_VERIFICATION.md`. Der Text unten ist der Stand am Freigabepunkt.
+
 **Freigabepunkt:** Bis hier wurden nur Berichte und Angriffstests geschrieben. Produktionscode, Abhängigkeiten, Installer, Workflows und Produktregeln sind unverändert. Phase 5 beginnt erst nach ausdrücklicher Freigabe.
 
 ## Priorisierte Übersicht

@@ -106,6 +106,8 @@ def prune(dst: str, keep: int | None = None) -> int:
     """Delete the oldest decisions beyond ``keep`` (KEEP; our own pairs only, through fsops.delete_inside); the number."""
     keep = KEEP if keep is None else keep
     gone = 0
+    if fsops.linked_root(dst):                        # red-team RS-002: corpus/ is a link – nothing deleted there
+        return 0
     for stamp in _stamps(dst)[:-keep] if keep > 0 else []:
         for ext in (".jpg", ".json"):
             try:

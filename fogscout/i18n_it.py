@@ -4036,6 +4036,8 @@ T = {
         'OBS è stato avviato ma non è raggiungibile – in OBS in Strumenti → Impostazioni server WebSocket attiva il server e controlla porta/password. ({error})',
     'OBS nicht gefunden – bitte OBS selbst starten (gesucht unter Programme\\obs-studio).':
         'OBS non trovato – avvia OBS tu stesso (cercato in Program Files\\obs-studio).',
+    'OBS bitte selbst starten – Fog Scout läuft als Administrator und startet OBS nicht mit diesen Rechten.':
+        'Avvia OBS tu stesso – Fog Scout è in esecuzione come amministratore e non avvia OBS con questi diritti.',
     'OBS konnte nicht gestartet werden: {error}':
         'Impossibile avviare OBS: {error}',
     'OBS wird gestartet …':

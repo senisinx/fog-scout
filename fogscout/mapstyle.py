@@ -14,6 +14,7 @@ framed) has its own way since 1.66.2 (``restyle_floors``).
 """
 from __future__ import annotations
 
+import logging
 import os
 import re
 import threading
@@ -25,6 +26,8 @@ from PIL import Image, ImageDraw, ImageFont, ImageSequence
 
 from . import fsops, thumbs
 from .mapimage import FONT, title_split
+
+log = logging.getLogger("fogscout")
 
 STYLE_VERSION = 9                     # raise when the conversion changes: the cache is made anew
 FILL = np.array([140, 148, 232])      # the lilac floor of the supplied maps
@@ -436,6 +439,9 @@ def prune(cache_dir: str) -> int:
     file but the newest source state. Only files in ``cache_dir`` whose name is ours (styled_path); returns how many
     went. 1.38.45: "newest" = the cache file made last (the name holds a content key now, no time)."""
     gone = 0
+    if fsops.linked_root(cache_dir, 2):               # red-team RS-002: cache/maps_dark or cache is a link
+        log.warning("Kartenstil-Cache ist ein Link – nicht aufgeräumt")
+        return 0
     try:
         subs = [d for d in os.listdir(cache_dir) if os.path.isdir(os.path.join(cache_dir, d))]
     except OSError:

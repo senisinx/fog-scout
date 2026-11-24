@@ -4036,6 +4036,8 @@ T = {
         'OBS は起動しましたが接続できません – OBS の「ツール」→「WebSocket サーバー設定」でサーバーを有効にし、ポート/パスワードを確認してください。（{error}）',
     'OBS nicht gefunden – bitte OBS selbst starten (gesucht unter Programme\\obs-studio).':
         'OBS が見つかりません – OBS を自分で起動してください（Program Files\\obs-studio を検索しました）。',
+    'OBS bitte selbst starten – Fog Scout läuft als Administrator und startet OBS nicht mit diesen Rechten.':
+        'OBS を自分で起動してください – Fog Scout は管理者として実行中のため、この権限で OBS を起動しません。',
     'OBS konnte nicht gestartet werden: {error}':
         'OBS を起動できませんでした：{error}',
     'OBS wird gestartet …':

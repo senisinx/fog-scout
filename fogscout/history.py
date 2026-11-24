@@ -15,6 +15,18 @@ from dataclasses import dataclass, fields
 from . import fsops, jsonlcache
 
 FILE = "rounds.jsonl"
+# red-team audit RS-001: what a stored start/length may be – the statistics turn both into local dates; a value
+# outside (NaN, Infinity, 1e300 from a restored backup) made every render raise. Lines outside are skipped as broken.
+LATEST_T = 4102444800.0          # 2100-01-01 – far beyond any round, inside what time.localtime takes everywhere
+MAX_SECONDS = 7 * 86400.0        # a round (or a match on the page) is never this long
+
+
+def plausible(t, seconds=0.0) -> bool:
+    """A start ``t`` (Unix seconds) and length ``seconds`` the program can show as dates; False for NaN too."""
+    try:
+        return 0.0 <= float(t) <= LATEST_T and 0.0 <= float(seconds) <= MAX_SECONDS
+    except (TypeError, ValueError, OverflowError):
+        return False
 MIN_SECONDS = 60.0
 KEEP = 5000                 # newest rounds kept when the file is tidied
 # 1.50.6 (review): what the tidying takes out of the file goes to this file beside it first (same lines) – before, the
@@ -246,7 +258,8 @@ def _lost_lines(path: str, stored: dict | None = None) -> list:
                     d = json.loads(line)
                     if isinstance(d, dict) and d.get("lost"):
                         d["t"] = float(d["t"])
-                        out.append(d)
+                        if plausible(d["t"]):          # red-team RS-001: a lost round of a restored backup too
+                            out.append(d)
                 except (ValueError, KeyError, TypeError):
                     continue
     except OSError:
@@ -309,8 +322,8 @@ def _round_line(line: str):
         return None
     wait = d.get("wait")
     t, seconds = float(d["t"]), float(d["seconds"])
-    if not (math.isfinite(t) and math.isfinite(seconds)):   # 1.46.4: json reads NaN/Infinity (a restored backup)
-        raise ValueError("start or length is not a number")
+    if not plausible(t, seconds):     # 1.46.4: json reads NaN/Infinity; red-team RS-001: and 1e300 is finite
+        raise ValueError("start or length is not a date the program can show")
     return Round(t=t, seconds=seconds, map_id=str(d["map_id"]),
                  map=str(d.get("map") or d["map_id"]), region=str(d.get("region") or ""),
                  source=str(d.get("source") or ""),

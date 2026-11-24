@@ -15,6 +15,7 @@ made all 56 thumbnails (and every style picture, mapstyle.styled_path) again. An
 from __future__ import annotations
 
 import hashlib
+import logging
 import os
 import queue
 import threading
@@ -24,6 +25,8 @@ from PIL import Image
 
 from . import fsops
 from .imageedit import converted
+
+log = logging.getLogger("fogscout")
 
 VERSION = 2                       # raise when the thumbnails change: the cache is made anew (2: 16-bit grey)
 PRUNE_AFTER_S = 90 * 24 * 3600    # a cache file not used for this long goes (prune, once per session)
@@ -123,6 +126,9 @@ def prune(cache_dir: str, now: float | None = None, max_age_s: float = PRUNE_AFT
     """Delete thumbnails nobody used for ``max_age_s`` (their mtime is refreshed on every use); the number
     removed. Only our own files in the folder (``exts``; 1.55.8: the editor's analyses are ".json")."""
     if not cache_dir or not os.path.isdir(cache_dir):
+        return 0
+    if fsops.linked_root(cache_dir, 2):               # red-team RS-002: cache/<x> or cache is a link: not pruned
+        log.warning("Cache-Ordner ist ein Link – nicht aufgeräumt: %s", os.path.basename(cache_dir))
         return 0
     now = time.time() if now is None else now
     gone = 0
