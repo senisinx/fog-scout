@@ -29,6 +29,26 @@ def model_of(lang: str) -> str:
     return LANG_MODEL.get(lang, MAIN)
 
 
+def name_chars(text: str) -> int:
+    """Letters and digits of a read name for MIN_NAME_CHARS – a Chinese, Japanese or Korean sign counts as two
+    (1.49: maps there have names of two signs, "血屋"). CR-006: also the length of an alias in any script."""
+    return sum((2 if ord(c) >= 0x2E80 else 1) for c in text if c.isalnum())
+
+
+def model_of_text(key: str) -> str:
+    """CR-006: the recognition model that reads a text folded with ``fold_any`` – by its first letter of another
+    script (Hangul → korean, Chinese/Kana → cjk, Cyrillic → cyrillic); Latin letters and digits alone: MAIN."""
+    for ch in key or "":
+        o = ord(ch)
+        if 0x1100 <= o <= 0x11FF or 0x3130 <= o <= 0x318F or 0xAC00 <= o <= 0xD7AF:
+            return "korean"
+        if 0x2E80 <= o <= 0x9FFF or 0xF900 <= o <= 0xFAFF or 0x20000 <= o <= 0x3FFFF:
+            return "cjk"
+        if 0x0400 <= o <= 0x052F:
+            return "cyrillic"
+    return MAIN
+
+
 def alphabet_for(strings) -> str:
     """The symbols a scorer needs for ``strings`` (folded with fold_any): A-Z0-9 first and in their old order –
     with Latin names alone this is ALPHABET, and everything computes as before – then the other letters."""

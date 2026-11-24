@@ -5,6 +5,8 @@ import re
 import sys
 import types
 
+import pytest
+
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from fogscout import autostart as au  # noqa: E402
@@ -299,3 +301,15 @@ def test_powershell_finds_its_modules_only_in_windows_own_folder(monkeypatch):
     first = seen["script"].splitlines()[0]
     assert first.startswith("Import-Module -Name '") and first.endswith("ScheduledTasks.psd1' -ErrorAction Stop")
     assert seen["env"]["PSModulePath"] == au.system_modules()
+
+
+@pytest.mark.parametrize("quote", ["'", "\u2018", "\u2019", "\u201a", "\u201b"])
+def test_a_path_with_any_single_quote_of_powershell_stays_one_literal(quote):
+    """CR-008 (code review): PowerShell 5.1 ends a single-quoted literal at ‘ ’ ‚ ‛ as well – each is doubled."""
+    path = f"C:\\Users\\x\\Saru{quote}; Remove-Item C:\\ #\\Fog Scout"
+    lit = au._q(path)
+    inner = lit[1:-1]
+    # every quote character inside comes in pairs: the literal never ends early
+    for run in re.findall("['\u2018\u2019\u201a\u201b]+", inner):
+        assert len(run) % 2 == 0
+    assert inner.replace(quote * 2, quote) == path

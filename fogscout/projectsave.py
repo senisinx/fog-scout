@@ -32,6 +32,7 @@ BACKUP_DIR = "Sicherungen"
 LOCAL_DIR = os.path.join("backup", "editor")
 SIDECAR_EXT = ".sha256"
 SIDECAR_FORMAT = "fogscout-backup 2"
+RESCUE_TRIES = 1000                    # CR-002: free local copy numbers tried after a taken one
 ROTATE_KEEP = {"sitzung": 10, "laufend": 10, "zwischen": 20, "ansicht": 0}
 LAUFEND_EVERY_S = 300.0
 BUSY_RETRY_S = (0.05, 0.15, 0.4)
@@ -306,10 +307,11 @@ def rotate(folder: str, key, writer) -> dict:
     for name in names:
         info = parse_backup_name(name)
         if info and info["kind"] in ROTATE_KEEP:
-            groups.setdefault(info["kind"], []).append((info["seq"], info["stamp"], name, info))
+            # CR-002: newest by time first – a seq is only counted within one session's numbering
+            groups.setdefault(info["kind"], []).append((info["stamp"], info["seq"], name, info))
     for kind, items in groups.items():
         items.sort(reverse=True)
-        for _seq, _stamp, name, info in items[ROTATE_KEEP[kind]:]:
+        for _stamp, _seq, name, info in items[ROTATE_KEEP[kind]:]:
             path = os.path.join(folder, name)
             if _sidecar_writer(path + SIDECAR_EXT) not in (None, writer):
                 out["kept"] += 1                          # another installation's backup (synced folder): its business
@@ -457,6 +459,16 @@ def local_key(pid: str | None, source_path: str) -> str:
     return pid or ("src-" + hashlib.sha1(os.path.normcase(os.path.abspath(source_path)).encode("utf-8")).hexdigest()[:16])
 
 
+def _seq_of(value) -> int:
+    """A ``rev.seq`` read from a file: a non-negative int, anything else 0 (CR-002)."""
+    if isinstance(value, bool):
+        return 0
+    try:
+        return max(0, min(int(value), 10 ** 12))
+    except (TypeError, ValueError, OverflowError):
+        return 0
+
+
 def local_name(lkey: str, seq: int, art: str) -> str:
     return f"{lkey}-{int(seq):08d}.{art}.json"
 
@@ -594,6 +606,13 @@ class Registry:
                     slot.disk_view = base.get("view")
                     slot.disk_meta = base.get("meta")
                     slot.baseline_hash = base.get("baseline_hash") or base.get("content_hash")
+                    # CR-002 (code review): a project opened in a new session goes on counting where the file, its
+                    # backups and its local copies stopped – starting at 1 again made a new rescue copy collide with
+                    # an old one (silently not written), an old rescue copy count as newer than the file, and the
+                    # rotation sort today's backup behind old ones and delete it
+                    seq = _seq_of(base.get("seq"))
+                    slot.written_seq = seq
+                    slot.next_seq = max(seq, self._known_seq(path, pid)) + 1
                 self.slots.append(slot)
             slot.keys |= set(keys)
         with slot.cv:
@@ -602,6 +621,24 @@ class Registry:
             slot.owner = token
             newer = slot.latest is not None and (slot.latest_seq > slot.written_seq or slot.in_flight is not None)
             return slot, (slot.latest if newer else None)
+
+    def _known_seq(self, path: str, pid: str | None) -> int:
+        """The highest ``seq`` among the project's backups and (with an id) its local copies – 0 when none."""
+        best = 0
+        if path:
+            try:
+                names = os.listdir(backup_folder(path))
+            except OSError:
+                names = []
+            for name in names:
+                info = parse_backup_name(name)
+                if info:
+                    best = max(best, info["seq"])
+        if pid:
+            for seq, _art, _p in local_candidates(self.local_folder(), local_key(pid, path)):
+                best = max(best, seq)
+                break                                  # newest first
+        return best
 
     def release(self, slot: Slot, token):
         with slot.cv:
@@ -889,18 +926,48 @@ class Registry:
         d["local"] = {"path": slot.path, "art": art}
         data = json.dumps(d, indent=1, ensure_ascii=False).encode("utf-8")
         lkey = local_key(slot.pid, job.source.get("path") or slot.path)
-        path = os.path.join(folder, local_name(lkey, job.seq, art))
-        try:
-            if self.key and self.writer:
-                fsops.write_new(path + SIDECAR_EXT,
-                                sidecar_bytes(os.path.basename(path), sha(data), len(data), self.writer, art, self.key))
-            fsops.write_new(path, data)
-        except FileExistsError:
-            pass                                       # this seq is there already
+        mine = json.loads(data)
+        # CR-002: a name taken by another state (an earlier session's copy) is never "there already" – the next
+        # free number is used; only the very same state of the same writer counts as written
+        for n in range(job.seq, job.seq + RESCUE_TRIES):
+            path = os.path.join(folder, local_name(lkey, n, art))
+            if os.path.lexists(path):
+                if self._same_rescue(path, mine):
+                    break
+                continue
+            try:
+                if self.key and self.writer:
+                    fsops.write_new(path + SIDECAR_EXT,
+                                    sidecar_bytes(os.path.basename(path), sha(data), len(data), self.writer, art,
+                                                  self.key))
+                fsops.write_new(path, data)
+                break
+            except FileExistsError:
+                if self._same_rescue(path, mine):
+                    break
+        else:
+            with slot.cv:
+                slot.reason = (slot.reason + "+rescue").lstrip("+")
+            return None
         with slot.cv:
             slot.rescued_seq = max(slot.rescued_seq, job.seq)
             slot.cv.notify_all()
         return path
+
+    @staticmethod
+    def _same_rescue(path: str, ours: dict) -> bool:
+        """``path`` already holds the state ``ours`` (all but the time it was saved) – written before."""
+        def bare(d):
+            d = dict(d)
+            d.pop("saved", None)
+            d["rev"] = {k: v for k, v in (d.get("rev") or {}).items() if k != "saved"}
+            return d
+        try:
+            with open(path, encoding="utf-8") as fh:
+                d = json.load(fh)
+            return isinstance(d, dict) and isinstance(d.get("rev") or {}, dict) and bare(d) == bare(ours)
+        except (OSError, ValueError):
+            return False
 
     def _clean_local(self, slot: Slot):
         """Rescue copies (``rettung``) up to the seq now confirmed in the project file are no longer needed – removed

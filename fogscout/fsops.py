@@ -241,6 +241,12 @@ def write_atomic(path: str, data: bytes) -> None:
     if first:
         sweep_stale_tmp(path)
     tmp = write_tmp(path, data)
+    _replace_into(tmp, path)
+
+
+def _replace_into(tmp: str, path: str) -> None:
+    """The finished temp file ``tmp`` takes the name ``path`` (write_atomic, write_atomic_stream); a failure leaves
+    the old file and no temp file."""
     try:
         for attempt in range(REPLACE_TRIES):
             try:
@@ -256,6 +262,23 @@ def write_atomic(path: str, data: bytes) -> None:
     except BaseException:
         discard_tmp(tmp)
         raise
+
+
+def write_atomic_stream(path: str, fill) -> None:
+    """CR-007 (code review): ``write_atomic`` for a file too big to hold in memory first (a ZIP of the user's data):
+    ``fill(fh)`` writes into a new temp file beside ``path`` (exclusive, fsync'ed), then one replace – a failure or
+    an exception of ``fill`` leaves the old file and no temp file (no half ZIP under the user's name)."""
+    tmp = tmp_name(path)
+    fd = os.open(tmp, os.O_WRONLY | os.O_CREAT | os.O_EXCL | getattr(os, "O_BINARY", 0), 0o644)
+    try:
+        with os.fdopen(fd, "wb") as fh:
+            fill(fh)
+            fh.flush()
+            os.fsync(fh.fileno())
+    except BaseException:
+        discard_tmp(tmp)
+        raise
+    _replace_into(tmp, path)
 
 
 def sha256_bytes(data: bytes) -> str:

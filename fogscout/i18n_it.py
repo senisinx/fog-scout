@@ -3008,6 +3008,8 @@ T = {
         'Risposta WebSocket errata',
     'Unerwartete Begrüssung von OBS':
         'Saluto inatteso da OBS',
+    'Unerwartete Antwort von OBS':
+        'Risposta inattesa da OBS',
     'OBS verlangt ein Passwort (OBS: Werkzeuge → WebSocket-Servereinstellungen)':
         'OBS richiede una password (OBS: Strumenti → Impostazioni server WebSocket)',
     'OBS hat die Anmeldung abgelehnt – Passwort falsch?':

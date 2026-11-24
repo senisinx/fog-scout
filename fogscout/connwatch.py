@@ -33,7 +33,7 @@ import tempfile
 import threading
 import time
 
-from . import netwatch, regions
+from . import fsops, netwatch, regions
 from .i18n import _
 
 IS_WIN = sys.platform == "win32"
@@ -535,6 +535,8 @@ def remove_stale_temp(folder: str | None = None, now: float | None = None) -> in
     folder = folder or tempfile.gettempdir()
     now = time.time() if now is None else now
     gone = 0
+    if fsops.linked_root(folder):       # CR-001: never prune through a temp folder swapped for a junction
+        return 0
     try:
         entries = list(os.scandir(folder))
     except OSError:
@@ -550,9 +552,11 @@ def remove_stale_temp(folder: str | None = None, now: float | None = None) -> in
                 continue
         except OSError:
             continue
-        before = os.path.lexists(e.path)
-        _remove(e.path)
-        gone += before and not os.path.lexists(e.path)
+        try:
+            fsops.delete_inside(folder, e.path)     # CR-001: no part a link, the file itself plain
+            gone += 1
+        except OSError:
+            pass
     return gone
 
 

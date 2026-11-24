@@ -261,7 +261,38 @@ def readable(colour, dark: bool | None = None, bg: str | None = None) -> str:
     return out
 
 
-ICON_DIR = os.path.join(tempfile.gettempdir(), "fogscout-ui")
+_ICON_DIR = []                 # CR-007: this process's own folder for the pictures (made once, see _icon_dir)
+_ICON_FILES = []
+
+
+def _icon_dir() -> str:
+    """CR-007 (code review): the style sheet's pictures were written to the fixed, predictable %TEMP%\\fogscout-ui –
+    a folder another program could make first (or swap for a junction) for the elevated program to write into. Now
+    a folder of this process alone (mkdtemp: new, random name, only the user may enter), removed at exit."""
+    if not _ICON_DIR:
+        import atexit
+        _ICON_DIR.append(tempfile.mkdtemp(prefix="fogscout-ui-"))
+        atexit.register(_icon_cleanup)
+    return _ICON_DIR[0]
+
+
+def _icon_cleanup():
+    from . import fsops
+    for d in _ICON_DIR:
+        for p in _ICON_FILES:
+            try:
+                fsops.delete_inside(d, p)
+            except OSError:
+                pass
+        try:
+            os.rmdir(d)
+        except OSError:
+            pass
+
+
+def _qss_url(path: str) -> str:
+    """A path for ``url("…")`` in a style sheet: forward slashes, quote and backslash escaped (CR-007)."""
+    return path.replace("\\", "/").replace('"', '\\"')
 
 
 @lru_cache(maxsize=32)
@@ -271,8 +302,7 @@ def ui_icon(name: str, colour: str) -> str:
     path with forward slashes, "" when it cannot be written (Qt then draws nothing there)."""
     try:
         from PIL import Image, ImageDraw
-        os.makedirs(ICON_DIR, exist_ok=True)
-        base = os.path.join(ICON_DIR, f"{name}-{hex_colour(colour).lstrip('#')}")
+        base = os.path.join(_icon_dir(), f"{name}-{hex_colour(colour).lstrip('#')}")
         rgb = tuple(int(hex_colour(colour).lstrip("#")[i:i + 2], 16) for i in (0, 2, 4))
         for scale, suffix in ((1, ""), (2, "@2x")):
             size, ss = 16 * scale, 8                           # drawn 8× larger, then scaled down: smooth edges
@@ -287,8 +317,10 @@ def ui_icon(name: str, colour: str) -> str:
             else:                                              # arrow: a chevron pointing down
                 d.line([(4 * u, 6 * u), (8 * u, 10 * u), (12 * u, 6 * u)], fill=rgb + (255,), width=round(1.8 * u),
                        joint="curve")
-            big.resize((size, size), Image.LANCZOS).save(base + suffix + ".png")
-        return (base + ".png").replace("\\", "/")
+            out = base + suffix + ".png"
+            big.resize((size, size), Image.LANCZOS).save(out)
+            _ICON_FILES.append(out)
+        return _qss_url(base + ".png")
     except Exception:
         return ""
 

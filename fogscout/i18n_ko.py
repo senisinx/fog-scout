@@ -3008,6 +3008,8 @@ T = {
         '잘못된 WebSocket 응답',
     'Unerwartete Begrüssung von OBS':
         'OBS의 예기치 않은 인사 메시지',
+    'Unerwartete Antwort von OBS':
+        'OBS의 예기치 않은 응답',
     'OBS verlangt ein Passwort (OBS: Werkzeuge → WebSocket-Servereinstellungen)':
         'OBS가 비밀번호를 요구합니다(OBS: 도구 → WebSocket 서버 설정)',
     'OBS hat die Anmeldung abgelehnt – Passwort falsch?':

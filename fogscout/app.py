@@ -24,7 +24,7 @@ from .hotkeys import pretty
 from .overlay import load_frames
 from .overlay_win32 import make_overlay
 from .roundtimer import RoundTimer
-from .textnorm import fmt_duration, fold, roman
+from .textnorm import fmt_duration, fold_any, name_chars, roman
 from .worker import DetectionWorker
 from .app_server import ServerTab
 from .app_stats import StatsTab
@@ -1269,7 +1269,7 @@ class App(ServerTab, StatsTab, ExportDialog, RecordingsTab, DiscordPresence, Spo
             txt = d.get("name_text") or "?"
             self._log(_("Banner gesehen, aber keine bekannte Map: „{text}“. Map manuell wählen "
                         "oder mit „Zuordnen …“ dauerhaft zuordnen.", text=txt), "Erkennung")
-            if len(fold(txt)) >= self.catalog.MIN_ALIAS:
+            if name_chars(fold_any(txt)) >= self.catalog.MIN_ALIAS:     # CR-006: a banner in any script
                 self._unknown = (txt, d.get("realm_text") or "")
         elif k == "queue":
             self._queue_event(d)
@@ -1949,12 +1949,12 @@ class App(ServerTab, StatsTab, ExportDialog, RecordingsTab, DiscordPresence, Spo
 
     def _log_lines(self):
         """The log lines the window shows: the categories ticked, and (1.2.19) only lines with the search text."""
-        needle = fold(self.log_search_var.get().strip())
+        needle = fold_any(self.log_search_var.get().strip())      # CR-006: a search in any script
         if needle != self._log_search_last:                # a new search: the window draws everything anew
             self._log_search_last = needle
             self.log_text._dbdms_rev = getattr(self.log_text, "_dbdms_rev", 0) + 1
         lines = [e for e in self._log_entries if self.cat_vars[e[1]].get()
-                 and (not needle or needle in fold(e[2]))]
+                 and (not needle or needle in fold_any(e[2]))]
         return lines[-400:], bool(self.settings.get("dark_mode", True))
 
     def _log_filter_changed(self):

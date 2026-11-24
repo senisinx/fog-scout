@@ -18,7 +18,8 @@ from dataclasses import dataclass, field
 from . import i18n
 from .i18n import _
 from .mapimage import USER_DIR
-from .textnorm import MAIN, alphabet_for, fold, fold_any, model_of, name_forms, roman
+from .textnorm import (MAIN, alphabet_for, fold, fold_any, model_of, model_of_text, name_chars, name_forms,
+                       roman)
 
 IMAGE_EXT = (".png", ".jpg", ".jpeg", ".webp", ".gif", ".bmp")
 # 1.50 (user: "alles in der entsprechenden Sprache", map names stayed English): map and realm names are *shown* in
@@ -141,7 +142,7 @@ class Catalog:
         for mid, texts in (aliases or {}).items():
             m = self.maps.get(mid)
             if m:
-                m.aliases.extend(t for t in texts if fold(t) and t not in m.aliases)
+                m.aliases.extend(t for t in texts if fold_any(t) and t not in m.aliases)     # CR-006: any script
         self._build_hypotheses()
         _remember_labels(self.maps.values())
 
@@ -261,11 +262,14 @@ class Catalog:
                             if k:
                                 hyps.append(Hypothesis(m.id, v, lang, k, realm_keys, model))
             for alias in m.aliases:
+                # CR-006: an alias in another script is read by that script's model, with its languages' realms
+                k = fold_any(alias)
+                model = model_of_text(k)
+                langs = [l for l in self.languages if model_of(l) == model] or main_langs
                 all_realms = tuple(dict.fromkeys(
-                    fold_any(r) for l in main_langs for r in name_forms(m.realm_names.get(l, ""), l) if fold_any(r)))
-                k = fold(alias)
+                    fold_any(r) for l in langs for r in name_forms(m.realm_names.get(l, ""), l) if fold_any(r)))
                 if k:
-                    hyps.append(Hypothesis(m.id, 1, "alias", k, all_realms))
+                    hyps.append(Hypothesis(m.id, 1, "alias", k, all_realms, model))
         self.hypotheses = hyps
         # 1.49: per recognition model its names, realms and the symbols they are made of (ocr.alphabet_for – with
         # Latin languages alone exactly A-Z0-9, as before)
@@ -291,8 +295,8 @@ class Catalog:
 
     def alias_problem(self, text: str, map_id: str) -> str | None:
         """Why ``text`` cannot become an alias of ``map_id`` (None = fine)."""
-        k = fold(text)
-        if len(k) < self.MIN_ALIAS:
+        k = fold_any(text)                                    # CR-006: a name in any script
+        if name_chars(k) < self.MIN_ALIAS:
             return _("Der gelesene Text ist zu kurz.")
         if map_id not in self.maps:
             return _("Unbekannte Map.")
@@ -305,14 +309,14 @@ class Catalog:
         """Best guess for a banner that matched no map: similar name, realm read as well.
         Only a preselection for the user – never used for detection."""
         import difflib
-        n, r = fold(name_text), fold(realm_text)
+        n, r = fold_any(name_text), fold_any(realm_text)            # CR-006: names in every script
         best, best_score = None, 0.0
         for m in self.maps.values():
             if m.custom:
                 continue
-            ns = max((difflib.SequenceMatcher(None, n, fold(x)).ratio() for x in list(m.names.values()) + m.aliases),
-                     default=0.0)
-            rs = max((difflib.SequenceMatcher(None, r, fold(x)).ratio() for x in m.realm_names.values()),
+            ns = max((difflib.SequenceMatcher(None, n, fold_any(x)).ratio()
+                      for x in list(m.names.values()) + m.aliases), default=0.0)
+            rs = max((difflib.SequenceMatcher(None, r, fold_any(x)).ratio() for x in m.realm_names.values()),
                      default=0.0) if r else 0.0
             score = ns + 0.5 * rs
             if score > best_score:

@@ -189,7 +189,7 @@ ALLOWED = {                       # (module, function) → calls it may make
     ("fsops", "delete_inside"): {"os.remove"},   # 1.33.5: POSIX, after every part below the folder was checked
     ("fsops", "delete"): {"os.unlink"},
     ("filehash", "_save_cache"): {"os.replace"},
-    ("fsops", "write_atomic"): {"os.replace"},   # 1.34.2: the one replacing write (settings backup, format 1)
+    ("fsops", "_replace_into"): {"os.replace"},  # 1.34.2: the one replacing write (write_atomic, CR-007: …_stream)
 }
 WATCHED = {"os.rename", "os.replace", "os.remove", "os.unlink", "os.link", "shutil.move", "shutil.copyfile",
            "shutil.copy", "shutil.copy2", "shutil.rmtree", "os.renames", "os.removedirs"}
@@ -217,6 +217,58 @@ def test_filesystem_calls_are_only_the_allowed_primitives():
                 visit(child, f)
         visit(tree, None)
     assert found == []
+
+
+# CR-001 (code review): a raw os.remove/os.unlink deletes through junctions and links – with administrator rights
+# (installed: RunLevel Highest) a folder of the user swapped for a junction would have its target's files deleted.
+# Deleting goes through fsops.delete_inside (or delete_verified); these few places delete one exact file the program
+# itself just made or named, each reviewed. A new raw delete fails here until it is reviewed and named.
+RAW_DELETES = {
+    ("__main__", "_crash_log_clear"),       # the crash file in the program/data folder, by its fixed name
+    ("app_settings", "_show_update_status"),  # .venv/update_status.txt of start.bat, by its fixed name
+    ("autostart", "install"),               # old icon files by fixed names (icon.OLD_FILES)
+    ("clipedit", "_remove"),                # the ffmpeg output .tmp the program itself just created
+    ("clipedit", "sound_wav"),              # its own temp wav (mkstemp)
+    ("clipedit", "_sound_with_music"),      # its own temp wav (mkstemp)
+    ("connwatch", "_remove"),               # the helper's control/result files it made itself (mkstemp)
+    ("fsops", "discard_tmp"), ("fsops", "delete"), ("fsops", "delete_inside"),   # the primitives
+    ("history", "clear"),                   # rounds.jsonl by its fixed name in the data folder
+    ("imageedit", "save"),                  # its own .tmp next to the copy
+    ("mapimage", "save"),                   # user_maps/<slug>.<ext> variants of the picture just saved
+    ("obsrec", "merge_files"),              # the concat list / unfinished output it made itself
+    ("obsrec", "_join"),                    # its own .tmp and the joined part after a checked join
+    ("obsrec", "_instant_clip"),            # its own ffmpeg output that failed (the buffer: delete_inside, CR-007)
+    ("official", "clear"), ("official", "take_downloads"),   # official.jsonl; our own marked exports
+    ("picturedlg", "delete"),               # a user_maps picture the user deleted
+    ("qt_clip", "_drop_wav"),               # its own temp wav
+    ("regions", "run_job"),                 # its own job/result files (mkstemp)
+    ("relupdate", "download"), ("relupdate", "clean_update_folder"),   # TODO CR-017
+    ("rename", "migrate"),                  # files of the old name in the program folder
+    ("restart", "staged_setup"),            # its own copy that failed the hash
+    ("selftest", "run_child"),              # its own result file (mkstemp)
+    ("takeover", "_copy_file"), ("takeover", "finish"),   # its own .tmp; its own marker file
+}
+
+
+def test_raw_deletes_are_only_the_reviewed_places():
+    found = set()
+    for name in sorted(os.listdir(os.path.join(ROOT, "fogscout"))):
+        if not name.endswith(".py"):
+            continue
+        mod = name[:-3]
+        tree = ast.parse(open(os.path.join(ROOT, "fogscout", name), encoding="utf-8").read())
+
+        def visit(node, func):
+            for child in ast.iter_child_nodes(node):
+                f = child.name if isinstance(child, (ast.FunctionDef, ast.AsyncFunctionDef)) else func
+                if isinstance(child, ast.Call) and isinstance(child.func, ast.Attribute) \
+                        and isinstance(child.func.value, ast.Name) \
+                        and f"{child.func.value.id}.{child.func.attr}" in ("os.remove", "os.unlink"):
+                    found.add((mod, func))
+                visit(child, f)
+        visit(tree, None)
+    assert found - RAW_DELETES == set()
+    assert RAW_DELETES - found == set(), "a reviewed place no longer deletes – take it off the list"
 
 
 # ---- paths
@@ -280,7 +332,7 @@ def test_the_one_replacing_write_is_whole_or_nothing(tmp_path, monkeypatch):
 
 # ---- 1.38.5: the program's data files go through write_atomic; every other replace is a reviewed place
 REPLACE_PLACES = {               # (module, function): why it may rename/replace without write_atomic
-    ("fsops", "write_atomic"): "the one replacing write",
+    ("fsops", "_replace_into"): "the one replacing write (write_atomic, write_atomic_stream)",
     ("fsops", "create_exclusive"): "never over an existing name (project saving)",
     ("fsops", "rename_fallback"): "never over an existing name (project saving)",
     ("filehash", "_save_cache"): "hash cache, rebuilt when lost",
@@ -438,3 +490,17 @@ def test_write_atomic_waits_for_a_reader_that_blocks_the_replace(tmp_path, monke
     with pytest.raises(PermissionError):
         fsops.write_atomic(str(p), b"newer\n")
     assert p.read_bytes() == b"new\n" and os.listdir(tmp_path) == ["rounds.jsonl"]
+
+
+def test_the_style_sheet_pictures_go_to_a_folder_of_this_process_alone():
+    """CR-007: not the fixed %TEMP%/fogscout-ui another program could make first or swap for a junction."""
+    import tempfile
+    from fogscout import qt_theme
+    path = qt_theme.ui_icon("check", "#123456")
+    assert path and os.path.isfile(path)
+    folder = os.path.dirname(path)
+    assert os.path.basename(folder).startswith("fogscout-ui-") and folder != os.path.join(tempfile.gettempdir(),
+                                                                                         "fogscout-ui")
+    if os.name != "nt":
+        assert os.stat(folder).st_mode & 0o077 == 0                       # only the user may enter
+    assert qt_theme._qss_url('C:\\a"b') == 'C:/a\\"b'

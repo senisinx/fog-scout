@@ -3008,6 +3008,8 @@ T = {
         'Неверный ответ WebSocket',
     'Unerwartete Begrüssung von OBS':
         'Неожиданное приветствие от OBS',
+    'Unerwartete Antwort von OBS':
+        'Неожиданный ответ от OBS',
     'OBS verlangt ein Passwort (OBS: Werkzeuge → WebSocket-Servereinstellungen)':
         'OBS требует пароль (OBS: Сервис → Настройки сервера WebSocket)',
     'OBS hat die Anmeldung abgelehnt – Passwort falsch?':

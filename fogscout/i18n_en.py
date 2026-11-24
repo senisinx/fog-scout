@@ -2334,6 +2334,7 @@ EN = {
     'Kein obs-websocket auf diesem Port': 'No obs-websocket on this port',
     'Falsche WebSocket-Antwort': 'Wrong WebSocket answer',
     'Unerwartete Begrüssung von OBS': 'Unexpected greeting from OBS',
+    'Unerwartete Antwort von OBS': 'Unexpected answer from OBS',
     'OBS verlangt ein Passwort (OBS: Werkzeuge → WebSocket-Servereinstellungen)': 'OBS wants a password (OBS: Tools → WebSocket Server Settings)',
     'OBS hat die Anmeldung abgelehnt – Passwort falsch?': 'OBS refused the login – wrong password?',
     'OBS {version} verbunden': 'OBS {version} connected',

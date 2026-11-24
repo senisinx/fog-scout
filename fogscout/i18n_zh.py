@@ -3008,6 +3008,8 @@ T = {
         'WebSocket 响应错误',
     'Unerwartete Begrüssung von OBS':
         'OBS 的问候消息异常',
+    'Unerwartete Antwort von OBS':
+        'OBS 的响应异常',
     'OBS verlangt ein Passwort (OBS: Werkzeuge → WebSocket-Servereinstellungen)':
         'OBS 需要密码（OBS：工具 → WebSocket 服务器设置）',
     'OBS hat die Anmeldung abgelehnt – Passwort falsch?':

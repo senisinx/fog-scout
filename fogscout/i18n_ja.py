@@ -3008,6 +3008,8 @@ T = {
         'WebSocket の応答が不正です',
     'Unerwartete Begrüssung von OBS':
         'OBS から予期しない応答がありました',
+    'Unerwartete Antwort von OBS':
+        'OBS から予期しない応答',
     'OBS verlangt ein Passwort (OBS: Werkzeuge → WebSocket-Servereinstellungen)':
         'OBS がパスワードを要求しています（OBS：「ツール」→「WebSocket サーバー設定」）',
     'OBS hat die Anmeldung abgelehnt – Passwort falsch?':

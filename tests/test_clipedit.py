@@ -1686,3 +1686,48 @@ def test_marks_are_cut_one_clip_each_and_a_second_run_makes_only_what_is_missing
     stop = threading.Event()
     stop.set()
     assert clipedit.cut_marks(clip, spans, cdir, cancel=stop) == []       # cancelled before the first cut
+
+
+# ---- CR-005 (code review): the export queue and the playback threads
+def test_a_name_reserved_by_a_queued_export_is_not_given_twice(tmp_path):
+    first = clipedit.unique_path(str(tmp_path), "clip", ".mp4")
+    second = clipedit.unique_path(str(tmp_path), "clip", ".mp4", taken=[first])
+    assert first != second and second.endswith("clip (2).mp4")
+
+
+def test_a_late_sound_of_an_earlier_playback_is_dropped(monkeypatch):
+    pytest.importorskip("PySide6")
+    from types import SimpleNamespace
+    from fogscout import qt_clip
+    dropped, ran = [], []
+    s = SimpleNamespace(playing=True, player=None, _seg=(5.0, 9.0, 1.0, 0.0), _chunk_round=2,
+                        _drop_wav=dropped.append, _play_wav=lambda w: None, _run_player=ran.append,
+                        _fetch_chunk=lambda i: None, _wav=None)
+    qt_clip.ClipBase._sound_ready(s, "old.wav", 5.0, 1)            # play – stop – play at the same second
+    assert dropped == ["old.wav"] and ran == []
+    qt_clip.ClipBase._sound_ready(s, "new.wav", 5.0, 2)
+    assert s._wav == "new.wav" and ran == [s._seg]
+
+
+def test_a_player_reports_its_own_end_not_the_current_players(monkeypatch):
+    pytest.importorskip("PySide6")
+    from types import SimpleNamespace
+    from fogscout import qt_clip
+    made, ended = [], []
+
+    class Player:
+        def __init__(self, path, start, info, on_frame, on_end, **kw):
+            self.on_end = on_end
+            made.append(self)
+
+        def start(self):
+            pass
+    monkeypatch.setattr(qt_clip.clipedit, "FramePlayer", Player)
+    s = SimpleNamespace(bridge=SimpleNamespace(played=SimpleNamespace(emit=lambda *a: None),
+                                               ended=SimpleNamespace(emit=ended.append)),
+                        _play_vf=lambda part, start: "", _src_path=lambda part: "a.mkv",
+                        _src_info=lambda part: None, ffmpeg="ffmpeg", _play_size=lambda: None, player=None)
+    qt_clip.ClipBase._run_player(s, (0.0, 5.0, 1.0, 0.0))
+    qt_clip.ClipBase._run_player(s, (5.0, 9.0, 1.0, 0.0))
+    made[0].on_end()                                                # the old player's thread ends late
+    assert ended == [made[0]] and s.player is made[1]

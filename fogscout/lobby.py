@@ -36,7 +36,7 @@ import numpy as np
 
 from .ocr import LexiconScorer, best_path_logp
 from .i18n import current as current_language
-from .textnorm import fold
+from .textnorm import fold, fold_any
 
 BUTTON_WORDS = ("PLAY", "CANCEL", "READY")
 BUTTON_OK = -2.0          # fit of the button word (0 = perfect); other screens score -7 and worse
@@ -182,7 +182,7 @@ def resolve_killer(name: str, aliases: dict) -> str:
     to a listed killer ("Hillilly" from before 1.61) counts for it."""
     if not name:
         return name
-    own = (aliases or {}).get(fold(name))
+    own = (aliases or {}).get(fold_any(name))         # CR-006: fold_any = fold for Latin names (old keys stay)
     if own:
         return own
     if name in KILLERS:

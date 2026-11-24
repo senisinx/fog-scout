@@ -116,26 +116,48 @@ def archive(data_dir: str, dest: str, settings: dict) -> int:
     import zipfile
     from .config import EXPORT_SKIP, LOCAL_KEYS, SECRET_KEYS
     clean = {k: v for k, v in settings.items() if k not in SECRET_KEYS and k not in EXPORT_SKIP and k not in LOCAL_KEYS}
-    n = 0
-    with zipfile.ZipFile(dest, "w", zipfile.ZIP_DEFLATED) as z:
-        z.writestr("fogscout-einstellungen.json", json.dumps(clean, indent=2, ensure_ascii=False))
-        n += 1
-        for name in FILES + OLDER_FILES:
-            p = os.path.join(data_dir, name)
-            if os.path.isfile(p) and not os.path.islink(p):
-                z.write(p, name)
-                n += 1
-        for sub in ARCHIVE_DIRS:
-            top = os.path.join(data_dir, sub)
-            for folder, dirs, files in os.walk(top):
-                dirs[:] = [d for d in dirs if not os.path.islink(os.path.join(folder, d))]
-                for f in sorted(files):
-                    p = os.path.join(folder, f)
-                    if os.path.islink(p) or not os.path.isfile(p):
-                        continue
-                    z.write(p, os.path.relpath(p, data_dir).replace(os.sep, "/"))
-                    n += 1
-    return n
+    budget = ZipBudget()
+
+    def fill(fh):
+        with zipfile.ZipFile(fh, "w", zipfile.ZIP_DEFLATED) as z:
+            z.writestr("fogscout-einstellungen.json", json.dumps(clean, indent=2, ensure_ascii=False))
+            budget.n += 1
+            for name in FILES + OLDER_FILES:
+                budget.add(z, os.path.join(data_dir, name), name)
+            for sub in ARCHIVE_DIRS:
+                top = os.path.join(data_dir, sub)
+                if fsops.linked_root(top):                  # CR-007: never a folder swapped for a junction
+                    continue
+                for folder, dirs, files in os.walk(top):
+                    dirs[:] = sorted(d for d in dirs if not fsops.is_link(os.path.join(folder, d)))
+                    for f in sorted(files):
+                        p = os.path.join(folder, f)
+                        budget.add(z, p, os.path.relpath(p, data_dir).replace(os.sep, "/"))
+    fsops.write_atomic_stream(dest, fill)                   # CR-007: no half ZIP under the user's name
+    return budget.n
+
+
+class ZipBudget:
+    """CR-007 (code review): what goes into one of our ZIPs – plain files only (``fsops.is_link`` also sees Windows
+    junctions, ``os.path.islink`` does not), at most MAX_ENTRIES files and MAX_TOTAL_BYTES; a file beyond the
+    limits is left out."""
+
+    def __init__(self):
+        self.n, self.bytes = 0, 0
+
+    def add(self, z, path: str, name: str) -> bool:
+        try:
+            if fsops.is_link(path) or not os.path.isfile(path):
+                return False
+            size = os.path.getsize(path)
+        except OSError:
+            return False
+        if self.n >= MAX_ENTRIES or size > MAX_ENTRY_BYTES or self.bytes + size > MAX_TOTAL_BYTES:
+            return False
+        z.write(path, name)
+        self.n += 1
+        self.bytes += size
+        return True
 
 
 # ---------------------------------------------------------------- 1.38.42 (user: "zusammenführen"): back from the ZIP

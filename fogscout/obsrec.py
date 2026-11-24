@@ -288,6 +288,7 @@ class ObsClient:
     # clipped and on one line before they reach the status/log
     MAX_EVENTS = 100
     MAX_SKIPPED = 200
+    MAX_FRAMES = 1000                  # CR-003: frames (pings, pieces) read for one message at most
     DEADLINE = 3
     MAX_TEXT = 200
     _CONTROL = re.compile("[\x00-\x1f\x7f-\x9f\u2028\u2029\u202a-\u202e\u2066-\u2069]")
@@ -306,9 +307,29 @@ class ObsClient:
         self.version = ""
 
     # ---- transport
+    # CR-003 (code review): every failure of the connection – a timeout, a reset, a broken pipe, bytes that are no
+    # UTF-8/JSON object – is an ObsError: the recorder's handlers catch only that, and a raw TimeoutError in StopRecord
+    # skipped the stop's retry (audit R-1) and let OBS record on.
+    def _sock_or_fail(self):
+        if self._sock is None:
+            raise ObsError(_("OBS hat die Verbindung geschlossen"))
+        return self._sock
+
+    def _sendall(self, data: bytes):
+        try:
+            self._sock_or_fail().sendall(data)
+        except OSError as e:
+            raise ObsError(_("OBS hat die Verbindung geschlossen") + f" ({e.__class__.__name__})") from None
+
+    def _recv(self, n: int) -> bytes:
+        try:
+            return self._sock_or_fail().recv(n)
+        except OSError as e:                        # socket.timeout is TimeoutError, an OSError
+            raise ObsError(_("OBS hat die Verbindung geschlossen") + f" ({e.__class__.__name__})") from None
+
     def _recv_exact(self, n: int) -> bytes:
         while len(self._buf) < n:
-            chunk = self._sock.recv(65536)
+            chunk = self._recv(65536)
             if not chunk:
                 raise ObsError(_("OBS hat die Verbindung geschlossen"))
             self._buf += chunk
@@ -317,7 +338,10 @@ class ObsClient:
 
     def _recv_message(self) -> str:
         parts = []
-        while True:
+        deadline = time.monotonic() + self.DEADLINE * self.timeout      # CR-003: no endless stream of pings
+        for _n in range(self.MAX_FRAMES):
+            if time.monotonic() > deadline:
+                break
             b0, b1 = self._recv_exact(2)
             opcode, fin = b0 & 0x0F, b0 & 0x80
             n = b1 & 0x7F
@@ -334,19 +358,29 @@ class ObsClient:
             if opcode == 8:
                 raise ObsError(_("OBS hat die Verbindung geschlossen"))
             if opcode == 9:                    # ping -> pong
-                self._sock.sendall(_frame(data, 10))
+                self._sendall(_frame(data, 10))
                 continue
             if opcode == 10:
                 continue
             parts.append(data)
             if fin:
-                return b"".join(parts).decode("utf-8")
+                try:
+                    return b"".join(parts).decode("utf-8")
+                except UnicodeDecodeError:
+                    raise ObsError(_("Unerwartete Antwort von OBS")) from None
+        raise ObsError(_("OBS antwortet nicht"))
 
     def _send(self, obj):
-        self._sock.sendall(_frame(json.dumps(obj).encode("utf-8")))
+        self._sendall(_frame(json.dumps(obj).encode("utf-8")))
 
-    def _read(self):
-        return json.loads(self._recv_message())
+    def _read(self) -> dict:
+        try:
+            msg = json.loads(self._recv_message())
+        except ValueError:                      # also RecursionError-free: json raises ValueError on bad text
+            raise ObsError(_("Unerwartete Antwort von OBS")) from None
+        if not isinstance(msg, dict):
+            raise ObsError(_("Unerwartete Antwort von OBS"))
+        return msg
 
     # ---- protocol
     def connect(self):
@@ -357,18 +391,24 @@ class ObsClient:
         self._sock.settimeout(self.timeout)
         try:
             return self._handshake()
-        except BaseException:
+        except ObsError:
             self.close()                          # a refused login must not leave the socket open
+            raise
+        except (OSError, ValueError, KeyError, TypeError, AttributeError) as e:     # CR-003: a broken greeting
+            self.close()
+            raise ObsError(_("Kein obs-websocket auf diesem Port") + f" ({e.__class__.__name__})") from None
+        except BaseException:
+            self.close()
             raise
 
     def _handshake(self):
         key = base64.b64encode(os.urandom(16)).decode()
-        self._sock.sendall((f"GET / HTTP/1.1\r\nHost: {HOST}:{self.port}\r\nUpgrade: websocket\r\n"
+        self._sendall((f"GET / HTTP/1.1\r\nHost: {HOST}:{self.port}\r\nUpgrade: websocket\r\n"
                             f"Connection: Upgrade\r\nSec-WebSocket-Key: {key}\r\nSec-WebSocket-Version: 13\r\n"
                             f"Sec-WebSocket-Protocol: obswebsocket.json\r\n\r\n").encode())
         head = b""
         while b"\r\n\r\n" not in head:
-            chunk = self._sock.recv(4096)
+            chunk = self._recv(4096)
             if not chunk:
                 raise ObsError(_("Keine Antwort von obs-websocket"))
             head += chunk
@@ -387,6 +427,7 @@ class ObsClient:
         if hello.get("op") != 0:
             raise ObsError(_("Unerwartete Begrüssung von OBS"))
         d = hello.get("d", {})
+        d = d if isinstance(d, dict) else {}
         self.version = str(d.get("obsWebSocketVersion", ""))
         ident = {"rpcVersion": 1, "eventSubscriptions": 64}        # 64 = Outputs (RecordStateChanged)
         auth = d.get("authentication")
@@ -495,7 +536,25 @@ def _inside(path: str, folder: str | None) -> bool:
         return False
 
 
-def obs_file(path, inside: str | None = None, since: float | None = None) -> str:
+def _plain_below(folder: str, path: str) -> bool:
+    """CR-007: no folder between ``folder`` (which may itself be a link the user chose) and the file ``path`` is a
+    link or junction; True when ``path`` is not below ``folder`` as written (checked by ``_inside`` instead)."""
+    try:
+        rel = os.path.relpath(os.path.abspath(path), os.path.abspath(folder))
+    except ValueError:
+        return True
+    parts = rel.split(os.sep)
+    if rel in (".", "") or ".." in parts:
+        return True
+    cur = os.path.abspath(folder)
+    for part in parts[:-1]:
+        cur = os.path.join(cur, part)
+        if fsops.is_link(cur):
+            return False
+    return True
+
+
+def obs_file(path, inside: str | None = None, since: float | None = None, strict: bool = False) -> str:
     """1.8.38 (QA audit): a path OBS named (StopRecord, the replay buffer) before it is moved or deleted – the
     program runs as admin, and anything listening on the port could answer in OBS's place. Only a regular video
     file, no link and no junction/reparse point; else "" (logged). 1.38.57 (security review): with ``inside``
@@ -510,9 +569,12 @@ def obs_file(path, inside: str | None = None, since: float | None = None) -> str
         ok = (p.lower().endswith(VIDEO_EXTS) and stat.S_ISREG(st.st_mode)
               and not getattr(st, "st_file_attributes", 0) & getattr(stat, "FILE_ATTRIBUTE_REPARSE_POINT", 0x400))
     except OSError:
-        return p if p.lower().endswith(VIDEO_EXTS) else ""     # not written yet: looked at again before the move
+        # not written yet: looked at again before the move (CR-007: ``strict`` = that look – then it must be there)
+        return p if p.lower().endswith(VIDEO_EXTS) and not strict else ""
     if ok and (inside is not None or since is not None):
         ok = _inside(p, inside) or (since is not None and st.st_mtime >= float(since) - OBS_FRESH_S)
+    if ok and inside:
+        ok = _plain_below(inside, p)
     if not ok:
         log.warning("OBS nannte eine Datei, die keine Aufnahme ist – nicht angefasst: %s", os.path.basename(p))
     return p if ok else ""
@@ -1756,8 +1818,10 @@ class Recorder(threading.Thread):
         name = self._unique(dest, file_name(rec.get("t") or time.time(), rec.get("label", ""), who, ext))
         target = os.path.join(dest, name)
         tries = QUIT_RENAME_TRIES if self._quitting else RENAME_TRIES      # 1.55.1 (audit R-2)
-        final = self._move(path, target, tries)
-        pre = obs_file(rec.get("pre"), inside=self.folder(), since=rec.get("since"))
+        # CR-007: looked at again right before the move – a plain video file of ours, nothing swapped meanwhile
+        moving = obs_file(path, inside=self.folder(), since=rec.get("since"), strict=True)
+        final = self._move(moving, target, tries) if moving else path
+        pre = obs_file(rec.get("pre"), inside=self.folder(), since=rec.get("since"), strict=True)
         pre_name = ""
         if pre and os.path.exists(pre):
             pname = self._unique(dest, file_name(rec.get("t") or time.time(), rec.get("label", ""), who,
@@ -2572,13 +2636,16 @@ class Recorder(threading.Thread):
                     pass
                 out = None
         if out is not None:
-            try:
-                os.remove(src)
-            except OSError:
-                pass
+            # CR-007: the buffer file goes only from our recordings folder, through the checked primitive – never a
+            # raw delete of a path the local peer named
+            if folder and _inside(src, folder) and obs_file(src, inside=folder, since=asked, strict=True):
+                try:
+                    fsops.delete_inside(folder, src)
+                except OSError:
+                    pass
         else:                                            # no ffmpeg / cut failed: the whole buffer is the clip
             target = os.path.join(clips, self._unique(clips, name + (os.path.splitext(src)[1] or ".mkv")))
-            out = self._move(src, target)
+            out = self._move(src, target) if obs_file(src, inside=folder, since=asked, strict=True) else src
         if os.path.dirname(out) == clips:                 # 1.8.13: into the clips list with its round
             self._add_clip({"file": os.path.basename(out), "kind": "instant", "seconds": float(self.cfg.clip_s),
                             **{k: meta[k] for k in ("source", "map_id", "label", "role", "killer", "farming")

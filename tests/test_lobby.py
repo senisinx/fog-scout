@@ -698,3 +698,40 @@ def test_a_lasting_fault_of_a_look_is_logged_once_a_minute_not_every_second(tmp_
         now[0] = 1030.0 + worker.TICK_FAIL_LOG_S + 1
         wk._report("Lobby-Erkennung", "Traceback\nKeyError: y")
         assert len(caplog.records) == 4 and len(posted) == 2
+
+
+def test_the_debug_pictures_never_prune_through_a_junction_nor_foreign_files(tmp_path, monkeypatch):
+    """CR-001 (code review): the elevated program pruned debug/<x> with a raw os.remove – a debug folder swapped for
+    a junction/link had its target's files deleted, and foreign files inside were deleted as well. Now: a linked
+    debug folder is neither written nor pruned, and only our own stamped names are ever deleted."""
+    import collections
+    from fogscout import worker
+    w = worker.DetectionWorker.__new__(worker.DetectionWorker)
+    w.role_misses = collections.deque(maxlen=5)
+    victim = tmp_path / "victim"
+    victim.mkdir()
+    for i in range(30):
+        (victim / f"keep{i:02d}.txt").write_text("x")
+    data = tmp_path / "data"
+    (data / "debug").mkdir(parents=True)
+    os.symlink(str(victim), str(data / "debug" / "result"))           # debug/result is a link
+    w.data_dir = str(data)
+    monkeypatch.setattr(worker, "RESULT_MISSES_KEPT", 1)
+    w._result_miss(np.zeros((30, 200, 3), np.uint8), "X")
+    w._save_globe(np.zeros((10, 10, 3), np.uint8), "PLAY")
+    assert len(os.listdir(victim)) == 30                              # nothing deleted, nothing written there
+    import shutil
+    shutil.rmtree(str(data / "debug"))                                # the debug folder itself a link
+    os.symlink(str(victim), str(data / "debug"))
+    w._result_miss(np.zeros((30, 200, 3), np.uint8), "X")
+    assert sorted(os.listdir(victim)) == [f"keep{i:02d}.txt" for i in range(30)]
+    # a plain folder: foreign files stay, only our own stamped names are pruned
+    os.remove(str(data / "debug"))
+    res = data / "debug" / "result"
+    res.mkdir(parents=True)
+    (res / "notes.jpg").write_text("x")
+    stamps = iter(["20261022-140000", "20261022-140100"])
+    monkeypatch.setattr(worker.time, "strftime", lambda fmt, *a: next(stamps) if "%Y" in fmt else "14:00:00")
+    w._result_miss(np.zeros((30, 200, 3), np.uint8), "X")
+    w._result_miss(np.zeros((30, 200, 3), np.uint8), "X")
+    assert sorted(os.listdir(res)) == ["20261022-140100.jpg", "notes.jpg"]

@@ -18,7 +18,7 @@ from .capture import foreground_root, is_game_window
 from .catalog import shown
 from .i18n import N_, _
 from .lobby import KILLERS, killer_label
-from .textnorm import fold
+from .textnorm import fold, fold_any
 from .textnorm import fmt_duration
 from .dashboard import Tile, _bp
 from .theme import DOT
@@ -1690,8 +1690,11 @@ class StatsTab:
         target = next((k for k in self._stats_alias_choices if killer_label(k) == label), None)
         if not sel or target is None:
             return
+        key = fold_any(sel[0])                                   # CR-006: a name in any script, never ""
+        if not key:
+            return
         aliases = dict(self.settings.get("killer_aliases") or {})
-        aliases[fold(sel[0])] = target
+        aliases[key] = target
         self.settings.set("killer_aliases", aliases)
         self._save_soon()
         self._log(_("„{name}“ zählt jetzt als {killer}.", name=sel[0], killer=killer_label(target)), "System")

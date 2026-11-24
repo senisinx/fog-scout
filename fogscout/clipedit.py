@@ -534,10 +534,14 @@ def clip_name(round_name: str, start: float, end: float) -> str:
     return NAME_CHARS.sub("", f"{base} – Clip {tag(start)}-{tag(end)}")[:150]
 
 
-def unique_path(folder: str, name: str, ext: str) -> str:
+def unique_path(folder: str, name: str, ext: str, taken=()) -> str:
+    """A free name in ``folder``: no file, no file being written – and none of ``taken`` (CR-005: the targets of
+    exports still waiting in the queue, whose files do not exist yet)."""
+    taken = {os.path.normcase(os.path.abspath(p)) for p in taken}
     out = os.path.join(folder, name + ext)
     n = 2
-    while os.path.exists(out) or os.path.exists(out + PART_EXT):       # … nor one another save is writing
+    while os.path.exists(out) or os.path.exists(out + PART_EXT) \
+            or os.path.normcase(os.path.abspath(out)) in taken:            # … nor one another save is writing
         out = os.path.join(folder, f"{name} ({n}){ext}")
         n += 1
     return out

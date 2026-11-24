@@ -13,7 +13,7 @@ from dataclasses import dataclass
 import cv2
 import numpy as np
 
-from .textnorm import MAIN
+from .textnorm import MAIN, name_chars
 from .ocr import LexiconScorer, Recognizer, best_path_logp, runtime
 
 
@@ -72,22 +72,37 @@ class ScanHit:
 
 
 class FullScanner:
-    def __init__(self, detector: TextDetector, recognizer: Recognizer, catalog):
+    """CR-006 (code review): every recognition model of the catalog (``catalog.by_model``) – the main (Latin) one
+    with ``recognizer``, the other scripts with ``pool`` (ocr.ModelPool, None = main model only). With game languages
+    in another script alone the main model has no names at all (the scan crashed on an empty lexicon)."""
+
+    def __init__(self, detector: TextDetector, recognizer: Recognizer, catalog, pool=None):
         self.det = detector
         self.rec = recognizer
         self.catalog = catalog
-        # 1.49: the scan reads with the main model – the names of the languages it reads (Latin, Simplified Chinese)
+        self.pool = pool
+        self.models = []                  # (model, alphabet, names scorer, realms scorer, name → map, realm key → realm)
+        for model in getattr(catalog, "models", [MAIN]):
+            names, realms, alphabet = catalog.by_model[model]
+            if not names and not realms:
+                continue
+            if model != MAIN and pool is None:
+                continue
+            own = [h for h in catalog.hypotheses if h.model == model]
+            name_to, realm_to = {}, {}
+            for h in own:
+                name_to.setdefault(h.name_key, (h.map_id, h.variant))
+                for r in h.realm_keys:
+                    realm_to.setdefault(r, catalog.maps[h.map_id].realm)
+            self.models.append((model, alphabet, LexiconScorer(names, alphabet) if names else None,
+                                LexiconScorer(realms, alphabet) if realms else None, name_to, realm_to))
+        main = next((m for m in self.models if m[0] == MAIN), None)
+        # the main model's names (1.49) – kept for callers and tests
         self.alphabet = catalog.alphabet
-        self.names = LexiconScorer(catalog.name_strings, self.alphabet)
-        self.realms = LexiconScorer(catalog.realm_strings, self.alphabet)
-        own = [h for h in catalog.hypotheses if h.model == MAIN]
-        self._name_to = {}
-        for h in own:
-            self._name_to.setdefault(h.name_key, (h.map_id, h.variant))
-        self._realm_to = {}
-        for h in own:
-            for r in h.realm_keys:
-                self._realm_to.setdefault(r, catalog.maps[h.map_id].realm)
+        self.names, self.realms = (main[2], main[3]) if main else (None, None)
+
+    def _recognizer(self, model):
+        return self.rec if model == MAIN else self.pool.get(model)
 
     def scan(self, frame: np.ndarray, time_budget: float = 4.0):
         t0 = time.time()
@@ -101,35 +116,43 @@ class FullScanner:
             crop = frame[y0:y1, x0:x1]
             if crop.size == 0 or (x1 - x0) < 1.5 * (y1 - y0):
                 continue
-            probs = self.rec.probs(crop)
-            g = self.rec.wide_groups(probs, self.alphabet)
-            bp = best_path_logp(g)
-            text = self.rec.text(probs)
-            for kind, scorer, lookup in (("map", self.names, self._name_to), ("realm", self.realms, self._realm_to)):
-                lp = scorer.score(g)
-                order = np.argsort(-lp)
-                best = scorer.strings[order[0]]
-                if len(best) < 5:
+            for model, alphabet, names, realms, name_to, realm_to in self.models:
+                rec = self._recognizer(model)
+                if rec is None:
                     continue
-                fit = float(lp[order[0]] - bp)
-                # margin to the best string that means something *else*
-                # (another map/realm, not just another layout variant)
-                target = lookup.get(best)
-                target_id = target[0] if kind == "map" else target
-                second = -1e9
-                for j in order[1:]:
-                    other = lookup.get(scorer.strings[j])
-                    other_id = other[0] if kind == "map" else other
-                    if other_id != target_id:
-                        second = float(lp[j])
-                        break
-                margin = float(lp[order[0]] - second)
-                if fit < -4.0 or margin < 4.0:
-                    continue
-                if kind == "map":
-                    mid, var = lookup[best]
-                    hits.append(ScanHit("map", mid, var, None, text, fit, margin))
-                else:
-                    hits.append(ScanHit("realm", None, 1, lookup.get(best), text, fit, margin))
+                probs = rec.probs(crop)
+                g = rec.wide_groups(probs, alphabet)
+                bp = best_path_logp(g)
+                text = rec.text(probs)
+                for kind, scorer, lookup in (("map", names, name_to), ("realm", realms, realm_to)):
+                    if scorer is None:
+                        continue
+                    lp = scorer.score(g)
+                    if not len(lp):
+                        continue
+                    order = np.argsort(-lp)
+                    best = scorer.strings[order[0]]
+                    if name_chars(best) < (5 if model == MAIN else 4):     # 1.49: "血屋" counts 4
+                        continue
+                    fit = float(lp[order[0]] - bp)
+                    # margin to the best string that means something *else*
+                    # (another map/realm, not just another layout variant)
+                    target = lookup.get(best)
+                    target_id = target[0] if kind == "map" else target
+                    second = -1e9
+                    for j in order[1:]:
+                        other = lookup.get(scorer.strings[j])
+                        other_id = other[0] if kind == "map" else other
+                        if other_id != target_id:
+                            second = float(lp[j])
+                            break
+                    margin = float(lp[order[0]] - second)
+                    if fit < -4.0 or margin < 4.0:
+                        continue
+                    if kind == "map":
+                        mid, var = lookup[best]
+                        hits.append(ScanHit("map", mid, var, None, text, fit, margin))
+                    else:
+                        hits.append(ScanHit("realm", None, 1, lookup.get(best), text, fit, margin))
         hits.sort(key=lambda h: (h.kind != "map", -h.fit - 0.01 * h.margin))
         return hits

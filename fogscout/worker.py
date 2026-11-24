@@ -6,6 +6,7 @@ import contextlib
 import logging
 import os
 import queue
+import re
 import threading
 import time
 import traceback
@@ -13,7 +14,7 @@ from dataclasses import dataclass
 
 import cv2
 
-from . import __version__, bloodpoints, corpus, gamelang, loadouts
+from . import __version__, bloodpoints, corpus, fsops, gamelang, loadouts
 from .capture import (IS_WIN, ImageSource, ScreenGrabber, cursor_state, find_game_window, foreground_root,
                       overlaps, windows_above)
 from .i18n import _
@@ -74,6 +75,8 @@ RESULT_MISSES_KEPT = 10           # 1.11.1: result screens without a role kept i
 # after it (the result screen fades its headers in after the bar)
 ROLE_RETRY_S = (1.5, 3.0, 5.0)
 SIGHTINGS_KEPT = 20               # mid-match sightings kept in debug/midmatch (picture + text each), newest first
+# CR-001: the names our debug pictures are saved under (stamp, optional tag) – only these are ever pruned
+DEBUG_NAME = re.compile(r"^\d{8}-\d{6}(?:-[\w.-]+)?\.(?:jpg|webp|png|txt)$", re.ASCII)
 GLOBE_KEPT = 10                   # 1.5.4: unreadable cross-play globe crops kept in debug/lobby
 GLOBE_SAVE_EVERY = 120.0          # s between two saved crops (one per lobby is enough)
 MENU_RATE = 1.0                   # 1.6.4: banner scans per second in menus, store, bloodweb … (no banner there)
@@ -148,6 +151,28 @@ def scan_rate(base: float, *, in_match: bool, session: bool, since_button: float
     return min(base, MENU_RATE)
 
 
+def _debug_dir(data_dir, *sub):
+    """Code review CR-001: the debug folder (``debug`` or ``debug/<sub>``) made and returned – None when it or
+    ``debug`` is a link/junction (RS-002): the program runs with administrator rights and must neither write
+    into nor prune a folder a program of the user swapped for a junction."""
+    d = os.path.join(data_dir, "debug", *sub)
+    levels = 1 + len(sub)
+    if fsops.linked_root(d, levels):
+        return None
+    os.makedirs(d, exist_ok=True)
+    return None if fsops.linked_root(d, levels) else d
+
+def _prune_debug(d, names, keep):
+    """CR-001: delete all but the newest ``keep`` of ``names`` (own stamped names only, ``DEBUG_NAME``) inside
+    ``d`` – through ``fsops.delete_inside``, never a raw os.remove. ``keep`` 0 deletes them all."""
+    own = sorted(n for n in names if DEBUG_NAME.match(n))
+    for old in (own[:-keep] if keep else own):
+        try:
+            fsops.delete_inside(d, os.path.join(d, old))
+        except OSError:
+            pass
+
+
 class DetectionWorker(threading.Thread):
     inputs_rect = None               # 1.39: the input card on screen (set by the UI; a default for bare instances)
     loadouts_rect = None             # 1.57: the survivors' loadouts on screen (the same)
@@ -205,6 +230,7 @@ class DetectionWorker(threading.Thread):
         self.banner_history = collections.deque(maxlen=20)  # every banner-like sighting and its outcome (diagnosis)
         self.role_misses = collections.deque(maxlen=5)      # 1.11.1: result screens without a role read (diagnosis)
         self._scanner = None
+        self._pool = None                 # CR-006: the other scripts' models, for the manual scan too
         self.recognizer = None            # 1.50.4: ocr.LazyRecognizer of the run (built once DBD is found)
         self._reported = set()
         self._report_logged = {}          # key -> (text, time): what _report last wrote to the log file
@@ -310,6 +336,7 @@ class DetectionWorker(threading.Thread):
         # game language that is ticked, or for a look at a banner nothing ticked can read (gamelang)
         pool = ModelPool(models, threads=self.settings.get("ocr_threads", 2),
                          on_error=lambda model, e: self._report(f"Modell {model}", f"{type(e).__name__}: {e}"))
+        self._pool = pool
         reader = BannerReader(rec, self.catalog, pool)
         acc = Accumulator()
         out_of_match = OutOfMatchWatcher(rec)
@@ -1025,7 +1052,7 @@ class DetectionWorker(threading.Thread):
             if self._scanner is None:
                 det = TextDetector(os.path.join(self.root_dir, "models", "ch_PP-OCRv4_det_infer.onnx"),
                                    threads=max(2, int(self.settings.get("ocr_threads", 2))))
-                self._scanner = FullScanner(det, rec, self.catalog)
+                self._scanner = FullScanner(det, rec, self.catalog, self._pool)     # CR-006: every script
             if source is not None:
                 frame = source.current()
             elif window is not None and not window.minimized:
@@ -1127,16 +1154,15 @@ class DetectionWorker(threading.Thread):
         """Debug: downscaled screenshots while a map is shown (folder debug/frames)."""
         try:
             self._last_frame_save = time.time()
-            d = os.path.join(self.data_dir, "debug", "frames")
-            os.makedirs(d, exist_ok=True)
+            d = _debug_dir(self.data_dir, "frames")
+            if d is None:
+                return
             h, w = frame.shape[:2]
             s = min(1.0, 1280.0 / max(1, w))
             small = cv2.resize(frame, None, fx=s, fy=s, interpolation=cv2.INTER_AREA) if s < 1 else frame
             stamp = time.strftime("%Y%m%d-%H%M%S") + f"-{int(time.time() * 1000) % 1000:03d}"
             cv2.imencode(".jpg", small, [cv2.IMWRITE_JPEG_QUALITY, 82])[1].tofile(os.path.join(d, f"{stamp}-{tag}.jpg"))
-            files = sorted(os.listdir(d))
-            for old in files[:-150]:
-                os.remove(os.path.join(d, old))
+            _prune_debug(d, os.listdir(d), 150)
         except Exception:
             pass
 
@@ -1145,12 +1171,12 @@ class DetectionWorker(threading.Thread):
         """1.5.4: the cross-play zone when the globe could not be read (farming rounds not recognised) – PNG in
         debug/lobby, newest GLOBE_KEPT. The user sends these; the detector is tuned on them."""
         try:
-            d = os.path.join(self.data_dir, "debug", "lobby")
-            os.makedirs(d, exist_ok=True)
+            d = _debug_dir(self.data_dir, "lobby")
+            if d is None:
+                return
             name = time.strftime("%Y%m%d-%H%M%S") + f"-crossplay-{button or 'x'}.webp"
             write_lossless(os.path.join(d, name), img)
-            for old in sorted(f for f in os.listdir(d) if "-crossplay-" in f)[:-GLOBE_KEPT]:
-                os.remove(os.path.join(d, old))
+            _prune_debug(d, [f for f in os.listdir(d) if "-crossplay-" in f], GLOBE_KEPT)
         except Exception:
             pass
 
@@ -1188,12 +1214,12 @@ class DetectionWorker(threading.Thread):
         self.role_misses.append(f"{time.strftime('%H:%M:%S')} Bild {crop.shape[1]}×{crop.shape[0]} · "
                                 f"gelesen „{text[:60]}“")
         try:
-            d = os.path.join(self.data_dir, "debug", "result")
-            os.makedirs(d, exist_ok=True)
+            d = _debug_dir(self.data_dir, "result")
+            if d is None:
+                return
             cv2.imencode(".jpg", crop, [cv2.IMWRITE_JPEG_QUALITY, 90])[1].tofile(
                 os.path.join(d, time.strftime("%Y%m%d-%H%M%S") + ".jpg"))
-            for old in sorted(os.listdir(d))[:-RESULT_MISSES_KEPT]:
-                os.remove(os.path.join(d, old))
+            _prune_debug(d, [f for f in os.listdir(d) if f.endswith(".jpg")], RESULT_MISSES_KEPT)
         except Exception:
             pass
 
@@ -1202,8 +1228,9 @@ class DetectionWorker(threading.Thread):
         part) at full size – what the loadouts reader saw (own windows already blacked out), in debug/loadouts,
         the newest LOADOUT_KEPT of each. Only with "Debug-Bilder speichern"; the user sends them to tune on."""
         try:
-            d = os.path.join(self.data_dir, "debug", "loadouts")
-            os.makedirs(d, exist_ok=True)
+            d = _debug_dir(self.data_dir, "loadouts")
+            if d is None:
+                return
             h, w = frame.shape[:2]
             vw = min(w, h * 16 // 9)
             vx = (w - vw) // 2
@@ -1213,9 +1240,8 @@ class DetectionWorker(threading.Thread):
                 part = frame[:, vx:vx + vw * 2 // 5]
             stamp = time.strftime("%Y%m%d-%H%M%S") + f"-{int(time.time() * 1000) % 1000:03d}"
             write_lossless(os.path.join(d, f"{stamp}-{tag}.webp"), part)
-            for old in sorted(f for f in os.listdir(d)
-                              if f.endswith((f"-{tag}.webp", f"-{tag}.png")))[:-LOADOUT_KEPT]:   # .png: before 1.57.24
-                os.remove(os.path.join(d, old))
+            _prune_debug(d, [f for f in os.listdir(d)                    # .png: before 1.57.24
+                                  if f.endswith((f"-{tag}.webp", f"-{tag}.png"))], LOADOUT_KEPT)
         except Exception:
             pass
 
@@ -1223,8 +1249,9 @@ class DetectionWorker(threading.Thread):
         """Mid-match banner-like sighting: the captured region (separator marked) + what was read, in
         debug/midmatch – only the newest SIGHTINGS_KEPT. Returns the file name (None on failure)."""
         try:
-            d = os.path.join(self.data_dir, "debug", "midmatch")
-            os.makedirs(d, exist_ok=True)
+            d = _debug_dir(self.data_dir, "midmatch")
+            if d is None:
+                return None
             stamp = time.strftime("%Y%m%d-%H%M%S") + f"-{int(time.time() * 1000) % 1000:03d}"
             name = f"{stamp}-{tag}.jpg"
             vis = img.copy()
@@ -1233,27 +1260,26 @@ class DetectionWorker(threading.Thread):
             with open(os.path.join(d, f"{stamp}-{tag}.txt"), "w", encoding="utf-8") as fh:
                 fh.write(f"name: {res.name_text}\nrealm: {res.realm_text}\nbest: {res.best}\nfit: {res.name_fit:.2f}\n"
                          f"separator: x {sep.x0}-{sep.x1}, y {sep.y}, frac {sep.frac:.2f}\n")
-            stamps = sorted({f.rsplit("-", 1)[0] for f in os.listdir(d)})
-            for old in stamps[:-SIGHTINGS_KEPT]:
-                for f in os.listdir(d):
-                    if f.startswith(old + "-"):
-                        os.remove(os.path.join(d, f))
+            files = [f for f in os.listdir(d) if DEBUG_NAME.match(f)]
+            stamps = sorted({f.rsplit("-", 1)[0] for f in files})
+            old = set(stamps[:-SIGHTINGS_KEPT])
+            _prune_debug(d, [f for f in files if f.rsplit("-", 1)[0] in old], 0)
             return name
         except Exception:
             return None
 
     def _save_debug(self, img, res, sep):
         try:
-            d = os.path.join(self.data_dir, "debug")
-            os.makedirs(d, exist_ok=True)
+            d = _debug_dir(self.data_dir)
+            if d is None:
+                return
             stamp = time.strftime("%Y%m%d-%H%M%S") + f"-{int(time.time() * 1000) % 1000:03d}"
             vis = img.copy()
             cv2.line(vis, (sep.x0, sep.y), (sep.x1, sep.y), (0, 0, 255), 1)
             write_lossless(os.path.join(d, f"{stamp}.webp"), vis)
             with open(os.path.join(d, f"{stamp}.txt"), "w", encoding="utf-8") as fh:
                 fh.write(f"name: {res.name_text}\nrealm: {res.realm_text}\nbest: {res.best}\nfit: {res.name_fit:.2f}\n")
-            files = sorted(f for f in os.listdir(d) if os.path.isfile(os.path.join(d, f)))
-            for old in files[:-400]:                   # keep the folder small
-                os.remove(os.path.join(d, old))
+            _prune_debug(d, [f for f in os.listdir(d)            # keep the folder small
+                                  if os.path.isfile(os.path.join(d, f))], 400)
         except Exception:
             pass
