@@ -4036,6 +4036,8 @@ T = {
         'OBS를 시작했지만 연결할 수 없습니다 – OBS의 도구 → WebSocket 서버 설정에서 서버를 켜고 포트/비밀번호를 확인하세요. ({error})',
     'OBS nicht gefunden – bitte OBS selbst starten (gesucht unter Programme\\obs-studio).':
         'OBS를 찾을 수 없습니다 – OBS를 직접 시작하세요(Program Files\\obs-studio에서 찾았음).',
+    'OBS bitte selbst starten – Fog Scout läuft als Administrator und startet OBS nicht mit diesen Rechten.':
+        'OBS를 직접 시작하세요 – Fog Scout는 관리자 권한으로 실행 중이므로 이 권한으로 OBS를 시작하지 않습니다.',
     'OBS konnte nicht gestartet werden: {error}':
         'OBS를 시작할 수 없습니다: {error}',
     'OBS wird gestartet …':

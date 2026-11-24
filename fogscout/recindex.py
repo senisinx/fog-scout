@@ -16,7 +16,7 @@ import struct
 import time
 from dataclasses import MISSING, asdict, dataclass, field
 
-from . import fsops
+from . import fsops, history
 from .fsops import rel_path
 from .inputs import INPUTS_SUFFIX
 from .i18n import _
@@ -109,6 +109,9 @@ def _entry(cls, d):
             kw[k] = v
         elif f.default is MISSING and f.default_factory is MISSING:
             kw[k] = kind                     # a required field of another kind: its zero (t = 0.0)
+    for k in ("t", "end", "source"):         # red-team RS-001: times the pages show as dates (1e300 raised there)
+        if k in kw and not history.plausible(kw[k]):
+            kw[k] = 0.0
     return cls(**kw)
 
 

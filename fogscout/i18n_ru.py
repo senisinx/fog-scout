@@ -4036,6 +4036,8 @@ T = {
         'OBS запущен, но недоступен — в OBS в «Сервис → Настройки сервера WebSocket» включите сервер и проверьте порт/пароль. ({error})',
     'OBS nicht gefunden – bitte OBS selbst starten (gesucht unter Programme\\obs-studio).':
         'OBS не найден — запустите OBS сами (поиск в Program Files\\obs-studio).',
+    'OBS bitte selbst starten – Fog Scout läuft als Administrator und startet OBS nicht mit diesen Rechten.':
+        'Запустите OBS сами — Fog Scout работает от имени администратора и не запускает OBS с этими правами.',
     'OBS konnte nicht gestartet werden: {error}':
         'Не удалось запустить OBS: {error}',
     'OBS wird gestartet …':

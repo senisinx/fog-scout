@@ -2929,6 +2929,8 @@ EN = {
         'OBS was started but cannot be reached – in OBS under Tools → WebSocket Server Settings enable the server and check port/password. ({error})',
     'OBS nicht gefunden – bitte OBS selbst starten (gesucht unter Programme\\obs-studio).':
         'OBS not found – please start OBS yourself (looked in Program Files\\obs-studio).',
+    'OBS bitte selbst starten – Fog Scout läuft als Administrator und startet OBS nicht mit diesen Rechten.':
+        'Please start OBS yourself – Fog Scout runs as administrator and does not start OBS with these rights.',
     'OBS konnte nicht gestartet werden: {error}': 'OBS could not be started: {error}',
     'OBS wird gestartet …': 'Starting OBS …',
     'OBS ist offen, aber nicht erreichbar – in OBS unter Werkzeuge → WebSocket-Servereinstellungen den Server aktivieren und Port/Passwort prüfen. ({error})':

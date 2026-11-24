@@ -108,8 +108,16 @@ def _entries(lines):
             yield i, parts[0], [p.lower() for p in parts[1:]]
 
 
+# red-team audit RS-008: the comment lines build() writes into the section – without the end marker only these (and
+# blank lines, and entries of managed names only) belong to it; any other comment is the user's and stays
+OWN_COMMENTS = ("# Written by Fog Scout", "# Written by DbD Map Scout", "# allowed: ")
+
+
 def _ours(line: str) -> bool:
-    """Blank, comment or an entry that only names managed servers."""
+    """Blank, one of our own comments or an entry that only names managed servers."""
+    text = line.strip()
+    if text.startswith("#"):
+        return text.startswith(OWN_COMMENTS)
     body = line.split("#", 1)[0].split()
     return not body or (len(body) >= 2 and all(p.lower() in MANAGED_SET for p in body[1:]))
 

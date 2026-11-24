@@ -4036,6 +4036,8 @@ T = {
         'OBS 已启动但无法连接，请在 OBS 的“工具 → WebSocket 服务器设置”中启用服务器并检查端口/密码。（{error}）',
     'OBS nicht gefunden – bitte OBS selbst starten (gesucht unter Programme\\obs-studio).':
         '未找到 OBS，请自行启动 OBS（已在 Program Files\\obs-studio 中查找）。',
+    'OBS bitte selbst starten – Fog Scout läuft als Administrator und startet OBS nicht mit diesen Rechten.':
+        '请自行启动 OBS – Fog Scout 以管理员身份运行，不会以此权限启动 OBS。',
     'OBS konnte nicht gestartet werden: {error}':
         '无法启动 OBS：{error}',
     'OBS wird gestartet …':

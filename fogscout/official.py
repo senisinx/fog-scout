@@ -27,7 +27,7 @@ import traceback
 from dataclasses import asdict, dataclass, field
 from functools import lru_cache
 
-from . import fsops, jsonlcache
+from . import fsops, history, jsonlcache
 from .textnorm import fold
 
 log = logging.getLogger(__name__)
@@ -198,7 +198,7 @@ def _match(d, now):
     bp = _num(me.get("bp"))
     opps = d.get("opponents") if isinstance(d.get("opponents"), list) else []
     return Match(t=t, map=_text(d.get("map")), custom=d.get("custom") is True, role=p.role, character=p.character,
-                 seconds=max(0.0, seconds) if seconds is not None else 0.0,
+                 seconds=max(0.0, seconds) if seconds is not None and seconds <= history.MAX_SECONDS else 0.0,
                  bp=int(bp) if bp is not None and 0 <= bp < 1e9 else 0,
                  status=p.status, img=p.img, opp=[_player(o) for o in opps[:8]], **_own_extra(me, d))
 
@@ -239,13 +239,14 @@ def _match_line(line: str):
     if not isinstance(d, dict) or d.get("gap"):
         return None
     t = float(d["t"])
-    if not math.isfinite(t):          # 1.46.4: json reads NaN/Infinity – round(t) further on would raise
-        raise ValueError("start is not a number")
+    seconds = float(d.get("seconds") or 0)
+    if not history.plausible(t, seconds):   # 1.46.4: NaN/Infinity; red-team RS-001: and values no date can hold
+        raise ValueError("start or length is not a date the program can show")
     opp = [Player(**{k: str(o.get(k) or "") for k in ("role", "character", "status", "img")})
            for o in d.get("opp") or [] if isinstance(o, dict)]
     return Match(t=t, map=str(d.get("map") or ""), custom=bool(d.get("custom")),
                  role=str(d.get("role") or ""), character=str(d.get("character") or ""),
-                 seconds=float(d.get("seconds") or 0), bp=int(d.get("bp") or 0),
+                 seconds=seconds, bp=int(d.get("bp") or 0),
                  status=str(d.get("status") or ""), img=str(d.get("img") or ""), opp=opp, **_stored_extra(d))
 
 

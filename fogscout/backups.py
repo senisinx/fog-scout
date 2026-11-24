@@ -87,7 +87,7 @@ def snapshot(root: str, now: float | None = None, tag: str = "") -> dict:
         except OSError:
             continue
         out["copied"].append(target)
-        for old in copies(folder, stem)[:-KEEP]:
+        for old in copies(folder, stem)[:-KEEP] if not fsops.linked_root(folder) else []:   # red-team RS-002
             try:
                 fsops.delete_inside(folder, os.path.join(folder, old))     # 1.38.57: never through a junction
                 out["pruned"].append(old)
@@ -251,6 +251,8 @@ def _plan(data_dir: str, u: _Unpacked, members: dict) -> dict:
                 d = json.loads(line)
                 if isinstance(d, dict) and d.get("lost"):
                     d["t"] = float(d["t"])
+                    if not history.plausible(d["t"]):          # red-team RS-001
+                        continue
                     r, kind = d, "lost"
                 else:
                     r, kind = history._round_line(line), "rounds"

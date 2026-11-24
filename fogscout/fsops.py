@@ -87,6 +87,19 @@ def is_link(path: str) -> bool:
     return bool(getattr(st, "st_file_attributes", 0) & 0x400)          # FILE_ATTRIBUTE_REPARSE_POINT
 
 
+def linked_root(folder: str, levels: int = 1) -> bool:
+    """Red-team audit RS-002: ``folder`` or one of its ``levels - 1`` parents is a link/junction (``is_link``). The
+    caches below the data folder (``cache/<x>``: levels 2, ``corpus``/``backup``: 1) are pruned with administrator
+    rights; ``delete_inside`` lets the folder itself be a link (the recordings folder may be one), so a cache folder
+    a program of the user swapped for a junction would have its target pruned. Such a folder is not pruned."""
+    path = os.path.abspath(folder)
+    for _ in range(max(1, int(levels))):
+        if is_link(path):
+            return True
+        path = os.path.dirname(path)
+    return False
+
+
 def _unsupported(what: str, path: str, code: int = errno.ENOSYS) -> UnsupportedFS:
     return UnsupportedFS(code, f"{what} is not supported here", path)
 
