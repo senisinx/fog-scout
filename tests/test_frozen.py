@@ -227,3 +227,27 @@ def test_the_self_check_really_runs_as_a_child_from_the_source_tree(tmp_path):
         [sys.executable] + args[1:], env=dict(os.environ, QT_QPA_PLATFORM="offscreen"), **kw))
     names = [p.split(":", 1)[0] for p in res["passed"]] + [f.split(":", 1)[0] for f in res["failed"]]
     assert {"Dateien", "Kartenbilder", "Module", "OCR", "Qt"} <= set(names), res
+
+
+def test_the_self_check_never_writes_through_a_link_in_the_data_folder(tmp_path):
+    """V-002 (code review): the elevated program's check wrote its result with open() – a link planted at
+    cache/selftest.json pointed the write at any file; a cache folder swapped for a link is not used at all."""
+    import json as _json
+    from fogscout import selftest
+    victim = tmp_path / "victim.txt"
+    victim.write_text("keep me")
+    cache = tmp_path / "data" / "cache"
+    cache.mkdir(parents=True)
+    out = cache / "selftest.json"
+    os.symlink(str(victim), str(out))
+
+    def child(args, **kw):
+        from fogscout import fsops
+        fsops.write_atomic(args[-1], _json.dumps({"ok": True, "passed": ["Dateien"], "failed": []}).encode())
+    res = selftest.run_child(str(tmp_path), str(out), run=child)
+    assert res["passed"] == ["Dateien"] and victim.read_text() == "keep me" and not os.path.islink(out)
+    linked = tmp_path / "data2"
+    linked.mkdir()
+    os.symlink(str(tmp_path / "elsewhere"), str(linked / "cache"))
+    res = selftest.run_child(str(tmp_path), str(linked / "cache" / "selftest.json"), run=child)
+    assert res["ok"] is False and "Link" in res["failed"][0]

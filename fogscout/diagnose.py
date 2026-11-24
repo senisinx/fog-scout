@@ -301,7 +301,9 @@ def collect(app) -> str:
         lines.extend(crash_lines(data))
     root = getattr(app, "root", None)
     lines.extend(lag_lines(getattr(root, "slow", ()), getattr(root, "worst", ())))
-    return "\n".join(lines)
+    # V-001 (code review): the home folder as "~" in the whole text – status lines, exception texts and paths of
+    # every part, not only the crash lines (the text goes to the clipboard and diagnose.txt, unfiltered by logging)
+    return home_masked("\n".join(lines))
 
 
 CRASH_FILE = "fogscout-crash.txt"            # 1.8.66: faulthandler of the running program (empty = no crash)

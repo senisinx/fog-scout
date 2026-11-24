@@ -244,6 +244,23 @@ def test_the_installer_goes_to_program_files_for_everyone_and_keeps_the_data():
     assert "..\\build\\fogscout\\fogscout.ico" in iss                          # written by the spec (workpath)
 
 
+def test_without_the_task_the_setup_starts_the_program_as_the_signed_in_user():
+    """CR-015 (code review, H-4): installed with another administrator's account there is no task "Fog Scout" –
+    schtasks /run failed silently after the setup and after an update. Each start through the task is checked
+    (TaskExists) and has a start of the .exe as the original user beside it."""
+    iss = _iss()
+    run = iss.split("[Run]", 1)[1].split("\n[", 1)[0]
+    lines = [ln for ln in run.splitlines() if ln.startswith("Filename:") and "--install-tasks" not in ln]
+    task = [ln for ln in lines if "schtasks.exe" in ln]
+    exe = [ln for ln in lines if ln.startswith('Filename: "{app}\\FogScout.exe"')]
+    assert [ln.rsplit("Check: ", 1)[1] for ln in task] == ["TaskExists", "IsUpdateWithTask"]
+    assert [ln.rsplit("Check: ", 1)[1] for ln in exe] == ["NoTask", "IsUpdateNoTask"]
+    assert all("runasoriginaluser" in ln for ln in exe)
+    assert "function TaskExists: Boolean;" in iss and "'/query /tn \"Fog Scout\"'" in iss
+    deinit = iss.split("procedure DeinitializeSetup();", 1)[1]
+    assert "if TaskExists then" in deinit and "ExecAsOriginalUser(" in deinit
+
+
 def test_ci_builds_installs_checks_and_uninstalls_the_setup():
     with open(os.path.join(ROOT, ".github", "workflows", "build.yml"), encoding="utf-8") as fh:
         wf = fh.read()

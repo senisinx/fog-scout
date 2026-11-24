@@ -81,3 +81,25 @@ def test_crash_lines_show_the_home_folder_as_tilde(monkeypatch, tmp_path):
     (tmp_path / diagnose.CRASH_LAST).write_text(f'  File "{home}{os.sep}app.py", line 3\n', encoding="utf-8")
     text = "\n".join(diagnose.crash_lines(str(tmp_path)))
     assert home not in text and f'"~{os.sep}app.py"' in text
+
+
+def test_the_whole_diagnosis_shows_the_home_folder_as_tilde(tmp_path):
+    """V-001 (code review): only the crash lines were masked – a status line or an exception text with a path of the
+    user's folder went to the clipboard and diagnose.txt with the account name."""
+    if sys.platform == "win32":
+        pytest.skip("Linux: the Windows job tests the native parts; the app would touch the system there")
+    pytest.importorskip("PySide6.QtWidgets", exc_type=ImportError)
+    for name in ("maps", "models", "maps.json"):
+        os.symlink(os.path.join(ROOT, name), tmp_path / name)
+    (tmp_path / "sim").mkdir()
+    (tmp_path / "settings.json").write_text(json.dumps({"welcome_seen": True}), encoding="utf-8")
+    from fogscout import diagnose
+    from fogscout.app import App
+    home = os.path.expanduser("~")
+    app = App(str(tmp_path), simulate=str(tmp_path / "sim"))
+    try:
+        app._errors_seen = {f"OSError {home}{os.sep}Videos{os.sep}OBS"}
+        text = diagnose.collect(app)
+        assert f"~{os.sep}Videos{os.sep}OBS" in text and f"{home}{os.sep}Videos" not in text
+    finally:
+        app.quit()

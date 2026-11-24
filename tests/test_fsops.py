@@ -244,8 +244,7 @@ RAW_DELETES = {
     ("relupdate", "download"), ("relupdate", "clean_update_folder"),   # TODO CR-017
     ("rename", "migrate"),                  # files of the old name in the program folder
     ("restart", "staged_setup"),            # its own copy that failed the hash
-    ("selftest", "run_child"),              # its own result file (mkstemp)
-    ("takeover", "_copy_file"), ("takeover", "finish"),   # its own .tmp; its own marker file
+    ("takeover", "_copy_file"), ("takeover", "finish"),   # its own .tmp; its note of the old folder
 }
 
 

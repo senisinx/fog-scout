@@ -566,11 +566,14 @@ class Uploader(threading.Thread):
     def _command(self, cmd, arg):
         if cmd == "config":
             on, cid, secret, privacy, stored, jobs, quota, manage, playlists = arg
-            if (cid, secret) != (self.client_id, self.secret):     # tokens belong to the client: a new one starts over
-                self._drop_tokens(tell=bool(self.client_id and self._refresh))
+            # tokens belong to the client: a new one starts over – CR-016 (code review): the old client's stored token
+            # is dropped too (settings and here) instead of being loaded again at once
+            switched = bool(self.client_id) and (cid, secret) != (self.client_id, self.secret)
+            if (cid, secret) != (self.client_id, self.secret):
+                self._drop_tokens(tell=switched)
             self.on, self.client_id, self.secret, self.privacy = on, cid, secret, privacy
             self.manage, self.playlists = manage, playlists
-            if not self._refresh:
+            if not self._refresh and not switched:
                 self._refresh = spotify.unprotect(stored)
             if not self.jobs:
                 self.jobs = [j for j in (Job.from_dict(d) for d in jobs) if j is not None]

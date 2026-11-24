@@ -67,3 +67,21 @@ def test_resetting_or_importing_waits_for_a_round_and_for_the_editors(monkeypatc
     s, saved, told, _w = _settings_app()
     app_settings.SettingsTab._import_settings_go(s, "x.json", {"y": 2})
     assert saved == [1] and s.settings.data == {"y": 2}
+
+
+def test_a_new_spotify_client_id_clears_the_stored_sign_in():
+    """CR-016 (code review): the settings kept the old app's refresh token and handed it to the new id."""
+    from fogscout import app_spotify
+
+    class Settings(dict):
+        def set(self, k, v):
+            self[k] = v
+    settings = Settings(spotify_client_id="a" * 32, spotify_token="old")
+    sent = []
+    s = SimpleNamespace(settings=settings, _save_soon=lambda: None,
+                        sp_on_var=SimpleNamespace(get=lambda: True), sp_id_var=SimpleNamespace(get=lambda: "b" * 32),
+                        spotify=SimpleNamespace(configure=lambda on, cid, tok: sent.append(tok)))
+    app_spotify.SpotifyUpNext._spotify_setting(s)
+    assert settings["spotify_token"] == "" and sent == [""]
+    app_spotify.SpotifyUpNext._spotify_setting(s)                     # the same id again: nothing dropped
+    assert sent == ["", ""]

@@ -412,9 +412,13 @@ def test_a_stored_token_logs_in_without_the_browser_and_logout_forgets_it(fake):
         # a different client id drops the tokens too
         link.configure(True, CID, spotify.protect("ref-stored"))
         assert _wait(lambda: link.linked)
+        grants = len(fake.grants)
+        events.clear()
         link.configure(True, "c" * 32, spotify.protect("ref-stored"))
-        assert _wait(lambda: fake.grants[-1][1]["client_id"] == "c" * 32)   # stored token taken for the new id
-        assert link.linked
+        # CR-016 (code review): a refresh token belongs to the app it was issued for – the old id's stored token is
+        # dropped (settings told) and never sent with the new id; the new app needs its own sign-in
+        assert _wait(lambda: link.state == "login_needed" and not link.linked)
+        assert ("token", "") in events and len(fake.grants) == grants
     finally:
         link.quit()
         link.join(timeout=3)

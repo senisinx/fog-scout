@@ -192,8 +192,10 @@ def main(root: str, out: str, clock=None) -> int:
         res = run(root, clock)
     except Exception as e:                                  # the check itself broke: still a result file
         res = {"ok": False, "failed": [f"Selbsttest: {type(e).__name__}: {e}"], "passed": []}
-    with open(out, "w", encoding="utf-8") as fh:
-        json.dump(res, fh, ensure_ascii=False, indent=1)
+    # V-002 (code review): the program runs as administrator and ``out`` lies in the user's data folder – a link or
+    # a second hard link planted there was written through by open(); now a new temp file takes the name
+    from . import fsops
+    fsops.write_atomic(out, json.dumps(res, ensure_ascii=False, indent=1).encode("utf-8"))
     return 0 if res["ok"] else 1
 
 
@@ -215,9 +217,13 @@ def child_args(out: str, frozen: bool | None = None, python: str | None = None) 
 def run_child(root: str, out: str, timeout: float = CHILD_TIMEOUT_S, run=None) -> dict:
     """Run the check as a child process and read its result file; a broken or hung child is a failed result."""
     import subprocess
+    from . import fsops
     run = run or subprocess.run
+    folder = os.path.dirname(os.path.abspath(out))
+    if fsops.linked_root(folder, 2):                       # V-002: never through a cache folder swapped for a link
+        return {"ok": False, "failed": ["Selbsttest: Ergebnisordner ist ein Link"], "passed": []}
     try:
-        os.remove(out)
+        fsops.delete_inside(folder, out)                   # the last run's result (a link there is left alone)
     except OSError:
         pass
     try:

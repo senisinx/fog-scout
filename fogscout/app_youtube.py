@@ -110,6 +110,8 @@ class YouTubeUpload:
         manage = bool(self.yt_pl_var.get())
         playlists = {key: self._yt_pl_id(var.get()) for key, var in self.yt_pl_vars.items()}
         if save:
+            if cid != (self.settings.get("youtube_client_id") or "") or secret != self._yt_secret_loaded:
+                self.settings.set("youtube_token", "")            # CR-016: the old client's sign-in goes with it
             self.settings.set("youtube_on", on)
             self.settings.set("youtube_client_id", cid)
             if secret != self._yt_secret_loaded:         # 1.28 (audit F2b): a value not readable here stays

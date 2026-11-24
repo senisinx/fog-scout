@@ -544,10 +544,13 @@ class SpotifyLink(threading.Thread):
                 return
             if cmd == "config":
                 on, cid, stored = arg
-                if cid != self.client_id:                 # tokens belong to the app: a new id starts over
-                    self._drop_tokens(tell=bool(self.client_id and self._refresh))
+                # tokens belong to the app: a new id starts over – CR-016 (code review): the stored token of the old
+                # id is dropped too (settings and here); loading it again right after made the change undone
+                switched = bool(self.client_id) and cid != self.client_id
+                if cid != self.client_id:
+                    self._drop_tokens(tell=switched)
                 self.on, self.client_id = on, cid
-                if not self._refresh:
+                if not self._refresh and not switched:
                     self._refresh = unprotect(stored)
                 self._retry_at = 0.0
             elif cmd == "login":

@@ -203,3 +203,46 @@ def test_programs_are_started_by_their_full_path():
                     and (f.name, first.value) not in BARE_OK:
                 bad.append(f"{f.name}:{node.lineno} {first.value}")
     assert bad == []
+
+
+# V-003 (code review): the guard above sees only a literal list – a command built elsewhere, a shell, os.system and
+# friends passed it. Those are now named: no shell at all, no os.system/popen/exec/spawn, and a subprocess call
+# whose command is not a literal list only in these reviewed wrappers (their callers hand them full paths).
+DYNAMIC_COMMANDS = {
+    ("clipedit", "_run_cancellable"), ("clipedit", "run"),   # ffmpeg (ffmpeg_exe: imageio-ffmpeg's full path)
+    ("encoders", "_run"), ("obsrec", "_run"), ("qt_clip", "run"),   # the same ffmpeg
+    ("launch", "start_program"),                               # OBS by the full path the user chose
+    ("restart", "spawn_helper"), ("restart", "wait_and_start"),   # sys.executable / helper_args (full paths)
+    ("restart", "_shell_open"),                                # the checked setup copy, executable= its full path
+    ("update", "sync_packages"),                               # sys.executable -I -m pip
+}
+NO_SHELL_CALLS = {"os.system", "os.popen", "os.execv", "os.execve", "os.execl", "os.execle", "os.execlp",
+                  "os.execlpe", "os.execvp", "os.execvpe", "os.spawnl", "os.spawnle", "os.spawnlp", "os.spawnlpe",
+                  "os.spawnv", "os.spawnve", "os.spawnvp", "os.spawnvpe", "os.posix_spawn", "os.posix_spawnp"}
+
+
+def test_no_shell_and_every_built_command_is_a_reviewed_wrapper():
+    shells, raw, dynamic = [], [], set()
+    for f in sorted(PKG.glob("*.py")):
+        tree = ast.parse(f.read_text(encoding="utf-8"))
+
+        def visit(node, func, mod=f.stem):
+            for child in ast.iter_child_nodes(node):
+                fn = child.name if isinstance(child, (ast.FunctionDef, ast.AsyncFunctionDef)) else func
+                if isinstance(child, ast.Call) and isinstance(child.func, ast.Attribute) \
+                        and isinstance(child.func.value, ast.Name):
+                    name = f"{child.func.value.id}.{child.func.attr}"
+                    if name in NO_SHELL_CALLS:
+                        raw.append(f"{mod}:{child.lineno} {name}")
+                    if child.func.value.id == "subprocess":
+                        if any(k.arg == "shell" and not (isinstance(k.value, ast.Constant) and k.value.value is False)
+                               for k in child.keywords):
+                            shells.append(f"{mod}:{child.lineno}")
+                        if child.func.attr in ("run", "Popen", "call", "check_call", "check_output") \
+                                and not (child.args and isinstance(child.args[0], ast.List)):
+                            dynamic.add((mod, fn))
+                visit(child, fn, mod)
+        visit(tree, None)
+    assert shells == [] and raw == []
+    assert dynamic - DYNAMIC_COMMANDS == set()
+    assert DYNAMIC_COMMANDS - dynamic == set(), "a reviewed wrapper no longer builds a command – take it off"
