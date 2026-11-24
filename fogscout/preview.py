@@ -14,7 +14,7 @@ from . import skin
 from .i18n import _
 from .overlay_render import (INPUT_RATIO, add_info, backdrop, backdrop_pad, body_cols, compose, info_card,
                             input_card, lines_above, map_backdrop, map_body, music_body, music_card, music_fit_height,
-                            music_full_width, pad_to, render_hud)
+                            music_full_width, pad_to, render_hud, Same)
 
 SAMPLE_SNAPSHOT = dict(cpu_load=38, cpu_temp=64, gpu_temp=71, gpu_load=92, gpu_name="GPU",
                        vram_used=7.1, vram_total=16, ram_used=17.2, ram_total=32, gpu_power=241,
@@ -70,7 +70,7 @@ _BODY: list = [None, None]                  # [key, body] of the music card: onl
 def _music_body(rows, cover, height, style, look):
     """music_body once per song and size (1.3.3, user: the window felt laggy – the preview drew cover, text and
     shadow anew every second although only the progress strip moved; the HUD window splits it since 1.2.13)."""
-    key = (repr(rows), id(cover), height, style, "accent" in look, tuple(k for k in look if k.startswith("cover_")))
+    key = (repr(rows), Same(cover), height, style, "accent" in look, tuple(k for k in look if k.startswith("cover_")))
     if _BODY[0] != key:
         _BODY[0], _BODY[1] = key, (music_body(rows, cover, height, style, look), cover)   # cover kept: id stays
     return _BODY[1][0]
@@ -221,7 +221,7 @@ def layers(gw: int, gh: int, o: dict, hud_side: str, hud_rows: list, hud_own, ma
                                      else (lambda h: music_card(_music_body(rows_m, show_cover, h, mstyle, look), h,
                                                                 mstyle, prog, look, upnext, npos, min_w=mw(h))),
                                      fit_h, room,
-                                     ("music", repr(rows_m), id(show_cover), mstyle, prog, look, style, accent,
+                                     ("music", repr(rows_m), Same(show_cover), mstyle, prog, look, style, accent,
                                       repr(upnext), npos, mins.get("music", 0), o.get("media_cover", True)), fits),
                               spot, o.get("media_xy"))
             fits["music"] = fits.get("music", 1.0) * fit_h / max(1, asked_h)   # the slider's mark: of the asked size
@@ -292,7 +292,7 @@ def layers(gw: int, gh: int, o: dict, hud_side: str, hud_rows: list, hud_own, ma
                                                  lines.get("record", ""), th, dark, style, accent,
                                                  lines.get("name", ""), lines.get("realm", ""), top,
                                                  lines.get("memo", ()), lines.get("last", ())),
-                      h, 0, ("map", id(map_pic), caption, o.get("transparent", True), dark, repr(lines), th, style,
+                      h, 0, ("map", Same(map_pic), caption, o.get("transparent", True), dark, repr(lines), th, style,
                              accent, top))
 
     top = o.get("info_pos") == "inside_top" and not apart          # 1.8.34: the lines above the map

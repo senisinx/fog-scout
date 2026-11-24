@@ -241,7 +241,6 @@ RAW_DELETES = {
     ("picturedlg", "delete"),               # a user_maps picture the user deleted
     ("qt_clip", "_drop_wav"),               # its own temp wav
     ("regions", "run_job"),                 # its own job/result files (mkstemp)
-    ("relupdate", "download"), ("relupdate", "clean_update_folder"),   # TODO CR-017
     ("rename", "migrate"),                  # files of the old name in the program folder
     ("restart", "staged_setup"),            # its own copy that failed the hash
     ("takeover", "_copy_file"), ("takeover", "finish"),   # its own .tmp; its note of the old folder

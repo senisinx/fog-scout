@@ -236,9 +236,17 @@ def download(rel: Release, data_dir: str, opener=None, progress=None, retried=No
     tmp = final + ".part"
     req = urllib.request.Request(rel.setup_url, headers={"User-Agent": USER_AGENT})
 
+    def fresh_part():
+        """CR-017: the .part made new and exclusively – a leftover of ours goes first; a link planted under that
+        name is never written through (O_EXCL does not follow it: the download fails instead)."""
+        if os.path.lexists(tmp):
+            fsops.delete_inside(folder, tmp)
+        fd = os.open(tmp, os.O_WRONLY | os.O_CREAT | os.O_EXCL | getattr(os, "O_BINARY", 0), 0o644)
+        return os.fdopen(fd, "wb")
+
     def once() -> str:
         h, got = hashlib.sha256(), 0
-        with opener.open(req, timeout=TIMEOUT_S) as r, open(tmp, "wb") as fh:
+        with opener.open(req, timeout=TIMEOUT_S) as r, fresh_part() as fh:
             while True:
                 block = r.read(CHUNK)
                 if not block:
@@ -256,13 +264,13 @@ def download(rel: Release, data_dir: str, opener=None, progress=None, retried=No
     try:
         if _retrying(once, retried) != want:
             raise ValueError("Prüfsumme passt nicht – Datei verworfen")
-        if os.path.exists(final):
-            os.remove(final)
-        os.rename(tmp, final)
+        # CR-017 (code review): one replace instead of remove + rename (no moment without the file, no race on the
+        # name); a link at the final name is replaced itself, never followed
+        os.replace(tmp, final)
         rel.sha256 = want
     except BaseException:
         try:
-            os.remove(tmp)
+            fsops.delete_inside(folder, tmp)        # CR-017: our own .part, never through a link
         except OSError:
             pass
         raise
@@ -270,7 +278,7 @@ def download(rel: Release, data_dir: str, opener=None, progress=None, retried=No
         path = os.path.join(folder, name)
         if path != final and (SETUP.match(name) or (name.endswith(".exe.part") and SETUP.match(name[:-5]))):
             try:
-                os.remove(path)
+                fsops.delete_inside(folder, path)
             except OSError:
                 pass
     return final
@@ -296,7 +304,7 @@ def clean_update_folder(folder: str) -> int:
     for name in names:
         if SETUP.match(name) or (name.endswith(".exe.part") and SETUP.match(name[:-len(".part")])):
             try:
-                os.remove(os.path.join(folder, name))
+                fsops.delete_inside(folder, os.path.join(folder, name))     # CR-017: the checked primitive
                 gone += 1
             except OSError:
                 pass

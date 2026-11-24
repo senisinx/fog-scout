@@ -32,6 +32,7 @@ GENERIC_RW, OPEN_EXISTING = 0x80000000 | 0x40000000, 3
 SECURITY_SQOS_PRESENT, SECURITY_IDENTIFICATION = 0x00100000, 0x00010000
 POLL_S = 0.02
 RETRY_S = 20.0             # try to reach Discord again this often
+MAX_PINGS = 20             # CR-017: pings answered while waiting for one reply (a peer pinging forever ends it)
 MIN_GAP_S = 2.0            # never two updates closer than this (Discord allows ~5 in 20 s)
 MAX_CHARS = 128            # Discord's limit for details/state
 OP_HANDSHAKE, OP_FRAME, OP_CLOSE, OP_PING, OP_PONG = 0, 1, 2, 3, 4
@@ -194,9 +195,13 @@ def set_activity(ipc: Ipc, activity):
         args["activity"] = activity
     ipc.send(OP_FRAME, {"cmd": "SET_ACTIVITY", "args": args, "nonce": str(uuid.uuid4())})
     op, d = ipc.recv()
-    while op == OP_PING:                                  # Discord may ping in between
+    for _n in range(MAX_PINGS):                           # Discord may ping in between – CR-017: not forever
+        if op != OP_PING:
+            break
         ipc.send(OP_PONG, d)
         op, d = ipc.recv()
+    if op == OP_PING:
+        raise IpcError("too many pings")
     if op == OP_CLOSE:
         raise IpcError(_peer_text(d.get("message", "closed") if isinstance(d, dict) else "closed"))
     if isinstance(d, dict) and d.get("evt") == "ERROR":

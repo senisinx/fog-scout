@@ -128,6 +128,11 @@ def test_ci_and_start_bat_install_only_pinned_tools():
                     loose.append(f"{name}:{n}: another pip than {PIP_VERSION}")
     assert loose == []
     assert [spec for _, spec, _ in _requirements("requirements-pip.txt")] == [f"pip=={PIP_VERSION}"]   # start.bat
+    # CR-017 (code review): the workflows take pip from the same hashed file as start.bat, never by name alone
+    for name in (".github/workflows/tests.yml", ".github/workflows/build.yml"):
+        with open(os.path.join(ROOT, name), encoding="utf-8") as fh:
+            text = fh.read()
+        assert "pip install pip==" not in text and "--require-hashes --only-binary=:all: -r requirements-pip.txt" in text
 
 
 def test_every_rule_file_is_named_in_claude_md():

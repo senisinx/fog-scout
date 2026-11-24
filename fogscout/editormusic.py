@@ -357,7 +357,11 @@ class MusicMixin:
         room = self.timeline.total() - at
         length = min(seconds, room) if room >= 1.0 else seconds    # to the end of the cut; drag it longer
         clip = musictrack.AudioClip(path, round(at, 3), 0.0, round(length, 3))
-        spec.clips = musictrack.clean(spec.clips + [clip])
+        cleaned = musictrack.clean(spec.clips + [clip])
+        if _index_of(cleaned, clip) is None:        # CR-017: too short to keep (clean drops it) – no IndexError
+            self.status.setText(_("Kein Ton in {file}.", file=name))
+            return
+        spec.clips = cleaned
         self._music_set(spec, select=_index_of(spec.clips, clip))
         self.status.setText(_("{file} liegt auf A2 ab {at} – der Spielton wird darunter leiser.", file=name,
                               at=_fmt(spec.clips[_index_of(spec.clips, clip) or 0].at)))

@@ -4,6 +4,7 @@ import shutil
 import sys
 
 import numpy as np
+import pytest
 from PIL import Image
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -352,3 +353,17 @@ def test_the_picture_dialog_shows_a_huge_picture_as_unreadable(tmp_path, monkeyp
     dlg.src = None
     dlg.choose(str(big))
     assert dlg.src is None and len(said) == 1 and "kein lesbares Bild" in said[0]
+
+
+def test_a_broken_new_picture_keeps_the_working_one(tmp_path):
+    """CR-017 (code review): save() deleted the other variants first – a picture PIL cannot read then left the map
+    without any own picture."""
+    from fogscout import mapimage as mi
+    old = tmp_path / "user_maps" / "coal.gif"
+    old.parent.mkdir()
+    Image.new("RGB", (4, 4)).save(old, "GIF")
+    bad = tmp_path / "broken.png"
+    bad.write_bytes(b"not a picture")
+    with pytest.raises(Exception):
+        mi.save(str(bad), str(tmp_path / "user_maps" / "coal.webp"), remove_bg=False)
+    assert old.exists() and not (tmp_path / "user_maps" / "coal.webp").exists()

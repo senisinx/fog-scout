@@ -12,6 +12,7 @@ talk so far (only in memory, at most ``editcommands.MAX_ROUNDS`` requests, dropp
 cut)."""
 from __future__ import annotations
 
+import dataclasses
 import json
 import logging
 import os
@@ -313,6 +314,7 @@ class ClaudeMixin:
         self.cl_field.setPlaceholderText(_(WISH_HINT))
         self._claude_base, self._claude_result = base, None
         self._claude_busy = True
+        self._claude_refresh()           # CR-017: the other Claude buttons wait too (a second request at once)
         self.cl_ask_btn.setEnabled(False)
         self._claude_buttons(False)
         self.cl_list.hide()
@@ -657,7 +659,10 @@ class ClaudeMixin:
             return
         title, job, base = self._thumb
         _t, path, info, src_t = job
-        picture = self._cut_picture(base)
+        # CR-017 (code review): the censor boxes drawn since the proposal count too – every box of either state
+        now = self._state()
+        boxes = list(base.boxes) + [b for b in now.boxes if b not in base.boxes]
+        picture = self._cut_picture(dataclasses.replace(now, boxes=boxes))
         try:
             os.makedirs(self.clips_dir, exist_ok=True)
         except OSError as e:
@@ -675,8 +680,12 @@ class ClaudeMixin:
             try:
                 img = picture(path, info, src_t, height)
                 if img is not None:
+                    import io
+                    from . import fsops
                     img = highlights_thumbnail(img, title)
-                    img.save(out)
+                    buf = io.BytesIO()
+                    img.save(buf, "PNG")
+                    fsops.write_new(out, buf.getvalue())     # CR-017: whole or not at all, never over a file
                     ok = True
             except Exception:                    # OSError, PIL: a result in any case
                 log.exception("Vorschaubild speichern")

@@ -643,3 +643,15 @@ def test_stop_then_start_in_process_never_runs_two_captures(tmp_path, monkeypatc
     assert not first.is_alive() and most[0] == 1
     w.stop()
     w.proc = None
+
+
+def test_a_partner_using_thousands_of_ports_keeps_small_port_tables():
+    """CR-017 (code review): the port counts per partner grew without end."""
+    t = netwatch.FlowTable()
+    for p in range(5000):
+        t.count(1.0, "3.120.1.2", 1000 + p, 50000 + p, "recv")
+    for _ in range(10):
+        t.count(1.0, "3.120.1.2", 7777, 50000, "recv")
+    f = t.flows["3.120.1.2"]
+    assert len(f["ports"]) <= netwatch.PORTS_MAX and len(f["lports"]) <= netwatch.PORTS_MAX
+    assert 7777 in f["ports"] and 50000 in f["lports"]                 # the busy ones stay

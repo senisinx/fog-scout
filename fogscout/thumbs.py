@@ -111,13 +111,20 @@ def thumbnail(path: str, box: tuple, cache_dir: str | None = None, by_content: b
             pic = pic.crop((0, parts[2], pic.width, pic.height))
     pic.thumbnail((max(1, box[0]), max(1, box[1])), Image.LANCZOS)      # as the tiles were drawn before
     if target:
+        tmp = None
         try:
             os.makedirs(cache_dir, exist_ok=True)
-            tmp = target + f".{os.getpid()}.tmp"
+            # CR-017 (code review): a temp name of this thread – the Loader's workers made the same tile at once and
+            # wrote the same "<pid>.tmp" (a half picture, or a replace of a file the other had just moved)
+            tmp = target + f".{os.getpid()}-{threading.get_ident()}.tmp"
             pic.save(tmp, "PNG", optimize=False)
             os.replace(tmp, target)                   # never a half-written file under the final name
         except OSError:
-            pass
+            try:
+                if tmp:
+                    fsops.delete_inside(cache_dir, tmp)
+            except OSError:
+                pass
     return pic
 
 

@@ -310,3 +310,19 @@ def test_a_malformed_handshake_answer_is_an_error_and_the_pipe_is_closed(tmp_pat
         assert closed == [True]
     finally:
         srv.close()
+
+
+def test_a_peer_that_only_pings_ends_the_wait():
+    """CR-017 (code review): Discord's pipe answered SET_ACTIVITY only with pings – the thread waited forever."""
+    class Ipc:
+        sent = 0
+
+        def send(self, op, d):
+            Ipc.sent += 1
+
+        def recv(self):
+            if Ipc.sent > dc.MAX_PINGS + 5:
+                raise AssertionError("kept answering pings")
+            return dc.OP_PING, {}
+    with pytest.raises(dc.IpcError):
+        dc.set_activity(Ipc(), None)

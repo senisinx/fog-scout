@@ -369,7 +369,9 @@ def restore(data_dir: str, path: str, now: float | None = None) -> dict:
             target = os.path.join(data_dir, *name.split("/"))
             folder = os.path.dirname(target)
             os.makedirs(folder, exist_ok=True)
-            if os.path.realpath(folder) != os.path.join(root, name.split("/")[0]):
+            # CR-017: compared case-folded (Windows: realpath may spell the folder in another case than data_dir)
+            if os.path.normcase(os.path.realpath(folder)) != os.path.normcase(os.path.join(root, name.split("/")[0])) \
+                    or fsops.linked_root(folder):
                 continue                          # user_maps/ or corpus/ is a link somewhere else: not followed
             data = _read(u, members[name])
             if name.startswith("user_maps/") and not _picture_ok(data):

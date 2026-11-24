@@ -175,8 +175,24 @@ def _kernel32():
         k.MapViewOfFile.restype = ctypes.c_void_p
         k.UnmapViewOfFile.argtypes = [ctypes.c_void_p]
         k.CloseHandle.argtypes = [wintypes.HANDLE]
+        k.VirtualQuery.argtypes = [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_size_t]
+        k.VirtualQuery.restype = ctypes.c_size_t
         _KERNEL = k
     return _KERNEL
+
+
+def _mapped_size(k, view) -> int:
+    """CR-017: the bytes mapped from ``view`` on (VirtualQuery: the region's size), 0 when unknown."""
+    class MBI(ctypes.Structure):                     # MEMORY_BASIC_INFORMATION (PartitionId only in 64 bit)
+        _fields_ = [("BaseAddress", ctypes.c_void_p), ("AllocationBase", ctypes.c_void_p),
+                    ("AllocationProtect", ctypes.c_uint32)] + \
+                   ([("PartitionId", ctypes.c_uint16)] if ctypes.sizeof(ctypes.c_void_p) == 8 else []) + \
+                   [("RegionSize", ctypes.c_size_t), ("State", ctypes.c_uint32), ("Protect", ctypes.c_uint32),
+                    ("Type", ctypes.c_uint32)]
+    mbi = MBI()
+    if not k.VirtualQuery(view, ctypes.byref(mbi), ctypes.sizeof(mbi)):
+        return 0
+    return int(mbi.RegionSize) - (int(view) - int(mbi.BaseAddress or 0))
 
 
 def read_hwinfo() -> bytes | None:
@@ -192,10 +208,15 @@ def read_hwinfo() -> bytes | None:
         if not view:
             return None
         try:
+            mapped = _mapped_size(k, view)
+            if mapped < HWINFO_HEADER.size:
+                return None
             head = ctypes.string_at(view, HWINFO_HEADER.size)
             f = HWINFO_HEADER.unpack(head)
             size = max(f[4] + f[5] * f[6], f[7] + f[8] * f[9])
-            if f[0] not in HWINFO_SIGS or not HWINFO_HEADER.size <= size <= HWINFO_MAX:
+            # CR-017 (code review): the size the header names is read only when the mapping really is that big –
+            # a header saying more than is mapped read past the end (an access violation in our process)
+            if f[0] not in HWINFO_SIGS or not HWINFO_HEADER.size <= size <= min(HWINFO_MAX, mapped):
                 return None
             return ctypes.string_at(view, size)
         finally:
@@ -234,6 +255,7 @@ class Nvml:
             dev = ctypes.c_void_p()
             if lib.nvmlDeviceGetHandleByIndex_v2(0, ctypes.byref(dev)) != 0:
                 self.error = "keine NVIDIA-Karte"
+                lib.nvmlShutdown()                   # CR-017: the init above is ended again
                 return
             buf = ctypes.create_string_buffer(96)
             if lib.nvmlDeviceGetName(dev, buf, 96) == 0:

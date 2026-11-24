@@ -404,3 +404,19 @@ def test_the_cards_accent_is_kept_until_the_theme_changes(monkeypatch):
         assert app._skin_accent() == real(True)["accent"] and len(built) == 3
     finally:
         qt_theme.set_theme(theme, oled=oled, custom=custom)
+
+
+def test_the_mapped_size_comes_from_virtualquery():
+    """CR-017 (code review): HWiNFO's header said how much to copy – more than was mapped read past the end."""
+    from fogscout import sysinfo
+
+    class K:
+        def VirtualQuery(self, view, ref, n):
+            ref._obj.BaseAddress, ref._obj.RegionSize = 1000, 4096
+            return n
+    assert sysinfo._mapped_size(K(), 1200) == 4096 - 200
+
+    class Fails:
+        def VirtualQuery(self, view, ref, n):
+            return 0
+    assert sysinfo._mapped_size(Fails(), 1200) == 0

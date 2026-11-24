@@ -192,6 +192,7 @@ class HotkeyThread(threading.Thread):
         if self._stop_req:                            # stop() came before the loop could hear it
             for i in ids:
                 user32.UnregisterHotKey(None, i)
+            self._tid = None                          # CR-017: see the end of run()
             self.ready.set()
             return
 
@@ -226,6 +227,9 @@ class HotkeyThread(threading.Thread):
                     log.exception("Hotkey %s: Fehler beim Ausführen", ids[msg.wParam])
         for i in ids:
             user32.UnregisterHotKey(None, i)
+        # CR-017 (code review): the loop is over – a later set_game_active()/stop() must not post to this thread id
+        # (Windows may give it to another thread meanwhile)
+        self._tid = None
 
     def stop(self):
         self._stop_req = True
