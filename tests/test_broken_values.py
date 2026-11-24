@@ -6,13 +6,16 @@ import os
 import sys
 import time
 
+import pytest
+
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 from fogscout import builds, dashboard, history, medialib, official, project, recindex  # noqa: E402
 
 NOW = 1_790_000_000.0
+OLD = 946_684_800.0           # 2000-01-01: ~230 000 hours before NOW (Windows' clock refuses local times near 1970)
 
 
-def test_a_round_of_1970_next_to_one_of_today_gives_30_buckets_in_few_steps(monkeypatch):
+def test_a_round_of_2000_next_to_one_of_today_gives_30_buckets_in_few_steps(monkeypatch):
     calls = [0]
     real = official.bucket_start
 
@@ -20,21 +23,22 @@ def test_a_round_of_1970_next_to_one_of_today_gives_30_buckets_in_few_steps(monk
         calls[0] += 1
         return real(t, unit)
     monkeypatch.setattr(official, "bucket_start", counted)
-    span = official.bucket_span(real(1.0, "hour"), real(NOW, "hour"), "hour")
+    span = official.bucket_span(real(OLD, "hour"), real(NOW, "hour"), "hour")
     assert len(span) == official.MAX_BUCKETS and span == sorted(span) and span[-1] == real(NOW, "hour")
     assert calls[0] <= official.MAX_BUCKETS + 1                               # not a million steps
     r = history.Round(t=NOW, seconds=600.0, map_id="x", map="X", balance=5)
-    old = history.Round(t=1.0, seconds=600.0, map_id="x", map="X", balance=1)
+    old = history.Round(t=OLD, seconds=600.0, map_id="x", map="X", balance=1)
     assert len(dashboard.balance_trend([old, r], "hour")) == official.MAX_BUCKETS
     old.wait = r.wait = 30.0
     old.role = r.role = "killer"
     assert len(dashboard.wait_trend([old, r], "hour")) == official.MAX_BUCKETS
-    assert len(history.sys_trend([history.Round(t=1.0, seconds=1, map_id="x", map="X", sys={"gpu_temp": 60.0}),
+    assert len(history.sys_trend([history.Round(t=OLD, seconds=1, map_id="x", map="X", sys={"gpu_temp": 60.0}),
                                   history.Round(t=NOW, seconds=1, map_id="x", map="X",
                                                 sys={"gpu_temp": 61.0})],
                                  "day")) == official.MAX_BUCKETS
 
 
+@pytest.mark.skipif(not hasattr(time, "tzset"), reason="time.tzset: not on Windows")
 def test_the_span_counted_back_matches_the_forward_walk_over_a_dst_change(monkeypatch):
     monkeypatch.setenv("TZ", "Europe/Berlin")
     time.tzset()
@@ -122,4 +126,5 @@ def test_prestige_series_is_bounded(monkeypatch):
         def __init__(self, t):
             self.t, self.character, self.prestige, self.level = t, "Meg", 1, 2
     monkeypatch.setattr(builds, "_graded", lambda m: True)
-    assert len(builds.prestige_series([M(1.0), M(NOW)], "Meg", "hour")) == official.MAX_BUCKETS
+    assert len(builds.prestige_series([M(OLD), M(NOW)], "Meg", "hour")) == official.MAX_BUCKETS
+
