@@ -178,10 +178,18 @@ def check(data_dir: str, reader, stop=None) -> Report:
 
 def export_zip(data_dir: str, dest: str) -> int:
     """All stored decisions into the ZIP ``dest`` (the user's chosen file); the number of files written."""
-    n = 0
-    with zipfile.ZipFile(dest, "w", zipfile.ZIP_DEFLATED) as z:
-        for e in entries(data_dir):
-            z.write(e.picture, os.path.basename(e.picture))
-            z.write(os.path.join(folder(data_dir), e.stamp + ".json"), e.stamp + ".json")
-            n += 2
-    return n
+    from .backups import ZipBudget
+    if fsops.linked_root(folder(data_dir)):                 # CR-007: never through a folder swapped for a junction
+        return 0
+    budget = ZipBudget()
+
+    def fill(fh):
+        with zipfile.ZipFile(fh, "w", zipfile.ZIP_DEFLATED) as z:
+            for e in entries(data_dir):
+                side = os.path.join(folder(data_dir), e.stamp + ".json")
+                if fsops.is_link(e.picture) or fsops.is_link(side):
+                    continue
+                if budget.add(z, e.picture, os.path.basename(e.picture)):
+                    budget.add(z, side, e.stamp + ".json")
+    fsops.write_atomic_stream(dest, fill)                   # CR-007: complete or not at all
+    return budget.n

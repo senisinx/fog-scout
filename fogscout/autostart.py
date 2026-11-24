@@ -27,6 +27,7 @@ from __future__ import annotations
 
 import base64
 import os
+import re
 import subprocess
 import sys
 
@@ -45,9 +46,14 @@ OLD_LINK_NAME = "DbD Map Scout.lnk"
 IS_WIN = sys.platform == "win32"
 
 
+_PS_QUOTES = re.compile("['\u2018\u2019\u201a\u201b]")
+
+
 def _q(s: str) -> str:
-    """PowerShell single-quoted literal."""
-    return "'" + str(s).replace("'", "''") + "'"
+    """PowerShell single-quoted literal. CR-008 (code review): PowerShell also ends such a literal at the typographic
+    single quotes ‘ ’ ‚ ‛ (U+2018, U+2019, U+201A, U+201B) – a folder named "Sarus‘ Spiele" broke the script or ran
+    the rest of the name as a command. Each of them is doubled like ' (two of a kind are one literal character)."""
+    return "'" + _PS_QUOTES.sub(lambda m: m.group(0) * 2, str(s)) + "'"
 
 
 def frozen_exe() -> str | None:

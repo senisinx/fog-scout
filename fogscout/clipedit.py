@@ -276,7 +276,7 @@ def track_levels(path: str, n_tracks: int, ffmpeg: str | None = None, timeout: f
 
 
 def frame_at(path: str, t: float, height: int = PREVIEW_H, info: Info | None = None, ffmpeg: str | None = None,
-             keyframe: bool = False, vf=None, size=None):
+             keyframe: bool = False, vf=None, size=None, run=None):
     """One picture at second ``t`` as PIL image (RGB), or None. Seeks to the key frame before ``t`` and decodes
     up to it – about 40 ms for 1080p, more for 1440p and up to a key-frame interval of decoding (OBS: 2–4 s of
     frames, measured 70–190 ms at 1080p60). ``keyframe`` (1.8.3): only the key frame at or before ``t``, no decoding
@@ -284,7 +284,8 @@ def frame_at(path: str, t: float, height: int = PREVIEW_H, info: Info | None = N
     ``-fps_mode passthrough``: that frame carries a negative output timestamp, and the constant-rate default
     drops it unless a later frame follows – near the end of a file none does (measured: nothing came back).
     ``vf`` (1.19) = more filters on the scaled picture (a clip's effects: preview_filters); ``size`` (1.20) = the
-    picture size those filters make (a short's canvas), else the scaled size."""
+    picture size those filters make (a short's canvas), else the scaled size. ``run(args) -> stdout bytes or None``
+    (CR-018): who runs ffmpeg – a save job's, so quitting can stop it (default: here, at most 30 s)."""
     from PIL import Image
     ffmpeg = ffmpeg or ffmpeg_exe()
     info = info or probe(path, ffmpeg)
@@ -294,18 +295,21 @@ def frame_at(path: str, t: float, height: int = PREVIEW_H, info: Info | None = N
     ow, oh = size or (w, h)
     quick = ["-noaccurate_seek", "-skip_frame", "nokey"] if keyframe else []
     out = ["-an", "-fps_mode", "passthrough"] if keyframe else []
-    try:
-        p = subprocess.run([ffmpeg, "-hide_banner", "-loglevel", "error", *quick, "-ss", f"{max(0.0, t):.3f}", "-i", path,
-                            *out, "-frames:v", "1", "-vf", ",".join([f"scale={w}:{h}", *(vf or ())]),
-                            "-f", "rawvideo", "-pix_fmt", "rgb24", "-"],
-                           stdin=subprocess.DEVNULL, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, timeout=30,
-                           creationflags=_flags())
-    except (OSError, subprocess.TimeoutExpired):
-        return None
+    args = [ffmpeg, "-hide_banner", "-loglevel", "error", *quick, "-ss", f"{max(0.0, t):.3f}", "-i", path,
+            *out, "-frames:v", "1", "-vf", ",".join([f"scale={w}:{h}", *(vf or ())]),
+            "-f", "rawvideo", "-pix_fmt", "rgb24", "-"]
+    if run is None:
+        def run(a):
+            try:
+                return subprocess.run(a, stdin=subprocess.DEVNULL, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL,
+                                      timeout=30, creationflags=_flags()).stdout
+            except (OSError, subprocess.TimeoutExpired):
+                return None
+    data = run(args)
     need = ow * oh * 3
-    if len(p.stdout) < need:
+    if not data or len(data) < need:
         return None
-    return Image.frombytes("RGB", (ow, oh), p.stdout[:need])
+    return Image.frombytes("RGB", (ow, oh), data[:need])
 
 
 BURST = 13                       # 1.40: pictures one scrub read decodes (the wanted one and the next/previous 12)
@@ -534,10 +538,14 @@ def clip_name(round_name: str, start: float, end: float) -> str:
     return NAME_CHARS.sub("", f"{base} – Clip {tag(start)}-{tag(end)}")[:150]
 
 
-def unique_path(folder: str, name: str, ext: str) -> str:
+def unique_path(folder: str, name: str, ext: str, taken=()) -> str:
+    """A free name in ``folder``: no file, no file being written – and none of ``taken`` (CR-005: the targets of
+    exports still waiting in the queue, whose files do not exist yet)."""
+    taken = {os.path.normcase(os.path.abspath(p)) for p in taken}
     out = os.path.join(folder, name + ext)
     n = 2
-    while os.path.exists(out) or os.path.exists(out + PART_EXT):       # … nor one another save is writing
+    while os.path.exists(out) or os.path.exists(out + PART_EXT) \
+            or os.path.normcase(os.path.abspath(out)) in taken:            # … nor one another save is writing
         out = os.path.join(folder, f"{name} ({n}){ext}")
         n += 1
     return out
@@ -637,15 +645,17 @@ def cut(path: str, start: float, end: float, out: str, mode: str = "copy", ffmpe
     ffmpeg = ffmpeg or ffmpeg_exe()
     if not ffmpeg:
         return False, "ffmpeg fehlt"
-    censor = list(censor or ())
     enc = encoding or Encoding()
     if mode == "discord" and enc.codec == "hevc":
         enc = replace(enc, codec="h264")                  # Discord's players do not show HEVC – H.264 for it
-    if mode == "copy" and (censor or not copyable(path)):
-        mode = "exact"
     start, end = max(0.0, float(start)), float(end)
     if end <= start:
         return False, "Ende vor Anfang"
+    # CR-012 (code review): only the boxes that hide something in this stretch – one that ended before it made a
+    # copy cut re-encode and flashed for a frame at its start (enable between 0 and 0)
+    censor = boxes_in(list(censor or ()), start, end)
+    if mode == "copy" and (censor or not copyable(path)):
+        mode = "exact"
     if (censor or mix or (enc.height and mode == "exact")) and (info is None or not info.ok):
         info = probe(path, ffmpeg)
     flt, amap = audio_graph(info.audio_tracks if info else 0, mix)
@@ -764,6 +774,8 @@ def censor_graph(boxes, style: str, width: int, height: int, tail: str = "", src
             if still_at is not None:
                 if not box_active(box, still_at):
                     continue
+            elif win[1] <= base:                # CR-012: over before this input starts – never shown
+                continue
             else:
                 when = f":enable='between(t,{max(0.0, win[0] - base):.3f},{max(0.0, win[1] - base):.3f})'"
         x, y, w, h = box_px(box, width, height)
@@ -947,6 +959,8 @@ class FramePlayer(threading.Thread):
         self.position = self.start_t
 
     def stop(self):
+        """Ends the player (any thread): ffmpeg is killed and reaped; its pipe is closed by the player's own thread
+        (CR-012: closed from the window's thread while the player read it, the read raised ValueError there)."""
         self._stop.set()
         p = self._proc
         if p is not None:
@@ -958,17 +972,23 @@ class FramePlayer(threading.Thread):
                 p.wait(1.0)                           # 1.16.1: reaped now, not at the next Popen's clean-up
             except (OSError, subprocess.TimeoutExpired):
                 pass
-            try:
-                if p.stdout is not None:
-                    p.stdout.close()
-            except OSError:
-                pass
+
+    def _close(self):
+        p = self._proc
+        try:
+            if p is not None and p.stdout is not None:
+                p.stdout.close()
+        except OSError:
+            pass
 
     def _read(self, n: int) -> bytes:
         out = bytearray()
         stream = self._proc.stdout
         while len(out) < n and not self._stop.is_set():
-            chunk = stream.read(n - len(out))
+            try:
+                chunk = stream.read(n - len(out))
+            except (OSError, ValueError):             # CR-012: the pipe ended under us – that is the end
+                break
             if not chunk:
                 break
             out += chunk
@@ -1017,6 +1037,7 @@ class FramePlayer(threading.Thread):
                 self.on_frame(t, Image.frombytes("RGB", (w, h), buf))
         finally:
             self.stop()
+            self._close()
             self.on_end()                                 # the window ignores it when it stopped the player itself
 
 

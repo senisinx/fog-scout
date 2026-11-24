@@ -12,7 +12,7 @@ from PIL import Image
 from . import launch, mapimage as mi, tooltip
 from . import uimodel as ui
 from .i18n import _
-from .textnorm import fold
+from .textnorm import fold_any, name_chars
 
 PREVIEW_H = 220
 
@@ -218,9 +218,9 @@ class PictureDialog:
             stem = cat.own_stem(*sel)
             return (stem, sel[0], sel[1]) if stem else _("Für diese Map lässt sich kein Bild speichern.")
         name = mi.safe_name(self.name_var.get())
-        if len(fold(name)) < 3:
+        if name_chars(fold_any(name)) < 3:                       # CR-006: a name in any script
             return _("Bitte den Namen der Map eingeben.")
-        taken = {h.map_id for h in cat.hypotheses if h.name_key == fold(name) and h.lang != "alias"}
+        taken = {h.map_id for h in cat.hypotheses if h.name_key == fold_any(name) and h.lang != "alias"}
         if taken:
             other = cat.maps[sorted(taken)[0]]
             return _("„{name}“ gibt es schon ({map}) – dann „Bild einer vorhandenen Map ersetzen“ wählen.", name=name,

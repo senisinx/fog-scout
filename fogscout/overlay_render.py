@@ -429,6 +429,25 @@ def add_info(pic: Image.Image, timer: str, server: str, height: int, backdrop: b
     return canvas
 
 
+class Same:
+    """CR-017 (code review): a picture (or any object) in a cache key by identity – ``id()`` alone was reused by the
+    next object once the first was freed, and the cache handed out the old drawing. Holding the object keeps its id
+    its own while the entry lives (the caches are bounded)."""
+    __slots__ = ("obj",)
+
+    def __init__(self, obj):
+        self.obj = obj
+
+    def __hash__(self):
+        return id(self.obj)
+
+    def __eq__(self, other):
+        return isinstance(other, Same) and other.obj is self.obj
+
+    def __repr__(self):
+        return f"Same({type(self.obj).__name__})"
+
+
 def premultiplied_bgra(img: Image.Image) -> bytes:
     """Pixels for UpdateLayeredWindow: colour multiplied by alpha, in B G R A order. 1.6.1: Pillow's own "RGBa"
     mode does it in C – the same bytes as the numpy version (test), 6.4 → 1.6 ms for a 420×560 map, and this runs

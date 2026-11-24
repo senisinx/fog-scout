@@ -249,3 +249,14 @@ def test_a_reply_is_priced_as_the_model_that_answered(opener):
     assert askclaude.METER.usd - before == pytest.approx(4.0)
     # Sonnet reads the cache at 0.10 $ per million tokens (was listed as 0.20)
     assert askclaude.cost_usd("claude-sonnet-5-5", {"cache_read_input_tokens": 1_000_000}) == pytest.approx(0.10)
+
+
+def test_an_answer_that_is_no_object_is_bad_and_an_infinite_usage_costs_nothing():
+    """CR-017 (code review): a reply that is a list, or content blocks that are no objects, raised AttributeError
+    instead of AskError("bad"); "Infinity" tokens made the month's total infinite."""
+    for reply in ([1, 2], "x", {"content": "text"}, {"content": [1, "a", None]},
+                  {"content": [{"type": "text", "text": "[1]"}]}):
+        with pytest.raises(askclaude.AskError) as e:
+            askclaude.reply_json(reply)
+        assert e.value.kind == "bad"
+    assert askclaude.cost_usd(askclaude.MODEL, {"input_tokens": float("inf"), "output_tokens": float("nan")}) == 0.0

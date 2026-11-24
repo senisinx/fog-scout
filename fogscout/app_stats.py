@@ -17,8 +17,8 @@ from . import uimodel as ui
 from .capture import foreground_root, is_game_window
 from .catalog import shown
 from .i18n import N_, _
-from .lobby import KILLERS, killer_label
-from .textnorm import fold
+from .lobby import KILLERS, killer_label, resolve_killer
+from .textnorm import fold, fold_any
 from .textnorm import fmt_duration
 from .dashboard import Tile, _bp
 from .theme import DOT
@@ -775,24 +775,43 @@ class StatsTab:
             return _("ohne Region")
         return _(regions.NAMES.get(code, code))
 
-    def _official_join(self):
+    def _join_snapshot(self) -> SimpleNamespace:
+        """CR-011 (code review): what a join reads, taken in the window's thread – the stats-join thread works on
+        these copies, never on the live settings or the App's map index (the window changed them meanwhile)."""
+        catalog = self.catalog
+        return SimpleNamespace(hist=self._hist_path(), official=self._official_path(), catalog=catalog,
+                               aliases=dict(self.settings.get("killer_aliases") or {}),
+                               farm_region=self.settings.get("farming_region") or "",
+                               farm_opp=set(self.settings.get("farming_opponents") or []))
+
+    def _official_join(self, snap=None):
         """The rounds (rounds.jsonl) with their official matches – the base of the statistics and the check.
-        Rounds whose end was never detected count with the page's length once a match fits them."""
-        all_rounds = history.load(self._hist_path())
-        lost_rounds = history.load_lost_rounds(self._hist_path())
-        farm_region = self.settings.get("farming_region") or ""
-        farm_opp = set(self.settings.get("farming_opponents") or [])      # 1.8.73: farming partners by character
+        Rounds whose end was never detected count with the page's length once a match fits them. ``snap``
+        (_join_snapshot): the copies to work on – taken now when not given."""
+        snap = snap or self._join_snapshot()
+        catalog = snap.catalog
+        index = official.map_index(catalog.maps)          # CR-011: its own index, not the App's _off_index
+
+        def map_id(name):
+            return index.get(fold(name))
+
+        def killer_of(name):
+            return resolve_killer(name, snap.aliases)
+        all_rounds = history.load(snap.hist)
+        lost_rounds = history.load_lost_rounds(snap.hist)
+        farm_region = snap.farm_region
+        farm_opp = snap.farm_opp                     # 1.8.73: farming partners by character
         for r in all_rounds + lost_rounds:           # skins / new killers: the user's assignment
-            r.killer = self._killer_of(r.killer)
+            r.killer = killer_of(r.killer)
             if farm_region and r.region == farm_region:
                 r.farming = True                     # 1.2.20: every round on that server region (display only)
         for r in lost_rounds:                        # lines from before 1.35 know only the label
-            r.map_id = r.map_id or self._official_map_id(r.map) or ""
-        matches = official.load(self._official_path())
+            r.map_id = r.map_id or map_id(r.map) or ""
+        matches = official.load(snap.official)
         candidates = all_rounds + lost_rounds
-        tied, other = official.link(candidates, matches, self._official_map_id)
-        fixed = official.correct_maps([(candidates[i], m) for i, m in tied.items()], self._official_map_id,
-                                      lambda mid: self.catalog.maps[mid].label(1) if mid in self.catalog.maps else None)
+        tied, other = official.link(candidates, matches, map_id)
+        fixed = official.correct_maps([(candidates[i], m) for i, m in tied.items()], map_id,
+                                      lambda mid: catalog.maps[mid].label(1) if mid in catalog.maps else None)
         off = {}                                     # id(round) -> its official match
         rescued = []                                 # end never detected: counts with the page's length
         public_custom = []                           # 1.6.1: saved as custom game, a public match on the page
@@ -812,7 +831,7 @@ class StatsTab:
             if i < len(all_rounds) and r.custom and not m.custom and not r.farming:
                 public_custom.append(r)              # before 1.5.5 instant (cross-play off) lobbies looked custom
             r.custom = m.custom
-            k = self._killer_of(m.character)
+            k = killer_of(m.character)
             if m.role == "killer" and (k in KILLERS or k.startswith("The ")):
                 r.killer = k                         # exact name instead of the lobby reading (skins!) – 1.8.36:
             elif m.role == "survivor":               # also a killer not on our list yet ("Aeaiily" read from it)
@@ -1098,7 +1117,7 @@ class StatsTab:
         for r in sorted(farm, key=lambda r: r.t, reverse=True)[:self._stats_last_limit]:
             m = off.get(id(r))
             role = killer_label(r.killer) if r.role == "killer" and r.killer else self._role_name(r.role) or "–"
-            t.insert("", "end", iid=repr(r.t), values=(
+            t.insert("", "end", iid=t.free_iid(repr(r.t)), values=(
                 time.strftime("%d.%m.%y %H:%M", time.localtime(r.t)), shown(r.map), fmt_duration(r.seconds),
                 self._wait_text(r), role,
                 _bp(m.bp) if m is not None and m.bp > 0 else "–",
@@ -1499,7 +1518,8 @@ class StatsTab:
                                                       else self._role_name(r.role) or "–")
             if r.farming and not r.custom:
                 role += " · " + _("Farming")
-            t.insert("", "end", iid=repr(r.t), values=(time.strftime("%d.%m.%y %H:%M", time.localtime(r.t)), shown(r.map),
+            t.insert("", "end", iid=t.free_iid(repr(r.t)),
+                     values=(time.strftime("%d.%m.%y %H:%M", time.localtime(r.t)), shown(r.map),
                                                        fmt_duration(r.seconds),
                                                        self._wait_text(r), role,
                                                        self._official_result(off.get(id(r))),
@@ -1641,7 +1661,7 @@ class StatsTab:
     def _stats_role_buttons(self):
         sel = self.stats_last.selection()
         rescued = getattr(self, "_off_rescued", ())
-        state = "normal" if sel and not any(s in rescued for s in sel) else "disabled"
+        state = "normal" if sel and not any(ui.iid_base(s) in rescued for s in sel) else "disabled"
         for b in self.stats_role_btns:
             b.configure(state=state)
         self.stats_round_killer_cb.configure(state="readonly" if state == "normal" else "disabled")
@@ -1690,8 +1710,11 @@ class StatsTab:
         target = next((k for k in self._stats_alias_choices if killer_label(k) == label), None)
         if not sel or target is None:
             return
+        key = fold_any(sel[0])                                   # CR-006: a name in any script, never ""
+        if not key:
+            return
         aliases = dict(self.settings.get("killer_aliases") or {})
-        aliases[fold(sel[0])] = target
+        aliases[key] = target
         self.settings.set("killer_aliases", aliases)
         self._save_soon()
         self._log(_("„{name}“ zählt jetzt als {killer}.", name=sel[0], killer=killer_label(target)), "System")
@@ -1836,7 +1859,7 @@ class StatsTab:
         out = []
         for iid in self.stats_last.selection():
             try:
-                out.append(float(iid))
+                out.append(float(ui.iid_base(iid)))
             except ValueError:
                 continue
         return out
@@ -1940,7 +1963,8 @@ class StatsTab:
             m = off.get(id(r))
             opp = ", ".join(killer_label(o.name) if o.role == "killer" else o.name
                             for o in official.opponents([(r, m)])[:2]) if m is not None else "–"
-            t.insert("", "end", iid=repr(r.t), values=(time.strftime("%d.%m.%y %H:%M", time.localtime(r.t)), shown(r.map),
+            t.insert("", "end", iid=t.free_iid(repr(r.t)),
+                     values=(time.strftime("%d.%m.%y %H:%M", time.localtime(r.t)), shown(r.map),
                                                        fmt_duration(r.seconds), role, opp or "–",
                                                        self._stats_farm_why(r)))
         kept = [k for k in keep if t.exists(k)]
@@ -1951,7 +1975,7 @@ class StatsTab:
         """1.38.41: the answer for the marked rows – "Ist Farming" marks them (custom dropped, the recordings
         follow), "Kein Farming" leaves them as they are and never suggests them again. No question: one click on
         rows the user picked, and "Farming an/aus" under "Letzte Runden" takes it back."""
-        picked = set(self.stats_farm_tree.selection())
+        picked = {ui.iid_base(i) for i in self.stats_farm_tree.selection()}
         rounds = [r for r in self._stats_farm_candidates() if repr(r.t) in picked]
         if not rounds:
             return
@@ -2379,13 +2403,15 @@ class StatsTab:
         for got in (getattr(self, "_joined_cache", None), getattr(self, "_joined_ahead", None)):
             if got is not None and got[0] == key and got[1] is catalog:
                 return
+        snap = self._join_snapshot()                 # CR-011: copies taken here, in the window's thread
 
         def run():
             try:
-                self._joined_ahead = (key, catalog, self._official_join())
+                self._joined_ahead = (key, catalog, self._official_join(snap))
             except Exception:                        # never fatal: _joined() joins in the window's thread then
                 log.exception("Statistik: Vorab-Verknüpfung fehlgeschlagen")
 
+        self._join_thread_key = (key, catalog)
         self._join_thread = threading.Thread(target=run, daemon=True, name="stats-join")
         self._join_thread.start()
 
@@ -2396,8 +2422,12 @@ class StatsTab:
         cached = getattr(self, "_joined_cache", None)
         if cached is None or cached[0] != key or cached[1] is not self.catalog:    # rebuilt catalog: may reuse the id
             busy = getattr(self, "_join_thread", None)
-            if busy is not None and busy.is_alive():
-                busy.join()                          # already halfway through: waiting is shorter than a second join
+            busy_for = getattr(self, "_join_thread_key", None)
+            # already halfway through: waiting is shorter than a second join – CR-011: only for a join of what is
+            # asked now (a stale one would be waited for and then thrown away)
+            if busy is not None and busy.is_alive() and busy_for is not None and busy_for[0] == key \
+                    and busy_for[1] is self.catalog:
+                busy.join()
             ahead = getattr(self, "_joined_ahead", None)
             if ahead is not None and ahead[0] == key and ahead[1] is self.catalog:
                 cached = self._joined_cache = ahead

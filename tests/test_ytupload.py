@@ -748,3 +748,22 @@ def test_answers_are_read_only_up_to_a_limit_and_error_texts_are_clipped(monkeyp
     assert "\n" not in str(err) and len(str(err)) <= spotify.MAX_TEXT and err.reason == "x  y"
     err = yt._error(400, json.dumps({"error": "invalid_grant", "error_description": "a‮b\nc"}).encode())
     assert str(err) == "a b c" and err.kind == "auth"
+
+
+def test_another_client_never_takes_the_old_clients_stored_token(fake, tmp_path):
+    """CR-016 (code review): after a new client id/secret the old client's stored refresh token was loaded again at
+    once (and the setting kept it) – the change of client was undone."""
+    events = []
+    up = _uploader(events)
+    try:
+        up.configure(True, CID, SECRET, "private", spotify.protect("ref-stored"), [], {})
+        up.set_folder(str(tmp_path))
+        assert _wait(lambda: up.state == "linked")
+        grants = len(fake.grants)
+        events.clear()
+        up.configure(True, "other-" + CID, SECRET, "private", spotify.protect("ref-stored"), [], {})
+        assert _wait(lambda: ("token", "") in events)
+        assert _wait(lambda: up.state != "linked") and len(fake.grants) == grants
+    finally:
+        up.quit()
+        up.join(timeout=3)

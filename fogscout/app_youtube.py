@@ -110,6 +110,8 @@ class YouTubeUpload:
         manage = bool(self.yt_pl_var.get())
         playlists = {key: self._yt_pl_id(var.get()) for key, var in self.yt_pl_vars.items()}
         if save:
+            if cid != (self.settings.get("youtube_client_id") or "") or secret != self._yt_secret_loaded:
+                self.settings.set("youtube_token", "")            # CR-016: the old client's sign-in goes with it
             self.settings.set("youtube_on", on)
             self.settings.set("youtube_client_id", cid)
             if secret != self._yt_secret_loaded:         # 1.28 (audit F2b): a value not readable here stays
@@ -320,7 +322,7 @@ class YouTubeUpload:
 
     def _yt_copy_link(self, video_id: str):
         self.root.clipboard_set(ytupload.video_url(video_id))
-        self._log(_("YouTube-Link kopiert: {url}", url=ytupload.video_url(video_id)), "System")
+        self._log(_("YouTube-Link kopiert."), "System")      # CR-013: never the video's link in the log (1.38.57)
 
     def _yt_open_link(self, video_id: str):
         launch.open_url(ytupload.video_url(video_id))

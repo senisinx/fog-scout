@@ -29,8 +29,8 @@ from .editormoments import MomentsMixin
 from .editormontage import MontageMixin
 from .editormusic import MusicMixin
 from .editorproject import ProjectMixin
-from .qt_clip import (CENSOR_LABELS, CONTENT_LABEL, CROP_LABELS, DRAW_TOOLS, MARK_AFTER_S, MARK_BEFORE_S, SHOW_FOR,
-                      SIZE_LABELS, SPEED_LABELS, STEP_BIG, STEP_SMALL, ClipBase, PreviewView, seg_part)
+from .qt_clip import (CENSOR_LABELS, CONTENT_LABEL, CROP_LABELS, DRAW_TOOLS, MARK_AFTER_S, MARK_BEFORE_S, MIX_MAX,
+                      SHOW_FOR, SIZE_LABELS, SPEED_LABELS, STEP_BIG, STEP_SMALL, ClipBase, PreviewView, seg_part)
 from .qt_common import guard_wheel
 from .qt_layouts import FlowRow
 from .qt_library import MediaLibrary
@@ -373,6 +373,7 @@ class EditorWindow(ClaudeMixin, InputMixin, MomentsMixin, MontageMixin, MusicMix
         self._set_mode("select")
         self._mode_changed(self.mode_box.currentIndex(), save=False)
         self.gif_box.currentIndexChanged.connect(lambda _i: self._changed())
+        self.bridge.library.connect(self._library_scanned)
         self._fill_library()
 
     def _tool(self, name, tip, slot=None, checkable=False, size=18, quiet=False):
@@ -1460,11 +1461,32 @@ class EditorWindow(ClaudeMixin, InputMixin, MomentsMixin, MontageMixin, MusicMix
                 items = list(self.media() or [])
             except Exception:                           # the list is a convenience: never breaks the editor
                 items = []
-        # 1.18.1: the project files' heads (format 1 and 2, cached by mtime and size) say which rows have one
-        names = {e.source.get("file") for e in project.scan(os.path.join(self.clips_dir, project.PROJECT_DIR)) if e.ok}
+        # 1.18.1: the project files' heads (format 1 and 2, cached by mtime and size) say which rows have one.
+        # CR-011 (code review): read in a thread – every activation of the window read every project file of the
+        # folder in the window's thread; the rows show the names known so far and are marked again when it is done
+        self._lib_items = items
+        self._mark_library(getattr(self, "_lib_names", None) or set())
+        folder, b = os.path.join(self.clips_dir, project.PROJECT_DIR), self.bridge
+
+        def scan():
+            try:
+                names = {e.source.get("file") for e in project.scan(folder) if e.ok}
+            except Exception:                           # a convenience: never breaks the editor
+                names = set()
+            b.library.emit(names)
+        threading.Thread(target=scan, name="library-scan", daemon=True).start()
+
+    def _mark_library(self, names):
+        items = getattr(self, "_lib_items", None) or []
         for it in items:
             it.project = os.path.basename(it.path) in names
         self.library.set_items(items, current=self.path)
+
+    def _library_scanned(self, names):
+        if self._closed or names == getattr(self, "_lib_names", None):
+            return
+        self._lib_names = names
+        self._mark_library(names)
 
     def _open_media(self, item):
         """A library row (double click, drop on the timeline): the App opens it – in place of this window when
@@ -1911,7 +1933,10 @@ class EditorWindow(ClaudeMixin, InputMixin, MomentsMixin, MontageMixin, MusicMix
         i, src = self._clip_at_playhead()
         if i is None or self._still_untrimmable(i):
             return
-        self.parts = sequence.trim(self.parts, i, "start", src, self._src_info(self.parts[i]).duration)
+        # CR-012 (code review): a clip played backwards begins (on the timeline) at its source end – as dragging its
+        # left edge does (qt_timeline), I trims that end; before, the wrong half of a backwards clip went
+        edge = "end" if self.parts[i].reverse else "start"
+        self.parts = sequence.trim(self.parts, i, edge, src, self._src_info(self.parts[i]).duration)
         self.timeline.set_parts(self.parts)
         self._commit()
         self.goto(sequence.starts(self.parts)[i])
@@ -1920,7 +1945,8 @@ class EditorWindow(ClaudeMixin, InputMixin, MomentsMixin, MontageMixin, MusicMix
         i, src = self._clip_at_playhead()
         if i is None or self._still_untrimmable(i):
             return
-        self.parts = sequence.trim(self.parts, i, "end", src, self._src_info(self.parts[i]).duration)
+        edge = "start" if self.parts[i].reverse else "end"          # CR-012: see set_start
+        self.parts = sequence.trim(self.parts, i, edge, src, self._src_info(self.parts[i]).duration)
         self.timeline.set_parts(self.parts)
         self._commit()
         self.goto(sequence.starts(self.parts)[i + 1])
@@ -2392,7 +2418,13 @@ class EditorWindow(ClaudeMixin, InputMixin, MomentsMixin, MontageMixin, MusicMix
             if isinstance(val, dict):
                 for k in obsrec.SOURCES:
                     if k in val:
-                        store[k] = bool(val[k]) if key == "mix_on" else int(val[k] or 0)
+                        if key == "mix_on":
+                            store[k] = bool(val[k])
+                            continue
+                        try:                         # CR-018: a project file's broken level is not a crash
+                            store[k] = max(0, min(MIX_MAX, int(val[k] or 0)))
+                        except (TypeError, ValueError, OverflowError):
+                            pass
         self._mix_fill()
 
     # ---- keys and closing

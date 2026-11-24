@@ -3008,6 +3008,8 @@ T = {
         'WebSocket 响应错误',
     'Unerwartete Begrüssung von OBS':
         'OBS 的问候消息异常',
+    'Unerwartete Antwort von OBS':
+        'OBS 的响应异常',
     'OBS verlangt ein Passwort (OBS: Werkzeuge → WebSocket-Servereinstellungen)':
         'OBS 需要密码（OBS：工具 → WebSocket 服务器设置）',
     'OBS hat die Anmeldung abgelehnt – Passwort falsch?':
@@ -3730,8 +3732,8 @@ T = {
         'YouTube：未上传 – {file}：{why}',
     'YouTube: in die Warteschlange – {file}':
         'YouTube：已加入队列 – {file}',
-    'YouTube-Link kopiert: {url}':
-        '已复制 YouTube 链接：{url}',
+    'YouTube-Link kopiert.':
+        '已复制 YouTube 链接。',
     'Clip: {what}':
         '片段：{what}',
     'Dauer {d}':
@@ -6153,4 +6155,6 @@ T = {
         '已在叠加层中显示信息。',
     'Infos im Overlay ausgeblendet.':
         '已在叠加层中隐藏信息。',
+    'Neustart gerade nicht möglich: eine Runde läuft, OBS nimmt auf oder ein Clip wird gespeichert. Danach noch einmal versuchen.':
+        '现在无法重启：正在进行对局、OBS 正在录制或正在保存剪辑。请稍后再试。',
 }

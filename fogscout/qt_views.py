@@ -1002,8 +1002,8 @@ class HeatmapView(Heatmap):
 
     def show_state(self, st):
         d, dark = st.get("data"), bool(st.get("dark", True))
-        if (id(d), dark) != self._shown:
-            self._shown = (id(d), dark)
+        if self._shown is None or self._shown[0] is not d or self._shown[1] != dark:   # CR-018: identity, not id()
+            self._shown = (d, dark)
             self.set_data(d, dark)
         self.setVisible(bool(st.get("visible", True)) and d is not None and bool(d.rows))
 
@@ -1150,10 +1150,9 @@ class DashboardView(QWidget):
 
     def show_state(self, st):
         d, dark = st.get("data"), bool(st.get("dark", True))
-        key = (id(d), dark)
-        if key == self._shown:
+        if self._shown is not None and self._shown[0] is d and self._shown[1] == dark:   # CR-018: identity, not id()
             return
-        self._shown = key
+        self._shown = (d, dark)
         has = d is not None and not d.empty
         self.empty.setVisible(d is not None and bool(d.empty))
         _set(self.empty, d.empty if d is not None else "")

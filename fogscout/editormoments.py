@@ -164,6 +164,7 @@ class MomentsMixin:
             part = self.parts[i] if i is not None else None
             jobs.append((self._src_path(part), self._src_info(part), src_t))
         ffmpeg, emit, base = self.ffmpeg, self.bridge.moments.emit, self._state()
+        cancel = self._cancel                      # CR-017: the window closing ends the looks (each up to seconds)
         self._dark_busy = True
         self.dark_btn.setEnabled(False)
         self.moment_status.setText(_("Sehe mir Anfang und Ende an …"))
@@ -175,6 +176,8 @@ class MomentsMixin:
                 from .detector import is_dark
                 darks = []
                 for path, info, src_t in jobs:
+                    if cancel.is_set():
+                        return
                     img = clipedit.frame_at(path, src_t, 360, info, ffmpeg)
                     darks.append(bool(img is not None and is_dark(np.asarray(img)[:, :, ::-1])))
                 emit((base, moments.dark_edges(darks[:n], darks[n:], DARK_STEP_S, total)))

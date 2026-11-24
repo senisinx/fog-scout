@@ -27,6 +27,7 @@ THUMB_MAX_S = 20.0                  # … but at most this many seconds in
 CACHE_DIR = os.path.join("cache", "clipthumbs")
 ITEM_ROLE = Qt.UserRole + 1
 _MEM = {}                           # (path, size, mtime) -> PIL image, for the editors of one program run
+_MEM_LOCK = threading.Lock()        # CR-011: the loaders of several editors share _MEM
 
 
 def _cache_key(path: str) -> tuple:
@@ -89,6 +90,21 @@ class ThumbLoader:
         name = hashlib.sha1(f"{key[0]}|{key[1]}|{key[2]}|{self.box}".encode("utf-8")).hexdigest()[:24] + ".jpg"
         return os.path.join(self.cache_dir, name)
 
+    def _store(self, img, target: str) -> None:
+        """CR-011 (code review): the cache picture complete or not at all – written under a temp name of its own
+        (two editors' loaders made the same picture at once) and only into a cache folder that is no link."""
+        import io
+        from . import fsops
+        try:
+            if fsops.linked_root(self.cache_dir, 2):
+                return
+            os.makedirs(self.cache_dir, exist_ok=True)
+            buf = io.BytesIO()
+            img.save(buf, "JPEG", quality=85)
+            fsops.write_atomic(target, buf.getvalue())
+        except (OSError, ValueError):
+            pass
+
     def _run(self):
         from PIL import Image
         from .thumbs import prune
@@ -108,7 +124,8 @@ class ThumbLoader:
                 continue
             path, seconds = job
             key = _cache_key(path)
-            img = _MEM.get(key)
+            with _MEM_LOCK:
+                img = _MEM.get(key)
             if img is None:
                 target = self._file(key)
                 if target and os.path.isfile(target):
@@ -129,15 +146,12 @@ class ThumbLoader:
                                 img.thumbnail(self.box, Image.LANCZOS)
                                 target = self._file(key)
                                 if target:
-                                    try:
-                                        os.makedirs(self.cache_dir, exist_ok=True)
-                                        img.save(target, quality=85)
-                                    except OSError:
-                                        pass
+                                    self._store(img, target)
                 if img is not None:
-                    _MEM[key] = img
-                    if len(_MEM) > 400:
-                        _MEM.pop(next(iter(_MEM)))
+                    with _MEM_LOCK:
+                        _MEM[key] = img
+                        if len(_MEM) > 400:
+                            _MEM.pop(next(iter(_MEM)))
             except Exception:                              # one broken file never ends the thread
                 img = None
             self._done.put((path, img, seconds))

@@ -186,3 +186,19 @@ def test_inputs_settings_are_part_of_a_layout():
     from fogscout import layoutmem
     assert {"inputs_pos", "inputs_xy", "inputs_scale"} <= set(layoutmem.OVERLAY_KEYS)
     assert config.DEFAULTS["overlay"]["show_inputs"] is False             # off until switched on
+
+
+def test_a_look_that_ends_after_looking_was_stopped_leaves_nothing_pressed():
+    """CR-011 (code review): the window thread stopped the looks (allow(None)) while a look ran – the reader set the
+    pressed key afterwards, and the card showed it although nothing may be read any more."""
+    holder = {}
+
+    def poll(hwnd):
+        holder["r"].allow(None)                         # stopped while this look runs
+        return InputState(keys=frozenset({"w"}))
+    r = Reader(poll=poll)
+    holder["r"] = r
+    r._hwnd = 7
+    r.look()
+    assert r.state == EMPTY
+    assert all(code == inputs.encode(EMPTY) for _t, code in r.take_log())

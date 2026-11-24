@@ -947,7 +947,7 @@ class RecordingsTab:
             size = fmt_bytes(r.size) if exists else _("fehlt")
             if (r.extra or {}).get("bad"):
                 size += " ⚠"
-            iid = repr(r.t)
+            iid = t.free_iid(repr(r.t))                       # CR-012: two recordings may share a start
             self._rec_rows[iid] = r
             t.insert("", "end", iid=iid, values=(time.strftime("%d.%m.%y %H:%M", time.localtime(r.t)), map_shown(r.label) or "–",
                                                  role_txt, res, fmt_duration(r.end - r.t) if r.end > r.t else "–",
@@ -1745,7 +1745,7 @@ class RecordingsTab:
         r = None
         if item.kind == "round":
             r = next((x for x in recs if x.t == item.round_t), None)
-        elif item.kind == "clip":
+        elif item.kind == "clip" and folder:                     # CR-012: no recordings folder (OBS off): no lookup
             c = next((x for x in obsrec.list_clips(obsrec.clips_dir(folder), recs) if
                       os.path.normcase(os.path.join(obsrec.clips_dir(folder), x.file)) == os.path.normcase(item.path)), None)
             r = clip_round(c, recs) if c is not None else None
@@ -1818,7 +1818,9 @@ class RecordingsTab:
                          layout=self.settings.get("editor_layout") or {},
                          autosave=bool(self.settings.get("editor_autosave", True)),     # 1.18.1
                          round_t=(getattr(r, "t", 0.0) or None))
-        win = Window(path, r.marks, os.path.join(self.recorder.folder(), CLIPS_DIR),   # one "Clips" for all
+        # one "Clips" for all – CR-012: without a recordings folder (OBS off, folder gone) the one beside the video
+        folder = self.recorder.folder() or os.path.dirname(os.path.abspath(path))
+        win = Window(path, r.marks, os.path.join(folder, CLIPS_DIR),
                      mode=str(self.settings.get("clip_mode", "copy")), sound=bool(self.settings.get("clip_sound", True)),
                          on_setting=self.settings.set, log=self._log,
                          dark=bool(self.settings.get("dark_mode", True)),

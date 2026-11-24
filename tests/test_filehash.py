@@ -157,3 +157,21 @@ def test_a_failing_answer_is_logged_and_the_next_waiter_still_gets_its_own(tmp_p
             h.join(10)
     assert answers[0]["kind"] == "ok" or answers[0].get("sha256")
     assert any("Hash fertig" in r.getMessage() and r.exc_info for r in caplog.records)
+
+
+def test_cancelling_one_window_keeps_the_other_windows_job():
+    """CR-010 (code review): a montage and the round's editor wait for the same file – one closing must not take
+    the other's answer away."""
+    h = filehash.Hasher(cache=filehash.Cache(None))
+    a, b = (lambda r: None), (lambda r: None)
+    h.request("x.mkv", a)
+    h.request("x.mkv", b)
+    h.cancel("x.mkv", a)
+    assert len(h._jobs) == 1 and h._jobs[0][1] == [b]
+    h.cancel("x.mkv", b)
+    assert h._jobs == []
+    h._current, h._current_dones = "y.mkv", [a, b]               # a running job: ends only without any waiter
+    h.cancel("y.mkv", a)
+    assert not h._cancel.is_set() and h._current_dones == [b]
+    h.cancel("y.mkv", b)
+    assert h._cancel.is_set()

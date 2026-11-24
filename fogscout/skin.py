@@ -64,7 +64,10 @@ def accent_rgba(colour) -> tuple:
     if isinstance(colour, str):
         c = colour.lstrip("#")
         if len(c) == 6:
-            return tuple(int(c[i:i + 2], 16) for i in (0, 2, 4)) + (255,)
+            try:                                     # CR-018: "#zzzzzz" from a hand-edited setting is gold
+                return tuple(int(c[i:i + 2], 16) for i in (0, 2, 4)) + (255,)
+            except ValueError:
+                return GOLD
         return GOLD
     c = tuple(int(v) for v in colour)
     return c if len(c) == 4 else c[:3] + (255,)

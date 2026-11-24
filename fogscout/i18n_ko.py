@@ -3008,6 +3008,8 @@ T = {
         '잘못된 WebSocket 응답',
     'Unerwartete Begrüssung von OBS':
         'OBS의 예기치 않은 인사 메시지',
+    'Unerwartete Antwort von OBS':
+        'OBS의 예기치 않은 응답',
     'OBS verlangt ein Passwort (OBS: Werkzeuge → WebSocket-Servereinstellungen)':
         'OBS가 비밀번호를 요구합니다(OBS: 도구 → WebSocket 서버 설정)',
     'OBS hat die Anmeldung abgelehnt – Passwort falsch?':
@@ -3730,8 +3732,8 @@ T = {
         'YouTube: 업로드되지 않음 – {file}: {why}',
     'YouTube: in die Warteschlange – {file}':
         'YouTube: 대기열에 추가됨 – {file}',
-    'YouTube-Link kopiert: {url}':
-        'YouTube 링크 복사됨: {url}',
+    'YouTube-Link kopiert.':
+        'YouTube 링크 복사됨.',
     'Clip: {what}':
         '클립: {what}',
     'Dauer {d}':
@@ -6153,4 +6155,6 @@ T = {
         '오버레이에 정보를 표시합니다.',
     'Infos im Overlay ausgeblendet.':
         '오버레이에서 정보를 숨깁니다.',
+    'Neustart gerade nicht möglich: eine Runde läuft, OBS nimmt auf oder ein Clip wird gespeichert. Danach noch einmal versuchen.':
+        '지금은 다시 시작할 수 없습니다: 라운드 진행 중이거나 OBS가 녹화 중이거나 클립을 저장하는 중입니다. 나중에 다시 시도하세요.',
 }

@@ -1,6 +1,7 @@
 """1.8.80: daily copies of rounds.jsonl / official.jsonl in backup/ (backups.py)."""
 import os
 import time
+import pytest
 
 from fogscout import backups
 
@@ -309,3 +310,35 @@ def test_matches_a_restore_pushes_beyond_the_limit_go_to_the_archive(tmp_path, m
     got = backups.restore(now, zpath)
     assert got["matches"] == 2 and len(official.load(path)) == 7
     assert [json.loads(line)["t"] for line in open(arch, encoding="utf-8")] == [1.70e9 + i * 1000 for i in range(4)]
+
+
+def test_the_archive_never_packs_through_a_link_and_is_written_whole(tmp_path, monkeypatch):
+    """CR-007 (code review): os.path.islink does not see a Windows junction – user_maps swapped for one packed the
+    target's files; a failure left a half ZIP under the user's name. Now: fsops.is_link/linked_root, limits, and
+    the ZIP is written to a temp file and only then takes the name."""
+    import zipfile
+    data = tmp_path / "data"
+    data.mkdir()
+    secret = tmp_path / "elsewhere"
+    secret.mkdir()
+    (secret / "private.txt").write_text("x")
+    os.symlink(str(secret), str(data / "user_maps"))                  # the folder itself a link
+    (data / "corpus").mkdir()
+    (data / "corpus" / "a.json").write_text("{}")
+    os.symlink(str(secret), str(data / "corpus" / "sub"))              # a folder inside a link
+    os.symlink(str(secret / "private.txt"), str(data / "corpus" / "b.json"))
+    dest = tmp_path / "out.zip"
+    assert backups.archive(str(data), str(dest), {}) == 2               # the settings and corpus/a.json
+    with zipfile.ZipFile(dest) as z:
+        assert sorted(z.namelist()) == ["corpus/a.json", "fogscout-einstellungen.json"]
+    monkeypatch.setattr(backups, "MAX_ENTRIES", 1)
+    assert backups.archive(str(data), str(dest), {}) == 1                # beyond the limit: left out
+    dest.write_bytes(b"the user's old file")
+
+    def broken(*a, **k):
+        raise OSError("disk full")
+    monkeypatch.setattr(zipfile.ZipFile, "writestr", broken)
+    with pytest.raises(OSError):
+        backups.archive(str(data), str(dest), {})
+    assert dest.read_bytes() == b"the user's old file"                 # no half ZIP, no temp file left
+    assert [n for n in os.listdir(tmp_path) if n.endswith(".tmp")] == []

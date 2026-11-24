@@ -2797,3 +2797,82 @@ def test_taken_in_recordings_are_never_cleaned_up_by_themselves(tmp_path):
     assert [r.file for r in obsrec.expired_farming(farm, 7, now)] == ["Farming/own.mkv"]
     left, deleted = obsrec.prune_farming(folder, farm, 7, now=now)
     assert deleted == ["Farming/own.mkv"] and [r.file for r in left] == ["Farming/taken.mkv"]
+
+
+# ---- CR-003 (code review): every connection failure is an ObsError
+class _BrokenSock:
+    def __init__(self, recv=None, send=None):
+        self._recv, self._send = recv, send
+
+    def sendall(self, data):
+        if self._send:
+            raise self._send
+
+    def recv(self, n):
+        if isinstance(self._recv, BaseException):
+            raise self._recv
+        out, self._recv = self._recv[:n], self._recv[n:]
+        return out
+
+    def settimeout(self, t):
+        pass
+
+    def close(self):
+        pass
+
+
+@pytest.mark.parametrize("sock", [
+    _BrokenSock(recv=TimeoutError("timed out")),
+    _BrokenSock(recv=ConnectionResetError()),
+    _BrokenSock(recv=b"", send=BrokenPipeError()),
+    _BrokenSock(recv=obsrec._frame(b"\xff\xfe not utf-8")),
+    _BrokenSock(recv=obsrec._frame(b"[1, 2]")),
+    _BrokenSock(recv=obsrec._frame(b"{not json")),
+    _BrokenSock(recv=obsrec._frame(b"x", 9) * (obsrec.ObsClient.MAX_FRAMES + 5)),     # an endless ping stream
+], ids=["timeout", "reset", "broken-pipe", "utf8", "not-a-dict", "not-json", "ping-flood"])
+def test_a_broken_connection_is_always_an_obs_error(sock):
+    c = obsrec.ObsClient(1, "")
+    c._sock = sock
+    with pytest.raises(obsrec.ObsError):
+        c.request("StopRecord")
+
+
+def test_a_timeout_in_stoprecord_keeps_the_round_and_is_tried_again(obs, tmp_path):
+    """CR-003: a raw TimeoutError in StopRecord skipped the retry of audit R-1 (``_pending`` already cleared) and OBS
+    recorded on for up to 45 minutes. Now it is an ObsError: the round stays ours and the stop is tried again."""
+    folder = str(tmp_path)
+    r, _posted = _recorder(obs, folder, pre=False, tail_s=0)
+    r._begin({"t": 1000.0, "label": "Coal Tower"})
+    real = r._client
+
+    def timing_out():
+        c = real()
+        c._sock.close()
+        c._sock = _BrokenSock(recv=TimeoutError("timed out"))
+        return c
+    r._client = timing_out
+    r._command("stop", {})
+    assert r.active is not None and r._pending is not None and obs.recording
+    r._client = real
+    r._pending = (r._pending[0], time.time())
+    r._idle_work()
+    assert r.active is None and not obs.recording and len(obsrec.load_index(folder)) == 1
+
+
+# ---- CR-007 (code review): looked at again right before a move or delete
+def test_the_last_look_before_a_move_needs_the_file_and_no_link_below_the_folder(tmp_path):
+    folder = tmp_path / "Aufnahmen"
+    (folder / "sub").mkdir(parents=True)
+    video = folder / "sub" / "a.mkv"
+    video.write_bytes(b"x")
+    assert obsrec.obs_file(str(tmp_path / "missing.mkv")).endswith(".mkv")
+    assert obsrec.obs_file(str(tmp_path / "missing.mkv"), strict=True) == ""      # the last look: must be there
+    assert obsrec.obs_file(str(video), inside=str(folder), strict=True) == str(video)
+    elsewhere = tmp_path / "elsewhere"
+    elsewhere.mkdir()
+    (elsewhere / "b.mkv").write_bytes(b"x")
+    os.symlink(str(elsewhere), str(folder / "linked"))                           # a junction below our folder
+    assert obsrec.obs_file(str(folder / "linked" / "b.mkv"), inside=str(folder), strict=True) == ""
+    os.symlink(str(folder), str(tmp_path / "chosen"))                            # the folder itself may be a link
+    assert obsrec.obs_file(str(tmp_path / "chosen" / "sub" / "a.mkv"), inside=str(tmp_path / "chosen"),
+                           strict=True) != ""

@@ -13,6 +13,7 @@ Rules (CLAUDE.md, harte Regel „Claude-Suche“):
 from __future__ import annotations
 
 import json
+import math
 import queue
 import threading
 import urllib.error
@@ -119,7 +120,8 @@ def cost_usd(model: str, usage: dict) -> float:
 
     def n(k):
         v = u.get(k)
-        return float(v) if isinstance(v, (int, float)) and not isinstance(v, bool) and v > 0 else 0.0
+        ok = isinstance(v, (int, float)) and not isinstance(v, bool) and v > 0
+        return float(v) if ok and math.isfinite(v) and v < 1e12 else 0.0      # CR-017: no Infinity in the total
     return (n("input_tokens") * p_in + n("cache_creation_input_tokens") * p_in * CACHE_WRITE
             + n("cache_read_input_tokens") * p_read + n("output_tokens") * p_out) / 1e6
 
@@ -234,11 +236,16 @@ def headers(key: str, fallback: bool = True) -> dict:
 
 def reply_json(reply: dict) -> dict:
     """The JSON object of a structured answer (AskError refused/bad otherwise)."""
+    if not isinstance(reply, dict):                      # CR-017: a list or a number is no answer of the API
+        raise AskError("bad")
     if reply.get("stop_reason") == "refusal":
         raise AskError("refused")
     if reply.get("stop_reason") == "max_tokens":         # 1.50.5: cut off – its JSON is incomplete, say why
         raise AskError("long")
-    text = "".join(b.get("text", "") for b in reply.get("content") or () if b.get("type") == "text")
+    content = reply.get("content")
+    if not isinstance(content, list):
+        content = []
+    text = "".join(str(b.get("text", "")) for b in content if isinstance(b, dict) and b.get("type") == "text")
     try:
         data = json.loads(text)
     except ValueError:

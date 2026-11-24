@@ -603,3 +603,92 @@ def test_a_new_project_makes_its_folder_but_a_vanished_folder_is_never_made_agai
     reg.submit(slot, "w1", content("later"), source={"file": "rec.mkv"})
     assert reg.wait_idle()
     assert not folder.exists() and slot.status in ("missing", "error")
+
+
+# ---- CR-002 (code review): a new session goes on counting
+def test_a_project_opened_in_a_new_session_goes_on_counting_where_it_stopped(tmp_path, monkeypatch):
+    """Session 1 wrote seq 1 and left a rescue copy (seq 2); session 2 (new registry) opens the file with its rev.seq:
+    it counts on from there – its rescue copy is not swallowed by the old name, and the old copy is not newer."""
+    reg, slot, path = written_project(tmp_path)
+    monkeypatch.setattr(projectsave.fsops, "write_tmp", _full_on(path))
+    reg.submit(slot, "w1", content("session 1"))
+    assert reg.wait_idle() and slot.rescued_seq == 2
+    reg.release(slot, "w1")
+    monkeypatch.undo()
+    disk = load(path)
+    reg2 = make_registry(tmp_path)                                           # the next start of the program
+    slot2, _m = reg2.claim(["p" * 32], "w2", path, "p" * 32,
+                           base={"base_hash": projectsave.sha(open(path, "rb").read()), "seq": disk["rev"]["seq"]})
+    assert slot2.written_seq == 1 and slot2.next_seq == 3                    # file 1, local copy 2
+    monkeypatch.setattr(projectsave.fsops, "write_tmp", _full_on(path))
+    seq = reg2.submit(slot2, "w2", content("session 2"))
+    assert reg2.wait_idle()
+    assert seq == 3 and slot2.rescued_seq == 3
+    lkey = projectsave.local_key(slot2.pid, path)
+    names = {load(p)["name"] for _s, _a, p in projectsave.local_candidates(reg2.local_folder(), lkey)}
+    assert names == {"session 1", "session 2"}
+
+
+def test_a_rescue_never_counts_as_written_when_its_name_holds_another_state(tmp_path):
+    """The rescue copy's name is taken by another state (an earlier session's): the next free number is used and
+    only then the state counts as rescued; the very same state is written once."""
+    reg = make_registry(tmp_path)
+    path = main_path(tmp_path)
+    slot, _m = reg.claim(["p" * 32], "w1", path, "p" * 32)
+    folder = reg.local_folder()
+    lkey = projectsave.local_key(slot.pid, path)
+    with open(os.path.join(folder, projectsave.local_name(lkey, 1, "rettung")), "w", encoding="utf-8") as fh:
+        json.dump({"name": "old session", "rev": {"seq": 1}}, fh)
+    job = projectsave.Job(1, content("new"), None, False, {})
+    out = reg.rescue_now(slot, job, "rettung")
+    assert out.endswith(projectsave.local_name(lkey, 2, "rettung")) and load(out)["name"] == "new"
+    assert slot.rescued_seq == 1
+    assert reg.rescue_now(slot, job, "rettung") == out                        # the same state: there already
+    assert len(projectsave.local_candidates(folder, lkey)) == 2
+
+
+def test_rotation_keeps_the_newest_backups_by_time_not_by_seq(tmp_path):
+    """An older session's backups had higher seqs (6..17) than today's first one (1): today's must stay."""
+    for i in range(12):
+        projectsave.store_with_sidecar(str(tmp_path), json.dumps({"i": i}).encode(), 6 + i, "sitzung", KEY, WRITER)
+    old = sorted(os.listdir(tmp_path))
+    for n in old:
+        if n.endswith(".json"):
+            info = projectsave.parse_backup_name(n)
+            new = n.replace(info["stamp"][:8] + "-", "20200101-", 1)
+            os.rename(os.path.join(tmp_path, n), os.path.join(tmp_path, new))
+            os.rename(os.path.join(tmp_path, n + projectsave.SIDECAR_EXT),
+                      os.path.join(tmp_path, new + projectsave.SIDECAR_EXT))
+    today = projectsave.store_with_sidecar(str(tmp_path), b'{"i": "today"}', 1, "sitzung", KEY, WRITER)
+    projectsave.rotate(str(tmp_path), KEY, WRITER)
+    assert os.path.exists(today)
+
+
+# ---- CR-010 (code review)
+def test_a_recovered_earlier_state_is_kept_even_when_the_next_step_is_busy(tmp_path, monkeypatch):
+    """After a failed step 7 the earlier state (pending_tmp) became the file, then the file was busy (a virus
+    scanner) – the base hash of that state was lost and the retry reported a false conflict."""
+    path = main_path(tmp_path)
+    earlier = b'{"earlier": 1}'
+    pending = fsops.write_tmp(path, earlier)
+    got = []
+
+    def busy(p):
+        raise PermissionError("a scanner has it open")
+    monkeypatch.setattr(projectsave.fsops, "ExclusiveHandle", busy)
+    out = projectsave.write_guarded(path, b'{"new": 2}', "0" * 64, "zwischen", 3, KEY, WRITER,
+                                    pending_tmp=pending, recovered=got.append)
+    assert out.kind == "busy" and got == [projectsave.sha(earlier)] and open(path, "rb").read() == earlier
+
+
+def test_a_slot_with_a_retry_due_stays_registered_after_its_window_closed(tmp_path):
+    reg = make_registry(tmp_path)
+    slot, _m = reg.claim(["q" * 32], "w1", main_path(tmp_path), "q" * 32)
+    with slot.cv:
+        slot.retry_at = reg.clock() + 60
+    reg.release(slot, "w1")
+    assert reg.find(["q" * 32]) is slot                       # opened again: the same slot, never a second writer
+    with slot.cv:
+        slot.retry_at = None
+    reg.release(slot, "w1")
+    assert reg.find(["q" * 32]) is None

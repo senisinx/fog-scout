@@ -109,3 +109,38 @@ def test_every_event_a_thread_posts_has_a_handler():
             handled |= _string_constants(node)
     unhandled = {k: sorted(v) for k, v in posted.items() if k not in handled}
     assert unhandled == {}
+
+
+# CR-004 (code review): the palette posted "palette_ask_stats", App._qt_event did not name it – it fell through to the
+# no-op branch and the palette waited on "Claude denkt nach …" forever. Every action a window posts is named there.
+QT_FALLTHROUGH = {"palette_closed"}       # only refreshes the window (the else branch), on purpose
+
+
+def test_every_action_a_window_posts_has_a_branch_in_qt_event():
+    app_qt = ast.parse((PKG / "app_qt.py").read_text(encoding="utf-8"))
+    handled = set()
+    for node in ast.walk(app_qt):
+        if isinstance(node, ast.FunctionDef) and node.name == "_qt_event":
+            handled |= _string_constants(node)
+    posted = {}
+    for path in sorted(PKG.glob("qt_*.py")):
+        for node in ast.walk(ast.parse(path.read_text(encoding="utf-8"))):
+            if not (isinstance(node, ast.Call) and isinstance(node.func, ast.Attribute)
+                    and node.func.attr in ("_post", "post") and node.args):
+                continue
+            first = node.args[0]
+            for v in (first.body, first.orelse) if isinstance(first, ast.IfExp) else (first,):
+                if isinstance(v, ast.Constant) and isinstance(v.value, str):
+                    posted.setdefault(v.value, set()).add(path.name)
+    assert "palette_ask_stats" in posted                              # the scan found the real calls
+    assert {k: sorted(v) for k, v in posted.items() if k not in handled | QT_FALLTHROUGH} == {}
+
+
+def test_a_free_statistics_question_reaches_the_palette_handler():
+    from types import SimpleNamespace
+    from fogscout import app_qt
+    seen = []
+    s = SimpleNamespace(_palette_event=lambda action, arg: seen.append((action, arg)),
+                        _qt_refresh=lambda force=False: None)
+    app_qt.QtShell._qt_event(s, "palette_ask_stats", "Wie läuft die Nurse?")
+    assert seen == [("palette_ask_stats", "Wie läuft die Nurse?")]

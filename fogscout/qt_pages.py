@@ -1018,8 +1018,12 @@ class CardColumn(QWidget):
         by_id = dict(self.cards)
         first = next((w for i in self._default for w in focusable(by_id[i])), None)
         prev = first.previousInFocusChain() if first is not None else None
-        while prev is not None and id(prev) in inside:
+        seen = set()                                  # CR-018: Qt's focus chain is a ring – never round it forever
+        while prev is not None and id(prev) in inside and id(prev) not in seen:
+            seen.add(id(prev))
             prev = prev.previousInFocusChain()
+        if prev is not None and id(prev) in inside:   # the whole ring is the page's own widgets
+            prev = None
         chain = ([prev] if prev is not None else []) + widgets
         for a, b in zip(chain, chain[1:]):
             QWidget.setTabOrder(a, b)

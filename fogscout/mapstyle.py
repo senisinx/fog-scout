@@ -18,6 +18,7 @@ import logging
 import os
 import re
 import threading
+import time
 from functools import lru_cache
 
 import cv2
@@ -421,9 +422,23 @@ def styled_path(path: str, cache_dir: str, make: bool = True, style: str = "dark
         tmp = f"{target}.{os.getpid()}-{threading.get_ident()}.tmp"     # the warm-up thread may make it too
         first, rest = dark[0][0], [f for f, _d in dark[1:]]
         # exact: also the invisible pixels as they were; several frames: an animated WebP with the same timing
-        first.save(tmp, "WEBP", lossless=True, exact=True, save_all=bool(rest), append_images=rest,
-                   duration=[d for _f, d in dark] if rest else 0, loop=0)
-        os.replace(tmp, target)
+        try:
+            first.save(tmp, "WEBP", lossless=True, exact=True, save_all=bool(rest), append_images=rest,
+                       duration=[d for _f, d in dark] if rest else 0, loop=0)
+            for attempt in range(fsops.REPLACE_TRIES):     # CR-017: a reader holding the old file – a few waits
+                try:
+                    os.replace(tmp, target)
+                    break
+                except PermissionError:
+                    if attempt == fsops.REPLACE_TRIES - 1:
+                        raise
+                    time.sleep(fsops.REPLACE_WAIT_S)
+        except BaseException:
+            try:                                           # CR-017: no .tmp left behind on a failure
+                fsops.delete_inside(os.path.dirname(target), tmp)
+            except OSError:
+                pass
+            raise
         return target
     except Exception:
         return path

@@ -329,7 +329,8 @@ class ProjectMixin:
         if entry.version >= project.VERSION2 and entry.id:
             self._bind(entry.id, entry.path, base={"base_hash": entry.hash, "content_hash": project.content_hash(content),
                                                    "view": data.get("view"), "baseline_hash": project.content_hash(content),
-                                                   "meta": projectsave.source_meta(entry.source)})
+                                                   "meta": projectsave.source_meta(entry.source),
+                                                   "seq": (entry.rev or {}).get("seq")})     # CR-002
             if manual and self._slot is not None:
                 self._reg.submit_fifo(self._slot, "vor-zuordnung", raw)
                 self._unverified = True
@@ -443,6 +444,13 @@ class ProjectMixin:
                 with open(path, encoding="utf-8") as fh:
                     data = json.load(fh)
             except (OSError, ValueError):
+                return
+            # CR-002: only a copy saved after the project file is newer – an older one never rolls the file back
+            try:
+                rescued_at = float((data.get("rev") or {}).get("saved") or data.get("saved") or 0)
+            except (TypeError, ValueError, AttributeError):
+                rescued_at = 0.0
+            if not isinstance(data, dict) or (self._saved_at and not rescued_at > float(self._saved_at)):
                 return
             view = self._apply_data(data)
             if view is not None:

@@ -273,6 +273,20 @@ def save(img: Image.Image, path: str, fmt: str = "png") -> str:
     return path
 
 
+_DEVICE_NAMES = {"CON", "PRN", "AUX", "NUL"} | {f"{p}{i}" for p in ("COM", "LPT") for i in range(1, 10)}
+
+
+def file_stem(text: str, limit: int = 150) -> str:
+    """CR-018 (code review): a name the user typed as a Windows file name – no <>:"/\\|?* or control characters, no
+    dots or spaces at the end (Windows drops them), no device name (CON, NUL, COM1 … open a device); "" when nothing
+    is left."""
+    name = "".join(ch for ch in str(text or "") if ch not in '<>:"/\\|?*' and ord(ch) >= 32)[:limit]
+    name = name.strip().rstrip(". ")
+    if name.split(".")[0].rstrip(" ").upper() in _DEVICE_NAMES:
+        name = "_" + name
+    return name
+
+
 def out_name(source: str, fmt: str = "png") -> str:
     """'<source name> – bearbeitet.png' (the file name, no folder)."""
     stem = os.path.splitext(re.split(r"[\\/]", source)[-1])[0][:120] or "Screenshot"   # a Windows path anywhere

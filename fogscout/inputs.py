@@ -337,7 +337,8 @@ class Reader:
         hwnd = int(hwnd) if hwnd else None
         if hwnd == self._hwnd:
             return
-        self._hwnd = hwnd
+        with self._log_lock:                  # CR-011: a look finishing now sees the new window (see _set)
+            self._hwnd = hwnd
         if hwnd is None:
             self._set(EMPTY)
             return
@@ -351,18 +352,25 @@ class Reader:
         self._stop.set()
         self._wake.set()
 
-    def _set(self, st: InputState) -> None:
-        if st != self.state:
+    def _set(self, st: InputState, for_hwnd=None) -> None:
+        """CR-011 (code review): the change and its log line in one step under the lock – the window thread
+        (allow(None): empty at once) and the reader thread (a look) could interleave, and a look that began while
+        allowed left a pressed key shown after looking had stopped. ``for_hwnd``: the window the look was for – not
+        the allowed one any more, the state is empty."""
+        with self._log_lock:
+            if for_hwnd is not None and self._hwnd != for_hwnd:
+                st = EMPTY
+            if st == self.state:
+                return
             self.state = st
             self.changes += 1
             code = encode(st)
-            with self._log_lock:
-                if self._log and self._log[-1][1] == code:
-                    return                    # a change the card does not show (a stick within its step)
-                if len(self._log) < MAX_EVENTS:
-                    self._log.append((time.time(), code))
-                else:
-                    self.dropped += 1
+            if self._log and self._log[-1][1] == code:
+                return                        # a change the card does not show (a stick within its step)
+            if len(self._log) < MAX_EVENTS:
+                self._log.append((time.time(), code))
+            else:
+                self.dropped += 1
 
     def take_log(self) -> list:
         """1.39.1: the changes since the last call as [(wall time, code)] – and forget them (memory only; the
@@ -380,7 +388,7 @@ class Reader:
         if self._poll is None:
             self._poll = Win32Poll() if IS_WIN else (lambda _h: None)
         st = self._poll(hwnd)
-        self._set(EMPTY if st is None or not self._hwnd else st)
+        self._set(EMPTY if st is None else st, for_hwnd=hwnd)
 
     def _run(self) -> None:
         while not self._stop.is_set():

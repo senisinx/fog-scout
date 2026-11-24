@@ -61,6 +61,8 @@ class SpotifyUpNext:
     def _spotify_setting(self, save=True):
         on, cid = bool(self.sp_on_var.get()), self.sp_id_var.get().strip()
         if save:
+            if cid != (self.settings.get("spotify_client_id") or ""):
+                self.settings.set("spotify_token", "")            # CR-016: the old app's sign-in goes with it
             self.settings.set("spotify_on", on)
             self.settings.set("spotify_client_id", cid)
             self._save_soon()

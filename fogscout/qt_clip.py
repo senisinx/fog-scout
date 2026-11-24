@@ -9,6 +9,7 @@ All ffmpeg work runs in threads (clipedit); results come back over the bridge (_
 plain QWidget the App puts beside the tables (app_recordings._rec_preview_build)."""
 from __future__ import annotations
 
+import contextlib
 import logging
 import math
 import os
@@ -112,7 +113,8 @@ class _Bridge(Bridge):
              "claude",       # 1.27: Claude's answer to a wish in the editor (editorclaude)
              "moments",      # 1.39.2: the dark pictures at the start/end looked at (editormoments)
              "textfind",     # 1.41.1: text boxes found on the still at the playhead (textfind) or why not
-             "save_turn")    # 1.42.2: a queued export's turn came (path) – ffmpeg starts now
+             "save_turn",    # 1.42.2: a queued export's turn came (path) – ffmpeg starts now
+             "library")      # CR-011: the names of the recordings with a project file (qt_editor, read in a thread)
     LATEST = ("frame", "played")      # pictures: only the newest of a batch is drawn
     AFTER_CLOSE = ("saved", "still")  # a save that ends after the window closed still reaches the clips list
     LABEL = "Clip-Editor"
@@ -148,6 +150,26 @@ class _SaveJob:
             proc.communicate()
             raise                                       # clipedit reports it like its own timeout
         return proc.returncode, err or b""
+
+    def run_out(self, args):
+        """CR-018: like ``run`` for a command whose stdout is the result (a still: clipedit.frame_at) – stoppable
+        by ``stop``; the bytes, or None when stopped, failed or too slow."""
+        with self._lock:
+            if self.stopped:
+                return None
+            try:
+                self._proc = proc = subprocess.Popen(args, stdin=subprocess.DEVNULL, stdout=subprocess.PIPE,
+                                                     stderr=subprocess.DEVNULL,
+                                                     creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0))
+            except OSError:
+                return None
+        try:
+            out, _err = proc.communicate(timeout=min(self.timeout, 30))
+        except subprocess.TimeoutExpired:
+            proc.kill()
+            proc.communicate()
+            return None
+        return out if proc.returncode == 0 else None
 
     def stop(self):
         with self._lock:
@@ -1228,6 +1250,7 @@ class ClipBase(QWidget):
         self._first_look = True             # 1.8.3: the first picture comes as a key frame at once, exact after
         self._scrub_lock = threading.Condition()
         self._frames = OrderedDict()        # 1.40: exact pictures decoded lately {(path, vf, size, frame key): image}
+        self._frames_lock = threading.Lock()   # CR-005: the scrub thread fills it, closing clears it
         self._last_key = None               # … and the frame shown last (stepping back reads the pictures before it)
         self._closed = False
         self._cancel = threading.Event()    # 1.16.2: set on close – long ffmpeg analyses (levels, waveform) stop
@@ -1680,9 +1703,11 @@ class ClipBase(QWidget):
                 continue
             t, quick, vf, size, path, info = want
             key = clipedit.frame_key(t, info.fps)
-            cached = self._frames.get((path, vf, size, key))
-            if cached is not None:                      # 1.40: seen a moment ago (stepping, back and forth)
-                self._frames.move_to_end((path, vf, size, key))
+            with self._frames_lock:
+                cached = self._frames.get((path, vf, size, key))
+                if cached is not None:                  # 1.40: seen a moment ago (stepping, back and forth)
+                    self._frames.move_to_end((path, vf, size, key))
+            if cached is not None:
                 self._last_key = key
                 if not self._closed:
                     self.bridge.frame.emit(t, cached)
@@ -1714,9 +1739,11 @@ class ClipBase(QWidget):
         shown = False
         for k, img in clipedit.frames_from(path, first / fps if back else t, clipedit.BURST, clipedit.PREVIEW_H, info,
                                            self.ffmpeg, vf=vf, size=size, stop=moved_away):
-            self._frames[(path, vf, size, k)] = img
-            while len(self._frames) > self.FRAMES_KEPT:
-                self._frames.popitem(last=False)
+            with self._frames_lock:
+                if not self._closed:
+                    self._frames[(path, vf, size, k)] = img
+                while len(self._frames) > self.FRAMES_KEPT:
+                    self._frames.popitem(last=False)
             if k == key and not self._closed:
                 shown = True
                 self._last_key = key
@@ -1853,8 +1880,8 @@ class ClipBase(QWidget):
                 self._run_player(seg)
                 return
             a, b, _off = self._chunks[0]
-            job = self._sound_job(seg, a, b, 0.0)
-            threading.Thread(target=lambda: self.bridge.sound.emit(job(), start), name="clip-sound",
+            job, rnd = self._sound_job(seg, a, b, 0.0), self._chunk_round
+            threading.Thread(target=lambda: self.bridge.sound.emit(job(), start, rnd), name="clip-sound",
                              daemon=True).start()
         else:
             self._run_player(seg)
@@ -1970,8 +1997,10 @@ class ClipBase(QWidget):
         threading.Thread(target=still, name="clip-still", daemon=True).start()
         holder.start()
 
-    def _sound_ready(self, wav, start):
-        if not self.playing or self.player is not None or self._seg is None or abs(self._seg[0] - start) > 1e-6:
+    def _sound_ready(self, wav, start, rnd=None):
+        # CR-005: a sound of an earlier playback (play – stop – play at the same second) is not this one's
+        if not self.playing or self.player is not None or self._seg is None or abs(self._seg[0] - start) > 1e-6 \
+                or (rnd is not None and rnd != self._chunk_round):
             if wav:
                 self._drop_wav(wav)
             return
@@ -1987,12 +2016,15 @@ class ClipBase(QWidget):
         start, end, speed, _out = seg[:4]
         part = seg_part(seg)
         vf = self._play_vf(part, start)
-        self.player = clipedit.FramePlayer(self._src_path(part), start, self._src_info(part),
-                                           lambda t, img: b.played.emit(t, img),
-                                           lambda: b.ended.emit(self.player), end=end, ffmpeg=self.ffmpeg,
-                                           speed=speed, vf=vf, reverse=bool(part is not None and part.reverse),
-                                           size=self._play_size())
-        self.player.start()
+        mine = []                    # CR-005: the end names this player, not whichever self.player is then
+        pl = clipedit.FramePlayer(self._src_path(part), start, self._src_info(part),
+                                  lambda t, img: b.played.emit(t, img),
+                                  lambda: b.ended.emit(mine[0] if mine else None), end=end, ffmpeg=self.ffmpeg,
+                                  speed=speed, vf=vf, reverse=bool(part is not None and part.reverse),
+                                  size=self._play_size())
+        mine.append(pl)
+        self.player = pl
+        pl.start()
 
     def _show_playing(self, on: bool):
         """The play button shows pause while playing."""
@@ -2134,7 +2166,8 @@ class ClipBase(QWidget):
         except OSError as e:
             self.status.setText(_("Clips-Ordner nicht anlegbar: {error}", error=e))
             return
-        out = clipedit.unique_path(self.clips_dir, name, ".gif" if mode == "gif" else ".mp4")
+        out = clipedit.unique_path(self.clips_dir, name, ".gif" if mode == "gif" else ".mp4",
+                                   taken=[job.out for job in _SAVES])       # CR-005: queued exports' names too
         self.status.setText(_("Schreibe {file} …", file=os.path.basename(out)))
         self.saved_seconds[out] = round(edit.seconds(), 1)
 
@@ -2205,7 +2238,7 @@ class ClipBase(QWidget):
         def work():
             ok = False
             try:
-                img = clipedit.frame_at(path, t, info.height, info, ffmpeg)
+                img = clipedit.frame_at(path, t, info.height, info, ffmpeg, run=job.run_out)   # CR-018: stoppable
                 if img is not None:
                     if crop:                              # the same pixels as the clip's crop filter
                         w, h, x, y = clipedit.crop_px(crop, img.width, img.height)
@@ -2317,7 +2350,8 @@ class ClipBase(QWidget):
             pv._img = pv._scaled = pv._layer = None
         frames = getattr(self, "_frames", None)
         if frames is not None:
-            frames.clear()                              # 1.40: the cached scrub pictures go with the window
+            with getattr(self, "_frames_lock", None) or contextlib.nullcontext():
+                frames.clear()                          # 1.40: the cached scrub pictures go with the window
         tl = getattr(self, "timeline", None)
         if tl is not None:
             tl.thumbs.clear()

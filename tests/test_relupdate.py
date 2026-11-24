@@ -652,3 +652,20 @@ def test_a_used_up_github_limit_says_when_to_try_again(tmp_path, _no_waits):
 def test_other_refusals_keep_their_raw_message(exc):
     assert relupdate.rate_limit_reset(exc) is None
     assert relupdate.describe_error(exc) == str(exc)
+
+
+def test_a_link_planted_at_the_part_name_is_never_written_through(tmp_path):
+    """CR-017 (code review): the download opened <setup>.part with open(…, "wb") – a link planted there by a program
+    of the user pointed the elevated program's write at any file. Now the .part is made exclusively."""
+    rel = relupdate.parse_release(_release())
+    folder = tmp_path / relupdate.UPDATE_DIR
+    folder.mkdir(parents=True)
+    victim = tmp_path / "victim.dll"
+    victim.write_bytes(b"system file")
+    os.symlink(str(victim), str(folder / ("FogScout-Setup-1.33.exe" + ".part")))
+    with pytest.raises(OSError):
+        relupdate.download(rel, str(tmp_path), opener=FakeGitHub())
+    assert victim.read_bytes() == b"system file"
+    os.remove(folder / ("FogScout-Setup-1.33.exe" + ".part"))
+    (folder / ("FogScout-Setup-1.33.exe" + ".part")).write_bytes(b"left over")    # our own leftover: replaced
+    assert open(relupdate.download(rel, str(tmp_path), opener=FakeGitHub()), "rb").read() == SETUP

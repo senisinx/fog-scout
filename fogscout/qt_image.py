@@ -872,7 +872,7 @@ class ImageWindow(QWidget):
         if self.original is None or self._saver is not None:
             return
         fmt = self.fmt_box.currentData() or "png"
-        name = "".join(ch for ch in self.name_edit.text() if ch not in '<>:"/\\|?*').strip()[:150] or \
+        name = imageedit.file_stem(self.name_edit.text()) or \
             os.path.splitext(imageedit.out_name(self.path))[0]
         try:
             os.makedirs(self.out_dir, exist_ok=True)

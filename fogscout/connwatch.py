@@ -33,7 +33,7 @@ import tempfile
 import threading
 import time
 
-from . import netwatch, regions
+from . import fsops, netwatch, regions
 from .i18n import _
 
 IS_WIN = sys.platform == "win32"
@@ -44,6 +44,7 @@ NO_DATA_AFTER = 8.0    # result file not updated for this long -> the helper is 
 RDNS_RETRY = 60.0      # look up an address again after this long if it gave no AWS region
 PING_EVERY = 5.0       # one ping to the region's beacon this often while connected (GameLift allows 3/s)
 PING_KEEP = 3          # shown value = median of the last pings (one slow packet does not jump the display)
+STOP_JOIN_S = 5.0      # CR-011: a stopped in-process capture is waited for this long before a new one starts
 PEAK_KEEP = 1800.0     # diagnostics: busiest partners of the last 30 min (the match is over when it is copied)
 PEAK_MAX = 8
 PORTS_EVERY = 2.0      # 1.11.6: DBD's UDP ports looked up again this often (a new match may open a new socket)
@@ -229,6 +230,7 @@ class ConnectionWatch:
         self._pinging = False
         self._beacons = {}             # host name -> address (regions.ping_once cache)
         self._names = {}               # ip -> reverse DNS name or error (diagnostics only)
+        self._stopped_thread = None    # CR-011: the in-process capture asked to stop (start waits for it)
         self._local = ""               # address of the captured interface (diagnostics only)
         self._result_t = 0.0
         self.peaks = {}                # ip -> busiest moment {"pps", "port", "sent", "recv", "t"} (diagnostics)
@@ -259,6 +261,12 @@ class ConnectionWatch:
             return None
         if not IS_WIN:
             return {"error": _("Nur unter Windows verfügbar.")}
+        old = self._stopped_thread
+        if old is not None and old.is_alive():
+            # CR-011 (code review): stop – start at once (as admin, in this process) ran two capture threads on
+            # raw sockets; the stopped one ends at its next look at the control file (netwatch: every 2 s)
+            old.join(STOP_JOIN_S)
+        self._stopped_thread = None
         remove_stale_temp()
         fd, control = tempfile.mkstemp(prefix=TEMP_PREFIXES[0], suffix=".json")
         with os.fdopen(fd, "w", encoding="utf-8") as fh:
@@ -290,6 +298,8 @@ class ConnectionWatch:
                 pass
         if self.proc and not isinstance(self.proc, threading.Thread):
             regions.close_handle(self.proc)
+        elif isinstance(self.proc, threading.Thread):
+            self._stopped_thread = self.proc
         _remove(self.control, self.result)      # gone control file stops the helper as well
         self.proc = self.control = self.result = None
         self.server = None
@@ -460,8 +470,9 @@ class ConnectionWatch:
         if len(self.peaks) > PEAK_MAX:
             for ip in sorted(self.peaks, key=lambda i: self.peaks[i]["pps"])[:len(self.peaks) - PEAK_MAX]:
                 del self.peaks[ip]
-            for ip in [i for i in self._names if i not in self.peaks]:
-                self._names.pop(ip, None)
+            with self._lock:                  # CR-011: the lookup thread writes _names under the lock
+                for ip in [i for i in self._names if i not in self.peaks]:
+                    self._names.pop(ip, None)
 
     def diag_lines(self, now: float | None = None) -> list:
         """Diagnostics text (German, not translated): why no server is chosen. Addresses are masked –
@@ -535,6 +546,8 @@ def remove_stale_temp(folder: str | None = None, now: float | None = None) -> in
     folder = folder or tempfile.gettempdir()
     now = time.time() if now is None else now
     gone = 0
+    if fsops.linked_root(folder):       # CR-001: never prune through a temp folder swapped for a junction
+        return 0
     try:
         entries = list(os.scandir(folder))
     except OSError:
@@ -550,9 +563,11 @@ def remove_stale_temp(folder: str | None = None, now: float | None = None) -> in
                 continue
         except OSError:
             continue
-        before = os.path.lexists(e.path)
-        _remove(e.path)
-        gone += before and not os.path.lexists(e.path)
+        try:
+            fsops.delete_inside(folder, e.path)     # CR-001: no part a link, the file itself plain
+            gone += 1
+        except OSError:
+            pass
     return gone
 
 

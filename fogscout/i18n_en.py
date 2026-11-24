@@ -2334,6 +2334,7 @@ EN = {
     'Kein obs-websocket auf diesem Port': 'No obs-websocket on this port',
     'Falsche WebSocket-Antwort': 'Wrong WebSocket answer',
     'Unerwartete Begrüssung von OBS': 'Unexpected greeting from OBS',
+    'Unerwartete Antwort von OBS': 'Unexpected answer from OBS',
     'OBS verlangt ein Passwort (OBS: Werkzeuge → WebSocket-Servereinstellungen)': 'OBS wants a password (OBS: Tools → WebSocket Server Settings)',
     'OBS hat die Anmeldung abgelehnt – Passwort falsch?': 'OBS refused the login – wrong password?',
     'OBS {version} verbunden': 'OBS {version} connected',
@@ -2725,7 +2726,7 @@ EN = {
     'Hochgeladen: {file}': 'Uploaded: {file}',
     'YouTube: nicht hochgeladen – {file}: {why}': 'YouTube: not uploaded – {file}: {why}',
     'YouTube: in die Warteschlange – {file}': 'YouTube: queued – {file}',
-    'YouTube-Link kopiert: {url}': 'YouTube link copied: {url}',
+    'YouTube-Link kopiert.': 'YouTube link copied.',
     'Clip: {what}': 'Clip: {what}',
     'Dauer {d}': 'Length {d}',
     'Aufgenommen mit Fog Scout': 'Recorded with Fog Scout',
@@ -4628,4 +4629,6 @@ EN = {
         'Info shown in the overlay.',
     'Infos im Overlay ausgeblendet.':
         'Info hidden in the overlay.',
+    'Neustart gerade nicht möglich: eine Runde läuft, OBS nimmt auf oder ein Clip wird gespeichert. Danach noch einmal versuchen.':
+        'Cannot restart right now: a round is running, OBS is recording or a clip is being saved. Try again afterwards.',
 }

@@ -609,3 +609,49 @@ def test_left_over_capture_files_of_a_crash_are_removed_only_our_own_and_old(tmp
     if link is not None:
         assert os.path.lexists(link)
     assert connwatch.remove_stale_temp(str(tmp_path / "missing"), now) == 0
+
+
+def test_stop_then_start_in_process_never_runs_two_captures(tmp_path, monkeypatch):
+    """CR-011 (code review): as admin the capture runs as a thread of this process – stop and an immediate start
+    ran two raw-socket threads; the new one now waits for the stopped one to end."""
+    import threading
+    import time as _time
+    running, most = [], [0]
+    lock = threading.Lock()
+
+    def fake_main(argv):
+        control = argv[1]
+        with lock:
+            running.append(1)
+            most[0] = max(most[0], len(running))
+        while os.path.exists(control):                  # like netwatch: the gone control file stops it
+            _time.sleep(0.01)
+        _time.sleep(0.05)
+        with lock:
+            running.pop()
+    monkeypatch.setattr(connwatch, "IS_WIN", True)
+    monkeypatch.setattr(connwatch, "is_admin", lambda: True)
+    monkeypatch.setattr(connwatch, "remove_stale_temp", lambda *a, **k: 0)
+    monkeypatch.setattr(connwatch.netwatch, "main", fake_main)
+    monkeypatch.setattr(connwatch.tempfile, "tempdir", str(tmp_path))
+    monkeypatch.setattr(connwatch.ConnectionWatch, "_update_ping", lambda self, v: None, raising=False)
+    w = connwatch.ConnectionWatch()
+    assert w.start() is None
+    first = w.proc
+    w.stop()
+    assert w.start() is None
+    assert not first.is_alive() and most[0] == 1
+    w.stop()
+    w.proc = None
+
+
+def test_a_partner_using_thousands_of_ports_keeps_small_port_tables():
+    """CR-017 (code review): the port counts per partner grew without end."""
+    t = netwatch.FlowTable()
+    for p in range(5000):
+        t.count(1.0, "3.120.1.2", 1000 + p, 50000 + p, "recv")
+    for _ in range(10):
+        t.count(1.0, "3.120.1.2", 7777, 50000, "recv")
+    f = t.flows["3.120.1.2"]
+    assert len(f["ports"]) <= netwatch.PORTS_MAX and len(f["lports"]) <= netwatch.PORTS_MAX
+    assert 7777 in f["ports"] and 50000 in f["lports"]                 # the busy ones stay

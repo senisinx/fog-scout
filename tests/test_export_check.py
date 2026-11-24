@@ -142,12 +142,14 @@ def test_the_editor_proposes_a_title_and_saves_a_censored_thumbnail_without_uplo
         assert win._short.title == "Knapp entkommen"
         win.undo()
         assert win._short is None or win._short.title == ""
+        win.preview.add_box([0.5, 0.5, 0.5, 0.5])                              # CR-017: drawn after the proposal
         win.thumb_save()
         assert _pump(qapp, lambda: saved, 30)
         out = saved[0]
         assert out.endswith(".png") and "Vorschaubild" in os.path.basename(out)
         img = Image.open(out).convert("RGB")
         assert img.size == (320, 180) and sum(img.getpixel((10, 10))) < 60     # censored in the file too
+        assert sum(img.getpixel((300, 100))) < 60                               # … and the box drawn later
         assert len(fake.bodies) == 1                                            # saving sent nothing
     finally:
         win.close()

@@ -106,8 +106,14 @@ class WindowCapture:
             if want is None:
                 return
             x, y, w, h = want
-            self._out = cv2.cvtColor(frame.frame_buffer[y:y + h, x:x + w], cv2.COLOR_BGRA2BGR)   # copy, 1.3.5
-        self._got.set()
+            fw, fh = self.size
+            # CR-011 (code review): a region outside the picture (the window shrank between two looks) is no
+            # picture – an empty slice made cv2 raise on the capture thread
+            if 0 <= x and 0 <= y and w > 0 and h > 0 and x + w <= fw and y + h <= fh:
+                self._out = cv2.cvtColor(frame.frame_buffer[y:y + h, x:x + w], cv2.COLOR_BGRA2BGR)   # copy, 1.3.5
+            else:
+                self._out = None
+            self._got.set()                     # CR-011: under the lock – a late answer never meets a new wish
 
     def grab(self, x: int, y: int, w: int, h: int, expect_size=None, timeout: float = WAIT):
         """Region of the next picture, or None (no picture in time, closed, or the picture does not have
@@ -118,17 +124,20 @@ class WindowCapture:
             return None
         if time.monotonic() < self._no_wait_until:
             return None                  # pictures did not come lately: do not slow the worker down
-        self._got.clear()
-        with self._lock:
+        with self._lock:                        # CR-011: cleared with the wish, never between an answer and it
+            self._got.clear()
+            self._out = None
             self._want = (int(x), int(y), int(w), int(h))
         if not self._got.wait(timeout) or self.closed:
             with self._lock:
                 self._want = None
             self._no_wait_until = time.monotonic() + STALE_PAUSE
             return None
+        with self._lock:
+            out, self._out = self._out, None    # the picture is the caller's now (no copy kept)
         if expect_size is not None and self.size != tuple(expect_size):
             return None
-        return self._out
+        return out
 
     def stop(self) -> None:
         ctrl, self._ctrl = self._ctrl, None
@@ -138,6 +147,8 @@ class WindowCapture:
             except Exception:
                 pass
         self.closed = True
+        with self._lock:
+            self._out = self._want = None
 
 
 def describe(cap: WindowCapture | None, active: bool) -> str:

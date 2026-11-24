@@ -99,8 +99,18 @@ def is_public(ip: str) -> bool:
 
 
 LPORTS_KEPT = 4             # 1.11.6: local ports listed per partner (a game server talks to one)
+PORTS_MAX = 64               # CR-017: ports counted per partner at most (the rarest half goes beyond)
 STALL_S = 0.25              # 1.11.9: nothing received from a partner for this long, then a packet = one gap
 SNAPSHOT_LIMIT = 8          # 1.11.6: partners written (5 before) – the game server may not be the busiest one
+
+
+def _bump(counts: dict, key) -> None:
+    """CR-017 (code review): one more packet on ``key`` – the port tables of a partner stay small: a partner that
+    used thousands of ports (a scan, P2P) grew them without end; past PORTS_MAX the rarest half goes."""
+    counts[key] = counts.get(key, 0) + 1
+    if len(counts) > PORTS_MAX:
+        for k in sorted(counts, key=counts.get)[:len(counts) - PORTS_MAX // 2]:
+            del counts[k]
 
 
 class FlowTable:
@@ -137,8 +147,8 @@ class FlowTable:
                 f["gaps"].append((t, t - last))
             f["last_recv"] = t
         f[way].append(t)
-        f["ports"][port] = f["ports"].get(port, 0) + 1
-        f["lports"][lport] = f["lports"].get(lport, 0) + 1
+        _bump(f["ports"], port)
+        _bump(f["lports"], lport)
 
     def snapshot(self, now: float, limit: int = SNAPSHOT_LIMIT) -> list:
         """Busiest partners first: [{"ip", "port", "lports", "pps", "sent", "recv", "gaps", "quiet"}] (sent/recv =

@@ -168,3 +168,12 @@ def test_the_anchored_line_sits_in_the_16_9_picture():
     wide = detector.anchored_separator(1600, 700, (100, 100))
     vx, vw = detector.viewport(1600, 700)
     assert wide is not None and wide.x0 == int(vx + detector.ANCHOR[0] * vw)
+
+
+def test_the_corpus_export_never_reads_through_a_linked_folder(tmp_path):
+    """CR-007: a corpus folder swapped for a junction/link is not packed."""
+    target = tmp_path / "elsewhere"
+    target.mkdir()
+    os.symlink(str(target), corpus.folder(str(tmp_path)))
+    dest = tmp_path / "k.zip"
+    assert corpus.export_zip(str(tmp_path), str(dest)) == 0 and not dest.exists()

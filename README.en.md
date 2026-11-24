@@ -422,6 +422,7 @@ The synthetic tests do not replace a real test. If a map is not detected in real
 - **"Capture is black":** set DBD to "Windowed Fullscreen". Windows HDR can also cause capture problems.
 - **A hotkey does not work:** the log reports when another program uses the combination. Choose another one under Settings → Hotkeys.
 - **The window stutters / reacts late:** right afterwards press "Copy diagnostics". At the end it lists the "window hangs": every tick or click that took or was late 30 ms or more, with time and name – that shows the cause.
+- **"Cannot restart right now" when resetting or importing the settings** (since 1.57.50): during a round, an OBS recording or while a clip is being saved the program does not restart – like an update. Click again afterwards; open editor projects are secured first.
 
 ## Rules / fair play
 

@@ -268,16 +268,31 @@ def _stored_extra(d) -> dict:
     def pair(v):
         return [str(x) for x in v[:2]] if isinstance(v, list) and len(v) >= 2 else []
 
-    def opt_int(v):
-        return int(v) if isinstance(v, (int, float)) and not isinstance(v, bool) else None
+    def opt_int(v):     # CR-009: finite, no bool
+        return int(v) if isinstance(v, (int, float)) and not isinstance(v, bool) and math.isfinite(v) \
+            and abs(v) < 1e9 else None
+
+    def num(v):
+        return float(v) if isinstance(v, (int, float)) and not isinstance(v, bool) and math.isfinite(v) else None
 
     score = d.get("score") if isinstance(d.get("score"), dict) else {}
     return dict(mode=pair(d.get("mode")), event=str(d.get("event") or ""), map_key=str(d.get("map_key") or ""),
-                duration=float(d.get("duration") or 0), perks=pairs(d.get("perks")), addons=pairs(d.get("addons")),
+                duration=min(max(num(d.get("duration")) or 0.0, 0.0), _max_round_s()),
+                perks=pairs(d.get("perks")), addons=pairs(d.get("addons")),
                 offering=pair(d.get("offering")), power=pair(d.get("power")), emblems=pairs(d.get("emblems"), 3),
-                score={str(k): float(v) for k, v in score.items() if isinstance(v, (int, float))},
+                score={str(k): num(v) for k, v in score.items() if num(v) is not None},
                 prestige=opt_int(d.get("prestige")), level=opt_int(d.get("level")),
                 killer_status=str(d.get("killer_status") or ""))
+
+
+def _plausible(t) -> bool:
+    from .history import plausible
+    return plausible(t)
+
+
+def _max_round_s() -> float:
+    from .history import MAX_SECONDS
+    return MAX_SECONDS
 
 
 def load_gaps(path: str) -> list:
@@ -291,8 +306,11 @@ def load_gaps(path: str) -> list:
                 try:
                     d = json.loads(line)
                     if isinstance(d, dict) and d.get("gap"):
-                        out.append((float(d["from"]), float(d["to"])))
-                except (ValueError, KeyError, TypeError):
+                        a, b = float(d["from"]), float(d["to"])
+                        # CR-009: dates the program can show, in order (time.localtime raised on 1e300)
+                        if _plausible(a) and _plausible(b) and a <= b:
+                            out.append((a, b))
+                except (ValueError, KeyError, TypeError, ArithmeticError):
                     continue
     except OSError:
         return []
@@ -721,6 +739,19 @@ def _next_bucket(start: float, unit: str) -> float:
     return bucket_start(d.timestamp() + 1, unit)       # a DST change shifts the clock, not the bucket
 
 
+def bucket_span(first: float, last: float, unit: str) -> list:
+    """CR-009 (code review): the starts of the newest MAX_BUCKETS buckets from ``first`` to ``last`` (both bucket
+    starts), oldest first – counted back from ``last``: walking forward from ``first`` made a round of 1970 next to
+    one of today over a million steps (the window froze) before all but the last 30 were thrown away."""
+    out = [last]
+    while len(out) < MAX_BUCKETS:
+        b = bucket_start(out[-1] - 1, unit)
+        if b < first or b >= out[-1]:
+            break
+        out.append(b)
+    return out[::-1]
+
+
 def trend(pairs, unit: str) -> list:
     """Kills and escapes over time: [(bucket start, [kills …], [escaped …])] per hour / day / week from the
     first to the last round with a known result, buckets without one included (empty lists) so the time axis
@@ -737,11 +768,7 @@ def trend(pairs, unit: str) -> list:
             g[1].append(e)
     if not groups:
         return []
-    out, b, last = [], min(groups), max(groups)
-    while b <= last:
-        out.append((b, *groups.get(b, ([], []))))
-        b = _next_bucket(b, unit)
-    return out[-MAX_BUCKETS:]
+    return [(b, *groups.get(b, ([], []))) for b in bucket_span(min(groups), max(groups), unit)]
 
 
 def results(pairs, key) -> dict:

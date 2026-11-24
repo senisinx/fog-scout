@@ -136,30 +136,23 @@ class Cache:
             self._map[cache_key(st)] = sha
             while len(self._map) > CACHE_KEPT:
                 self._map.pop(next(iter(self._map)))
-            data = json.dumps(self._map).encode("utf-8")
-        self._save_cache(data)
+            self._save_cache(json.dumps(self._map).encode("utf-8"))
 
     def forget(self, st):
         with self._lock:
             self._map.pop(cache_key(st), None)
-            data = json.dumps(self._map).encode("utf-8")
-        self._save_cache(data)
+            self._save_cache(json.dumps(self._map).encode("utf-8"))
 
     def _save_cache(self, data: bytes):
-        """The one place in project saving that replaces a file: this cache is rebuilt from the recordings at any
-        time, so a replace that loses an older version loses nothing (plan 3.7)."""
+        """The cache file (rebuilt from the recordings at any time). CR-010 (code review): written under the cache's
+        lock – two threads no longer replace each other's newer state with an older one – through write_atomic."""
         if not self.folder:
             return
-        path = os.path.join(self.folder, CACHE_FILE)
         try:
             os.makedirs(self.folder, exist_ok=True)
-            tmp = fsops.write_tmp(path, data)
+            fsops.write_atomic(os.path.join(self.folder, CACHE_FILE), data)
         except OSError:
-            return
-        try:
-            os.replace(tmp, path)
-        except OSError:
-            fsops.discard_tmp(tmp)
+            pass
 
 
 class Hasher(threading.Thread):
@@ -174,6 +167,7 @@ class Hasher(threading.Thread):
         self._cv = threading.Condition()
         self._jobs = []
         self._current = None
+        self._current_dones = None             # CR-010: the answers the running job still owes (cancel by answer)
         self._cancel = threading.Event()
         self._paused = threading.Event()
         self._stopping = False
@@ -191,11 +185,28 @@ class Hasher(threading.Thread):
                 self._jobs.append((path, [on_done], [on_progress] if on_progress else [], allow_placeholder))
             self._cv.notify()
 
-    def cancel(self, path):
+    def cancel(self, path, on_done=None):
+        """Without ``on_done``: the file's job is dropped (and stopped when it runs). CR-010 (code review): with it,
+        only that answer is withdrawn – a second window waiting for the same file keeps its job; the job ends only
+        when nobody waits for it any more."""
         with self._cv:
-            self._jobs = [j for j in self._jobs if j[0] != path]
-            if self._current == path:
-                self._cancel.set()
+            if on_done is None:
+                self._jobs = [j for j in self._jobs if j[0] != path]
+                if self._current == path:
+                    self._cancel.set()
+                return
+            kept = []
+            for p, dones, progs, allow in self._jobs:
+                if p == path:
+                    dones = [d for d in dones if d is not on_done]
+                    if not dones:
+                        continue
+                kept.append((p, dones, progs, allow))
+            self._jobs = kept
+            if self._current == path and self._current_dones is not None:
+                self._current_dones[:] = [d for d in self._current_dones if d is not on_done]
+                if not self._current_dones:
+                    self._cancel.set()
 
     def set_paused(self, on: bool):
         (self._paused.set if on else self._paused.clear)()
@@ -215,7 +226,8 @@ class Hasher(threading.Thread):
                 if self._stopping:
                     return
                 path, dones, progs, allow = self._jobs.pop(0)
-                self._current = path
+                dones = list(dones)
+                self._current, self._current_dones = path, dones
                 self._cancel.clear()
 
             def progress(*a, _progs=progs):
@@ -226,7 +238,8 @@ class Hasher(threading.Thread):
             except Exception as e:                            # never let a bad file end the thread
                 result = {"kind": "error", "error": str(e)}
             with self._cv:
-                self._current = None
+                self._current, self._current_dones = None, None
+                dones = list(dones)
             for on_done in dones:
                 try:
                     on_done(result)

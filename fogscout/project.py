@@ -279,7 +279,7 @@ def _finite(v) -> float | None:
     import math
     try:
         f = float(v)
-    except (TypeError, ValueError):
+    except (TypeError, ValueError, OverflowError):        # CR-009: 10**400
         return None
     return f if math.isfinite(f) else None
 
@@ -403,7 +403,10 @@ class Entry:
         ok = isinstance(data, dict) and data.get("format") == FORMAT
         self.ok = ok
         d = data if ok else {}
-        self.version = int(d.get("version") or 1) if ok else 0
+        try:                                              # CR-009: a broken "version" is an unreadable file,
+            self.version = int(d.get("version") or 1) if ok else 0     # not a crash of the scan (GUI thread)
+        except (TypeError, ValueError, OverflowError):
+            self.version, self.ok, ok, d = 0, False, False, {}
         self.id = str(d.get("id")) if ok and d.get("id") else None
         self.source = d.get("source") if isinstance(d.get("source"), dict) else {}
         self.saved = _finite(d.get("saved")) or 0.0

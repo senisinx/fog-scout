@@ -3,14 +3,17 @@ Clips folder and video files the user imported for the session –, with search,
 Pure (no Qt): the App lists its recordings and clips as MediaItems, the window shows them."""
 from __future__ import annotations
 
+import math
 import os
 import time
 from dataclasses import dataclass, field
 
+from . import history
 from .i18n import N_, _
 from .textnorm import fmt_duration, fold
 
 VIDEO_EXTS = (".mp4", ".mkv", ".mov", ".webm", ".flv", ".ts", ".m4v", ".avi")
+MAX_PART_S = 7 * 86400.0          # CR-009: a clip of a montage is never this long (history.MAX_SECONDS)
 KINDS = ("round", "clip", "file", "montage")      # 1.22: a montage = a project file in Clips/Montagen
 SORTS = (("new", N_("Neueste zuerst")), ("old", N_("Älteste zuerst")), ("name", N_("Name A–Z")),
          ("long", N_("Längste zuerst")), ("short", N_("Kürzeste zuerst")))
@@ -80,13 +83,17 @@ def montage_items(folder: str) -> list:
             try:
                 fx = row[3] if len(row) > 3 and isinstance(row[3], dict) else {}
                 hold = float(fx.get("hold") or 0)
-                seconds += hold if hold > 0 else max(0.0, float(row[1]) - float(row[0])) / max(0.01, float(row[2]))
-            except (TypeError, ValueError, IndexError):
+                part = hold if hold > 0 else max(0.0, float(row[1]) - float(row[0])) / max(0.01, float(row[2]))
+            except (TypeError, ValueError, IndexError, ArithmeticError, AttributeError, KeyError):
                 continue
+            if math.isfinite(part) and 0 <= part <= MAX_PART_S:      # CR-009: a broken file's Infinity is no length
+                seconds += part
         name = str(d.get("name") or n[:-len(project.EXT)].split("--")[0])
         try:
             when = float(d.get("saved") or st.st_mtime)
-        except (TypeError, ValueError):
+        except (TypeError, ValueError, ArithmeticError):
+            when = st.st_mtime
+        if not history.plausible(when):                          # CR-009: time.localtime raised on 1e300
             when = st.st_mtime
         out.append(MediaItem(path, name, "montage", when, round(seconds, 1), st.st_size, recordings=len(srcs)))
     return out

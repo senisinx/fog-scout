@@ -2552,7 +2552,8 @@ def test_a_changed_history_is_joined_in_a_thread_before_the_next_map_asks_for_it
         app._hist_close(app._hist["t"] + 300)                       # the round is written: the file changed
         where = []
         real = app._official_join
-        monkeypatch.setattr(app, "_official_join", lambda: where.append(threading.current_thread().name) or real())
+        monkeypatch.setattr(app, "_official_join",
+                            lambda snap=None: where.append(threading.current_thread().name) or real(snap))
         app._join_looked = -1e9
         app._joined_ahead_tick()
         app._join_thread.join(10)
@@ -3849,5 +3850,38 @@ def test_the_first_looks_wait_until_the_window_is_up(app_root):
             app.root.qapp.processEvents()
         assert app.worker.ui_ready.is_set()
         assert worker.UI_WAIT_S <= 10                            # never longer than a moment without a window
+    finally:
+        app.quit()
+
+
+def test_the_join_thread_works_on_copies_taken_in_the_window_thread(app_root):
+    """CR-011 (code review): the stats-join thread read the live settings and wrote the App's _off_index while the
+    window changed them; now it gets copies (_join_snapshot) and keeps its own map index."""
+    from fogscout.app import App
+    app = App(str(app_root), simulate=str(app_root / "sim"))
+    try:
+        app.settings.set("killer_aliases", {"GRIZZLY": "The Hillbilly"})
+        snap = app._join_snapshot()
+        app.settings.set("killer_aliases", {})                       # changed by the window meanwhile
+        assert snap.aliases == {"GRIZZLY": "The Hillbilly"} and snap.catalog is app.catalog
+        before = getattr(app, "_off_index", None)
+        app._official_join(snap)
+        assert getattr(app, "_off_index", None) is before            # the thread never touches the App's index
+    finally:
+        app.quit()
+
+
+def test_switching_light_and_dark_reaches_every_statistics_chart(app_root):
+    """CR-018 (code review): only two charts followed the switch – the bloodpoints, waiting and prestige charts and
+    the heatmaps stayed in the old colours."""
+    from fogscout.app import App
+    app = App(str(app_root), simulate=str(app_root / "sim"))
+    try:
+        for dark in (False, True):
+            app.dark_var.set(dark)
+            app._dark_changed()
+            for name in ("bp_trend", "wait_trend", "prestige_trend", "stats_heat_k", "stats_heat_s"):
+                chart = getattr(app, name, None)
+                assert chart is None or chart.dark == dark, name
     finally:
         app.quit()

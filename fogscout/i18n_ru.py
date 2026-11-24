@@ -3008,6 +3008,8 @@ T = {
         'Неверный ответ WebSocket',
     'Unerwartete Begrüssung von OBS':
         'Неожиданное приветствие от OBS',
+    'Unerwartete Antwort von OBS':
+        'Неожиданный ответ от OBS',
     'OBS verlangt ein Passwort (OBS: Werkzeuge → WebSocket-Servereinstellungen)':
         'OBS требует пароль (OBS: Сервис → Настройки сервера WebSocket)',
     'OBS hat die Anmeldung abgelehnt – Passwort falsch?':
@@ -3730,8 +3732,8 @@ T = {
         'YouTube: не загружено — {file}: {why}',
     'YouTube: in die Warteschlange – {file}':
         'YouTube: в очереди — {file}',
-    'YouTube-Link kopiert: {url}':
-        'Ссылка YouTube скопирована: {url}',
+    'YouTube-Link kopiert.':
+        'Ссылка YouTube скопирована.',
     'Clip: {what}':
         'Клип: {what}',
     'Dauer {d}':
@@ -6153,4 +6155,6 @@ T = {
         'Информация показана в оверлее.',
     'Infos im Overlay ausgeblendet.':
         'Информация скрыта в оверлее.',
+    'Neustart gerade nicht möglich: eine Runde läuft, OBS nimmt auf oder ein Clip wird gespeichert. Danach noch einmal versuchen.':
+        'Перезапуск сейчас невозможен: идёт раунд, OBS ведёт запись или сохраняется клип. Попробуйте позже.',
 }

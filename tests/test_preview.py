@@ -327,3 +327,16 @@ def test_the_preview_draws_the_cards_of_one_bar_at_one_width():
         for i, a in enumerate(names):
             for b in names[i + 1:]:
                 assert not layout.boxes_overlap(boxes[a], boxes[b]), (merged, a, b, boxes[a], boxes[b])
+
+
+def test_a_cache_key_holds_its_picture_so_its_id_is_never_reused():
+    """CR-017 (code review): id(picture) in a cache key – a freed picture handed its id to the next one and the old
+    drawing came back. overlay_render.Same compares by identity and keeps the picture while the key lives."""
+    from PIL import Image
+    from fogscout.overlay_render import Same
+    a = Image.new("RGB", (2, 2))
+    key = Same(a)
+    del a
+    b = Image.new("RGB", (2, 2))
+    assert Same(b) != key and key.obj is not b and Same(b) == Same(b) and hash(Same(b)) == id(b)
+    assert Same(None) == Same(None)

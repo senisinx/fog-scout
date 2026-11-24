@@ -29,7 +29,7 @@ import numpy as np
 
 from .i18n import N_
 from .ocr import LexiconScorer, Recognizer, best_path_logp
-from .textnorm import MAIN, MODEL_FILES
+from .textnorm import MAIN, MODEL_FILES, name_chars
 
 # Part of the game frame that is captured for detection (fractions of w/h). 1.49.2: right edge 0.64 → 0.80 – the
 # game does not wrap long names (user's Russian RPD East Wing ran past 0.64 of 3440; on 16:9 it ends near 0.71).
@@ -681,10 +681,6 @@ MIN_NAME_CHARS = 3   # a frame whose name reads as (almost) nothing is no eviden
                      # at -8.1 (> fit_ok) on a line in the lobby (user diagnosis 1.45.0)
 
 
-def name_chars(text: str) -> int:
-    """Letters and digits of a read name for MIN_NAME_CHARS – a Chinese, Japanese or Korean sign counts as two
-    (1.49: maps there have names of two signs, "血屋")."""
-    return sum((2 if ord(c) >= 0x2E80 else 1) for c in text if c.isalnum())
 
 
 @dataclass

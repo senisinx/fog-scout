@@ -24,7 +24,7 @@ from .hotkeys import pretty
 from .overlay import load_frames
 from .overlay_win32 import make_overlay
 from .roundtimer import RoundTimer
-from .textnorm import fmt_duration, fold, roman
+from .textnorm import fmt_duration, fold_any, name_chars, roman
 from .worker import DetectionWorker
 from .app_server import ServerTab
 from .app_stats import StatsTab
@@ -1269,7 +1269,7 @@ class App(ServerTab, StatsTab, ExportDialog, RecordingsTab, DiscordPresence, Spo
             txt = d.get("name_text") or "?"
             self._log(_("Banner gesehen, aber keine bekannte Map: „{text}“. Map manuell wählen "
                         "oder mit „Zuordnen …“ dauerhaft zuordnen.", text=txt), "Erkennung")
-            if len(fold(txt)) >= self.catalog.MIN_ALIAS:
+            if name_chars(fold_any(txt)) >= self.catalog.MIN_ALIAS:     # CR-006: a banner in any script
                 self._unknown = (txt, d.get("realm_text") or "")
         elif k == "queue":
             self._queue_event(d)
@@ -1921,11 +1921,18 @@ class App(ServerTab, StatsTab, ExportDialog, RecordingsTab, DiscordPresence, Spo
             self.srv_tree.tag_configure(tag, foreground=colors[key])
         self.srv_tree.tag_configure("p_mid", foreground=STATE[dark]["warn"])          # 1.22.3: the theme's
         self.srv_tree.tag_configure("group", foreground=colors["text"])
-        for chart in (getattr(self, "trend", None), getattr(self, "sys_trend", None)):
+        # CR-018 (code review): every chart and heatmap of the statistics, not only two of them
+        for name in ("trend", "sys_trend", "bp_trend", "wait_trend", "prestige_trend", "stats_dash", "stats_heat_k",
+                     "stats_heat_s"):
+            chart = getattr(self, name, None)
             if chart is not None:
                 chart.dark = dark
-        if getattr(self, "stats_dash", None) is not None:
-            self.stats_dash.dark = dark
+        q = getattr(self, "qt", None)
+        host = q.host(str(self.shot_host)) if q is not None and hasattr(self, "shot_host") else None
+        gallery = getattr(host, "content", None) if host is not None else None
+        if gallery is not None and hasattr(gallery, "dark"):              # the screenshots' gallery (qt_gallery)
+            gallery.dark = dark
+            gallery.viewport().update()
         self._qt_theme()
 
     def _dark_changed(self):
@@ -1949,12 +1956,12 @@ class App(ServerTab, StatsTab, ExportDialog, RecordingsTab, DiscordPresence, Spo
 
     def _log_lines(self):
         """The log lines the window shows: the categories ticked, and (1.2.19) only lines with the search text."""
-        needle = fold(self.log_search_var.get().strip())
+        needle = fold_any(self.log_search_var.get().strip())      # CR-006: a search in any script
         if needle != self._log_search_last:                # a new search: the window draws everything anew
             self._log_search_last = needle
             self.log_text._dbdms_rev = getattr(self.log_text, "_dbdms_rev", 0) + 1
         lines = [e for e in self._log_entries if self.cat_vars[e[1]].get()
-                 and (not needle or needle in fold(e[2]))]
+                 and (not needle or needle in fold_any(e[2]))]
         return lines[-400:], bool(self.settings.get("dark_mode", True))
 
     def _log_filter_changed(self):
@@ -2029,7 +2036,10 @@ class App(ServerTab, StatsTab, ExportDialog, RecordingsTab, DiscordPresence, Spo
                 steps.append(self.overlay.destroy)
             if self.hud is not None:
                 steps.append(self.hud.destroy)
-            steps += [w.destroy for w in wins] + [g.destroy for g in getattr(self, "_guides", ())]
+            # CR-018 (code review): the limit and snap lines too – they stayed as windows until the process ended
+            steps += [w.destroy for w in wins] + [g.destroy for g in (*getattr(self, "_guides", ()),
+                                                                      *(getattr(self, "_limit_guides", None) or ()),
+                                                                      *(getattr(self, "_snap_guides", None) or ()))]
             steps.append(self.toast.close)
             for step in steps:
                 try:

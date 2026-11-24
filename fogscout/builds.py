@@ -362,11 +362,8 @@ def prestige_series(matches, character: str, unit: str) -> list:
                 last[b] = m
     if not last:
         return []
-    out, b, end = [], min(last), max(last)
-    while b <= end:
-        out.append((b, (last[b].prestige, last[b].level) if b in last else None))
-        b = official._next_bucket(b, unit)
-    return out[-official.MAX_BUCKETS:]
+    return [(b, (last[b].prestige, last[b].level) if b in last else None)       # CR-009: counted back
+            for b in official.bucket_span(min(last), max(last), unit)]
 
 
 # ------------------------------------------------------------------ 1.38.50: milestones, pace, overview

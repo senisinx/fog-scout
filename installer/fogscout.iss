@@ -68,9 +68,13 @@ Source: "..\dist\FogScout\*"; DestDir: "{app}"; Flags: ignoreversion recursesubd
 [Run]
 Filename: "{app}\FogScout.exe"; Parameters: "--install-tasks"; WorkingDir: "{app}"; Flags: runhidden waituntilterminated; StatusMsg: "Fog Scout: Aufgabenplanung und Verknüpfungen …"
 ; started through its task: elevated without a second Windows prompt, like every later start
-Filename: "{sys}\schtasks.exe"; Parameters: "/run /tn ""Fog Scout"""; Flags: runhidden nowait postinstall skipifsilent; Description: "{cm:LaunchProgram,Fog Scout}"
+Filename: "{sys}\schtasks.exe"; Parameters: "/run /tn ""Fog Scout"""; Flags: runhidden nowait postinstall skipifsilent; Description: "{cm:LaunchProgram,Fog Scout}"; Check: TaskExists
+; CR-015 (code review, H-4): installed with another administrator's account (UAC) there is no task (autostart only
+; makes the shortcut for all users) - schtasks failed silently; the program is started as the signed-in user then
+Filename: "{app}\FogScout.exe"; WorkingDir: "{app}"; Flags: nowait postinstall skipifsilent runasoriginaluser; Description: "{cm:LaunchProgram,Fog Scout}"; Check: NoTask
 ; 1.33: an update from the program (/update=1, relupdate.install_args) runs silently – start Fog Scout again
-Filename: "{sys}\schtasks.exe"; Parameters: "/run /tn ""Fog Scout"""; Flags: runhidden nowait; Check: IsUpdate
+Filename: "{sys}\schtasks.exe"; Parameters: "/run /tn ""Fog Scout"""; Flags: runhidden nowait; Check: IsUpdateWithTask
+Filename: "{app}\FogScout.exe"; WorkingDir: "{app}"; Flags: nowait runasoriginaluser; Check: IsUpdateNoTask
 
 [UninstallRun]
 Filename: "{app}\FogScout.exe"; Parameters: "--remove-tasks"; WorkingDir: "{app}"; Flags: runhidden waituntilterminated; RunOnceId: "RemoveTasks"
@@ -92,6 +96,31 @@ var
 function IsUpdate: Boolean;
 begin
   Result := ExpandConstant('{param:update|0}') = '1';
+end;
+
+{ CR-015 (code review, H-4): the task "Fog Scout" is there (made by --install-tasks for the signed-in user; not
+  when another administrator's account installed) }
+function TaskExists: Boolean;
+var
+  Code: Integer;
+begin
+  Result := Exec(ExpandConstant('{sys}\schtasks.exe'), '/query /tn "Fog Scout"', '', SW_HIDE,
+                 ewWaitUntilTerminated, Code) and (Code = 0);
+end;
+
+function NoTask: Boolean;
+begin
+  Result := not TaskExists;
+end;
+
+function IsUpdateWithTask: Boolean;
+begin
+  Result := IsUpdate and TaskExists;
+end;
+
+function IsUpdateNoTask: Boolean;
+begin
+  Result := IsUpdate and (not TaskExists);
 end;
 
 { 1.33.2: wait for Fog Scout to end - an update from the program quits it right after starting this setup; by hand
@@ -149,7 +178,13 @@ var
   Code: Integer;
 begin
   if IsUpdate and (not Installed) then
-    Exec(ExpandConstant('{sys}\schtasks.exe'), '/run /tn "Fog Scout"', '', SW_HIDE, ewNoWait, Code);
+  begin
+    if TaskExists then
+      Exec(ExpandConstant('{sys}\schtasks.exe'), '/run /tn "Fog Scout"', '', SW_HIDE, ewNoWait, Code)
+    else
+      ExecAsOriginalUser(ExpandConstant('{app}\FogScout.exe'), '', ExpandConstant('{app}'), SW_SHOWNORMAL,
+                         ewNoWait, Code);
+  end;
 end;
 
 [CustomMessages]

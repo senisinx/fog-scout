@@ -11,7 +11,6 @@ from __future__ import annotations
 
 import os
 import re
-import shutil
 
 import numpy as np
 from PIL import Image, ImageDraw, ImageFont
@@ -84,20 +83,33 @@ def target_path(root: str, rel_stem: str, animated: bool) -> str:
 
 def save(src: str, dest: str, remove_bg: bool = True, title: str = "") -> str:
     """Convert ``src`` and write it to ``dest`` (older own pictures of the same map are replaced)."""
+    import io
+    from . import fsops
     os.makedirs(os.path.dirname(dest), exist_ok=True)
     stem = os.path.splitext(dest)[0]
-    for ext in (".webp", ".gif", ".png"):
-        if os.path.exists(stem + ext) and stem + ext != dest:
-            os.remove(stem + ext)
+    # CR-017 (code review): the new picture first – read and converted completely, then written in one step; only
+    # then the older variants go (a broken picture deleted the working one and wrote nothing)
     if dest.lower().endswith(".gif"):
-        shutil.copyfile(src, dest)
+        with open(src, "rb") as fh:
+            data = fh.read()
+        try:
+            with Image.open(io.BytesIO(data)) as im:                   # a GIF PIL cannot read is not taken
+                im.verify()
+        except Image.DecompressionBombError as e:
+            raise ValueError(str(e)) from e
     else:
         try:
             im = Image.open(src)
         except Image.DecompressionBombError as e:       # 1.38.57 (security review): the callers' normal error
             raise ValueError(str(e)) from e
+        buf = io.BytesIO()
         with im:
-            convert(im, remove_bg, title=title).save(dest, "WEBP", quality=90, method=4)
+            convert(im, remove_bg, title=title).save(buf, "WEBP", quality=90, method=4)
+        data = buf.getvalue()
+    fsops.write_atomic(dest, data)
+    for ext in (".webp", ".gif", ".png"):
+        if os.path.exists(stem + ext) and stem + ext != dest:
+            os.remove(stem + ext)
     return dest
 
 
