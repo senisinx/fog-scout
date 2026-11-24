@@ -19,6 +19,8 @@ FILE = "rounds.jsonl"
 # outside (NaN, Infinity, 1e300 from a restored backup) made every render raise. Lines outside are skipped as broken.
 LATEST_T = 4102444800.0          # 2100-01-01 – far beyond any round, inside what time.localtime takes everywhere
 MAX_SECONDS = 7 * 86400.0        # a round (or a match on the page) is never this long
+MAX_PING = 60000.0               # CR-009: a stored ping (ms) beyond a minute is broken, not slow
+MAX_STALLS = 1_000_000           # CR-009: stalls of one round (a count)
 
 
 def plausible(t, seconds=0.0) -> bool:
@@ -260,7 +262,7 @@ def _lost_lines(path: str, stored: dict | None = None) -> list:
                         d["t"] = float(d["t"])
                         if plausible(d["t"]):          # red-team RS-001: a lost round of a restored backup too
                             out.append(d)
-                except (ValueError, KeyError, TypeError):
+                except (ValueError, KeyError, TypeError, ArithmeticError):     # CR-009: also 10**400
                     continue
     except OSError:
         return []
@@ -277,14 +279,13 @@ def load_lost_rounds(path: str) -> list:
     lines from before 1.35 only know time and map label (``map_id`` = "")."""
     out = []
     for d in _lost_lines(path):
-        wait, ping = d.get("wait"), d.get("ping")
         out.append(Round(t=d["t"], seconds=0.0, map_id=str(d.get("map_id") or ""),
                          map=str(d.get("map") or d.get("map_id") or ""), region=str(d.get("region") or ""),
                          source=str(d.get("source") or ""),
-                         wait=float(wait) if isinstance(wait, (int, float)) and wait >= 0 else None,
+                         wait=_num(d.get("wait"), 0.0, MAX_SECONDS),         # CR-009: finite, no bool, no 1e308
                          role=str(d.get("role") or "") if d.get("role") in ROLES else "",
                          custom=bool(d.get("custom")), farming=bool(d.get("farming")),
-                         ping=float(ping) if isinstance(ping, (int, float)) and ping >= 0 else None,
+                         ping=_num(d.get("ping"), 0.0, MAX_PING),
                          killer=str(d.get("killer") or ""), sys=_sys(d.get("sys")), **_stalls(d), **_extra(d)))
     return out
 
@@ -310,9 +311,9 @@ def _extra(d: dict) -> dict:
 def _stalls(d: dict) -> dict:
     """1.11.9: stalls / stall_max of a stored line, None when missing or not numbers."""
     n, m = d.get("stalls"), d.get("stall_max")
-    ok = isinstance(n, int) and not isinstance(n, bool) and n >= 0
+    ok = isinstance(n, int) and not isinstance(n, bool) and 0 <= n <= MAX_STALLS
     return {"stalls": n if ok else None,
-            "stall_max": float(m) if ok and isinstance(m, (int, float)) and not isinstance(m, bool) and m >= 0 else None}
+            "stall_max": _num(m, 0.0, MAX_SECONDS) if ok else None}           # CR-009: finite
 
 
 def _round_line(line: str):
@@ -320,17 +321,16 @@ def _round_line(line: str):
     d = json.loads(line)
     if not isinstance(d, dict) or d.get("lost"):
         return None
-    wait = d.get("wait")
     t, seconds = float(d["t"]), float(d["seconds"])
     if not plausible(t, seconds):     # 1.46.4: json reads NaN/Infinity; red-team RS-001: and 1e300 is finite
         raise ValueError("start or length is not a date the program can show")
     return Round(t=t, seconds=seconds, map_id=str(d["map_id"]),
                  map=str(d.get("map") or d["map_id"]), region=str(d.get("region") or ""),
                  source=str(d.get("source") or ""),
-                 wait=float(wait) if isinstance(wait, (int, float)) and wait >= 0 else None,
+                 wait=_num(d.get("wait"), 0.0, MAX_SECONDS),                 # CR-009: finite, no bool
                  role=str(d.get("role") or "") if d.get("role") in ROLES else "",
                  custom=bool(d.get("custom")), farming=bool(d.get("farming")),
-                 ping=float(d["ping"]) if isinstance(d.get("ping"), (int, float)) and d["ping"] >= 0 else None,
+                 ping=_num(d.get("ping"), 0.0, MAX_PING),
                  killer=str(d.get("killer") or ""), sys=_sys(d.get("sys")), **_stalls(d),
                  balance=_balance(d.get("balance")), **_extra(d))
 
@@ -353,7 +353,11 @@ def _sys(d):
     """System values of a round as stored: only numbers, None without any."""
     if not isinstance(d, dict):
         return None
-    out = {str(k): float(v) for k, v in d.items() if isinstance(v, (int, float)) and not isinstance(v, bool)}
+    out = {}
+    for k, v in d.items():
+        v = _num(v, -1e15, 1e15)                                  # CR-009: finite numbers only
+        if v is not None:
+            out[str(k)] = v
     return out or None
 
 
@@ -833,7 +837,7 @@ def sys_trend(rounds, unit: str) -> list:
     """GPU temperature over time: [(bucket start, [round averages], [round maxima], [hot spot maxima])] per
     hour / day / week, empty buckets included (honest time axis), the newest MAX_BUCKETS. A slow rise over
     weeks points at dust, thermal paste or a fan."""
-    from .official import MAX_BUCKETS, _next_bucket, bucket_start
+    from .official import bucket_span, bucket_start
     groups = {}
     for r in rounds:
         if r.sys and "gpu_temp" in r.sys:
@@ -844,8 +848,4 @@ def sys_trend(rounds, unit: str) -> list:
                 g[2].append(r.sys["gpu_hot_max"])
     if not groups:
         return []
-    out, b, last = [], min(groups), max(groups)
-    while b <= last:
-        out.append((b, *groups.get(b, ([], [], []))))
-        b = _next_bucket(b, unit)
-    return out[-MAX_BUCKETS:]
+    return [(b, *groups.get(b, ([], [], []))) for b in bucket_span(min(groups), max(groups), unit)]   # CR-009

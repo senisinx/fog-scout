@@ -70,12 +70,27 @@ def adopt_old_file(folder: str, old: str, new: str) -> bool:
     return False
 
 
+def _finite_num(x) -> bool:
+    """CR-009: an int/float a float holds and that is finite (10**400 raised OverflowError in float())."""
+    try:
+        f = float(x)
+    except OverflowError:
+        return False
+    return f == f and abs(f) <= 1e15
+
+
 def _kind_value(kind, v):
     """1.38.57 (security review): one field of an index line as the kind its default has – None when it cannot be."""
     if isinstance(kind, bool):
         return v if isinstance(v, bool) else None
     if isinstance(kind, (int, float)):
-        if isinstance(v, bool) or not isinstance(v, (int, float)) or v != v or v in (float("inf"), float("-inf")):
+        if isinstance(v, bool) or not isinstance(v, (int, float)):
+            return None
+        try:                                          # CR-009: 10**400 is an int no float holds
+            f = float(v)
+        except OverflowError:
+            return None
+        if f != f or abs(f) == float("inf") or abs(f) > 1e15:
             return None
         return type(kind)(v)
     if isinstance(kind, str):
@@ -86,7 +101,7 @@ def _kind_value(kind, v):
         if not isinstance(v, list):
             return None
         return [float(x) for x in v if isinstance(x, (int, float)) and not isinstance(x, bool)
-                and x == x and abs(x) != float("inf")]
+                and _finite_num(x)]
     return v
 
 
@@ -147,7 +162,7 @@ def load_index(folder: str) -> list[Recording]:
                     r = _entry(Recording, json.loads(line))
                     if r is not None:
                         out.append(r)
-                except (ValueError, TypeError):
+                except (ValueError, TypeError, ArithmeticError, RecursionError):
                     continue
     except OSError:
         pass
@@ -352,7 +367,7 @@ def load_clips(cdir: str) -> list[Clip]:
                     c = _entry(Clip, json.loads(line))
                     if c is not None:
                         out.append(c)
-                except (ValueError, TypeError):
+                except (ValueError, TypeError, ArithmeticError, RecursionError):
                     continue
     except OSError:
         pass

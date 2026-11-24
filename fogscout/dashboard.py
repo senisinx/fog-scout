@@ -152,11 +152,7 @@ def bp_trend(pairs, unit: str) -> list:
             groups.setdefault(official.bucket_start(r.t, unit), []).append(m.bp)
     if not groups:
         return []
-    out, b, last = [], min(groups), max(groups)
-    while b <= last:
-        out.append((b, groups.get(b, [])))
-        b = official._next_bucket(b, unit)
-    return out[-official.MAX_BUCKETS:]
+    return [(b, groups.get(b, [])) for b in official.bucket_span(min(groups), max(groups), unit)]     # CR-009
 
 
 def balance_trend(rounds, unit: str) -> list:
@@ -172,11 +168,8 @@ def balance_trend(rounds, unit: str) -> list:
             last[b] = (r.t, r.balance)
     if not last:
         return []
-    out, b, end = [], min(last), max(last)
-    while b <= end:
-        out.append((b, last[b][1] if b in last else None))
-        b = official._next_bucket(b, unit)
-    return out[-official.MAX_BUCKETS:]
+    return [(b, last[b][1] if b in last else None)                                   # CR-009
+            for b in official.bucket_span(min(last), max(last), unit)]
 
 
 def balance_tile(rounds, per_round, cap: int = bloodpoints.CAP):
@@ -420,8 +413,5 @@ def wait_trend(rounds, unit: str) -> list:
         groups.setdefault(official.bucket_start(r.t, unit), {}).setdefault(r.role, []).append(r.wait)
     if not groups:
         return []
-    out, b, last = [], min(groups), max(groups)
-    while b <= last:
-        out.append((b, {role: (history.median(w), len(w)) for role, w in groups.get(b, {}).items()}))
-        b = official._next_bucket(b, unit)
-    return out[-official.MAX_BUCKETS:]
+    return [(b, {role: (history.median(w), len(w)) for role, w in groups.get(b, {}).items()})   # CR-009
+            for b in official.bucket_span(min(groups), max(groups), unit)]
