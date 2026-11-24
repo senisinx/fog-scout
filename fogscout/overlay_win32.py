@@ -475,6 +475,8 @@ class PictureOverlay:
         self.transparent = True
         self.show_caption = True
         self.show_map = True            # off: only timer, server and ping ("nur Infos")
+        self._show_map_wanted = True    # 1.57.51: the user's choice; a map without a picture shows the info only
+        self._no_picture = False
         self.edit_label = ""            # name on the edit frame (1.64.7: "KARTE · Strg+Mausrad = Grösse")
         self.info_beside = False        # timer/server right of the map (low bar above/below the picture)
         self.show_info = True           # 1.57.49: the element "Infos" on (off: timer/server/record/note/last never drawn)
@@ -538,7 +540,14 @@ class PictureOverlay:
         """``frames``: load_frames(path, rotation) when the caller has them already (1.11.1: App.show_map decoded
         every map twice – ~80 ms of the 290 ms the window stood when a banner was detected)."""
         self._stop_anim()
-        self._frames = (frames if frames is not None else load_frames(path, rotation)) if path else []
+        # 1.57.51 (Saru: a new map has no callout picture yet – "wichtig ist, dass Timer etc. trotzdem laufen"): a
+        # map without a picture (no path, but a name) shows like "nur Infos" – an empty placeholder, no map drawn
+        self._no_picture = not path and bool(caption)
+        self.show_map = self._show_map_wanted and not self._no_picture
+        if self._no_picture:
+            self._frames = [(Image.new("RGBA", (1, 1), (0, 0, 0, 0)), 0)]
+        else:
+            self._frames = (frames if frames is not None else load_frames(path, rotation)) if path else []
         self._floor = self._view = None
         self._caption = caption
         self.realm = realm or ""
@@ -715,7 +724,8 @@ class PictureOverlay:
         return self._info_pic
 
     def set_show_map(self, on: bool):
-        self.show_map = bool(on)
+        self._show_map_wanted = bool(on)
+        self.show_map = self._show_map_wanted and not self._no_picture
         self._base_key = self._key = None
 
     def set_transparent(self, on: bool):

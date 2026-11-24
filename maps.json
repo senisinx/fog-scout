@@ -318,6 +318,22 @@
    "zh-Hant": "不眠之區",
    "ja": "眠らない界隈",
    "ko": "잠들지 않는 구역"
+  },
+  "The Subdivisions": {
+   "en": "The Subdivisions",
+   "de": "The Subdivisions",
+   "fr": "The Subdivisions",
+   "es": "The Subdivisions",
+   "es-MX": "The Subdivisions",
+   "it": "The Subdivisions",
+   "pl": "The Subdivisions",
+   "pt-BR": "The Subdivisions",
+   "tr": "The Subdivisions",
+   "ru": "The Subdivisions",
+   "zh-Hans": "The Subdivisions",
+   "zh-Hant": "The Subdivisions",
+   "ja": "The Subdivisions",
+   "ko": "The Subdivisions"
   }
  },
  "maps": [
@@ -1336,6 +1352,29 @@
    },
    "variants": {
     "1": "Sleepless District/Trickster's Delusion.webp"
+   }
+  },
+  {
+   "id": "hartshorne-mall",
+   "realm": "The Subdivisions",
+   "names": {
+    "en": "Hartshorne Mall",
+    "de": "Hartshorne Mall",
+    "fr": "Hartshorne Mall",
+    "es": "Hartshorne Mall",
+    "es-MX": "Hartshorne Mall",
+    "it": "Hartshorne Mall",
+    "pl": "Hartshorne Mall",
+    "pt-BR": "Hartshorne Mall",
+    "tr": "Hartshorne Mall",
+    "ru": "Hartshorne Mall",
+    "zh-Hans": "Hartshorne Mall",
+    "zh-Hant": "Hartshorne Mall",
+    "ja": "Hartshorne Mall",
+    "ko": "Hartshorne Mall"
+   },
+   "variants": {
+    "1": "The Subdivisions/Hartshorne Mall.webp"
    }
   }
  ]

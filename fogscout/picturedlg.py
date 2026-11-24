@@ -52,7 +52,9 @@ class PictureDialog:
         ``map_id``: known map to replace (e.g. the one on display)."""
         self.app = app
         cat = app.catalog
-        self.choices = [(m.id, v) for m in cat.sorted_entries() for v in sorted(m.variants) if m.variants[v]]
+        # 1.57.51: also a map whose picture is not supplied yet (a new map) – an own picture fills it
+        self.choices = [(m.id, v) for m in cat.sorted_entries() for v in sorted(m.variants)
+                        if m.variants[v] or m.planned.get(v)]
         self.labels = [f"{cat.maps[mid].shown_label(v)} ({cat.realm_display(cat.maps[mid])})" +
                        (" – " + _("eigenes Bild") if cat.is_own(mid, v) else "") for mid, v in self.choices]
         self.realms = sorted(cat.realms)

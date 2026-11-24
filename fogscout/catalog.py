@@ -77,6 +77,9 @@ class MapEntry:
     realm_names: dict = field(default_factory=dict)
     aliases: list = field(default_factory=list)
     custom: bool = False
+    # 1.57.51: variant -> the picture maps.json names for it, also while it is not supplied yet (a new map such as
+    # Hartshorne Mall): an own picture under that name (user_maps/) fills the variant – own_stem
+    planned: dict = field(default_factory=dict)
 
     @property
     def name(self) -> str:
@@ -157,9 +160,10 @@ class Catalog:
         used = set()
         own = {_stem_key(rel): os.path.join(self.user_dir, rel) for rel in _pictures(self.user_dir)}
         for m in data.get("maps", []):
-            variants = {}
+            variants, planned = {}, {}
             for k, v in (m.get("variants") or {"1": None}).items():
                 if v:
+                    planned[int(k)] = v
                     stem = _stem_key(v)
                     if stem in own:                   # own picture replaces the supplied one
                         used.add(stem)
@@ -173,7 +177,7 @@ class Catalog:
             entry = MapEntry(
                 id=m["id"], realm=realm, names=dict(m.get("names", {})), variants=variants,
                 realm_names=dict(self.realms.get(realm, {"en": realm})),
-                aliases=list(m.get("aliases", [])),
+                aliases=list(m.get("aliases", [])), planned=planned,
             )
             self.maps[entry.id] = entry
         # images nobody listed -> custom maps (file name = map name); an own picture with the
@@ -222,7 +226,7 @@ class Catalog:
         m = self.maps.get(map_id)
         if not m:
             return None
-        v = m.variants.get(variant) or ""
+        v = m.variants.get(variant) or m.planned.get(variant) or ""     # 1.57.51: also a picture not supplied yet
         if not v:
             return None
         if os.path.isabs(v):
