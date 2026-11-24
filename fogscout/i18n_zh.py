@@ -129,16 +129,12 @@ T = {
         '外观',
     'Grösse':
         '大小',
-    'Karte anzeigen':
-        '显示地图',
     'Karte im Overlay eingeblendet.':
         '地图显示在悬浮窗中。',
     'Karte im Overlay aus – es werden nur Timer, Ort und Ping angezeigt.':
         '悬浮窗中的地图已关闭，只显示计时器、位置和延迟。',
     'nichts anzuzeigen':
         '没有可显示的内容',
-    'Aus: Das Overlay zeigt nur Rundentimer, Serverregion und Ping – ohne Karte. Erkennung, Rundenende und Statistik laufen wie gewohnt.':
-        '关闭：悬浮窗只显示对局计时器、服务器区域和延迟，不显示地图。识别、对局结束和统计照常工作。',
     'Für diese Map zurücksetzen':
         '重置此地图',
     'eigene Grösse {n} % (Hotkeys/Strg+Mausrad)':
@@ -2529,8 +2525,6 @@ T = {
         '信息',
     'INFOS':
         '信息',
-    'Infos (Timer, Bilanz, Server)':
-        '信息（计时器、战绩、服务器）',
     'In OBS ist der Wiederholungspuffer nicht aktiviert – OBS: Einstellungen → Ausgabe → Wiederholungspuffer → „Wiederholungspuffer aktivieren“ und übernehmen. Ohne ihn gibt es keine Sofort-Clips (F8) und keinen Vorlauf.':
         'OBS 的回放缓存未启用：在 OBS 中依次打开“设置 → 输出 → 回放缓存 → 启用回放缓存”并应用。没有它就没有即时片段（F8）和预录。',
     'Wiederholungspuffer in OBS nicht aktiviert (Einstellungen → Ausgabe → Wiederholungspuffer)':
@@ -5732,8 +5726,6 @@ T = {
         '输入',
     'Eingaben im Spiel':
         '游戏中的输入',
-    'Eingaben im Spiel zeigen (Tasten, Maus, Gamepad)':
-        '在游戏中显示输入（按键、鼠标、手柄）',
     'Gamepad':
         '手柄',
     'Gerät':
@@ -5750,8 +5742,6 @@ T = {
         'Fog Scout 只显示以下按键中当前按住了哪些：W、A、S、D、Q、E、R、Space、Shift、Ctrl、鼠标按键和手柄（按键、扳机、摇杆）。只在对局中且 DBD 为活动窗口时读取，Fog Scout 绝不会看到你在其他程序中的输入。这些内容不会写入日志或发送出去，也不会传给游戏；开启“随录像保存输入”后，一局的按键会作为文件保存在其 OBS 录像旁边（供片段编辑器使用）。Behaviour 并未正式批准此类显示；它们在游戏中不提供任何优势。',
     'Gelesen werden nur W, A, S, D, Q, E, R, Leertaste, Shift, Strg, die Maustasten und ein Gamepad – nur während einer Runde und nur, solange DBD vorne ist. Gesendet wird nichts; gespeichert nur mit dem Häkchen oben, als Datei neben der eigenen Aufnahme.':
         '只读取 W、A、S、D、Q、E、R、Space、Shift、Ctrl、鼠标按键和手柄，只在对局中且 DBD 处于前台时读取。不发送任何内容；只有勾选上方的框时才会保存，作为文件放在你自己的录像旁边。',
-    'Eine Karte im Spiel zeigt, welche Tasten, Maustasten oder Gamepad-Knöpfe du gerade drückst – wie bei Streamern. Gelesen wird nur eine feste Liste von Tasten, nur während einer Runde und nur, solange DBD vorne ist; gesendet wird nichts, gespeichert nur mit „Eingaben mit der Aufnahme speichern“.':
-        '游戏中的一张卡片会显示你当前按下了哪些按键、鼠标按键或手柄按键，就像主播那样。只读取一份固定的按键列表，只在对局中且 DBD 处于前台时读取；不发送任何内容，只有开启“随录像保存输入”时才会保存。',
     'Mit OBS-Aufnahmen: die gedrückten Tasten der Runde kommen als kleine Datei neben die Aufnahme – der Clip-Editor zeigt sie als Spur und kann die Karte ins Video einbrennen. Die Datei wird mit der Aufnahme verschoben und gelöscht.':
         '使用 OBS 录像时：对局中按住的按键会保存到录像旁边的一个小文件中，片段编辑器会将其显示为一条轨道，并可将卡片烧录到视频中。该文件会随录像一起移动和删除。',
     'Aus der Datei neben der Aufnahme (Overlay › Eingaben › „Eingaben mit der Aufnahme speichern“). Clips aus F8 haben keine.':
@@ -5828,8 +5818,6 @@ T = {
         '当前地图的标注地图',
     'Die Linien in der Vorschau mit „Anordnen“ ziehen – Karte, Systemwerte, Heute und Musik bleiben im Balken dazwischen.':
         '使用“排列”在预览中拖动这些线，地图、系统数值、今日和音乐会保持在黑边中两线之间。',
-    'Ein- oder ausblenden':
-        '显示或隐藏',
     'Elemente':
         '元素',
     'Entsperren: wieder verschiebbar':
@@ -6122,8 +6110,6 @@ T = {
         '作为幸存者时，Dead by Daylight 的暂停菜单（Esc）会显示其他幸存者携带的配置。Fog Scout 只在菜单打开时从画面读取（每局看几眼），之后在每位队友旁以菱形显示技能——可选在旁边显示道具和配件。作为杀手时菜单只显示幸存者的祭品——随后显示在他们旁边。不保存、不发送任何东西；只为区分外观相同的幸存者才读取玩家名字，且只在内存中。按一次 Esc 即可。',
     'Im Match einmal Esc drücken – Fog Scout liest die Loadouts der anderen Survivor (als Killer ihre Opfergaben) aus dem Bild des Menüs und zeigt sie danach neben ihnen. Nichts wird gespeichert oder gesendet.':
         '比赛中按一次 Esc——Fog Scout 从菜单画面读取其他幸存者的配置（作为杀手时读取他们的祭品），之后显示在他们旁边。不保存也不发送任何内容。',
-    'Neben jedem anderen Survivor in der Liste links erscheinen seine vier Perks als Raute – gelesen aus dem Pausenmenü (Esc); als Killer seine Opfergabe. Nur das Bild wird gelesen, nur bei offenem Menü; nichts wird gespeichert oder gesendet.':
-        '左侧列表中每位其他幸存者旁会以菱形显示其四个技能——读取自暂停菜单（Esc）；作为杀手时显示其祭品。只读取画面，只在菜单打开时；不保存也不发送任何内容。',
     'Opfergabe, Item und Add-ons neben den Perks':
         '在技能旁显示祭品、道具和配件',
     'LOADOUTS':
@@ -6136,8 +6122,6 @@ T = {
         '已从菜单读取队友配置（{n} 个技能）。',
     'Opfergaben der Survivor aus dem Menü gelesen ({n}).':
         '已从菜单读取幸存者祭品（{n} 个）。',
-    'Loadouts der Mitspieler zeigen (Perks aus dem Menü)':
-        '显示队友配置（来自菜单的技能）',
     'Neben der Survivor-Liste':
         '幸存者列表旁',
     'Perks der Mitspieler':
@@ -6158,4 +6142,15 @@ T = {
     # 1.57.4: offerings
     'Die Opfergabe (eine verdeckte als „?“), das Item und seine zwei Add-ons als kleine Felder neben den Perks.':
         '祭品（隐藏的显示为“?”）、道具及其两个配件以小格子显示在技能旁。',
+    # 1.57.49: on / off switches of the overlay elements
+    'Ein oder aus':
+        '开启或关闭',
+    'Ein – zum Ausschalten klicken':
+        '已开启 – 点击关闭',
+    'Aus – zum Einschalten klicken':
+        '已关闭 – 点击开启',
+    'Infos im Overlay eingeblendet.':
+        '已在叠加层中显示信息。',
+    'Infos im Overlay ausgeblendet.':
+        '已在叠加层中隐藏信息。',
 }

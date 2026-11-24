@@ -88,15 +88,10 @@ EN = {
     "Karte im schwarzen Rand halten": "Keep the map in the black bar",
     "Darstellung": "Appearance",
     "Grösse": "Size",
-    "Karte anzeigen": "Show the map",
     "Karte im Overlay eingeblendet.": "Map shown in the overlay.",
     "Karte im Overlay aus – es werden nur Timer, Ort und Ping angezeigt.":
         "Map in the overlay off – only timer, location and ping are shown.",
     "nichts anzuzeigen": "nothing to show",
-    "Aus: Das Overlay zeigt nur Rundentimer, Serverregion und Ping – ohne Karte. Erkennung, Rundenende und "
-    "Statistik laufen wie gewohnt.":
-        "Off: the overlay shows only the round timer, server region and ping – without the map. Detection, end of "
-        "round and statistics work as usual.",
     "Für diese Map zurücksetzen": "Reset for this map",
     "eigene Grösse {n} % (Hotkeys/Strg+Mausrad)": "own size {n} % (hotkeys/Ctrl+wheel)",
     "gedreht um {deg}°": "turned by {deg}°",
@@ -1999,7 +1994,6 @@ EN = {
     "Mit der Karte verbunden, oben": "Joined to the map, on top",
     "Infos": "Info",
     "INFOS": "INFO",
-    "Infos (Timer, Bilanz, Server)": "Info (timer, record, server)",
     "In OBS ist der Wiederholungspuffer nicht aktiviert – OBS: Einstellungen → Ausgabe → "
     "Wiederholungspuffer → „Wiederholungspuffer aktivieren“ und übernehmen. Ohne ihn gibt es keine "
     "Sofort-Clips (F8) und keinen Vorlauf.":
@@ -4292,7 +4286,6 @@ EN = {
     'Dunkle Fläche hinter den Eingaben': 'Dark area behind the inputs',
     'EINGABEN': 'INPUTS',
     'Eingaben im Spiel': 'Inputs in the game',
-    'Eingaben im Spiel zeigen (Tasten, Maus, Gamepad)': 'Show inputs in the game (keys, mouse, gamepad)',
     'Gamepad': 'Gamepad',
     'Gerät': 'Device',
     'Tastatur und Maus': 'Keyboard and mouse',
@@ -4301,7 +4294,6 @@ EN = {
     'Eingaben mit der Aufnahme speichern (für den Clip-Editor)': 'Save the inputs with the recording (for the clip editor)',
     'Fog Scout zeigt nur, welche dieser Tasten gerade gedrückt sind: W, A, S, D, Q, E, R, Leertaste, Shift, Strg, die Maustasten und ein Gamepad (Knöpfe, Trigger, Sticks). Gelesen wird nur während einer Runde und nur, solange DBD das aktive Fenster ist – Tippen in anderen Programmen sieht Fog Scout nie. Nichts davon wird geloggt oder gesendet, und nichts geht an das Spiel; mit „Eingaben mit der Aufnahme speichern“ liegen die Tasten einer Runde als Datei neben ihrer OBS-Aufnahme (für den Clip-Editor). Eine offizielle Freigabe von Behaviour gibt es für solche Anzeigen nicht; sie geben keinen Spielvorteil.': 'Fog Scout only shows which of these keys are held right now: W, A, S, D, Q, E, R, Space, Shift, Ctrl, the mouse buttons and a gamepad (buttons, triggers, sticks). They are read only during a round and only while DBD is the active window – Fog Scout never sees typing in other programs. Nothing of it is logged or sent, and nothing goes to the game; with "Save the inputs with the recording" a round\'s keys are kept as a file next to its OBS recording (for the clip editor). Behaviour has no official approval for such displays; they give no advantage in the game.',
     'Gelesen werden nur W, A, S, D, Q, E, R, Leertaste, Shift, Strg, die Maustasten und ein Gamepad – nur während einer Runde und nur, solange DBD vorne ist. Gesendet wird nichts; gespeichert nur mit dem Häkchen oben, als Datei neben der eigenen Aufnahme.': 'Only W, A, S, D, Q, E, R, Space, Shift, Ctrl, the mouse buttons and a gamepad are read – only during a round and only while DBD is in front. Nothing is sent; stored only with the box above, as a file next to your own recording.',
-    'Eine Karte im Spiel zeigt, welche Tasten, Maustasten oder Gamepad-Knöpfe du gerade drückst – wie bei Streamern. Gelesen wird nur eine feste Liste von Tasten, nur während einer Runde und nur, solange DBD vorne ist; gesendet wird nichts, gespeichert nur mit „Eingaben mit der Aufnahme speichern“.': 'A card in the game shows which keys, mouse buttons or gamepad buttons you are pressing right now – like streamers do. Only a fixed list of keys is read, only during a round and only while DBD is in front; nothing is sent, stored only with "Save the inputs with the recording".',
     'Mit OBS-Aufnahmen: die gedrückten Tasten der Runde kommen als kleine Datei neben die Aufnahme – der Clip-Editor zeigt sie als Spur und kann die Karte ins Video einbrennen. Die Datei wird mit der Aufnahme verschoben und gelöscht.': 'With OBS recordings: the keys held during the round go into a small file next to the recording – the clip editor shows them as a track and can burn the card into the video. The file is moved and deleted with the recording.',
     'Aus der Datei neben der Aufnahme (Overlay › Eingaben › „Eingaben mit der Aufnahme speichern“). Clips aus F8 haben keine.': 'From the file next to the recording (Overlay › Inputs › "Save the inputs with the recording"). F8 clips have none.',
     'Die Karte mit den gedrückten Tasten der Runde kommt ins fertige Video – an der gewählten Ecke, im Takt des Schnitts (Tempo und Rückwärts eingerechnet).': "The card with the round's held keys goes into the finished video – in the chosen corner, in time with the cut (tempo and backwards included).",
@@ -4342,7 +4334,6 @@ EN = {
     'CPU, GPU, RAM': 'CPU, GPU, RAM',
     'Callout-Karte der Map': "The map's callout map",
     'Die Linien in der Vorschau mit „Anordnen“ ziehen – Karte, Systemwerte, Heute und Musik bleiben im Balken dazwischen.': 'Drag the lines in the preview with “Arrange” – map, system values, today and music stay between them in the bar.',
-    'Ein- oder ausblenden': 'Show or hide',
     'Elemente': 'Elements',
     'Entsperren: wieder verschiebbar': 'Unlock: can be moved again',
     'Fokus': 'Focus',
@@ -4594,8 +4585,6 @@ EN = {
         "As a survivor, Dead by Daylight's pause menu (Esc) shows what the other survivors bring. Fog Scout reads this from the picture only, while the menu is open (a few looks per round), and then shows the perks as a diamond beside each teammate – item and add-ons beside them if you like. As the killer the menu shows only the survivors' offerings – those then appear beside them. Nothing is saved or sent; player names are read only to tell alike-looking survivors apart, and only in memory. Pressing Esc once briefly is enough.",
     'Im Match einmal Esc drücken – Fog Scout liest die Loadouts der anderen Survivor (als Killer ihre Opfergaben) aus dem Bild des Menüs und zeigt sie danach neben ihnen. Nichts wird gespeichert oder gesendet.':
         "Press Esc once during the match – Fog Scout reads the other survivors' loadouts (as the killer their offerings) from the menu's picture and then shows them beside them. Nothing is saved or sent.",
-    'Neben jedem anderen Survivor in der Liste links erscheinen seine vier Perks als Raute – gelesen aus dem Pausenmenü (Esc); als Killer seine Opfergabe. Nur das Bild wird gelesen, nur bei offenem Menü; nichts wird gespeichert oder gesendet.':
-        'Beside every other survivor in the list on the left, their four perks appear as a diamond – read from the pause menu (Esc); as the killer their offering. Only the picture is read, only while the menu is open; nothing is saved or sent.',
     'Opfergabe, Item und Add-ons neben den Perks':
         'Offering, item and add-ons beside the perks',
     'LOADOUTS':
@@ -4608,8 +4597,6 @@ EN = {
         "Teammates' loadouts read from the menu ({n} perks).",
     'Opfergaben der Survivor aus dem Menü gelesen ({n}).':
         "Survivors' offerings read from the menu ({n}).",
-    'Loadouts der Mitspieler zeigen (Perks aus dem Menü)':
-        "Show teammates' loadouts (perks from the menu)",
     'Neben der Survivor-Liste':
         'Beside the survivor list',
     'Perks der Mitspieler':
@@ -4630,4 +4617,15 @@ EN = {
     # 1.57.4: offerings
     'Die Opfergabe (eine verdeckte als „?“), das Item und seine zwei Add-ons als kleine Felder neben den Perks.':
         'The offering (a hidden one as “?”), the item and its two add-ons as small slots beside the perks.',
+    # 1.57.49: on / off switches of the overlay elements
+    'Ein oder aus':
+        'On or off',
+    'Ein – zum Ausschalten klicken':
+        'On – click to switch off',
+    'Aus – zum Einschalten klicken':
+        'Off – click to switch on',
+    'Infos im Overlay eingeblendet.':
+        'Info shown in the overlay.',
+    'Infos im Overlay ausgeblendet.':
+        'Info hidden in the overlay.',
 }

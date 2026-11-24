@@ -103,16 +103,10 @@ TIPS = {
         "laufenden Sitzung – laut Stats-Seite, Farming zählt nicht.",
     "Dunkle Fläche hinter „Heute“":
         "Eine halb durchsichtige dunkle Fläche mit runden Ecken hinter „Heute“.",
-    "Eingaben im Spiel zeigen (Tasten, Maus, Gamepad)":
-        "Eine Karte im Spiel zeigt, welche Tasten, Maustasten oder Gamepad-Knöpfe du gerade drückst – wie bei "
-        "Streamern. Gelesen wird nur eine feste Liste von Tasten, nur während einer Runde und nur, solange DBD vorne "
-        "ist; gesendet wird nichts, gespeichert nur mit „Eingaben mit der Aufnahme speichern“.",
     "Eingaben mit der Aufnahme speichern (für den Clip-Editor)":
         "Mit OBS-Aufnahmen: die gedrückten Tasten der Runde kommen als kleine Datei neben die Aufnahme – der "
         "Clip-Editor zeigt sie als Spur und kann die Karte ins Video einbrennen. Die Datei wird mit der Aufnahme "
         "verschoben und gelöscht.",
-    "Loadouts der Mitspieler zeigen (Perks aus dem Menü)":
-        'Neben jedem anderen Survivor in der Liste links erscheinen seine vier Perks als Raute – gelesen aus dem Pausenmenü (Esc); als Killer seine Opfergabe. Nur das Bild wird gelesen, nur bei offenem Menü; nichts wird gespeichert oder gesendet.',
     "Opfergabe, Item und Add-ons neben den Perks":
         "Die Opfergabe (eine verdeckte als „?“), das Item und seine zwei Add-ons als kleine Felder neben den Perks.",
     "Dunkle Fläche hinter den Eingaben":
@@ -451,9 +445,6 @@ TIPS = {
         "Auf breiten Monitoren bleibt die Karte im schwarzen Balken, in dem sie liegt, und wird bei Bedarf "
         "verkleinert. Mitten über dem Spiel platziert gilt keine Begrenzung. Ohne schwarze Balken neben dem "
         "Spielbild (16:9, z. B. 1920×1080) sind die Balken-Optionen ausgegraut.",
-    "Karte anzeigen": "Aus: Das Overlay zeigt nur Rundentimer, Serverregion und Ping – "
-                                                     "ohne Karte. Erkennung, Rundenende und Statistik laufen wie "
-                                                     "gewohnt.",
     "Nur zeigen, wenn DBD das aktive Fenster ist": "Karte ausblenden, solange ein anderes Fenster "
                                                    "(Browser, Discord …) im Vordergrund ist.",
     "Map-Namen über der Karte anzeigen": "Zusätzliche Namenszeile über der Karte – die meisten Kartenbilder "

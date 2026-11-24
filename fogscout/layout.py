@@ -743,7 +743,8 @@ INFO_SPOTS = ("below", "above", "custom", "inside", "inside_top")      # 1.8.34:
 
 def info_apart(o: dict) -> bool:
     """The lines are their own element (not with "nur Infos": then they are all there is)."""
-    return o.get("info_pos", "below") in ("below", "above", "custom") and bool(o.get("show_map", True))
+    return (o.get("info_pos", "below") in ("below", "above", "custom") and bool(o.get("show_map", True))
+            and bool(o.get("show_info", True)))
 
 
 def info_reserve(o: dict, size, gap: int):

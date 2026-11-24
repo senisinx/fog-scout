@@ -1479,13 +1479,15 @@ class App(ServerTab, StatsTab, ExportDialog, RecordingsTab, DiscordPresence, Spo
             m = next((e for e in self.catalog.maps.values() if self._map_file(e.id, 1, request=False)[0]), None)
         name = m.shown_label(self.current[1] if self.current else 1) if m else _("Map-Name")
         caption = name if o.get("show_caption", True) and pic is not None else ""
-        info = {"timer": "3:27" if o.get("show_timer", True) else "",
-                "server": _("Frankfurt") if o.get("show_server", True) and self.settings.get("show_connection") else "",
+        on = bool(o.get("show_info", True))               # 1.57.49: the element "Infos" switched off
+        info = {"timer": "3:27" if on and o.get("show_timer", True) else "",
+                "server": _("Frankfurt") if on and o.get("show_server", True) and self.settings.get("show_connection")
+                else "",
                 "ping": 31.0,
-                "record": _("Bilanz: Ø 2,8 Kills · 12 Runden") if o.get("show_record", False) else "",
-                "last": self._preview_last() if o.get("show_last_round", False) else (),
+                "record": _("Bilanz: Ø 2,8 Kills · 12 Runden") if on and o.get("show_record", False) else "",
+                "last": self._preview_last() if on and o.get("show_last_round", False) else (),
                 "memo": mapnotes.lines(mapnotes.get(self.settings.get(mapnotes.KEY), self.current[0]))
-                if self.current and o.get("show_notes", True) else (),          # 1.8.54: the own note
+                if on and self.current and o.get("show_notes", True) else (),   # 1.8.54: the own note
                 "name": name if pic is not None else "",             # 1.3.1: the styled card's header
                 "realm": self._realm_name(m) if m and pic is not None else ""}
         side = self.settings.get("sysinfo", "off")
@@ -1624,8 +1626,7 @@ class App(ServerTab, StatsTab, ExportDialog, RecordingsTab, DiscordPresence, Spo
         if dark is not None:
             items.append(("dark", _("Dunkle Fläche dahinter"), True, dark.instate(["selected"])))
         items += [None, ("lock", _("Sperren"), True, locked)]           # 1.46: the editor's lock
-        if name != "text":                                             # 1.46: every element (the list's eye)
-            items.append(("hide", _("Ausblenden"), self._el_shown(name)))
+        items.append(("hide", _("Ausblenden"), self._el_shown(name)))   # 1.46 / 1.57.49: the list's switch
 
         def act(ident):
             if ident == "place":

@@ -176,6 +176,9 @@ class OverlayTab:
 
         look = self._reg("ov.look", ui.LabelFrame(f, text=_("Darstellung"), padding=8))
         look.pack(fill="x", pady=(8, 0))
+        # 1.57.49 (user: "Map und Info teilen sich die Einstellungen, sind aber getrennte Objekte"): a tab of their own
+        info = self._reg("ov.info_f", ui.LabelFrame(f, text=_("Infos"), padding=8))
+        info.pack(fill="x", pady=(8, 0))
         self.size_var = ui.DoubleVar(value=o["height"] * 100)
         self.size_label = self._slider(look, _("Grösse"), self.size_var, *MAP_SCALE, self._size_changed, key="ov.size")
         self.map_size_row = ui.Frame(look)
@@ -194,9 +197,9 @@ class OverlayTab:
                                                       values=[_(t) for _k, t in MAP_STYLES]))
         mscb.pack(side="left", padx=6)
         mscb.bind("<<ComboboxSelected>>", lambda e: self._map_style_changed())
-        ir = ui.Frame(look)
+        ir = ui.Frame(info)
         ir.pack(fill="x", pady=(4, 0))
-        self._reg("ov.info_pos.label", ui.Label(ir, text=_("Infos"), width=12)).pack(side="left")
+        self._reg("ov.info_pos.label", ui.Label(ir, text=_("Position"), width=12)).pack(side="left")
         spots = dict(INFO_SPOTS)
         self.info_pos_var = ui.StringVar(value=_(spots.get(o.get("info_pos", "below"), spots["below"])))
         icb = self._reg("ov.info_pos", ui.Combobox(ir, textvariable=self.info_pos_var, state="readonly", width=38,
@@ -226,8 +229,8 @@ class OverlayTab:
         self._reg("ov.fill_bar", ui.Checkbutton(
             pos, text=_("Karte füllt den Balken aus"),
             variable=self.fill_bar_var, command=self._overlay_flags_changed)).pack(anchor="w", pady=(2, 0))
-        for key, text, var in (("show_map", N_("Karte anzeigen"), self.show_map_var),
-                               ("focus", N_("Nur zeigen, wenn DBD das aktive Fenster ist"), self.focus_var),
+        # 1.57.49: "Karte anzeigen" is the switch in the editor's list (show_map_var stays its model)
+        for key, text, var in (("focus", N_("Nur zeigen, wenn DBD das aktive Fenster ist"), self.focus_var),
                                ("caption", N_("Map-Namen über der Karte anzeigen"), self.caption_var),
                                ("timer", N_("Rundentimer unter der Karte anzeigen"), self.timer_show_var),
                                ("server", N_("Verbundenen Server unter der Karte"),
@@ -239,7 +242,8 @@ class OverlayTab:
                                ("last_round", N_("Zuletzt auf dieser Map (Datum, Ergebnis)"), self.last_round_var),
                                ("notes", N_("Eigene Notiz unter dem Timer"), self.notes_var),
                                ("transparent", N_("Transparenter Rand um die Karte"), self.transp_var)):
-            self._reg(f"ov.{key}", ui.Checkbutton(look, text=_(text), variable=var,
+            self._reg(f"ov.{key}", ui.Checkbutton(info if key in ("timer", "server", "record", "last_round", "notes")
+                                                   else look, text=_(text), variable=var,
                                                    command=self._overlay_flags_changed)).pack(anchor="w", pady=1)
         self.fade_var = ui.BooleanVar(value=o.get("fade", True))
         self._reg("ov.fade", ui.Checkbutton(look, text=_("Weich ein- und ausblenden"),
@@ -389,9 +393,7 @@ class OverlayTab:
         inf = self._reg("ov.inputs_f", ui.LabelFrame(f, text=_("Eingaben"), padding=8))
         inf.pack(fill="x", pady=(8, 0))
         self.inputs_on_var = ui.BooleanVar(value=bool(o.get("show_inputs", False)))
-        self._reg("ov.inputs", ui.Checkbutton(inf, text=_("Eingaben im Spiel zeigen (Tasten, Maus, Gamepad)"),
-                                              variable=self.inputs_on_var, command=self._inputs_on_changed)
-                  ).pack(anchor="w", pady=(2, 0))
+        # 1.57.49: switched on / off in the editor's list (inputs_on_var stays its model)
         lr = ui.Frame(inf)
         lr.pack(fill="x", pady=(4, 0))
         self._reg("ov.inputs_layout.label", ui.Label(lr, text=_("Gerät"), width=12)).pack(side="left")
@@ -433,9 +435,7 @@ class OverlayTab:
         lf = self._reg("ov.loadouts_f", ui.LabelFrame(f, text=_("Loadouts"), padding=8))
         lf.pack(fill="x", pady=(8, 0))
         self.loadouts_on_var = ui.BooleanVar(value=bool(o.get("show_loadouts", False)))
-        self._reg("ov.loadouts", ui.Checkbutton(lf, text=_("Loadouts der Mitspieler zeigen (Perks aus dem Menü)"),
-                                                variable=self.loadouts_on_var, command=self._loadouts_on_changed)
-                  ).pack(anchor="w", pady=(2, 0))
+        # 1.57.49: switched on / off in the editor's list (loadouts_on_var stays its model)
         pr = ui.Frame(lf)
         pr.pack(fill="x", pady=(4, 0))
         self._reg("ov.loadouts_pos.label", ui.Label(pr, text=_("Position"), width=12)).pack(side="left")
@@ -589,6 +589,7 @@ class OverlayTab:
         self.overlay.set_transparent(o.get("transparent", True))
         self.overlay.set_backdrop(o.get("map_backdrop", False))
         self.overlay.set_show_map(o.get("show_map", True))
+        self.overlay.set_show_info(o.get("show_info", True))
 
     def _pos_hint(self):
         """1.66.3 (user: the sliders at 1 % with "automatisch" looked dead): the sliders only for "eigene Position";
