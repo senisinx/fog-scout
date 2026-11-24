@@ -58,6 +58,7 @@ DEFAULTS = {
         "show_notes": True,             # 1.8.54: own note on the map below the timer (mapnotes)
         "show_last_round": False,       # "Zuletzt hier": date (+ official result) of the own last round on the map
         "show_map": True,               # off: overlay shows only timer, server and ping
+        "show_info": True,              # 1.9.x: the element "Infos" (timer, server, record, last round, note) on/off
         "show_media": True,             # "Läuft gerade": music of the Windows media controls (1.64)
         "media_pos": "bottom_right",    # its own window: below / bottom_right / bottom_left / custom (1.64.7)
         "media_xy": [1.0, 1.0],         # custom: share of the free room in the DBD window (dragged in edit mode)

@@ -264,7 +264,7 @@ class LayoutMemory:
         if name == "map":
             return bool(o.get("show_map", True))
         if name == "text":
-            return layout.info_apart(o)
+            return bool(o.get("show_info", True))            # 1.57.49: its own switch (was: drawn apart)
         if name == "hud":
             return self.settings.get("sysinfo", "off") in HUD_SHOWN
         return bool(o.get({"today": "show_today", "music": "show_media", "inputs": "show_inputs",
@@ -289,7 +289,7 @@ class LayoutMemory:
             rows[name] = {"shown": self._el_shown(name), "own": name in own or (name == "map" and
                                                                                    o.get("anchor") == "custom"),
                           "place": self._el_place_text(name), "size": round(self._sel_range(name)[2]),
-                          "locked": name in locked, "can_hide": name != "text"}
+                          "locked": name in locked}
         key = self.settings.get("layout_key") if self.settings.get("layout_per_size", True) else ""
         return {"order": [n for n, _l in SELECTABLE], "rows": rows, "selected": getattr(self, "_sel", "map"),
                 "editing": bool(self.overlay.editing), "layout": key or ""}
@@ -312,10 +312,18 @@ class LayoutMemory:
             self._preview_menu(value[1], (value[2], value[3]))
 
     def _el_show_switch(self, name, on):
-        """The eye in the editor's list: the element's own switch (the same tick box / choice as in its tab)."""
-        if name == "text" or on == self._el_shown(name):
+        """The switch in the editor's list: the element on / off (1.57.49: the only one – the tabs hold its settings;
+        the system values keep their side, "Infos" hide every line at once)."""
+        if on == self._el_shown(name):
             return
-        if name == "map":
+        if name == "text":
+            o = self.settings["overlay"]
+            o["show_info"] = bool(on)
+            self.overlay.set_show_info(o["show_info"])
+            self._log(_("Infos im Overlay eingeblendet.") if on else _("Infos im Overlay ausgeblendet."), "Overlay")
+            self._save_soon()
+            self._tick_overlay(reschedule=False)
+        elif name == "map":
             self.show_map_var.set(on)
             self._overlay_flags_changed()
         elif name == "hud":

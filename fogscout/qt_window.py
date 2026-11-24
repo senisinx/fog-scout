@@ -175,12 +175,15 @@ SPECS = {
                   ("row", (("hint", "ov.map_size"), ("stretch",), ("button", "ov.map_size_reset"))),
                   ("sub", N_("Darstellung")),
                   ("row", (("label", "ov.map_style.label"), ("combo", "ov.map_style"), ("stretch",))),
-                  ("row", (("label", "ov.info_pos.label"), ("combo", "ov.info_pos"), ("stretch",))),     # 1.8.24
-                  ("check", "ov.show_map"), ("check", "ov.caption"), ("check", "ov.floors"),
+                  ("check", "ov.caption"), ("check", "ov.floors"),
                   ("check", "ov.transparent"), ("check", "ov.map_backdrop"),
-                  ("sub", N_("Infos (Timer, Bilanz, Server)")), ("check", "ov.timer"), ("check", "ov.server"),
-                  ("check", "ov.record"), ("check", "ov.last_round"), ("check", "ov.notes"),
                   ("sub", N_("Wann zeigen")), ("check", "ov.focus"), ("check", "ov.waiting"))),
+              # 1.57.49 (user: "Map und Info teilen sich die Einstellungen, sind aber getrennte Objekte"): own tab;
+              # the "… anzeigen" ticks of every element are the switches in the list now
+              ("ov.info_f", N_("Infos"), (
+                  ("row", (("label", "ov.info_pos.label"), ("combo", "ov.info_pos"), ("stretch",))),     # 1.8.24
+                  ("sub", N_("Zeilen")), ("check", "ov.timer"), ("check", "ov.server"),
+                  ("check", "ov.record"), ("check", "ov.last_round"), ("check", "ov.notes"))),
               ("ov.sys", N_("Systemwerte"), (
                   ("row", (("label", "ov.sysinfo.label"), ("combo", "ov.sysinfo"), ("stretch",))),
                   ("hint", "ov.sys_text"), ("hint", "ov.sys_hint"), ("check", "ov.hud_backdrop"),
@@ -188,11 +191,10 @@ SPECS = {
                   ("check", "ov.hud_row_cpu"), ("check", "ov.hud_row_gpu"), ("check", "ov.hud_row_spot"),
                   ("check", "ov.hud_row_vram"), ("check", "ov.hud_row_ram"), ("check", "ov.hud_row_fps"))),
               ("ov.today_f", N_("Heute"), (
-                  ("check", "ov.today"),
                   ("row", (("label", "ov.today_pos.label"), ("combo", "ov.today_pos"), ("stretch",))),
                   ("check", "ov.today_backdrop"), ("check", "ov.today_streak"))),
               ("ov.music_f", N_("Musik"), (
-                  ("check", "ov.media"), ("row", (("label", "ov.media_pos.label"), ("combo", "ov.media_pos"), ("stretch",))),
+                  ("row", (("label", "ov.media_pos.label"), ("combo", "ov.media_pos"), ("stretch",))),
                   ("row", (("label", "ov.media_style.label"), ("combo", "ov.media_style"), ("stretch",))),
                   ("check", "ov.media_cover"),
                   ("row", (("label", "ov.media_shape.label"), ("combo", "ov.media_shape"), ("stretch",))),   # 1.8.24
@@ -202,12 +204,10 @@ SPECS = {
                   ("row", (("label", "ov.media_next.label"), ("combo", "ov.media_next"), ("stretch",))),   # 1.8
                   ("slider", "ov.media_next_n"), ("hint", "ov.media_next_hint"))),
               ("ov.inputs_f", N_("Eingaben"), (                                                    # 1.39
-                  ("check", "ov.inputs"),
                   ("row", (("label", "ov.inputs_layout.label"), ("combo", "ov.inputs_layout"), ("stretch",))),
                   ("row", (("label", "ov.inputs_pos.label"), ("combo", "ov.inputs_pos"), ("stretch",))),
                   ("check", "ov.inputs_record"), ("check", "ov.inputs_backdrop"), ("hint", "ov.inputs_hint"))),
               ("ov.loadouts_f", N_("Loadouts"), (                                                  # 1.57
-                  ("check", "ov.loadouts"),
                   ("row", (("label", "ov.loadouts_pos.label"), ("combo", "ov.loadouts_pos"), ("stretch",))),
                   ("row", (("label", "ov.loadouts_style.label"), ("combo", "ov.loadouts_style"), ("stretch",))),   # 1.57.3
                   ("row", (("label", "ov.loadouts_look.label"), ("combo", "ov.loadouts_look"), ("stretch",))),     # 1.57.25

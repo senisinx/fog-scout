@@ -477,6 +477,8 @@ class PictureOverlay:
         self.show_map = True            # off: only timer, server and ping ("nur Infos")
         self.edit_label = ""            # name on the edit frame (1.64.7: "KARTE · Strg+Mausrad = Grösse")
         self.info_beside = False        # timer/server right of the map (low bar above/below the picture)
+        self.show_info = True           # 1.57.49: the element "Infos" on (off: timer/server/record/note/last never drawn)
+        self._raw = {}                  # … what the App set while they were off, shown again when switched on
         self.info_apart = False         # 1.8.24: the lines are an element of their own (info_picture), not drawn here
         self.lines_top = False          # 1.8.34: the lines drawn here go above the map (one block with it)
         self.text_height = 0            # px the timer/name/info are sized for (1.65: not the map's size); 0 = map
@@ -552,11 +554,14 @@ class PictureOverlay:
 
     def set_timer(self, text: str):
         """Round timer shown below the map; only re-renders when the text changes."""
-        self._timer = text or ""
+        self._raw["timer"] = text or ""
+        self._timer = self._raw["timer"] if self.show_info else ""
 
     def set_server(self, text: str, ping: float | None = None):
         """Connected server region (and its ping) shown below the timer."""
-        self._server = text or ""
+        self._raw["server"] = (text or "", ping)
+        text = (text or "") if self.show_info else ""
+        self._server = text
         self._ping = round(ping) if ping is not None and self._server else None
 
     def set_waiting(self, lines, memo=()):
@@ -573,16 +578,35 @@ class PictureOverlay:
 
     def set_record(self, text: str):
         """Own results on the map on display ("Ø 2.8 Kills · 12 Runden"); "" = none."""
-        self._record = text or ""
+        self._raw["record"] = text or ""
+        self._record = self._raw["record"] if self.show_info else ""
 
     def set_memo(self, lines):
         """1.8.54: the own note on the map on display as lines (mapnotes.lines); () = none."""
-        self._memo = tuple(lines or ())
+        self._raw["memo"] = tuple(lines or ())
+        self._memo = self._raw["memo"] if self.show_info else ()
 
     def set_last(self, texts):
         """The own last round on the map on display ("Zuletzt hier: 12.11.26 · 3K") below the record: (text shown,
         every other text it may become …) – the line is sized for the widest of them; () = none."""
-        self._last = tuple(texts or ())
+        self._raw["last"] = tuple(texts or ())
+        self._last = self._raw["last"] if self.show_info else ()
+
+    def set_show_info(self, on: bool):
+        """1.57.49 (user: "Ein/Aus-Knopf für jedes Overlay-Element"): the element "Infos" off hides the timer, server,
+        record, last round and note at once – wherever they are drawn; the amber note (doubtful detection) stays.
+        The texts set meanwhile are kept and come back when it is switched on again."""
+        on = bool(on)
+        if on == self.show_info:
+            return
+        self.show_info = on
+        raw = self._raw
+        self.set_timer(raw.get("timer", ""))
+        self.set_server(*raw.get("server", ("", None)))
+        self.set_record(raw.get("record", ""))
+        self.set_memo(raw.get("memo", ()))
+        self.set_last(raw.get("last", ()))
+        self._base_key = self._key = self._fit = self._fit_room = None
 
     def set_rec(self, on: bool):   # 1.4.1 / 1.5.2: blinking red dot right of the round timer
         """1.4.1: a red dot top right while OBS records the round."""
@@ -668,6 +692,8 @@ class PictureOverlay:
     def info_picture(self, text_h: int, placeholder: str = ""):
         """The lines as a card of their own (1.8.24), None when there are none; ``placeholder``: a timer text to
         show without any lines (moving mode – something to drag)."""
+        if not self.show_info:
+            return None
         timer = self._timer or ("" if self.has_info() else placeholder)
         if not (timer or self._server or self._note or self._record or self._memo or self._last):
             return None

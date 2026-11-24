@@ -7,9 +7,9 @@ every control is still one of the page's ``controls`` – the search, ``open_tab
 """
 from __future__ import annotations
 
-from PySide6.QtCore import QSize, Qt, QTimer
-from PySide6.QtGui import QKeySequence, QPainter, QShortcut
-from PySide6.QtWidgets import (QFrame, QGridLayout, QHBoxLayout, QLabel, QPushButton, QScrollArea,
+from PySide6.QtCore import QRectF, QSize, Qt, QTimer
+from PySide6.QtGui import QColor, QKeySequence, QPainter, QShortcut
+from PySide6.QtWidgets import (QAbstractButton, QFrame, QGridLayout, QHBoxLayout, QLabel, QPushButton, QScrollArea,
                                QSizePolicy, QToolButton, QVBoxLayout, QWidget)
 
 from . import qt_icons, qt_theme
@@ -17,7 +17,7 @@ from .i18n import N_, _
 from .qt_common import on_zoom
 
 # element -> its settings tab (appconst.ELEMENT_TABS; repeated here: the Qt side never imports the App's mixins)
-TABS = {"map": "ov.look", "text": "ov.look", "hud": "ov.sys", "today": "ov.today_f", "music": "ov.music_f",
+TABS = {"map": "ov.look", "text": "ov.info_f", "hud": "ov.sys", "today": "ov.today_f", "music": "ov.music_f",
         "inputs": "ov.inputs_f", "loadouts": "ov.loadouts_f"}
 GENERAL_TAB = "ov.pos"
 NAMES = {"map": N_("Karte"), "text": N_("Infos"), "hud": N_("Systemwerte"), "today": N_("Heute"),
@@ -57,6 +57,55 @@ def _set_tip(b, tip: str, owner: str = ""):
         b.setAccessibleName(name)
 
 
+class SwitchButton(QAbstractButton):
+    """1.57.49 (user: "Ein/Aus-Knopf für jedes Overlay-Element wäre einfacher"): an on / off switch – a pill with a
+    knob, the accent when on. Checkable; ``clicked`` only for the user (``setChecked`` from the App posts nothing)."""
+
+    W, H = 34, 18                # px at text zoom 1.0
+
+    def __init__(self, tip: str = ""):
+        super().__init__()
+        self.setObjectName("ovswitch")
+        self.setCheckable(True)
+        self.setCursor(Qt.PointingHandCursor)
+        self.setFocusPolicy(Qt.TabFocus)
+        self.setAccessibleName(tip)
+        on_zoom(self, lambda _z: self.updateGeometry())
+
+    def sizeHint(self):
+        return QSize(qt_theme.icon_px(self.W), qt_theme.icon_px(self.H))
+
+    minimumSizeHint = sizeHint
+
+    def paintEvent(self, _e):
+        c = qt_theme.colours(qt_theme.current_dark())
+        size = self.sizeHint()
+        w, h = size.width(), size.height()
+        x, y = (self.width() - w) / 2, (self.height() - h) / 2
+        on = self.isChecked()
+        p = QPainter(self)
+        p.setRenderHint(QPainter.Antialiasing)
+        track = QColor(c["accent"] if on else c["btn"])
+        if not self.isEnabled():
+            track = QColor(c["btn_dis"])
+        elif self.underMouse() and not on:
+            track = QColor(c["btn_hover"])
+        p.setPen(QColor(c["accent"] if on else c["border"]))
+        p.setBrush(track)
+        p.drawRoundedRect(QRectF(x + 0.5, y + 0.5, w - 1, h - 1), (h - 1) / 2, (h - 1) / 2)
+        pad = max(2, round(h * 0.17))
+        d = h - 2 * pad
+        kx = x + w - pad - d if on else x + pad
+        p.setPen(Qt.NoPen)
+        p.setBrush(QColor(c["on_accent"] if on else c["dim"]))
+        p.drawEllipse(QRectF(kx, y + pad, d, d))
+        if self.hasFocus():
+            p.setPen(QColor(c["accent"]))
+            p.setBrush(Qt.NoBrush)
+            p.drawRoundedRect(QRectF(x - 2, y - 2, w + 4, h + 4), (h + 4) / 2, (h + 4) / 2)
+        p.end()
+
+
 class _ElideLabel(QLabel):
     """1.55.7 (audit V-1, 150 % in a small window): a one-line text of the element list ends in "…" when its room is
     narrower – it was cut in the middle of a word. The whole text stays ``text()`` (and the row's accessible name)."""
@@ -86,7 +135,8 @@ def _paint_icon(b: QToolButton, glyph: str, on: bool):
 
 
 class _Row(QFrame):
-    """One element in the list: its name and state, an eye (shown) and a lock (stays where it is)."""
+    """One element in the list: its name and state, a switch (on / off, 1.57.49 – was an eye) and a lock (stays
+    where it is)."""
 
     def __init__(self, rail, name: str):
         super().__init__()
@@ -113,16 +163,17 @@ class _Row(QFrame):
         lay.addLayout(texts, 1)
         self.eye = self.lock = None
         if name != "general":
-            self.eye = _icon_button("eye", _("Ein- oder ausblenden"))
-            _set_tip(self.eye, self.eye.toolTip(), self.title.text())
-            self.eye.clicked.connect(lambda: rail.post(("show", name, not self.eye.property("on"))))
+            self.eye = SwitchButton(_("Ein oder aus"))
+            _set_tip(self.eye, _("Ein oder aus"), self.title.text())
+            self.eye.clicked.connect(lambda on: rail.post(("show", name, bool(on))))
             self.lock = _icon_button("lock_open", _("Sperren: im Modus „Anordnen“ nicht mehr verschiebbar"))
             _set_tip(self.lock, self.lock.toolTip(), self.title.text())
             self.lock.clicked.connect(lambda: rail.post(("lock", name, not self.lock.property("on"))))
-            lay.addWidget(self.eye)
             lay.addWidget(self.lock)
+            lay.addSpacing(4)
+            lay.addWidget(self.eye)
 
-    def show_row(self, row: dict, selected: bool, can_hide: bool):
+    def show_row(self, row: dict, selected: bool):
         if self.property("selected") != selected:
             self.setProperty("selected", selected)
             self.style().unpolish(self)
@@ -142,10 +193,10 @@ class _Row(QFrame):
         if self.info.text() != info:
             self.info.setText(info)
             self.setAccessibleDescription(info)
-        self.eye.setProperty("on", shown)
-        self.eye.setVisible(can_hide)
-        _paint_icon(self.eye, "eye" if shown else "eye_off", False)
-        _set_tip(self.eye, _("Ausblenden") if shown else _("Einblenden"), self.title.text())
+        if self.eye.isChecked() != shown:
+            self.eye.setChecked(shown)
+        _set_tip(self.eye, _("Ein – zum Ausschalten klicken") if shown else _("Aus – zum Einschalten klicken"),
+                 self.title.text())
         self.lock.setProperty("on", locked)
         _paint_icon(self.lock, "lock" if locked else "lock_open", locked)
         _set_tip(self.lock, _("Entsperren: wieder verschiebbar") if locked else
@@ -235,10 +286,10 @@ class ElementRail(QWidget):
         sel = None if self.general else data.get("selected")
         for name, row in self._rows.items():
             if name == "general":
-                row.show_row({}, self.general, False)
+                row.show_row({}, self.general)
             else:
                 r = rows.get(name) or {}
-                row.show_row(r, name == sel, r.get("can_hide", True))
+                row.show_row(r, name == sel)
 
 
 class AnchorGrid(QWidget):

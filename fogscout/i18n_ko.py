@@ -129,16 +129,12 @@ T = {
         '모양',
     'Grösse':
         '크기',
-    'Karte anzeigen':
-        '맵 표시',
     'Karte im Overlay eingeblendet.':
         '오버레이에 맵이 표시됩니다.',
     'Karte im Overlay aus – es werden nur Timer, Ort und Ping angezeigt.':
         '오버레이의 맵 꺼짐 – 타이머, 위치, 핑만 표시됩니다.',
     'nichts anzuzeigen':
         '표시할 내용 없음',
-    'Aus: Das Overlay zeigt nur Rundentimer, Serverregion und Ping – ohne Karte. Erkennung, Rundenende und Statistik laufen wie gewohnt.':
-        '끄기: 오버레이에 맵 없이 라운드 타이머, 서버 지역, 핑만 표시됩니다. 인식, 라운드 종료, 통계는 평소처럼 작동합니다.',
     'Für diese Map zurücksetzen':
         '이 맵 초기화',
     'eigene Grösse {n} % (Hotkeys/Strg+Mausrad)':
@@ -2529,8 +2525,6 @@ T = {
         '정보',
     'INFOS':
         '정보',
-    'Infos (Timer, Bilanz, Server)':
-        '정보(타이머, 기록, 서버)',
     'In OBS ist der Wiederholungspuffer nicht aktiviert – OBS: Einstellungen → Ausgabe → Wiederholungspuffer → „Wiederholungspuffer aktivieren“ und übernehmen. Ohne ihn gibt es keine Sofort-Clips (F8) und keinen Vorlauf.':
         'OBS의 리플레이 버퍼가 켜져 있지 않습니다 – OBS: 설정 → 출력 → 리플레이 버퍼 → ‘리플레이 버퍼 사용’을 켜고 적용하세요. 없으면 즉석 클립(F8)과 사전 녹화가 없습니다.',
     'Wiederholungspuffer in OBS nicht aktiviert (Einstellungen → Ausgabe → Wiederholungspuffer)':
@@ -5732,8 +5726,6 @@ T = {
         '입력',
     'Eingaben im Spiel':
         '게임 내 입력',
-    'Eingaben im Spiel zeigen (Tasten, Maus, Gamepad)':
-        '게임에 입력 표시(키, 마우스, 게임패드)',
     'Gamepad':
         '게임패드',
     'Gerät':
@@ -5750,8 +5742,6 @@ T = {
         'Fog Scout는 다음 키 중 지금 눌린 것만 표시합니다: W, A, S, D, Q, E, R, Space, Shift, Ctrl, 마우스 버튼, 게임패드(버튼, 트리거, 스틱). 라운드 중에만, DBD가 활성 창일 때만 읽습니다 – Fog Scout는 다른 프로그램에서 입력하는 내용을 절대 보지 않습니다. 이 중 어떤 것도 기록하거나 전송하지 않고 게임에 아무것도 보내지 않습니다. ‘녹화와 함께 입력 저장’을 켜면 라운드의 키가 OBS 녹화 옆에 파일로 보관됩니다(클립 편집기용). Behaviour가 이런 표시를 공식적으로 승인한 적은 없으며, 게임에서 이점을 주지 않습니다.',
     'Gelesen werden nur W, A, S, D, Q, E, R, Leertaste, Shift, Strg, die Maustasten und ein Gamepad – nur während einer Runde und nur, solange DBD vorne ist. Gesendet wird nichts; gespeichert nur mit dem Häkchen oben, als Datei neben der eigenen Aufnahme.':
         'W, A, S, D, Q, E, R, Space, Shift, Ctrl, 마우스 버튼, 게임패드만 읽습니다 – 라운드 중에만, DBD가 맨 앞에 있을 때만. 아무것도 전송하지 않으며, 위 상자를 켰을 때만 내 녹화 옆에 파일로 저장합니다.',
-    'Eine Karte im Spiel zeigt, welche Tasten, Maustasten oder Gamepad-Knöpfe du gerade drückst – wie bei Streamern. Gelesen wird nur eine feste Liste von Tasten, nur während einer Runde und nur, solange DBD vorne ist; gesendet wird nichts, gespeichert nur mit „Eingaben mit der Aufnahme speichern“.':
-        '게임 안의 카드가 지금 누르고 있는 키, 마우스 버튼, 게임패드 버튼을 보여 줍니다 – 스트리머들처럼. 정해진 키 목록만, 라운드 중에만, DBD가 맨 앞에 있을 때만 읽습니다. 아무것도 전송하지 않으며, ‘녹화와 함께 입력 저장’을 켰을 때만 저장합니다.',
     'Mit OBS-Aufnahmen: die gedrückten Tasten der Runde kommen als kleine Datei neben die Aufnahme – der Clip-Editor zeigt sie als Spur und kann die Karte ins Video einbrennen. Die Datei wird mit der Aufnahme verschoben und gelöscht.':
         'OBS 녹화 시: 라운드 중 누른 키가 녹화 옆의 작은 파일에 저장됩니다 – 클립 편집기는 이를 트랙으로 보여 주고 카드를 동영상에 넣을 수 있습니다. 파일은 녹화와 함께 이동하고 삭제됩니다.',
     'Aus der Datei neben der Aufnahme (Overlay › Eingaben › „Eingaben mit der Aufnahme speichern“). Clips aus F8 haben keine.':
@@ -5828,8 +5818,6 @@ T = {
         '맵의 콜아웃 맵',
     'Die Linien in der Vorschau mit „Anordnen“ ziehen – Karte, Systemwerte, Heute und Musik bleiben im Balken dazwischen.':
         '‘배치’로 미리 보기에서 선을 끄세요 – 맵, 시스템 값, 오늘, 음악은 여백 안에서 그 사이에 머뭅니다.',
-    'Ein- oder ausblenden':
-        '표시 또는 숨기기',
     'Elemente':
         '요소',
     'Entsperren: wieder verschiebbar':
@@ -6122,8 +6110,6 @@ T = {
         '생존자일 때 Dead by Daylight의 일시정지 메뉴(Esc)에 다른 생존자들의 장비가 표시됩니다. Fog Scout는 메뉴가 열려 있는 동안 화면에서만 읽고(라운드당 몇 번), 이후 각 팀원 옆에 퍽을 마름모로 표시합니다 – 원하면 아이템과 애드온도 옆에 표시합니다. 살인마일 때는 메뉴에 생존자의 공물만 표시되며, 그것을 각 생존자 옆에 표시합니다. 아무것도 저장하거나 전송하지 않습니다. 플레이어 이름은 똑같이 생긴 생존자를 구분할 때만, 메모리에서만 읽습니다. Esc를 한 번 누르면 충분합니다.',
     'Im Match einmal Esc drücken – Fog Scout liest die Loadouts der anderen Survivor (als Killer ihre Opfergaben) aus dem Bild des Menüs und zeigt sie danach neben ihnen. Nichts wird gespeichert oder gesendet.':
         '매치 중 Esc를 한 번 누르세요 – Fog Scout가 메뉴 화면에서 다른 생존자의 로드아웃(살인마일 때는 공물)을 읽어 그 옆에 표시합니다. 아무것도 저장하거나 보내지 않습니다.',
-    'Neben jedem anderen Survivor in der Liste links erscheinen seine vier Perks als Raute – gelesen aus dem Pausenmenü (Esc); als Killer seine Opfergabe. Nur das Bild wird gelesen, nur bei offenem Menü; nichts wird gespeichert oder gesendet.':
-        '왼쪽 목록의 다른 생존자 옆에 그들의 퍽 네 개가 마름모로 표시됩니다 – 일시정지 메뉴(Esc)에서 읽습니다. 살인마일 때는 그 생존자의 공물을 표시합니다. 화면만 읽으며, 메뉴가 열려 있을 때만 읽습니다. 아무것도 저장하거나 보내지 않습니다.',
     'Opfergabe, Item und Add-ons neben den Perks':
         '퍽 옆에 공물, 아이템과 애드온',
     'LOADOUTS':
@@ -6136,8 +6122,6 @@ T = {
         '메뉴에서 팀원 로드아웃을 읽었습니다(퍽 {n}개).',
     'Opfergaben der Survivor aus dem Menü gelesen ({n}).':
         '메뉴에서 생존자 공물을 읽었습니다({n}개).',
-    'Loadouts der Mitspieler zeigen (Perks aus dem Menü)':
-        '팀원 로드아웃 표시(메뉴의 퍽)',
     'Neben der Survivor-Liste':
         '생존자 목록 옆',
     'Perks der Mitspieler':
@@ -6158,4 +6142,15 @@ T = {
     # 1.57.4: offerings
     'Die Opfergabe (eine verdeckte als „?“), das Item und seine zwei Add-ons als kleine Felder neben den Perks.':
         '공물(숨긴 공물은 ‘?’), 아이템과 애드온 두 개를 퍽 옆에 작은 칸으로 표시합니다.',
+    # 1.57.49: on / off switches of the overlay elements
+    'Ein oder aus':
+        '켜기/끄기',
+    'Ein – zum Ausschalten klicken':
+        '켜짐 – 클릭하면 꺼짐',
+    'Aus – zum Einschalten klicken':
+        '꺼짐 – 클릭하면 켜짐',
+    'Infos im Overlay eingeblendet.':
+        '오버레이에 정보를 표시합니다.',
+    'Infos im Overlay ausgeblendet.':
+        '오버레이에서 정보를 숨깁니다.',
 }

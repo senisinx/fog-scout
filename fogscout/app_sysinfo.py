@@ -79,7 +79,7 @@ TEXT_SCALE = (50, 200)                      # size of the map's name/timer/info 
 INPUT_SCALE = layout.INPUT_SCALE            # size of the input card, percent (1.39)
 TEXT_BASE = 0.36                            # … of the text at the standard map size (share of the game height)
 # 1.2.12: the tab of the overlay page (qt_window.SPECS frame keys) that holds each element's settings
-ELEMENT_TABS = {"map": "ov.look", "text": "ov.look", "hud": "ov.sys", "today": "ov.today_f", "music": "ov.music_f",
+ELEMENT_TABS = {"map": "ov.look", "text": "ov.info_f", "hud": "ov.sys", "today": "ov.today_f", "music": "ov.music_f",
                 "inputs": "ov.inputs_f", "loadouts": "ov.loadouts_f"}
 
 

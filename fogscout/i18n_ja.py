@@ -129,16 +129,12 @@ T = {
         '外観',
     'Grösse':
         'サイズ',
-    'Karte anzeigen':
-        'マップを表示する',
     'Karte im Overlay eingeblendet.':
         'オーバーレイにマップを表示します。',
     'Karte im Overlay aus – es werden nur Timer, Ort und Ping angezeigt.':
         'オーバーレイのマップはオフ – タイマー、場所、Ping のみ表示されます。',
     'nichts anzuzeigen':
         '表示するものがありません',
-    'Aus: Das Overlay zeigt nur Rundentimer, Serverregion und Ping – ohne Karte. Erkennung, Rundenende und Statistik laufen wie gewohnt.':
-        'オフ：オーバーレイにはマップなしで、ラウンドタイマー、サーバーリージョン、Ping のみ表示されます。検出、ラウンド終了、統計は通常どおり動作します。',
     'Für diese Map zurücksetzen':
         'このマップをリセット',
     'eigene Grösse {n} % (Hotkeys/Strg+Mausrad)':
@@ -2529,8 +2525,6 @@ T = {
         '情報',
     'INFOS':
         '情報',
-    'Infos (Timer, Bilanz, Server)':
-        '情報（タイマー、記録、サーバー）',
     'In OBS ist der Wiederholungspuffer nicht aktiviert – OBS: Einstellungen → Ausgabe → Wiederholungspuffer → „Wiederholungspuffer aktivieren“ und übernehmen. Ohne ihn gibt es keine Sofort-Clips (F8) und keinen Vorlauf.':
         'OBS のリプレイバッファが有効になっていません – OBS：「設定」→「出力」→「リプレイバッファ」→「リプレイバッファを有効にする」にして適用してください。これがないとインスタントクリップ（F8）もプリロールもありません。',
     'Wiederholungspuffer in OBS nicht aktiviert (Einstellungen → Ausgabe → Wiederholungspuffer)':
@@ -5732,8 +5726,6 @@ T = {
         '入力',
     'Eingaben im Spiel':
         'ゲーム内の入力',
-    'Eingaben im Spiel zeigen (Tasten, Maus, Gamepad)':
-        'ゲーム内に入力を表示する（キー、マウス、ゲームパッド）',
     'Gamepad':
         'ゲームパッド',
     'Gerät':
@@ -5750,8 +5742,6 @@ T = {
         'Fog Scout が表示するのは、次のキーのうち現在押されているものだけです：W、A、S、D、Q、E、R、スペース、Shift、Ctrl、マウスボタン、ゲームパッド（ボタン、トリガー、スティック）。読み取るのはラウンド中、かつ DBD がアクティブウィンドウの間のみ – 他のプログラムでの入力を Fog Scout が見ることはありません。ログへの記録も送信も一切せず、ゲームにも何も送りません。「入力を録画とともに保存する」を使うと、ラウンドのキー入力が OBS の録画の隣にファイルとして保存されます（クリップエディター用）。Behaviour はこのような表示を公式に承認していませんが、ゲーム上の有利にはなりません。',
     'Gelesen werden nur W, A, S, D, Q, E, R, Leertaste, Shift, Strg, die Maustasten und ein Gamepad – nur während einer Runde und nur, solange DBD vorne ist. Gesendet wird nichts; gespeichert nur mit dem Häkchen oben, als Datei neben der eigenen Aufnahme.':
         '読み取るのは W、A、S、D、Q、E、R、スペース、Shift、Ctrl、マウスボタン、ゲームパッドのみ – ラウンド中、かつ DBD が前面にある間のみです。何も送信しません。保存は上のチェックボックスを使った場合のみで、ご自身の録画の隣にファイルとして保存されます。',
-    'Eine Karte im Spiel zeigt, welche Tasten, Maustasten oder Gamepad-Knöpfe du gerade drückst – wie bei Streamern. Gelesen wird nur eine feste Liste von Tasten, nur während einer Runde und nur, solange DBD vorne ist; gesendet wird nichts, gespeichert nur mit „Eingaben mit der Aufnahme speichern“.':
-        'ゲーム内のカードに、現在押しているキー、マウスボタン、ゲームパッドのボタンを表示します – 配信者がよく使う表示です。読み取るのは決められたキーのリストのみ、ラウンド中、かつ DBD が前面にある間のみです。何も送信せず、保存は「入力を録画とともに保存する」を使った場合のみです。',
     'Mit OBS-Aufnahmen: die gedrückten Tasten der Runde kommen als kleine Datei neben die Aufnahme – der Clip-Editor zeigt sie als Spur und kann die Karte ins Video einbrennen. Die Datei wird mit der Aufnahme verschoben und gelöscht.':
         'OBS の録画時：ラウンド中に押していたキーを録画の隣の小さなファイルに保存します – クリップエディターはそれをトラックとして表示し、カードを動画に焼き込めます。ファイルは録画とともに移動・削除されます。',
     'Aus der Datei neben der Aufnahme (Overlay › Eingaben › „Eingaben mit der Aufnahme speichern“). Clips aus F8 haben keine.':
@@ -5828,8 +5818,6 @@ T = {
         'マップのコールアウトマップ',
     'Die Linien in der Vorschau mit „Anordnen“ ziehen – Karte, Systemwerte, Heute und Musik bleiben im Balken dazwischen.':
         '「配置」中にプレビューで線をドラッグしてください – マップ、システム値、今日、音楽は帯の中でその間に収まります。',
-    'Ein- oder ausblenden':
-        '表示または非表示',
     'Elemente':
         '要素',
     'Entsperren: wieder verschiebbar':
@@ -6122,8 +6110,6 @@ T = {
         'サバイバーの時、Dead by Daylight のポーズメニュー（Esc）に他のサバイバーの持ち物が表示されます。Fog Scout はメニューが開いている間だけ画面から読み取り（1ラウンドに数回）、その後、各味方の横にパークをひし形で表示します。アイテムとアドオンも横に表示できます。キラーの時はメニューにサバイバーの供物だけが表示され、それを各サバイバーの横に表示します。何も保存・送信しません。プレイヤー名は見た目が同じサバイバーを区別するためだけに、メモリ内でのみ読み取ります。Esc を一度押すだけで十分です。',
     'Im Match einmal Esc drücken – Fog Scout liest die Loadouts der anderen Survivor (als Killer ihre Opfergaben) aus dem Bild des Menüs und zeigt sie danach neben ihnen. Nichts wird gespeichert oder gesendet.':
         '試合中に Esc を一度押すと、Fog Scout がメニュー画面から他のサバイバーのロードアウト（キラーの時は供物）を読み取り、その後それぞれの横に表示します。何も保存・送信しません。',
-    'Neben jedem anderen Survivor in der Liste links erscheinen seine vier Perks als Raute – gelesen aus dem Pausenmenü (Esc); als Killer seine Opfergabe. Nur das Bild wird gelesen, nur bei offenem Menü; nichts wird gespeichert oder gesendet.':
-        '左のリストの他のサバイバーそれぞれの横に、その4つのパークがひし形で表示されます。ポーズメニュー（Esc）から読み取ります。キラーの時はその供物を表示します。読むのは画面だけ、メニューが開いている間だけです。何も保存・送信しません。',
     'Opfergabe, Item und Add-ons neben den Perks':
         'パークの横に供物、アイテムとアドオン',
     'LOADOUTS':
@@ -6136,8 +6122,6 @@ T = {
         'メニューから味方のロードアウトを読み取りました（パーク {n} 個）。',
     'Opfergaben der Survivor aus dem Menü gelesen ({n}).':
         'メニューからサバイバーの供物を読み取りました（{n} 個）。',
-    'Loadouts der Mitspieler zeigen (Perks aus dem Menü)':
-        '味方のロードアウトを表示（メニューのパーク）',
     'Neben der Survivor-Liste':
         'サバイバーリストの横',
     'Perks der Mitspieler':
@@ -6158,4 +6142,15 @@ T = {
     # 1.57.4: offerings
     'Die Opfergabe (eine verdeckte als „?“), das Item und seine zwei Add-ons als kleine Felder neben den Perks.':
         '供物（隠されたものは「?」）、アイテムと2つのアドオンを、パークの横に小さな枠で表示します。',
+    # 1.57.49: on / off switches of the overlay elements
+    'Ein oder aus':
+        'オン／オフ',
+    'Ein – zum Ausschalten klicken':
+        'オン – クリックでオフ',
+    'Aus – zum Einschalten klicken':
+        'オフ – クリックでオン',
+    'Infos im Overlay eingeblendet.':
+        'オーバーレイに情報を表示しました。',
+    'Infos im Overlay ausgeblendet.':
+        'オーバーレイの情報を非表示にしました。',
 }

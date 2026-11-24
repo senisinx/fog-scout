@@ -230,8 +230,8 @@ def test_form_page_shows_states_and_posts_clicks(qapp, keep):
     assert page.controls["ov.map_size_reset"][1].isHidden() and page.controls["ov.pos_hint"][1].isHidden()
     kind, tabs, body = page.controls["ov.pos"]                 # 1.66.4: the cards of the page are tabs
     index = tabs.indexOf(body)                                 # 1.7.6: addressed by widget – tabs can be moved
-    assert kind == "tab" and tabs.tabText(index) == "Allgemein" and tabs.count() == 7   # 1.2.12: one per element
-    assert [tabs.tabText(i) for i in range(7)] == ["Karte", "Systemwerte", "Heute", "Musik", "Eingaben", "Loadouts",
+    assert kind == "tab" and tabs.tabText(index) == "Allgemein" and tabs.count() == 8   # 1.2.12: one per element
+    assert [tabs.tabText(i) for i in range(8)] == ["Karte", "Infos", "Systemwerte", "Heute", "Musik", "Eingaben", "Loadouts",
                                                    "Allgemein"]                                     # 1.57
     page.show_states({"ov.sys": {"text": "Systemwerte", "visible": False}})
     assert not tabs.isTabVisible(tabs.indexOf(page.controls["ov.sys"][2])) and tabs.isTabVisible(index)
@@ -1911,7 +1911,7 @@ def test_the_navigation_and_the_overlay_tabs_can_be_reordered_and_remembered(qap
     form.apply_tab_order({tabs_id: list(reversed(frames))})
     assert form._tab_ids(tabs, ids) == list(reversed(frames))
     assert [tabs.tabText(i) for i in range(tabs.count())] == ["Allgemein", "Loadouts", "Eingaben", "Musik", "Heute",
-                                                              "Systemwerte", "Karte"]
+                                                              "Systemwerte", "Infos", "Karte"]
     win.open_tab("overlay", frames[0])
     assert tabs.currentWidget() is form.controls[frames[0]][2]
     form.show_states({"ov.sys": {"text": "Systemwerte", "visible": False}})
@@ -2039,7 +2039,7 @@ def test_the_overlay_editor_has_a_tool_bar_list_canvas_and_inspector_in_three_wi
     assert ed.canvas is page.controls["ov.preview"][1] and ed.canvas_box.isAncestorOf(ed.canvas)
     assert ed.inspector.isAncestorOf(page.controls["ov.anchors"][1])
     assert ed.inspector.isAncestorOf(page.controls["ov.sel_size"][1]) and ed.inspector.isAncestorOf(ed.tabs)
-    assert ed.tabs.tabBar().isHidden() and ed.tabs.count() == 7         # the list picks the tab, not a tab row
+    assert ed.tabs.tabBar().isHidden() and ed.tabs.count() == 8         # the list picks the tab, not a tab row
     assert not ed.canvas.hasHeightForWidth()                           # fills its place – no 380-px cap
     for width, mode in ((1600, "wide"), (900, "medium"), (600, "narrow")):
         ed.arrange(width)
@@ -2067,13 +2067,14 @@ def test_the_overlay_editor_has_a_tool_bar_list_canvas_and_inspector_in_three_wi
 
 
 def test_the_element_list_shows_the_state_and_posts_its_acts(qapp, keep):
-    """1.46: one row per element (+ "Allgemein"): its place and size, an eye and a lock; a click picks it."""
+    """1.46: one row per element (+ "Allgemein"): its place and size, a lock and (1.57.49) an on / off switch – also
+    for "Infos"; a click picks it."""
     from fogscout import qt_overlay
     posted = queue.Queue()
     rail = keep(qt_overlay.ElementRail("ov.elements", lambda a, arg=None: posted.put((a, arg))))
     rows = {"map": {"shown": True, "own": True, "place": "eigener Platz", "size": 36, "locked": True},
             "music": {"shown": False, "own": False, "place": "automatisch", "size": 100, "locked": False},
-            "text": {"shown": True, "place": "automatisch", "size": 100, "can_hide": False}}
+            "text": {"shown": True, "place": "automatisch", "size": 100}}
     rail.show_state({"visible": True, "data": {"order": ["map", "text", "music"], "rows": rows,
                                                "selected": "music", "editing": False}})
     rail.show()
@@ -2081,8 +2082,9 @@ def test_the_element_list_shows_the_state_and_posts_its_acts(qapp, keep):
     assert set(row) == {"map", "text", "music", "general"}
     assert row["map"].info.text() == "eigener Platz · 36 %" and row["music"].info.text() == "ausgeblendet"
     assert row["music"].property("selected") and not row["map"].property("selected")
-    assert row["map"].lock.property("on") and not row["music"].eye.property("on")
-    assert row["text"].eye.isHidden() and row["general"].eye is None
+    assert row["map"].lock.property("on") and not row["music"].eye.isChecked() and row["map"].eye.isChecked()
+    assert not row["text"].eye.isHidden() and row["text"].eye.isChecked() and row["general"].eye is None
+    assert isinstance(row["music"].eye, qt_overlay.SwitchButton) and not row["music"].eye.grab().isNull()
     row["map"].lock.click()
     row["music"].eye.click()
     from PySide6.QtCore import QPoint, Qt

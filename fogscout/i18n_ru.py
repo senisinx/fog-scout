@@ -129,16 +129,12 @@ T = {
         'Внешний вид',
     'Grösse':
         'Размер',
-    'Karte anzeigen':
-        'Показывать карту',
     'Karte im Overlay eingeblendet.':
         'Карта показана в оверлее.',
     'Karte im Overlay aus – es werden nur Timer, Ort und Ping angezeigt.':
         'Карта в оверлее выключена — показываются только таймер, место и пинг.',
     'nichts anzuzeigen':
         'нечего показывать',
-    'Aus: Das Overlay zeigt nur Rundentimer, Serverregion und Ping – ohne Karte. Erkennung, Rundenende und Statistik laufen wie gewohnt.':
-        'Выкл.: оверлей показывает только таймер раунда, регион сервера и пинг — без карты. Распознавание, конец раунда и статистика работают как обычно.',
     'Für diese Map zurücksetzen':
         'Сбросить для этой карты',
     'eigene Grösse {n} % (Hotkeys/Strg+Mausrad)':
@@ -2529,8 +2525,6 @@ T = {
         'Сведения',
     'INFOS':
         'СВЕДЕНИЯ',
-    'Infos (Timer, Bilanz, Server)':
-        'Сведения (таймер, итоги, сервер)',
     'In OBS ist der Wiederholungspuffer nicht aktiviert – OBS: Einstellungen → Ausgabe → Wiederholungspuffer → „Wiederholungspuffer aktivieren“ und übernehmen. Ohne ihn gibt es keine Sofort-Clips (F8) und keinen Vorlauf.':
         'Буфер повтора OBS не включён — OBS: Настройки → Вывод → Буфер повтора → «Включить буфер повтора» и применить. Без него нет мгновенных клипов (F8) и предзаписи.',
     'Wiederholungspuffer in OBS nicht aktiviert (Einstellungen → Ausgabe → Wiederholungspuffer)':
@@ -5732,8 +5726,6 @@ T = {
         'ВВОД',
     'Eingaben im Spiel':
         'Ввод в игре',
-    'Eingaben im Spiel zeigen (Tasten, Maus, Gamepad)':
-        'Показывать ввод в игре (клавиши, мышь, геймпад)',
     'Gamepad':
         'Геймпад',
     'Gerät':
@@ -5750,8 +5742,6 @@ T = {
         'Fog Scout только показывает, какие из этих клавиш сейчас зажаты: W, A, S, D, Q, E, R, пробел, Shift, Ctrl, кнопки мыши и геймпад (кнопки, триггеры, стики). Они считываются только во время раунда и только пока DBD — активное окно; Fog Scout никогда не видит ввод текста в других программах. Ничего из этого не записывается в журнал и не отправляется, и ничего не передаётся в игру; с «Сохранять ввод вместе с записью» клавиши раунда сохраняются в файл рядом с его записью OBS (для редактора клипов). Официального одобрения таких показов от Behaviour нет; преимущества в игре они не дают.',
     'Gelesen werden nur W, A, S, D, Q, E, R, Leertaste, Shift, Strg, die Maustasten und ein Gamepad – nur während einer Runde und nur, solange DBD vorne ist. Gesendet wird nichts; gespeichert nur mit dem Häkchen oben, als Datei neben der eigenen Aufnahme.':
         'Считываются только W, A, S, D, Q, E, R, пробел, Shift, Ctrl, кнопки мыши и геймпад — только во время раунда и только пока DBD на переднем плане. Ничего не отправляется; сохраняется только с флажком выше, как файл рядом с вашей записью.',
-    'Eine Karte im Spiel zeigt, welche Tasten, Maustasten oder Gamepad-Knöpfe du gerade drückst – wie bei Streamern. Gelesen wird nur eine feste Liste von Tasten, nur während einer Runde und nur, solange DBD vorne ist; gesendet wird nichts, gespeichert nur mit „Eingaben mit der Aufnahme speichern“.':
-        'Карточка в игре показывает, какие клавиши, кнопки мыши или геймпада вы сейчас нажимаете — как у стримеров. Считывается только фиксированный список клавиш, только во время раунда и только пока DBD на переднем плане; ничего не отправляется, сохраняется только с «Сохранять ввод вместе с записью».',
     'Mit OBS-Aufnahmen: die gedrückten Tasten der Runde kommen als kleine Datei neben die Aufnahme – der Clip-Editor zeigt sie als Spur und kann die Karte ins Video einbrennen. Die Datei wird mit der Aufnahme verschoben und gelöscht.':
         'С записями OBS: зажатые во время раунда клавиши попадают в маленький файл рядом с записью — редактор клипов показывает их как дорожку и может впечатать карточку в видео. Файл перемещается и удаляется вместе с записью.',
     'Aus der Datei neben der Aufnahme (Overlay › Eingaben › „Eingaben mit der Aufnahme speichern“). Clips aus F8 haben keine.':
@@ -5828,8 +5818,6 @@ T = {
         'Карта с обозначениями',
     'Die Linien in der Vorschau mit „Anordnen“ ziehen – Karte, Systemwerte, Heute und Musik bleiben im Balken dazwischen.':
         'Тяните линии в предпросмотре с «Расставить» — карта, системные данные, «Сегодня» и музыка остаются между ними в полосе.',
-    'Ein- oder ausblenden':
-        'Показать или скрыть',
     'Elemente':
         'Элементы',
     'Entsperren: wieder verschiebbar':
@@ -6122,8 +6110,6 @@ T = {
         'Играя за выжившего, меню паузы Dead by Daylight (Esc) показывает, что взяли другие выжившие. Fog Scout считывает это только с изображения, пока меню открыто (несколько взглядов за раунд), и затем показывает навыки ромбом рядом с каждым союзником – предмет и улучшения рядом по желанию. За убийцу меню показывает только подношения выживших – они появляются рядом с ними. Ничего не сохраняется и не отправляется; имена игроков читаются только чтобы различить одинаково выглядящих выживших, и только в памяти. Достаточно один раз нажать Esc.',
     'Im Match einmal Esc drücken – Fog Scout liest die Loadouts der anderen Survivor (als Killer ihre Opfergaben) aus dem Bild des Menüs und zeigt sie danach neben ihnen. Nichts wird gespeichert oder gesendet.':
         'Нажмите Esc один раз во время матча – Fog Scout считает снаряжение других выживших (за убийцу – их подношения) с изображения меню и затем покажет его рядом с ними. Ничего не сохраняется и не отправляется.',
-    'Neben jedem anderen Survivor in der Liste links erscheinen seine vier Perks als Raute – gelesen aus dem Pausenmenü (Esc); als Killer seine Opfergabe. Nur das Bild wird gelesen, nur bei offenem Menü; nichts wird gespeichert oder gesendet.':
-        'Рядом с каждым другим выжившим в списке слева появляются его четыре навыка ромбом – считанные с меню паузы (Esc); за убийцу – его подношение. Считывается только изображение, только при открытом меню; ничего не сохраняется и не отправляется.',
     'Opfergabe, Item und Add-ons neben den Perks':
         'Подношение, предмет и улучшения рядом с навыками',
     'LOADOUTS':
@@ -6136,8 +6122,6 @@ T = {
         'Снаряжение союзников считано из меню ({n} навыков).',
     'Opfergaben der Survivor aus dem Menü gelesen ({n}).':
         'Подношения выживших считаны из меню ({n}).',
-    'Loadouts der Mitspieler zeigen (Perks aus dem Menü)':
-        'Показывать снаряжение союзников (навыки из меню)',
     'Neben der Survivor-Liste':
         'Рядом со списком выживших',
     'Perks der Mitspieler':
@@ -6158,4 +6142,15 @@ T = {
     # 1.57.4: offerings
     'Die Opfergabe (eine verdeckte als „?“), das Item und seine zwei Add-ons als kleine Felder neben den Perks.':
         'Подношение (скрытое — как «?»), предмет и два его улучшения маленькими ячейками рядом с навыками.',
+    # 1.57.49: on / off switches of the overlay elements
+    'Ein oder aus':
+        'Вкл. или выкл.',
+    'Ein – zum Ausschalten klicken':
+        'Вкл. – нажмите, чтобы выключить',
+    'Aus – zum Einschalten klicken':
+        'Выкл. – нажмите, чтобы включить',
+    'Infos im Overlay eingeblendet.':
+        'Информация показана в оверлее.',
+    'Infos im Overlay ausgeblendet.':
+        'Информация скрыта в оверлее.',
 }

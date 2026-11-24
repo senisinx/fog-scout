@@ -63,7 +63,7 @@ def test_the_list_picks_shows_hides_and_locks_through_the_known_switches(app_roo
         data = app._elements_data()
         assert data["order"] == ["map", "text", "hud", "today", "music", "inputs", "loadouts"]      # 1.57
         assert data["rows"]["map"]["shown"] and not data["rows"]["inputs"]["shown"]
-        assert not data["rows"]["text"]["can_hide"] and data["rows"]["map"]["place"] == "automatisch"
+        assert data["rows"]["text"]["shown"] and data["rows"]["map"]["place"] == "automatisch"
         app._elements_act(("select", "music"))
         assert app._sel == "music" and app._elements_data()["selected"] == "music"
         app._elements_act(("show", "music", False))
@@ -78,6 +78,11 @@ def test_the_list_picks_shows_hides_and_locks_through_the_known_switches(app_roo
         app._elements_act(("show", "map", False))
         assert app.settings["overlay"]["show_map"] is False
         app._elements_act(("show", "map", True))
+        app._elements_act(("show", "text", False))                         # 1.57.49: "Infos" have a switch too
+        assert app.settings["overlay"]["show_info"] is False and not app.overlay.show_info
+        assert not app._elements_data()["rows"]["text"]["shown"]
+        app._elements_act(("show", "text", True))
+        assert app.settings["overlay"]["show_info"] is True and app.overlay.show_info
         app._elements_act(("lock", "today", True))
         assert app.settings["overlay"]["locked"] == ["today"] and app._elements_data()["rows"]["today"]["locked"]
         app._elements_act(("lock", "today", False))
@@ -238,3 +243,27 @@ def test_the_quick_place_is_read_from_one_look_at_the_preview(app_root):
         assert app._anchors_data()["cell"] == (1, 0)
     finally:
         app.quit()
+
+
+def test_infos_off_hide_every_line_and_keep_them_for_later():
+    """1.57.49 (user: "Ein/Aus-Knopf für jedes Overlay-Element"): "Infos" off draw no timer, server, record, last round
+    or note – not even the placeholder in moving mode – and switched on again they are back without a new set_*."""
+    from fogscout import layout
+    from fogscout.overlay_win32 import PictureOverlay
+    ov = PictureOverlay(None)
+    ov.set_timer("3:27")
+    ov.set_server("Frankfurt", 31.4)
+    ov.set_record("Ø 2,8 Kills")
+    ov.set_memo(("Notiz",))
+    ov.set_last(("Zuletzt hier",))
+    assert ov.has_info() and ov.info_picture(20) is not None
+    ov.set_show_info(False)
+    assert not ov.has_info() and ov.info_picture(20, placeholder="0:00") is None
+    ov.set_timer("3:28")                                         # the App keeps setting them meanwhile
+    ov.set_note("unsicher")                                      # the amber warning is no info: it stays
+    assert ov._note == "unsicher" and not ov._timer
+    ov.set_show_info(True)
+    assert (ov._timer, ov._server, ov._ping, ov._record, ov._memo, ov._last) == \
+        ("3:28", "Frankfurt", 31, "Ø 2,8 Kills", ("Notiz",), ("Zuletzt hier",))
+    o = {"info_pos": "below", "show_map": True}
+    assert layout.info_apart(o) and not layout.info_apart(dict(o, show_info=False))   # no room kept for them

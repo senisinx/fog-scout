@@ -129,16 +129,12 @@ T = {
         'Aspetto',
     'Grösse':
         'Dimensione',
-    'Karte anzeigen':
-        'Mostra la mappa',
     'Karte im Overlay eingeblendet.':
         "Mappa mostrata nell'overlay.",
     'Karte im Overlay aus – es werden nur Timer, Ort und Ping angezeigt.':
         "Mappa nell'overlay disattivata – vengono mostrati solo timer, posizione e ping.",
     'nichts anzuzeigen':
         'niente da mostrare',
-    'Aus: Das Overlay zeigt nur Rundentimer, Serverregion und Ping – ohne Karte. Erkennung, Rundenende und Statistik laufen wie gewohnt.':
-        "Off: l'overlay mostra solo il timer del round, la regione del server e il ping – senza la mappa. Rilevamento, fine del round e statistiche funzionano come al solito.",
     'Für diese Map zurücksetzen':
         'Ripristina per questa mappa',
     'eigene Grösse {n} % (Hotkeys/Strg+Mausrad)':
@@ -2529,8 +2525,6 @@ T = {
         'Info',
     'INFOS':
         'INFO',
-    'Infos (Timer, Bilanz, Server)':
-        'Info (timer, bilancio, server)',
     'In OBS ist der Wiederholungspuffer nicht aktiviert – OBS: Einstellungen → Ausgabe → Wiederholungspuffer → „Wiederholungspuffer aktivieren“ und übernehmen. Ohne ihn gibt es keine Sofort-Clips (F8) und keinen Vorlauf.':
         'Il buffer di replay di OBS non è attivato – OBS: Impostazioni → Uscita → Buffer di replay → «Abilita buffer di replay» e applica. Senza di esso non ci sono clip istantanee (F8) né pre-roll.',
     'Wiederholungspuffer in OBS nicht aktiviert (Einstellungen → Ausgabe → Wiederholungspuffer)':
@@ -5732,8 +5726,6 @@ T = {
         'INPUT',
     'Eingaben im Spiel':
         'Input nel gioco',
-    'Eingaben im Spiel zeigen (Tasten, Maus, Gamepad)':
-        'Mostra gli input nel gioco (tasti, mouse, gamepad)',
     'Gamepad':
         'Gamepad',
     'Gerät':
@@ -5750,8 +5742,6 @@ T = {
         "Fog Scout mostra solo quali di questi tasti sono premuti in questo momento: W, A, S, D, Q, E, R, Spazio, Shift, Ctrl, i pulsanti del mouse e un gamepad (pulsanti, grilletti, levette). Vengono letti solo durante un round e solo mentre DBD è la finestra attiva – Fog Scout non vede mai ciò che scrivi in altri programmi. Nulla viene registrato nel log o inviato, e nulla va al gioco; con «Salva gli input con la registrazione» i tasti di un round vengono conservati come file accanto alla sua registrazione OBS (per l'editor di clip). Behaviour non ha approvato ufficialmente queste visualizzazioni; non danno alcun vantaggio nel gioco.",
     'Gelesen werden nur W, A, S, D, Q, E, R, Leertaste, Shift, Strg, die Maustasten und ein Gamepad – nur während einer Runde und nur, solange DBD vorne ist. Gesendet wird nichts; gespeichert nur mit dem Häkchen oben, als Datei neben der eigenen Aufnahme.':
         'Vengono letti solo W, A, S, D, Q, E, R, Spazio, Shift, Ctrl, i pulsanti del mouse e un gamepad – solo durante un round e solo mentre DBD è in primo piano. Nulla viene inviato; salvato solo con la casella sopra, come file accanto alla tua registrazione.',
-    'Eine Karte im Spiel zeigt, welche Tasten, Maustasten oder Gamepad-Knöpfe du gerade drückst – wie bei Streamern. Gelesen wird nur eine feste Liste von Tasten, nur während einer Runde und nur, solange DBD vorne ist; gesendet wird nichts, gespeichert nur mit „Eingaben mit der Aufnahme speichern“.':
-        'Una scheda nel gioco mostra quali tasti, pulsanti del mouse o del gamepad stai premendo in questo momento – come fanno gli streamer. Viene letto solo un elenco fisso di tasti, solo durante un round e solo mentre DBD è in primo piano; nulla viene inviato, salvato solo con «Salva gli input con la registrazione».',
     'Mit OBS-Aufnahmen: die gedrückten Tasten der Runde kommen als kleine Datei neben die Aufnahme – der Clip-Editor zeigt sie als Spur und kann die Karte ins Video einbrennen. Die Datei wird mit der Aufnahme verschoben und gelöscht.':
         "Con le registrazioni OBS: i tasti premuti durante il round finiscono in un piccolo file accanto alla registrazione – l'editor di clip li mostra come traccia e può imprimere la scheda nel video. Il file viene spostato ed eliminato con la registrazione.",
     'Aus der Datei neben der Aufnahme (Overlay › Eingaben › „Eingaben mit der Aufnahme speichern“). Clips aus F8 haben keine.':
@@ -5828,8 +5818,6 @@ T = {
         'La mappa callout della mappa',
     'Die Linien in der Vorschau mit „Anordnen“ ziehen – Karte, Systemwerte, Heute und Musik bleiben im Balken dazwischen.':
         "Trascina le linee nell'anteprima con «Disponi» – mappa, valori di sistema, oggi e musica restano tra di esse nella barra.",
-    'Ein- oder ausblenden':
-        'Mostra o nascondi',
     'Elemente':
         'Elementi',
     'Entsperren: wieder verschiebbar':
@@ -6122,8 +6110,6 @@ T = {
         "Da sopravvissuto, il menu di pausa di Dead by Daylight (Esc) mostra cosa portano gli altri sopravvissuti. Fog Scout lo legge solo dall'immagine, mentre il menu è aperto (pochi sguardi per round), e poi mostra i perk come rombo accanto a ogni compagno – oggetto e add-on accanto, se vuoi. Da killer il menu mostra solo le offerte dei sopravvissuti – compaiono poi accanto a loro. Nulla viene salvato o inviato; i nomi dei giocatori vengono letti solo per distinguere sopravvissuti dall'aspetto uguale, e solo in memoria. Basta premere Esc una volta.",
     'Im Match einmal Esc drücken – Fog Scout liest die Loadouts der anderen Survivor (als Killer ihre Opfergaben) aus dem Bild des Menüs und zeigt sie danach neben ihnen. Nichts wird gespeichert oder gesendet.':
         "Premi Esc una volta durante la partita – Fog Scout legge i loadout degli altri sopravvissuti (da killer le loro offerte) dall'immagine del menu e poi li mostra accanto a loro. Nulla viene salvato o inviato.",
-    'Neben jedem anderen Survivor in der Liste links erscheinen seine vier Perks als Raute – gelesen aus dem Pausenmenü (Esc); als Killer seine Opfergabe. Nur das Bild wird gelesen, nur bei offenem Menü; nichts wird gespeichert oder gesendet.':
-        "Accanto a ogni altro sopravvissuto nella lista a sinistra compaiono i suoi quattro perk come rombo – letti dal menu di pausa (Esc); da killer la sua offerta. Si legge solo l'immagine, solo a menu aperto; nulla viene salvato o inviato.",
     'Opfergabe, Item und Add-ons neben den Perks':
         'Offerta, oggetto e add-on accanto ai perk',
     'LOADOUTS':
@@ -6136,8 +6122,6 @@ T = {
         'Loadout dei compagni letti dal menu ({n} perk).',
     'Opfergaben der Survivor aus dem Menü gelesen ({n}).':
         'Offerte dei sopravvissuti lette dal menu ({n}).',
-    'Loadouts der Mitspieler zeigen (Perks aus dem Menü)':
-        'Mostra i loadout dei compagni (perk dal menu)',
     'Neben der Survivor-Liste':
         'Accanto alla lista dei sopravvissuti',
     'Perks der Mitspieler':
@@ -6158,4 +6142,15 @@ T = {
     # 1.57.4: offerings
     'Die Opfergabe (eine verdeckte als „?“), das Item und seine zwei Add-ons als kleine Felder neben den Perks.':
         "L'offerta (una nascosta come «?»), l'oggetto e i suoi due add-on come piccoli riquadri accanto ai perk.",
+    # 1.57.49: on / off switches of the overlay elements
+    'Ein oder aus':
+        'Acceso o spento',
+    'Ein – zum Ausschalten klicken':
+        'Acceso – clicca per spegnere',
+    'Aus – zum Einschalten klicken':
+        'Spento – clicca per accendere',
+    'Infos im Overlay eingeblendet.':
+        "Info mostrate nell'overlay.",
+    'Infos im Overlay ausgeblendet.':
+        "Info nascoste nell'overlay.",
 }
