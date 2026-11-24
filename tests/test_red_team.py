@@ -380,3 +380,21 @@ def test_rs_013_verified_a_queued_upload_cannot_point_outside_the_recordings_fol
                  "a\x00.mp4", "./../a.mp4"):
         assert fsops.rel_path("/rec", name) is None, name
     assert json.dumps(fsops.rel_path("/rec", "Farming/a.mp4"))
+
+
+def test_a_library_thumbnail_is_written_whole_and_never_through_a_link(tmp_path):
+    """CR-011 (code review): two editors' loaders wrote the same JPEG at once into a half picture; the cache
+    folder swapped for a link was written through."""
+    from PIL import Image
+    from fogscout import qt_library
+    img = Image.new("RGB", (8, 8), (10, 20, 30))
+    plain = qt_library.ThumbLoader(str(tmp_path / "cache" / "clipthumbs"), None)
+    plain._store(img, str(tmp_path / "cache" / "clipthumbs" / "a.jpg"))
+    assert Image.open(tmp_path / "cache" / "clipthumbs" / "a.jpg").size == (8, 8)
+    assert [n for n in os.listdir(tmp_path / "cache" / "clipthumbs") if n.endswith(".tmp")] == []
+    elsewhere = tmp_path / "elsewhere"
+    elsewhere.mkdir()
+    os.symlink(str(elsewhere), str(tmp_path / "cache" / "linked"))
+    linked = qt_library.ThumbLoader(str(tmp_path / "cache" / "linked"), None)
+    linked._store(img, str(tmp_path / "cache" / "linked" / "b.jpg"))
+    assert os.listdir(elsewhere) == []

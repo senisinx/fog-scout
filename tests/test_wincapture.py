@@ -205,3 +205,17 @@ def test_a_minimized_dbd_ends_the_window_capture(tmp_path, monkeypatch):
     finally:
         wk.stop()
         wk.join(timeout=10)
+
+
+def test_a_region_outside_the_picture_is_no_picture_and_no_crash(monkeypatch):
+    """CR-011 (code review): the window shrank between two looks – an empty slice made cv2 raise on the capture
+    thread; now the answer is "no picture"."""
+    lib = _FakeLib(size=(64, 40))
+    _with_lib(monkeypatch, lib)
+    cap = WindowCapture(1)
+    cap.start()
+    assert cap.grab(60, 0, 10, 10) is None                       # beyond the right edge
+    assert cap.grab(-1, 0, 4, 4) is None
+    img = cap.grab(0, 0, 4, 4)
+    assert img is not None and img.shape == (4, 4, 3) and cap._out is None     # not kept after it was handed out
+    cap.stop()

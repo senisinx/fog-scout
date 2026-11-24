@@ -188,7 +188,6 @@ ALLOWED = {                       # (module, function) → calls it may make
     ("fsops", "discard_tmp"): {"os.remove"},
     ("fsops", "delete_inside"): {"os.remove"},   # 1.33.5: POSIX, after every part below the folder was checked
     ("fsops", "delete"): {"os.unlink"},
-    ("filehash", "_save_cache"): {"os.replace"},
     ("fsops", "_replace_into"): {"os.replace"},  # 1.34.2: the one replacing write (write_atomic, CR-007: …_stream)
 }
 WATCHED = {"os.rename", "os.replace", "os.remove", "os.unlink", "os.link", "shutil.move", "shutil.copyfile",
@@ -335,7 +334,6 @@ REPLACE_PLACES = {               # (module, function): why it may rename/replace
     ("fsops", "_replace_into"): "the one replacing write (write_atomic, write_atomic_stream)",
     ("fsops", "create_exclusive"): "never over an existing name (project saving)",
     ("fsops", "rename_fallback"): "never over an existing name (project saving)",
-    ("filehash", "_save_cache"): "hash cache, rebuilt when lost",
     ("clipedit", "_publish"): "a finished ffmpeg output gets its name",
     ("obsrec", "_join"): "the joined recording (ffmpeg output) takes the round's name",
     ("obsrec", "_move"): "a recording moved into its folder",

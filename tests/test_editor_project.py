@@ -471,3 +471,22 @@ def test_the_autosave_setting_reaches_the_open_editors(app_root, clip, tmp_path)
         if win is not None:
             win.close()
         app.quit()
+
+
+def test_the_library_reads_the_project_heads_in_a_thread(tmp_path, monkeypatch):
+    """CR-011 (code review): every activation of the editor read every project file in the window's thread."""
+    import threading
+    from types import SimpleNamespace
+    from fogscout import qt_editor
+    threads, got, shown = [], [], []
+    monkeypatch.setattr(qt_editor.project, "scan",
+                        lambda folder: threads.append(threading.current_thread().name) or [])
+    item = SimpleNamespace(path=str(tmp_path / "a.mkv"), project=None)
+    done = threading.Event()
+    s = SimpleNamespace(media=lambda: [item], clips_dir=str(tmp_path), path=str(tmp_path / "a.mkv"), _closed=False,
+                        bridge=SimpleNamespace(library=SimpleNamespace(emit=lambda n: (got.append(n), done.set()))),
+                        library=SimpleNamespace(set_items=lambda items, current=None: shown.append(list(items))))
+    s._mark_library = lambda names: qt_editor.EditorWindow._mark_library(s, names)
+    qt_editor.EditorWindow._fill_library(s)
+    assert done.wait(10)
+    assert threads == ["library-scan"] and got == [set()] and shown and item.project is False

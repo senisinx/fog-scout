@@ -159,11 +159,13 @@ class Outcome:
 
 
 def write_guarded(path: str, data: bytes, base_hash: str | None, kind: str, seq: int, key, writer,
-                  hook=None, pending_tmp: str | None = None) -> Outcome:
+                  hook=None, pending_tmp: str | None = None, recovered=None) -> Outcome:
     """Fassung 6, 3.8, steps 0–9. ``base_hash`` None = a new project (no file expected). Outcomes: written /
     conflict (content not ours) / missing (file gone) / appeared (a file was created in the gap) / busy (another
     program has it open) / unsupported. Raises OSError for disk errors; a temp file it leaves is in ``Outcome.tmp``.
-    ``pending_tmp``: after a failed step 7 the old main file is a backup already – only step 7 is tried again."""
+    ``pending_tmp``: after a failed step 7 the old main file is a backup already – only step 7 is tried again.
+    ``recovered(hash)``: called as soon as that earlier state is the project file (CR-010: a "busy" or an error of
+    the write after it must not lose that the file is ours now – the retry reported a false conflict)."""
     step = hook or (lambda n: None)
     if pending_tmp and os.path.exists(pending_tmp):
         with open(pending_tmp, "rb") as fh:            # the state whose step 7 failed comes first …
@@ -173,6 +175,8 @@ def write_guarded(path: str, data: bytes, base_hash: str | None, kind: str, seq:
         except FileExistsError:
             return Outcome("appeared", tmp=pending_tmp)
         base_hash = sha(earlier)                       # … and this write goes on from it like any other
+        if recovered is not None:
+            recovered(base_hash)
     step(0)
     tmp = fsops.write_tmp(path, data)
     try:
@@ -649,8 +653,11 @@ class Registry:
 
     def _prune(self):
         with self.lock:
+            # CR-010: a slot whose thread still runs (a retry due, a write in progress) stays – opened again, the
+            # window must find it, else a second writer thread worked on the same file
             self.slots = [s for s in self.slots if s.owner is not None or s.pending is not None
-                          or s.in_flight is not None or s.fifo or s.latest_seq > max(s.written_seq, s.rescued_seq)]
+                          or s.in_flight is not None or s.fifo or s.latest_seq > max(s.written_seq, s.rescued_seq)
+                          or s.retry_at is not None or (s.thread is not None and s.thread.is_alive())]
 
     def set_identity(self, slot: Slot, pid: str, path: str):
         """A new project got its id (GUI thread, first save): the slot is found by it from now on."""
@@ -783,11 +790,19 @@ class Registry:
         out = None
         for wait in BUSY_RETRY_S + (None,):
             out = write_guarded(slot.path, data, slot.base_hash, kind, job.seq, self.key, self.writer,
-                                hook=lambda n: self._hook(slot, n), pending_tmp=slot.pending_tmp)
+                                hook=lambda n: self._hook(slot, n), pending_tmp=slot.pending_tmp,
+                                recovered=lambda h: self._recovered(slot, h))
             if out.kind != "busy" or wait is None:
                 break
             self._wait(slot, wait)
         self._settle(slot, job, out, kind, data)
+
+    @staticmethod
+    def _recovered(slot, new_hash):
+        """CR-010: the state whose step 7 failed is the project file now – kept at once, whatever follows."""
+        with slot.cv:
+            slot.base_hash = new_hash
+            slot.pending_tmp = None
 
     def _settle(self, slot, job, out, kind, data):
         if out.kind == "written":

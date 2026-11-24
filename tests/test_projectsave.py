@@ -662,3 +662,33 @@ def test_rotation_keeps_the_newest_backups_by_time_not_by_seq(tmp_path):
     today = projectsave.store_with_sidecar(str(tmp_path), b'{"i": "today"}', 1, "sitzung", KEY, WRITER)
     projectsave.rotate(str(tmp_path), KEY, WRITER)
     assert os.path.exists(today)
+
+
+# ---- CR-010 (code review)
+def test_a_recovered_earlier_state_is_kept_even_when_the_next_step_is_busy(tmp_path, monkeypatch):
+    """After a failed step 7 the earlier state (pending_tmp) became the file, then the file was busy (a virus
+    scanner) – the base hash of that state was lost and the retry reported a false conflict."""
+    path = main_path(tmp_path)
+    earlier = b'{"earlier": 1}'
+    pending = fsops.write_tmp(path, earlier)
+    got = []
+
+    def busy(p):
+        raise PermissionError("a scanner has it open")
+    monkeypatch.setattr(projectsave.fsops, "ExclusiveHandle", busy)
+    out = projectsave.write_guarded(path, b'{"new": 2}', "0" * 64, "zwischen", 3, KEY, WRITER,
+                                    pending_tmp=pending, recovered=got.append)
+    assert out.kind == "busy" and got == [projectsave.sha(earlier)] and open(path, "rb").read() == earlier
+
+
+def test_a_slot_with_a_retry_due_stays_registered_after_its_window_closed(tmp_path):
+    reg = make_registry(tmp_path)
+    slot, _m = reg.claim(["q" * 32], "w1", main_path(tmp_path), "q" * 32)
+    with slot.cv:
+        slot.retry_at = reg.clock() + 60
+    reg.release(slot, "w1")
+    assert reg.find(["q" * 32]) is slot                       # opened again: the same slot, never a second writer
+    with slot.cv:
+        slot.retry_at = None
+    reg.release(slot, "w1")
+    assert reg.find(["q" * 32]) is None

@@ -113,7 +113,8 @@ class _Bridge(Bridge):
              "claude",       # 1.27: Claude's answer to a wish in the editor (editorclaude)
              "moments",      # 1.39.2: the dark pictures at the start/end looked at (editormoments)
              "textfind",     # 1.41.1: text boxes found on the still at the playhead (textfind) or why not
-             "save_turn")    # 1.42.2: a queued export's turn came (path) – ffmpeg starts now
+             "save_turn",    # 1.42.2: a queued export's turn came (path) – ffmpeg starts now
+             "library")      # CR-011: the names of the recordings with a project file (qt_editor, read in a thread)
     LATEST = ("frame", "played")      # pictures: only the newest of a batch is drawn
     AFTER_CLOSE = ("saved", "still")  # a save that ends after the window closed still reaches the clips list
     LABEL = "Clip-Editor"
