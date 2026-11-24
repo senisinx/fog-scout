@@ -210,7 +210,7 @@ def test_programs_are_started_by_their_full_path():
 # whose command is not a literal list only in these reviewed wrappers (their callers hand them full paths).
 DYNAMIC_COMMANDS = {
     ("clipedit", "_run_cancellable"), ("clipedit", "run"),   # ffmpeg (ffmpeg_exe: imageio-ffmpeg's full path)
-    ("encoders", "_run"), ("obsrec", "_run"), ("qt_clip", "run"),   # the same ffmpeg
+    ("encoders", "_run"), ("obsrec", "_run"), ("qt_clip", "run"), ("qt_clip", "run_out"),   # the same ffmpeg
     ("launch", "start_program"),                               # OBS by the full path the user chose
     ("restart", "spawn_helper"), ("restart", "wait_and_start"),   # sys.executable / helper_args (full paths)
     ("restart", "_shell_open"),                                # the checked setup copy, executable= its full path

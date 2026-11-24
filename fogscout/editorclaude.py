@@ -662,7 +662,7 @@ class ClaudeMixin:
         # CR-017 (code review): the censor boxes drawn since the proposal count too – every box of either state
         now = self._state()
         boxes = list(base.boxes) + [b for b in now.boxes if b not in base.boxes]
-        picture = self._cut_picture(dataclasses.replace(now, boxes=boxes))
+        picture = self._cut_picture(dataclasses.replace(base, boxes=boxes))   # the proposal's crop and look
         try:
             os.makedirs(self.clips_dir, exist_ok=True)
         except OSError as e:

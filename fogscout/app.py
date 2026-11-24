@@ -1921,11 +1921,18 @@ class App(ServerTab, StatsTab, ExportDialog, RecordingsTab, DiscordPresence, Spo
             self.srv_tree.tag_configure(tag, foreground=colors[key])
         self.srv_tree.tag_configure("p_mid", foreground=STATE[dark]["warn"])          # 1.22.3: the theme's
         self.srv_tree.tag_configure("group", foreground=colors["text"])
-        for chart in (getattr(self, "trend", None), getattr(self, "sys_trend", None)):
+        # CR-018 (code review): every chart and heatmap of the statistics, not only two of them
+        for name in ("trend", "sys_trend", "bp_trend", "wait_trend", "prestige_trend", "stats_dash", "stats_heat_k",
+                     "stats_heat_s"):
+            chart = getattr(self, name, None)
             if chart is not None:
                 chart.dark = dark
-        if getattr(self, "stats_dash", None) is not None:
-            self.stats_dash.dark = dark
+        q = getattr(self, "qt", None)
+        host = q.host(str(self.shot_host)) if q is not None and hasattr(self, "shot_host") else None
+        gallery = getattr(host, "content", None) if host is not None else None
+        if gallery is not None and hasattr(gallery, "dark"):              # the screenshots' gallery (qt_gallery)
+            gallery.dark = dark
+            gallery.viewport().update()
         self._qt_theme()
 
     def _dark_changed(self):
@@ -2029,7 +2036,10 @@ class App(ServerTab, StatsTab, ExportDialog, RecordingsTab, DiscordPresence, Spo
                 steps.append(self.overlay.destroy)
             if self.hud is not None:
                 steps.append(self.hud.destroy)
-            steps += [w.destroy for w in wins] + [g.destroy for g in getattr(self, "_guides", ())]
+            # CR-018 (code review): the limit and snap lines too – they stayed as windows until the process ended
+            steps += [w.destroy for w in wins] + [g.destroy for g in (*getattr(self, "_guides", ()),
+                                                                      *(getattr(self, "_limit_guides", None) or ()),
+                                                                      *(getattr(self, "_snap_guides", None) or ()))]
             steps.append(self.toast.close)
             for step in steps:
                 try:

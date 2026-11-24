@@ -151,6 +151,26 @@ class _SaveJob:
             raise                                       # clipedit reports it like its own timeout
         return proc.returncode, err or b""
 
+    def run_out(self, args):
+        """CR-018: like ``run`` for a command whose stdout is the result (a still: clipedit.frame_at) – stoppable
+        by ``stop``; the bytes, or None when stopped, failed or too slow."""
+        with self._lock:
+            if self.stopped:
+                return None
+            try:
+                self._proc = proc = subprocess.Popen(args, stdin=subprocess.DEVNULL, stdout=subprocess.PIPE,
+                                                     stderr=subprocess.DEVNULL,
+                                                     creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0))
+            except OSError:
+                return None
+        try:
+            out, _err = proc.communicate(timeout=min(self.timeout, 30))
+        except subprocess.TimeoutExpired:
+            proc.kill()
+            proc.communicate()
+            return None
+        return out if proc.returncode == 0 else None
+
     def stop(self):
         with self._lock:
             self.stopped = True
@@ -2218,7 +2238,7 @@ class ClipBase(QWidget):
         def work():
             ok = False
             try:
-                img = clipedit.frame_at(path, t, info.height, info, ffmpeg)
+                img = clipedit.frame_at(path, t, info.height, info, ffmpeg, run=job.run_out)   # CR-018: stoppable
                 if img is not None:
                     if crop:                              # the same pixels as the clip's crop filter
                         w, h, x, y = clipedit.crop_px(crop, img.width, img.height)

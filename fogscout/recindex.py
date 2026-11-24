@@ -8,6 +8,7 @@ Recorder thread talks to OBS): file names, the recordings index (``Recording``, 
 from __future__ import annotations
 
 import json
+import math
 import os
 import re
 import shutil
@@ -76,7 +77,7 @@ def _finite_num(x) -> bool:
         f = float(x)
     except OverflowError:
         return False
-    return f == f and abs(f) <= 1e15
+    return math.isfinite(f) and abs(f) <= 1e15
 
 
 def _kind_value(kind, v):
@@ -90,7 +91,7 @@ def _kind_value(kind, v):
             f = float(v)
         except OverflowError:
             return None
-        if f != f or abs(f) == float("inf") or abs(f) > 1e15:
+        if not math.isfinite(f) or abs(f) > 1e15:
             return None
         return type(kind)(v)
     if isinstance(kind, str):

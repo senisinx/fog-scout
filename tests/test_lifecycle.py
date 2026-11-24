@@ -85,3 +85,33 @@ def test_a_new_spotify_client_id_clears_the_stored_sign_in():
     assert settings["spotify_token"] == "" and sent == [""]
     app_spotify.SpotifyUpNext._spotify_setting(s)                     # the same id again: nothing dropped
     assert sent == ["", ""]
+
+
+def test_a_typed_file_name_is_a_windows_file_name():
+    """CR-018 (code review): control characters, dots/spaces at the end and device names in the image editor's name."""
+    from fogscout.imageedit import file_stem
+    assert file_stem("a\x00b\x1fc") == "abc" and file_stem("name. . ") == "name" and file_stem("ok:na?me") == "okname"
+    assert file_stem("CON") == "_CON" and file_stem("nul.txt") == "_nul.txt" and file_stem("COM1 ") == "_COM1"
+    assert file_stem("Concert") == "Concert" and file_stem("...") == ""
+
+
+def test_a_broken_accent_colour_is_gold():
+    from fogscout import skin
+    assert skin.accent_rgba("#zzzzzz") == skin.GOLD and skin.accent_rgba("#102030") == (16, 32, 48, 255)
+
+
+def test_a_still_being_saved_stops_with_its_job():
+    """CR-018: save_still ran ffmpeg outside its job – quitting could not stop it."""
+    from fogscout import qt_clip
+    job = qt_clip._SaveJob(None, "x.png")
+    job.stop()
+    assert job.run_out(["ffmpeg", "-version"]) is None                    # stopped: nothing started
+
+
+def test_a_projects_broken_mix_level_is_clamped_or_skipped():
+    """CR-018: "mix_vol" of a project file went through int() unguarded (a crash on "x") and unclamped."""
+    from fogscout import obsrec, qt_editor
+    src = list(obsrec.SOURCES)
+    s = SimpleNamespace(_mix_on={}, _mix_vol={k: 100 for k in src}, _mix_fill=lambda: None)
+    qt_editor.EditorWindow._apply_project_extra(s, {"mix_vol": {src[0]: "x", src[1]: 900, src[2]: -5}})
+    assert s._mix_vol[src[0]] == 100 and s._mix_vol[src[1]] == qt_editor.MIX_MAX and s._mix_vol[src[2]] == 0

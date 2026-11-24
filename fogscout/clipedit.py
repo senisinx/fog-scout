@@ -276,7 +276,7 @@ def track_levels(path: str, n_tracks: int, ffmpeg: str | None = None, timeout: f
 
 
 def frame_at(path: str, t: float, height: int = PREVIEW_H, info: Info | None = None, ffmpeg: str | None = None,
-             keyframe: bool = False, vf=None, size=None):
+             keyframe: bool = False, vf=None, size=None, run=None):
     """One picture at second ``t`` as PIL image (RGB), or None. Seeks to the key frame before ``t`` and decodes
     up to it – about 40 ms for 1080p, more for 1440p and up to a key-frame interval of decoding (OBS: 2–4 s of
     frames, measured 70–190 ms at 1080p60). ``keyframe`` (1.8.3): only the key frame at or before ``t``, no decoding
@@ -284,7 +284,8 @@ def frame_at(path: str, t: float, height: int = PREVIEW_H, info: Info | None = N
     ``-fps_mode passthrough``: that frame carries a negative output timestamp, and the constant-rate default
     drops it unless a later frame follows – near the end of a file none does (measured: nothing came back).
     ``vf`` (1.19) = more filters on the scaled picture (a clip's effects: preview_filters); ``size`` (1.20) = the
-    picture size those filters make (a short's canvas), else the scaled size."""
+    picture size those filters make (a short's canvas), else the scaled size. ``run(args) -> stdout bytes or None``
+    (CR-018): who runs ffmpeg – a save job's, so quitting can stop it (default: here, at most 30 s)."""
     from PIL import Image
     ffmpeg = ffmpeg or ffmpeg_exe()
     info = info or probe(path, ffmpeg)
@@ -294,18 +295,21 @@ def frame_at(path: str, t: float, height: int = PREVIEW_H, info: Info | None = N
     ow, oh = size or (w, h)
     quick = ["-noaccurate_seek", "-skip_frame", "nokey"] if keyframe else []
     out = ["-an", "-fps_mode", "passthrough"] if keyframe else []
-    try:
-        p = subprocess.run([ffmpeg, "-hide_banner", "-loglevel", "error", *quick, "-ss", f"{max(0.0, t):.3f}", "-i", path,
-                            *out, "-frames:v", "1", "-vf", ",".join([f"scale={w}:{h}", *(vf or ())]),
-                            "-f", "rawvideo", "-pix_fmt", "rgb24", "-"],
-                           stdin=subprocess.DEVNULL, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, timeout=30,
-                           creationflags=_flags())
-    except (OSError, subprocess.TimeoutExpired):
-        return None
+    args = [ffmpeg, "-hide_banner", "-loglevel", "error", *quick, "-ss", f"{max(0.0, t):.3f}", "-i", path,
+            *out, "-frames:v", "1", "-vf", ",".join([f"scale={w}:{h}", *(vf or ())]),
+            "-f", "rawvideo", "-pix_fmt", "rgb24", "-"]
+    if run is None:
+        def run(a):
+            try:
+                return subprocess.run(a, stdin=subprocess.DEVNULL, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL,
+                                      timeout=30, creationflags=_flags()).stdout
+            except (OSError, subprocess.TimeoutExpired):
+                return None
+    data = run(args)
     need = ow * oh * 3
-    if len(p.stdout) < need:
+    if not data or len(data) < need:
         return None
-    return Image.frombytes("RGB", (ow, oh), p.stdout[:need])
+    return Image.frombytes("RGB", (ow, oh), data[:need])
 
 
 BURST = 13                       # 1.40: pictures one scrub read decodes (the wanted one and the next/previous 12)

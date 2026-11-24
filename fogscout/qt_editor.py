@@ -29,8 +29,8 @@ from .editormoments import MomentsMixin
 from .editormontage import MontageMixin
 from .editormusic import MusicMixin
 from .editorproject import ProjectMixin
-from .qt_clip import (CENSOR_LABELS, CONTENT_LABEL, CROP_LABELS, DRAW_TOOLS, MARK_AFTER_S, MARK_BEFORE_S, SHOW_FOR,
-                      SIZE_LABELS, SPEED_LABELS, STEP_BIG, STEP_SMALL, ClipBase, PreviewView, seg_part)
+from .qt_clip import (CENSOR_LABELS, CONTENT_LABEL, CROP_LABELS, DRAW_TOOLS, MARK_AFTER_S, MARK_BEFORE_S, MIX_MAX,
+                      SHOW_FOR, SIZE_LABELS, SPEED_LABELS, STEP_BIG, STEP_SMALL, ClipBase, PreviewView, seg_part)
 from .qt_common import guard_wheel
 from .qt_layouts import FlowRow
 from .qt_library import MediaLibrary
@@ -2418,7 +2418,13 @@ class EditorWindow(ClaudeMixin, InputMixin, MomentsMixin, MontageMixin, MusicMix
             if isinstance(val, dict):
                 for k in obsrec.SOURCES:
                     if k in val:
-                        store[k] = bool(val[k]) if key == "mix_on" else int(val[k] or 0)
+                        if key == "mix_on":
+                            store[k] = bool(val[k])
+                            continue
+                        try:                         # CR-018: a project file's broken level is not a crash
+                            store[k] = max(0, min(MIX_MAX, int(val[k] or 0)))
+                        except (TypeError, ValueError, OverflowError):
+                            pass
         self._mix_fill()
 
     # ---- keys and closing

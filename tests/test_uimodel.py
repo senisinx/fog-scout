@@ -3869,3 +3869,19 @@ def test_the_join_thread_works_on_copies_taken_in_the_window_thread(app_root):
         assert getattr(app, "_off_index", None) is before            # the thread never touches the App's index
     finally:
         app.quit()
+
+
+def test_switching_light_and_dark_reaches_every_statistics_chart(app_root):
+    """CR-018 (code review): only two charts followed the switch – the bloodpoints, waiting and prestige charts and
+    the heatmaps stayed in the old colours."""
+    from fogscout.app import App
+    app = App(str(app_root), simulate=str(app_root / "sim"))
+    try:
+        for dark in (False, True):
+            app.dark_var.set(dark)
+            app._dark_changed()
+            for name in ("bp_trend", "wait_trend", "prestige_trend", "stats_heat_k", "stats_heat_s"):
+                chart = getattr(app, name, None)
+                assert chart is None or chart.dark == dark, name
+    finally:
+        app.quit()
