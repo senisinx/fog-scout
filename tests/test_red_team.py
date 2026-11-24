@@ -245,6 +245,8 @@ def test_rs_002_verified_a_link_below_the_pruned_folder_is_still_not_followed(tm
         os.symlink(str(victim / "a.jpg"), str(cache / "a.jpg"))
     except (OSError, NotImplementedError) as e:
         pytest.skip(f"cannot create a file link here: {e}")
+    if os.utime not in os.supports_follow_symlinks:
+        pytest.skip("the link's own date cannot be set here (Windows) – an old link is what pruning would take")
     os.utime(str(cache / "a.jpg"), (OLD, OLD), follow_symlinks=False)
     thumbs.prune(str(cache))
     assert (victim / "a.jpg").exists()
