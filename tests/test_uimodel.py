@@ -3,6 +3,7 @@ overlay, and the whole program started without a screen (Qt offscreen; Linux –
 import os
 import queue
 import sys
+import threading
 import time
 
 import pytest
@@ -2847,6 +2848,9 @@ def test_the_history_is_copied_before_it_is_cleared(app_root):
         end = time.time() + 10
         while time.time() < end and not os.path.isdir(app_root / "backup"):       # the start's thread
             time.sleep(0.05)
+        for t in threading.enumerate():   # … finished: its write_atomic temp file is gone (CI saw it listed)
+            if t.name == "backup":
+                t.join(timeout=10)
         app._backup_done(backups.snapshot(str(app_root)))                       # nothing new: only the hint
         names = sorted(os.listdir(app_root / "backup"))
         assert len(names) == 1 and names[0].startswith("rounds-") and "1 Datei," in app.backup_var.get()   # 1.25: not "1 Dateien"
