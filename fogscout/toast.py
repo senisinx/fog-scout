@@ -37,9 +37,11 @@ class _Window(QWidget):
         lay.setContentsMargins(14, 10, 14, 10)
         lay.setSpacing(2)
         head = QLabel(title)
+        head.setTextFormat(Qt.PlainText)                 # 1.57.62 (security review): never HTML
         head.setStyleSheet(f"color: {FG}; font-size: 16px; font-weight: 700;")
         lay.addWidget(head)
         line = QLabel(text)
+        line.setTextFormat(Qt.PlainText)
         line.setWordWrap(True)
         line.setStyleSheet(f"color: {DIM}; font-size: 13px;")
         lay.addWidget(line)

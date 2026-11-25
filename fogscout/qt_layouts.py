@@ -209,6 +209,7 @@ class TileGrid(_Layout):
 class _ClickLabel(QLabel):
     def __init__(self, box):
         super().__init__()
+        self.setTextFormat(Qt.PlainText)          # 1.57.62 (security review): never HTML (qt_common._label)
         self._box = box
 
     def mousePressEvent(self, e):

@@ -592,6 +592,7 @@ class NavStatus(QFrame):
         h.setSpacing(8)
         self.dot = QLabel()
         self.text = QLabel()
+        self.text.setTextFormat(Qt.PlainText)            # 1.57.62: status words can hold an error text from outside
         self.text.setObjectName("navstatustext")         # 1.24.5: lines made by _two_lines, no wrapping
         h.addWidget(self.dot, 0, Qt.AlignTop)
         h.addWidget(self.text, 1)
