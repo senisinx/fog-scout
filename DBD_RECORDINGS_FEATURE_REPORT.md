@@ -102,7 +102,7 @@ Map-Banner auf. Was davon abhängt, ist unten als „nicht zuverlässig“ marki
 | Schwarz-/Standbild-Wächter nach jeder Runde | hoch (17 Runden in Folge verloren) | 31/31 schwarz, 0 Fehlalarme auf den 30 dunkelsten | klein | ~0,6 s je Runde im Rekorder-Thread | **P1 – umgesetzt (1.57.59)** |
 | Log der letzten Sitzungen + Warnungen der vorigen Sitzung in der Diagnose | mittel (S6/W1/W2 überhaupt erst belegbar) | sicher | klein | keine | **P1 – umgesetzt (1.57.60)** |
 | Score Events lesen, Kategorie, zählen, Ring, live + Zeile in Infos | hoch (Fortschritt je Kategorie im Spiel) | 2,4 % neben offiziellen Punkten (13 Runden) | mittel | ~29 ms je Blick mit Events, 4 Blicke/s nur auf die Ecke | **P1 – umgesetzt (1.57.53–1.57.57)** |
-| Warte-Karte bei voller DBD-Breite nicht über die UI legen | mittel | volle Breite messbar (`detector.fills_bars`) | mittel (Platzierung aller Layouts) | gering | **P1 – Entscheidung des Nutzers nötig** (ausblenden oder in die obere Ecke) |
+| Warte-Karte bei voller DBD-Breite nicht über die UI legen | mittel | volle Breite messbar (`detector.fills_bars`) | mittel (Platzierung aller Layouts) | gering | **P1 – umgesetzt (1.57.61, #503; Nutzer: „Ausblenden“)** |
 | Ursache des stehenden Overlays (W1) beheben | mittel | Ursache unbelegt | unklar | – | **P2 – erst mit dem neuen Log belegen** |
 | Punkte je Kategorie vom Ergebnisbildschirm lesen | mittel (Abgleich ohne Export) | wahrscheinlich gut (grosse Ziffern) | mittel | gering | **P2** |
 | Automatische Marken aus Score Events (Hook, Escape, Chase gewonnen) für Highlights | mittel–hoch (Clips ohne F8) | Score-Tracker liefert Zeiten | mittel (Marken schützen heute vor dem Farming-Aufräumen – eigenes Feld nötig) | keine | **P2** |
@@ -126,6 +126,7 @@ Alle auf eigenen Zweigen, je ein PR, gemergt nach grünen Prüfungen (Linux, Win
 | 1.57.58 | #499 | Löschen auf exFAT, Fehlschläge im Log | `fsops.py`, `recindex.py`, `obsrec.py` |
 | 1.57.59 | #500 | Schwarz-/Standbild-Wächter | `obsrec.py` (`picture_check`), i18n |
 | 1.57.60 | #501 | Log der letzten 3 Sitzungen, Warnungen der vorigen Sitzung in „Diagnose kopieren“ | `__main__.py`, `diagnose.py`, `.gitignore` |
+| 1.57.61 | #503 | Warte-Karte weg, solange DBD die ganze Breite nutzt; `fills_bars` lässt alle eigenen Fenster aus (sonst galt die Lobby mit den rechten Karten nicht als volle Breite – geprüft an Debug-Bildern: Lobby 3/3, Match 26/26) | `worker.py`, `detector.py`, `app_place.py` |
 
 Nebenbei behoben: Zeitstempel der Debug-Bilder aus zwei Uhr-Abfragen (Sekundenwechsel → falsche Reihenfolge, CI rot).
 
@@ -147,7 +148,7 @@ Nebenbei behoben: Zeitstempel der Debug-Bilder aus zwei Uhr-Abfragen (Sekundenwe
 
 ## 7 Einschränkungen, offene Fragen, nächste Schritte
 
-1. **Warte-Karte (S4):** ausblenden, solange DBD die volle Breite nutzt, oder in die obere linke Ecke verschieben? (Entscheidung des Nutzers.)
+1. **Warte-Karte (S4):** umgesetzt als „ausblenden“ (1.57.61) – live in Lobby/Ergebnisbildschirm noch zu bestätigen.
 2. **Stehendes Overlay (S6/W1):** nach der nächsten betroffenen Runde „Diagnose kopieren“ – Lag-Liste und vorige Sitzung zeigen dann die Ursache.
 3. **Release:** Releases entstehen nur per Handstart von *Build* (seit 1.50.7). Der Handstart am 25.11. 15:46 scheiterte an GitHub (HTTP 502) und hinterliess einen Entwurf 1.57.57.
 4. **Nach dem Update:** das Farming-Aufräumen löscht die abgelaufenen Farming-Aufnahmen (~530, F8-markierte bleiben).
