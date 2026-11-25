@@ -6164,4 +6164,8 @@ T = {
         'Информация скрыта в оверлее.',
     'Neustart gerade nicht möglich: eine Runde läuft, OBS nimmt auf oder ein Clip wird gespeichert. Danach noch einmal versuchen.':
         'Перезапуск сейчас невозможен: идёт раунд, OBS ведёт запись или сохраняется клип. Попробуйте позже.',
+    'Aufnahme ist schwarz – nur das Overlay, kein Spielbild ({n}. Runde in Folge): {file}. OBS zeigt DBD nicht mehr: DBD oder OBS neu starten, oder unter Einstellungen → Aufnahmen die Spielaufnahme statt der Fensteraufnahme wählen.':
+        'Запись чёрная – только оверлей, без изображения игры ({n}-й раунд подряд): {file}. OBS больше не показывает DBD: перезапустите DBD или OBS либо выберите в Настройки → Записи захват игры вместо захвата окна.',
+    'Aufnahme zeigt nur ein stehendes Bild ({n}. Runde in Folge): {file}. OBS nimmt nicht das laufende Spiel auf – ein hängendes oder ein anderes Fenster (z. B. der Launcher): DBD oder OBS neu starten.':
+        'На записи только неподвижная картинка ({n}-й раунд подряд): {file}. OBS не записывает запущенную игру – зависшее или другое окно (например, лаунчер): перезапустите DBD или OBS.',
 }

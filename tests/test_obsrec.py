@@ -748,6 +748,55 @@ def test_a_broken_file_from_obs_gives_a_warning(tmp_path):
         obs.stop()
 
 
+def test_a_black_or_frozen_recording_is_told_and_noted(tmp_path, monkeypatch):
+    """1.57.59 (user's recordings: 31 rounds with only the overlay on black, 17 of them in a row; one showed the
+    Epic launcher the whole round): the finished recording is looked at three times – black or always the same
+    picture gives a warning with the count of rounds in a row, and the index notes it."""
+    obs = FakeObs(record_dir=str(tmp_path))
+    obs.start()
+    try:
+        r, posted = _recorder(obs, str(tmp_path), pre=False)
+        verdicts = iter(["schwarz", "schwarz", None, "eingefroren"])
+        monkeypatch.setattr(obsrec, "picture_check", lambda path: next(verdicts))
+        texts = []
+        for i in range(4):
+            r._begin({"t": 10.0 + i, "label": f"R{i}"})
+            with open(obs.recording, "wb") as f:
+                f.write(b"\x1a\x45\xdf\xa3" + b"\0" * (obsrec.MIN_FILE_BYTES + 10))
+            r._finish({})
+            while True:
+                try:
+                    k, d = posted.get(timeout=1)
+                except Exception:
+                    break
+                if k == "warn":
+                    texts.append(d["text"])
+        assert len(texts) == 3
+        assert "schwarz" in texts[0] and "1. Runde in Folge" in texts[0] and "2. Runde in Folge" in texts[1]
+        assert "stehendes Bild" in texts[2] and "1. Runde in Folge" in texts[2]
+        pictures = [e.extra.get("picture") for e in obsrec.load_index(str(tmp_path))]
+        assert pictures == ["schwarz", "schwarz", None, "eingefroren"]
+    finally:
+        obs.stop()
+
+
+def test_picture_check_tells_black_from_a_dark_round_and_a_standing_picture():
+    """The thresholds measured on the user's recordings (64×32 grey of the middle): black max ≤ 16 / spread ≤ 1.7,
+    the darkest real rounds max ≥ 34 / spread ≥ 4.5."""
+    import random
+    rnd = random.Random(7)
+    black = bytes([16] * 2048)
+    dark = [bytes(rnd.randint(0, 60) for _ in range(2048)) for _i in range(3)]       # a dark map: texture
+    seq = iter([black, black, black])
+    assert obsrec.picture_check("x", look=lambda ff, p, t: next(seq), duration=300) == "schwarz"
+    seq = iter(dark)
+    assert obsrec.picture_check("x", look=lambda ff, p, t: next(seq), duration=300) is None
+    seq = iter([dark[0]] * 3)
+    assert obsrec.picture_check("x", look=lambda ff, p, t: next(seq), duration=300) == "eingefroren"
+    assert obsrec.picture_check("x", look=lambda ff, p, t: black, duration=10) is None          # too short
+    assert obsrec.picture_check("x", look=lambda ff, p, t: b"", duration=300) is None           # no picture: unknown
+
+
 def _reds(img, x0=0):
     px = img.convert("RGBA").load()
     return [(x, y) for x in range(x0, img.width) for y in range(img.height)

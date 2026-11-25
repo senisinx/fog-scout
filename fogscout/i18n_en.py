@@ -4642,4 +4642,8 @@ EN = {
         'Info hidden in the overlay.',
     'Neustart gerade nicht möglich: eine Runde läuft, OBS nimmt auf oder ein Clip wird gespeichert. Danach noch einmal versuchen.':
         'Cannot restart right now: a round is running, OBS is recording or a clip is being saved. Try again afterwards.',
+    'Aufnahme ist schwarz – nur das Overlay, kein Spielbild ({n}. Runde in Folge): {file}. OBS zeigt DBD nicht mehr: DBD oder OBS neu starten, oder unter Einstellungen → Aufnahmen die Spielaufnahme statt der Fensteraufnahme wählen.':
+        'Recording is black – only the overlay, no game picture ({n}. round in a row): {file}. OBS no longer shows DBD: restart DBD or OBS, or choose the game capture instead of the window capture under Settings → Recordings.',
+    'Aufnahme zeigt nur ein stehendes Bild ({n}. Runde in Folge): {file}. OBS nimmt nicht das laufende Spiel auf – ein hängendes oder ein anderes Fenster (z. B. der Launcher): DBD oder OBS neu starten.':
+        'Recording shows only a still picture ({n}. round in a row): {file}. OBS is not recording the running game – a hung or a different window (e.g. the launcher): restart DBD or OBS.',
 }

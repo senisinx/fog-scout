@@ -6164,4 +6164,8 @@ T = {
         "Info nascoste nell'overlay.",
     'Neustart gerade nicht möglich: eine Runde läuft, OBS nimmt auf oder ein Clip wird gespeichert. Danach noch einmal versuchen.':
         'Riavvio non possibile ora: è in corso una partita, OBS sta registrando o si sta salvando una clip. Riprova dopo.',
+    'Aufnahme ist schwarz – nur das Overlay, kein Spielbild ({n}. Runde in Folge): {file}. OBS zeigt DBD nicht mehr: DBD oder OBS neu starten, oder unter Einstellungen → Aufnahmen die Spielaufnahme statt der Fensteraufnahme wählen.':
+        "La registrazione è nera – solo l'overlay, nessuna immagine di gioco ({n}ª partita di fila): {file}. OBS non mostra più DBD: riavvia DBD o OBS, oppure in Impostazioni → Registrazioni scegli la cattura del gioco invece della cattura finestra.",
+    'Aufnahme zeigt nur ein stehendes Bild ({n}. Runde in Folge): {file}. OBS nimmt nicht das laufende Spiel auf – ein hängendes oder ein anderes Fenster (z. B. der Launcher): DBD oder OBS neu starten.':
+        "La registrazione mostra solo un'immagine ferma ({n}ª partita di fila): {file}. OBS non registra il gioco in corso – una finestra bloccata o un'altra finestra (ad es. il launcher): riavvia DBD o OBS.",
 }

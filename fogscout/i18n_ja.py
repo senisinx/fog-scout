@@ -6164,4 +6164,8 @@ T = {
         'オーバーレイの情報を非表示にしました。',
     'Neustart gerade nicht möglich: eine Runde läuft, OBS nimmt auf oder ein Clip wird gespeichert. Danach noch einmal versuchen.':
         '今は再起動できません：ラウンド中、OBS が録画中、またはクリップを保存中です。後でもう一度お試しください。',
+    'Aufnahme ist schwarz – nur das Overlay, kein Spielbild ({n}. Runde in Folge): {file}. OBS zeigt DBD nicht mehr: DBD oder OBS neu starten, oder unter Einstellungen → Aufnahmen die Spielaufnahme statt der Fensteraufnahme wählen.':
+        '録画が真っ黒です – オーバーレイのみでゲーム画面がありません（{n} 試合連続）: {file}。OBS が DBD を映していません: DBD か OBS を再起動するか、設定 → 録画 でウィンドウキャプチャの代わりにゲームキャプチャを選んでください。',
+    'Aufnahme zeigt nur ein stehendes Bild ({n}. Runde in Folge): {file}. OBS nimmt nicht das laufende Spiel auf – ein hängendes oder ein anderes Fenster (z. B. der Launcher): DBD oder OBS neu starten.':
+        '録画が静止画のままです（{n} 試合連続）: {file}。OBS が実行中のゲームを録画していません – 固まったウィンドウか別のウィンドウ（例: ランチャー）です: DBD か OBS を再起動してください。',
 }
