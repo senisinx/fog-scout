@@ -226,3 +226,32 @@ def test_a_rounds_counted_points_are_stored_and_broken_ones_dropped(tmp_path):
     rounds = history.load(path)
     assert rounds[0].score == {"hunter": 8300, "sacrifice": 10000}
     assert rounds[1].score == {"deviousness": 4000}
+
+
+# --- 1.57.61: the waiting card stays away while DBD uses the whole width ------------------------------------------
+
+def test_the_waiting_card_stays_away_while_dbd_fills_the_bars(monkeypatch):
+    """User's recordings: the card lay on the lobby's menu column and on the scoreboard; user: "Ausblenden"."""
+    import time
+    import types
+    from fogscout import app_place
+    stub = types.SimpleNamespace(
+        settings={"overlay": {"show_waiting": True}, "auto_detect": True}, game=object(), simulate=None,
+        overlay=types.SimpleNamespace(editing=False, has_map=lambda: False), hidden_after_match=False,
+        _queue={}, round=types.SimpleNamespace(start_t=None, running=False),
+        worker=types.SimpleNamespace(full_width_at=-1e9))
+    assert app_place.OverlayPlacement._waiting_lines(stub) != []
+    stub.worker.full_width_at = time.time() - 1.0                  # a look a second ago: lobby, menu, result screen
+    assert app_place.OverlayPlacement._waiting_lines(stub) == []
+    stub.worker.full_width_at = time.time() - app_place.FULL_WIDTH_HOLD_S - 1      # back in a loading screen
+    assert app_place.OverlayPlacement._waiting_lines(stub) != []
+
+
+def test_the_worker_lists_every_own_window_clipped_to_the_picture():
+    import types
+    from fogscout import worker
+    w = types.SimpleNamespace(overlay_rect=(100, 200, 300, 400), info_rect=None, hud_rect=(3300, 100, 300, 300),
+                              media_rect=None, today_rect=None, inputs_rect=None, loadouts_rect=None, toast_rect=None,
+                              guide_rects=[], fade_rects=[(-50, -50, 100, 100)])
+    boxes = worker.DetectionWorker._own_boxes(w, (1440, 3440, 3), 0, 0)
+    assert boxes == [(100, 200, 400, 600), (3300, 100, 3440, 400), (0, 0, 50, 50)]

@@ -148,3 +148,19 @@ def test_the_dark_share_from_every_4th_pixel_is_the_whole_regions_share():
     for name, dark in (("loading.jpg", True), ("spectate.jpg", False)):
         img = cv2.resize(cv2.imread(os.path.join(DATA, name)), (3440, 1440))
         assert detector.is_dark(img) is dark
+
+
+def test_every_own_window_is_left_out_of_the_bar_share():
+    """1.57.61 (user's lobby: map card left, system/today/music cards over most of the right bar – all blacked out):
+    with only the map's box left out, the right bar looked dark and the lobby was no full-width screen. A list of
+    boxes leaves every own window out; a trial with the same cards stays a trial."""
+    cards = [(0, 520, 440, 1150), (3050, 260, 3440, 1220)]          # as measured in the lobby: map left, cards right
+    lobby = menu_frame()
+    trial = trial_frame()
+    for x0, y0, x1, y1 in cards:
+        lobby[y0:y1, x0:x1] = 0
+        trial[y0:y1, x0:x1] = 0
+    assert not fills_bars(lobby, cards[0])                    # the old way: right bar mostly black
+    assert fills_bars(lobby, cards)
+    assert not fills_bars(trial, cards)
+    assert fills_bars(menu_frame(), [])                       # an empty list: nothing left out
