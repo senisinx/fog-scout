@@ -19,8 +19,8 @@ from . import __version__, bloodpoints, corpus, fsops, gamelang, loadouts, score
 from .capture import (IS_WIN, ImageSource, ScreenGrabber, cursor_state, find_game_window, foreground_root,
                       overlaps, windows_above)
 from .i18n import _
-from .detector import (ROI, Accumulator, BannerReader, OutOfMatchWatcher, currency_box, has_loading_bar, is_dark,
-                       letterbox_rows)
+from .detector import (ROI, Accumulator, BannerReader, OutOfMatchWatcher, currency_box, fills_bars, has_loading_bar,
+                       is_dark, letterbox_rows)
 from .layout import MIN_VBAR
 from .lobby import LobbyReader, QueueTracker, SteadyCorner, corner_box, crossplay_box, crossplay_off, result_box
 from .ticktime import CpuShare, LookTimes
@@ -289,6 +289,8 @@ class DetectionWorker(threading.Thread):
         self._broken = None                              # 1.38.9: why the current run gave up (None: it did not)
         self._last_frame_save = 0.0
         self._last_score_save = 0.0
+        self.full_width = False                          # 1.57.61: DBD drew into the black bars at the last look …
+        self.full_width_at = -1e9                        # … and when that was last seen (lobby, menus, result screen)
         self.score_info = "–"                            # 1.57.56: the live score tracker for the diagnosis
         self._score = None                               # (gen, ScoreCounter) of the round on display
         self._score_stats = {"looks": 0, "shown": 0, "covered": 0, "ms": 0.0}
@@ -604,6 +606,7 @@ class DetectionWorker(threading.Thread):
                         whole = None
                     if whole is not None:
                         shot.append(whole)
+                        self._note_full_width(whole, from_screen(), origin, tick)      # 1.57.61
                 # 1.34.1 (review P3): in a match the round-end look takes the whole picture about once a second –
                 # taken first, the banner strip is cut from it (one grab, with the window capture one wait, instead
                 # of two). Due exactly as below (same tracker state; not on the tick the map changes); a banner
@@ -872,6 +875,7 @@ class DetectionWorker(threading.Thread):
                                 if sep is None:                  # with the banner seen only the menu is read
                                     with self.times.measure("end"):
                                         obs = out_of_match.observe(look, ignore)
+                                    self._full_width_seen(bool(obs and obs.full_width), tick)     # 1.57.61
                                 self._note_vbars(look, fw, fh)
                         except Exception:
                             self._report("Rundenende-Prüfung", traceback.format_exc())
@@ -1185,6 +1189,35 @@ class DetectionWorker(threading.Thread):
         """Any of our own windows up (the UI sets their screen rectangles): a screen picture needs them blacked out."""
         return bool(self.overlay_rect or self.hud_rect or self.media_rect or self.today_rect or self.info_rect
                     or self.inputs_rect or self.loadouts_rect or self.guide_rects or self.toast_rect or self.fade_rects)
+
+    def _note_full_width(self, img, screen: bool, origin, tick):
+        """1.57.61 (user's recordings: the waiting card lay on the lobby's menu column and on the scoreboard): does
+        DBD use the whole width (lobby, menus, result screen) – the look of menus and lobby once a second, our own
+        windows blacked out first and left out of the share (``fills_bars`` with their box)."""
+        try:
+            self._mask_screen(img, screen, origin[0], origin[1])
+            boxes = self._own_boxes(img.shape, origin[0], origin[1]) if screen else []
+            self._full_width_seen(bool(fills_bars(img, boxes)), tick)
+        except Exception:
+            pass
+
+    def _own_boxes(self, shape, left, top) -> list:
+        """1.57.61: every own window as (x0, y0, x1, y1) in the picture (``_mask_overlay``'s list), clipped."""
+        h, w = shape[:2]
+        out = []
+        for r in (self.overlay_rect, self.info_rect, self.hud_rect, self.media_rect, self.today_rect,
+                  self.inputs_rect, self.loadouts_rect, self.toast_rect, *self.guide_rects, *self.fade_rects):
+            if r:
+                x0, y0 = max(0, int(r[0] - left)), max(0, int(r[1] - top))
+                x1, y1 = min(w, int(r[0] - left + r[2])), min(h, int(r[1] - top + r[3]))
+                if x1 > x0 and y1 > y0:
+                    out.append((x0, y0, x1, y1))
+        return out
+
+    def _full_width_seen(self, full: bool, tick):
+        self.full_width = full
+        if full:
+            self.full_width_at = tick
 
     def _mask_screen(self, img, from_screen: bool, left, top):
         """1.13.1: the one test before every look – black out our own windows in ``img`` (picture of the screen

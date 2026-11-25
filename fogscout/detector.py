@@ -891,21 +891,26 @@ def fills_bars(frame, ignore=None) -> bool:
     In a trial DBD draws 16:9 with black bars; result screen, lobby and menus use the
     full width. The top and bottom 15 % are ignored (FPS counters, notifications).
     ``ignore``: (x0, y0, x1, y1) of our own overlay, blacked out before the check – those
-    pixels do not count (a big map in the left bar would otherwise make it look empty)."""
+    pixels do not count (a big map in the left bar would otherwise make it look empty). 1.57.61: also a list of
+    such boxes – every own window (in the lobby the cards in the right bar covered most of it)."""
     H, W = frame.shape[:2]
     vx, _ = viewport(W, H)
     bar = int(vx * 0.9)
     if bar < 40:
         return False                                      # no bars (16:9 or narrower)
     y0, y1 = int(0.15 * H), int(0.85 * H)
-    box = None if ignore is None else tuple(int(v) for v in ignore)
+    if ignore is None or not len(ignore):
+        boxes = []
+    elif isinstance(ignore[0], (int, float)):
+        boxes = [tuple(int(v) for v in ignore)]
+    else:
+        boxes = [tuple(int(v) for v in b) for b in ignore if b]
 
     def share(c0, c1):
         # 1.11.13: only the bar's own columns are made grey (before: the whole picture; 1.7 → 0.7 ms per look)
         lit = cv2.cvtColor(np.ascontiguousarray(frame[y0:y1, c0:c1]), cv2.COLOR_BGR2GRAY) > 8
         use = np.ones(lit.shape, bool)
-        if box is not None:
-            ix0, iy0, ix1, iy1 = box
+        for ix0, iy0, ix1, iy1 in boxes:
             use[max(0, iy0 - y0):max(0, iy1 - y0), max(0, ix0 - c0):max(0, ix1 - c0)] = False
         n = int(np.count_nonzero(use))
         return np.count_nonzero(lit & use) / n if n and n >= 0.2 * use.size else None

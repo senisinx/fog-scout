@@ -15,6 +15,7 @@ from .textnorm import fmt_duration
 
 SMALL_PICTURE = 1080      # 16:9 picture lines below which detection gets less reliable (log hint)
 MAX_HEIGHT = 0.9          # overlay at most this share of the game height (room for the timer below)
+FULL_WIDTH_HOLD_S = 2.5   # 1.57.61: the waiting card stays away this long after a look saw DBD use the whole width
 
 
 def narrower_than_16_9(w, h) -> bool:
@@ -344,6 +345,11 @@ class OverlayPlacement:
             return []
         if self.overlay.has_map() and not self.hidden_after_match:
             return []                                        # map shown, paused in a menu or hidden by hand
+        # 1.57.61 (user's recordings: on the lobby's menu column and the scoreboard; user: "Ausblenden"): DBD draws
+        # into the black bars in the lobby, menus and on the result screen – the card has no free place there
+        worker = getattr(self, "worker", None)
+        if worker is not None and time.time() - getattr(worker, "full_width_at", -1e9) < FULL_WIDTH_HOLD_S:
+            return []
         lines = [_("Warte auf Map")]
         q = self._queue
         if q.get("state") == "search" or q.get("found") is not None:      # searching / lobby found (not yet used)
