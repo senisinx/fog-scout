@@ -170,7 +170,9 @@ def test_the_worker_counts_the_score_corner_and_gives_the_totals_before_the_roun
     assert scores and scores[-1]["final"] and scores[-1]["role"] == "killer"
     assert scores[-1]["events"] == 3 and set(scores[-1]["totals"]) == {"brutality", "deviousness", "hunter", "sacrifice"}
     tot = scores[-1]["totals"]
-    assert tot["sacrifice"] == 0 and all(2000 < tot[c] < 8000 for c in ("brutality", "deviousness", "hunter"))
+    # 1.57.65: the rings of the straight picture (hunter ~0.19, brutality ~0.12, deviousness ~0.05 of 10 000)
+    assert tot["sacrifice"] == 0 and 1000 < tot["hunter"] < 3000 and 500 < tot["brutality"] < 2000
+    assert 0 <= tot["deviousness"] < 1200
     assert w._score is None and w._score_stats["covered"] == 1 and w._score_stats["shown"] == 6
     assert "Runde vorbei" in w.score_info
 

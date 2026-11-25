@@ -89,12 +89,13 @@ def test_the_recording_tool_cuts_each_new_sight_once(tmp_path):
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SCORE_DATA = os.path.join(ROOT, "tests", "data", "score")
-# corners cut from own recordings (3440×1440, so the box is 973×634), all but the events blacked out
+# corners cut from own recordings (3440×1440, so the box is 973×634), all but the events blacked out. 1.57.65: cut
+# again straight (tools/score_frames.crop_box) – the pictures until 1.57.64 were sheared like the whole corpus
 SCORE_PICTURES = {      # name (folded), points, MAX, category from the icon (1.57.54)
-    "killer-three-rows.webp": [("SURVIVORFOUND", 250, False, "hunter"), ("HIT", 300, False, "brutality"),
+    "killer-three-rows.webp": [("CHASE", 115, False, "hunter"), ("HIT", 300, False, "brutality"),
                                ("LETHALBLINK", 250, False, "deviousness")],
-    "survivor-two-rows.webp": [("ESCAPED", 375, False, "boldness"), ("CHASED", 450, False, "boldness")],
-    "killer-max.webp": [("HOOKED", None, True, "sacrifice")],
+    "survivor-two-rows.webp": [("REPAIRS", 1521, False, "objective"), ("COOPACTION", 930, False, "objective")],
+    "killer-max.webp": [("SACRIFICE", None, True, "sacrifice")],
 }
 
 
@@ -159,7 +160,7 @@ def test_the_reading_tool_reads_a_folder_and_writes_its_table(tmp_path, capsys):
     assert "3 Bilder, 6 Zeilen, davon lesbar (Name + Punkte/MAX): 6 (100 %)" in capsys.readouterr().out
     with open(table, encoding="utf-8") as fh:
         rows = list(csv.DictReader(fh))
-    assert sorted(r["punkte"] for r in rows) == ["", "250", "250", "300", "375", "450"]
+    assert sorted(r["punkte"] for r in rows) == ["", "115", "1521", "250", "300", "930"]
     assert (tmp_path / "check.png").exists()
 
 
@@ -201,9 +202,9 @@ def test_the_template_tool_takes_only_seed_names_and_needs_every_category():
     import pytest
     import score_icons
     rows = score_icons.collect([SCORE_DATA], 0)
-    assert sorted(c for _r, c, _f in rows) == ["boldness", "boldness", "brutality", "deviousness", "hunter",
+    assert sorted(c for _r, c, _f in rows) == ["brutality", "deviousness", "hunter", "objective",
                                                "sacrifice"]
-    with pytest.raises(SystemExit, match="objective"):                   # survivors' categories missing here
+    with pytest.raises(SystemExit, match="survival"):                    # the other survivors' categories missing here
         score_icons.make(rows)
     assert not set(score_icons.SEED_OF) & {"HEAL", "GOODSKILLCHECK", "GREATSKILLCHECK", "COOPACTION", "MEDKITHEAL"}
 
@@ -256,12 +257,45 @@ def test_no_ring_no_progress():
 
 
 def test_the_rings_of_own_recordings():
-    """MAX = full; two Boldness rows: the newer (upper) one is at least as full as the older one."""
+    """MAX = full; the others as far as their red arcs reach in the pictures (from 12 o'clock, clockwise)."""
     from fogscout import scoreevents
     rec = _recognizer()
     full = scoreevents.read_rows(rec, cv2.imread(os.path.join(SCORE_DATA, "killer-max.webp")))
     assert full[0].ring == 1.0
     two = scoreevents.read_rows(rec, cv2.imread(os.path.join(SCORE_DATA, "survivor-two-rows.webp")))
-    assert 0.8 < two[1].ring <= two[0].ring < 0.95
+    assert 0.25 < two[1].ring <= two[0].ring < 0.6                          # one category: the newer row fuller
     three = scoreevents.read_rows(rec, cv2.imread(os.path.join(SCORE_DATA, "killer-three-rows.webp")))
-    assert all(r.ring is not None and 0.3 < r.ring < 0.7 for r in three)
+    assert 0.1 < three[0].ring < 0.3 and 0.05 < three[1].ring < 0.2 and 0.0 <= three[2].ring < 0.12
+
+
+def test_the_recording_tools_cut_a_yuv420_video_straight(tmp_path):
+    """1.57.65 (live the tracker read no category, no ring and "+627" as 62): ffmpeg cropped the 973-px box in the
+    video's yuv420p, rounded it to 972 px, and the tools read 973-px rows – every row one pixel further, the corpus
+    sheared and everything tuned on it. A vertical line in the box must stay vertical."""
+    import subprocess
+    import sys
+    import pytest
+    from fogscout.obsrec import ffmpeg_exe
+    sys.path.insert(0, os.path.join(ROOT, "tools"))
+    import score_frames
+    ffmpeg = ffmpeg_exe()
+    if not ffmpeg:
+        pytest.skip("imageio-ffmpeg 0.6.0 missing")
+    frame = _frame_with_events()
+    w, h, x, y = score_frames.crop_box(3440, 1440)
+    assert w % 2 == 1                                                  # the case that went wrong: an odd width
+    frame[y:y + h, x + 300:x + 304] = (255, 255, 255)                  # a vertical line through the whole box
+    video = tmp_path / "Runde.mp4"
+    proc = subprocess.Popen([ffmpeg, "-hide_banner", "-loglevel", "error", "-f", "rawvideo", "-pix_fmt", "bgr24",
+                             "-s", "3440x1440", "-r", "2", "-i", "-", "-c:v", "libx264", "-preset", "ultrafast",
+                             "-crf", "10", "-pix_fmt", "yuv420p", str(video)], stdin=subprocess.PIPE)
+    for _ in range(2):
+        proc.stdin.write(frame.tobytes())
+    proc.stdin.close()
+    assert proc.wait(timeout=120) == 0
+    assert score_frames.scan(str(video), str(tmp_path / "out"), 2.0, ffmpeg)[1] >= 1
+    d = tmp_path / "out" / "Runde"
+    part = cv2.imread(str(d / sorted(os.listdir(d))[0]))
+    assert part.shape[:2] == (h, w)
+    cols = [int(np.argmax(part[r, :, :].min(axis=1) > 200)) for r in (5, h // 2, h - 5)]
+    assert max(cols) - min(cols) <= 1, cols                             # straight: was 600+ px apart
