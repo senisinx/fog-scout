@@ -58,3 +58,27 @@ def test_a_malformed_index_line_is_skipped_or_coerced(tmp_path):
         f.write(json.dumps({"file": {"x": 1}}) + "\n" + json.dumps({"file": "a.mp4", "seconds": "long"}) + "\n")
     clips = recindex.load_clips(cdir)
     assert [(c.file, c.seconds) for c in clips] == [("a.mp4", 0.0)]
+
+
+def test_a_delete_that_fails_is_logged_not_swallowed(tmp_path, monkeypatch, caplog):
+    """1.57.58: on the user's exFAT drive every delete failed and nothing said so – the farming recordings of weeks
+    stayed. Now the pass says how many and why (once), and the entries stay for the next pass."""
+    import logging
+    folder = str(tmp_path)
+    for name in ("Farming/a.mp4", "Farming/b.mp4", "c.mp4"):
+        _write(os.path.join(folder, name))
+    recs = [recindex.Recording(t=1.0, file="Farming/a.mp4", farming=True),
+            recindex.Recording(t=2.0, file="Farming/b.mp4", farming=True),
+            recindex.Recording(t=3.0, file="c.mp4")]
+
+    def refuse(folder, path):
+        raise OSError(87, "Falscher Parameter")
+    monkeypatch.setattr(recindex.fsops, "delete_inside", refuse)
+    with caplog.at_level(logging.WARNING, logger="fogscout"):
+        left, deleted = recindex.prune_farming(folder, recs, days=1, now=10 ** 9)
+        assert deleted == [] and len(left) == 3
+        left, deleted = recindex.prune(folder, recs, limit=1, reserve=0, free=10 ** 9)
+        assert deleted == [] and len(left) == 3
+    lines = [r.getMessage() for r in caplog.records]
+    assert any(m.startswith("Farming-Aufnahmen aufräumen: 2 Datei(en) nicht gelöscht") for m in lines), lines
+    assert any(m.startswith("Platz schaffen: ") for m in lines), lines
