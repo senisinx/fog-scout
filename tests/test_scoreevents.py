@@ -83,3 +83,79 @@ def test_the_recording_tool_cuts_each_new_sight_once(tmp_path):
     assert (looks, saved) == (20, 2)
     files = sorted(os.listdir(tmp_path / "out" / "Runde_1"))
     assert files == ["000m001.00s.webp", "000m004.00s.webp"]
+
+
+# --- step 2 (1.57.53): rows found and read (fogscout.scoreevents) ---------------------------------------------------
+
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+SCORE_DATA = os.path.join(ROOT, "tests", "data", "score")
+# corners cut from own recordings (3440×1440, so the box is 973×634), all but the events blacked out
+SCORE_PICTURES = {
+    "killer-three-rows.webp": [("SURVIVORFOUND", 250, False), ("HIT", 300, False), ("LETHALBLINK", 250, False)],
+    "survivor-two-rows.webp": [("ESCAPED", 375, False), ("CHASED", 450, False)],
+    "killer-max.webp": [("HOOKED", None, True)],
+}
+
+
+def _recognizer():
+    from fogscout.ocr import Recognizer
+    return Recognizer(os.path.join(ROOT, "models", "ch_PP-OCRv4_rec_infer.onnx"))
+
+
+def _read(rec, part):
+    from fogscout import scoreevents
+    from fogscout.textnorm import fold
+    return [(fold(r.name), r.points, r.capped) for r in scoreevents.read_rows(rec, part)]
+
+
+def test_score_events_are_read_from_own_recordings_name_points_and_max():
+    """Name and points of each row, top to bottom; "+" is never read as a digit (+375, not +4375 or +775)."""
+    rec = _recognizer()
+    for name, want in SCORE_PICTURES.items():
+        part = cv2.imread(os.path.join(SCORE_DATA, name))
+        assert part.shape[:2] == (634, 973), name
+        assert _read(rec, part) == want, name
+
+
+def test_score_events_are_read_in_smaller_pictures_too():
+    """1080p and 720p: the lengths scale with the height of the box."""
+    rec = _recognizer()
+    for name, want in SCORE_PICTURES.items():
+        part = cv2.imread(os.path.join(SCORE_DATA, name))
+        for scale in (0.75, 0.5):
+            small = cv2.resize(part, None, fx=scale, fy=scale, interpolation=cv2.INTER_AREA)
+            assert _read(rec, small) == want, (name, scale)
+
+
+def test_no_rows_without_white_words_and_red_points():
+    from fogscout import scoreevents
+    assert scoreevents.find_rows(None) == []
+    assert scoreevents.find_rows(np.zeros((634, 973, 3), np.uint8)) == []
+    words = np.zeros((634, 973, 3), np.uint8)
+    cv2.putText(words, "CHASED", (500, 120), cv2.FONT_HERSHEY_SIMPLEX, 1.1, (255, 255, 255), 3)
+    assert scoreevents.find_rows(words) == []                        # a white word alone is no event
+    streak = words.copy()
+    cv2.line(streak, (420, 150), (640, 140), (20, 20, 230), 3)       # a red light streak below it is no points
+    assert scoreevents.find_rows(streak) == []
+
+
+def test_points_text_is_parsed_strictly():
+    from fogscout import scoreevents
+    assert scoreevents.parse_points("+250") == (250, False)
+    assert scoreevents.parse_points("MAX") == (None, True)
+    for text in ("+", "", "250", "+25x", "4250+", "MA"):
+        assert scoreevents.parse_points(text) == (None, False), text
+
+
+def test_the_reading_tool_reads_a_folder_and_writes_its_table(tmp_path, capsys):
+    import csv
+    import sys
+    sys.path.insert(0, os.path.join(ROOT, "tools"))
+    import score_read
+    table = tmp_path / "rows.csv"
+    assert score_read.main([SCORE_DATA, "--csv", str(table), "--sheet", str(tmp_path / "check.png")]) == 0
+    assert "3 Bilder, 6 Zeilen, davon lesbar (Name + Punkte/MAX): 6 (100 %)" in capsys.readouterr().out
+    with open(table, encoding="utf-8") as fh:
+        rows = list(csv.DictReader(fh))
+    assert sorted(r["punkte"] for r in rows) == ["", "250", "250", "300", "375", "450"]
+    assert (tmp_path / "check.png").exists()
