@@ -160,3 +160,17 @@ def test_a_linked_log_name_moves_nothing(tmp_path):
         pytest.skip("no symlinks here")
     main._keep_old_logs(str(tmp_path))
     assert (tmp_path / "fogscout.log").read_text(encoding="utf-8") == "jetzt" and target.read_text(encoding="utf-8") == "fremd"
+
+
+def test_the_diagnosis_shows_the_warnings_of_the_session_before(tmp_path, monkeypatch):
+    """1.57.60: "Diagnose kopieren" after a restart – the last warnings/errors of fogscout.log.1, masked."""
+    home = os.path.expanduser("~")
+    lines = ["2026-11-25 10:00:00,000 INFO alles gut"]
+    lines += [f"2026-11-25 10:00:{i:02d},000 WARNING Platz schaffen: 1 Datei(en) nicht gelöscht, z. B. "
+              + os.path.join(home, f"x{i}.mp4") + " – Fehler 87" for i in range(20)]
+    (tmp_path / "fogscout.log.1").write_text("\n".join(lines) + "\n", encoding="utf-8")
+    lines = diagnose.previous_log_lines(str(tmp_path))
+    assert lines[0].startswith("Vorige Sitzung (fogscout.log.1), letzte 12 von 20")
+    assert len(lines) == 13 and "x19.mp4" in lines[-1] and "alles gut" not in " ".join(lines)
+    assert home not in " ".join(lines)                                 # the account name never in the diagnosis
+    assert diagnose.previous_log_lines(str(tmp_path / "nichts")) == ["Vorige Sitzung: kein Log"]

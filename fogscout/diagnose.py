@@ -301,6 +301,7 @@ def collect(app) -> str:
     data = getattr(app, "data_dir", None) or getattr(app, "root_dir", None)    # 1.30.1: crash files live there
     if data:
         lines.extend(crash_lines(data))
+        lines.extend(previous_log_lines(data))                  # 1.57.60: what went wrong before the last start
     root = getattr(app, "root", None)
     lines.extend(lag_lines(getattr(root, "slow", ()), getattr(root, "worst", ())))
     # V-001 (code review): the home folder as "~" in the whole text – status lines, exception texts and paths of
@@ -367,6 +368,24 @@ def crash_lines(root: str) -> list:
     more = [f"  … {len(text) - CRASH_LINES} Zeilen mehr in {CRASH_LAST}"] if len(text) > CRASH_LINES else []
     return ([f"Letzter harter Absturz ({when}, {CRASH_LAST}):"]
             + ["  " + home_masked(t) for t in text[:CRASH_LINES]] + more)   # 1.38.57: the stack's paths hold the account name
+
+
+PREVIOUS_LOG = "fogscout.log.1"
+PREVIOUS_LINES = 12
+
+
+def previous_log_lines(root: str) -> list:
+    """1.57.60: the last warnings and errors of the session before (fogscout.log.1, kept since the log is no longer
+    overwritten) – a problem that ended with a restart still shows here. Masked like the rest (home folder)."""
+    try:
+        with open(os.path.join(root, PREVIOUS_LOG), encoding="utf-8", errors="replace") as fh:
+            bad = [ln.rstrip() for ln in fh if " WARNING " in ln or " ERROR " in ln or " CRITICAL " in ln]
+    except OSError:
+        return ["Vorige Sitzung: kein Log"]
+    if not bad:
+        return ["Vorige Sitzung: keine Warnungen oder Fehler im Log"]
+    return ([f"Vorige Sitzung ({PREVIOUS_LOG}), letzte {min(len(bad), PREVIOUS_LINES)} von {len(bad)} Warnungen/Fehlern:"]
+            + ["  " + home_masked(ln) for ln in bad[-PREVIOUS_LINES:]])
 
 
 def _lag_line(t, what, took, late) -> str:
