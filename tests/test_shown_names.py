@@ -86,7 +86,8 @@ def test_hartshorne_mall_is_known_with_its_realm():
     cat = Catalog(ROOT, ["en", "de"])
     hyp = [h for h in cat.hypotheses if h.map_id == "hartshorne-mall"]
     assert hyp and all(h.model == MAIN and h.name_key == "HARTSHORNEMALL" for h in hyp)
-    assert all("THESUBDIVISIONS" in h.realm_keys for h in hyp)
+    realms = {h.lang: h.realm_keys for h in hyp}
+    assert "THESUBDIVISIONS" in realms["en"] and "DIEUNTERABTEILUNGEN" in realms["de"]     # DE from the DBD wiki
     assert "HARTSHORNEMALL" in cat.name_strings and "THESUBDIVISIONS" in cat.realm_strings
     assert cat.image_path("hartshorne-mall")[0] is None                 # until a picture is there: name only
 
