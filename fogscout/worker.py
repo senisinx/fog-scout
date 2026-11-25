@@ -15,7 +15,7 @@ from dataclasses import dataclass
 import cv2
 import numpy as np
 
-from . import __version__, bloodpoints, corpus, fsops, gamelang, loadouts, scorecount, scoreevents
+from . import __version__, bloodpoints, corpus, fsops, gamelang, loadouts, scorecount, scoreevents, scoreicons
 from .capture import (IS_WIN, ImageSource, ScreenGrabber, cursor_state, find_game_window, foreground_root,
                       overlaps, windows_above)
 from .i18n import _
@@ -293,6 +293,7 @@ class DetectionWorker(threading.Thread):
         self.full_width_at = -1e9                        # … and when that was last seen (lobby, menus, result screen)
         self.score_info = "–"                            # 1.57.56: the live score tracker for the diagnosis
         self._score = None                               # (gen, ScoreCounter) of the round on display
+        self._score_icons = None                         # 1.57.67: scoreicons.Collector, made at the first look
         self._score_stats = {"looks": 0, "shown": 0, "covered": 0, "ms": 0.0}
         self._last_sighting_save = 0.0
         self._banner_due = None          # when to hint "scan by hand" if no banner was decided since the match began
@@ -1362,6 +1363,7 @@ class DetectionWorker(threading.Thread):
                 st["shown"] += 1
                 with self.times.measure("score"):
                     rows = scoreevents.read_rows(rec, img)
+            self._learn_icons(img, rows)
             if counter.feed(t, rows):
                 self._score_post(gen, counter, final=False)
         except Exception:
@@ -1369,6 +1371,24 @@ class DetectionWorker(threading.Thread):
         finally:
             st["ms"] += (time.perf_counter() - t0) * 1000
             self._score_describe()
+
+    def _learn_icons(self, img, rows):
+        """1.57.67 (user: "1:1 die DBD-Icons"): the icon inside the ring of rows read for sure goes to the collector;
+        the one it picks per category is saved once in the own cache and told to the app ("score_icon"). Screen
+        pixels of the user's own game only – the game's pictures are never shipped."""
+        try:
+            if getattr(self, "_score_icons", None) is None:
+                self._score_icons = scoreicons.Collector(done=scoreicons.load(self.data_dir))
+            col = self._score_icons
+            for r in rows:
+                if not r.category or r.ring is None or r.category in col.done:
+                    continue
+                picked = col.add(r.category, scoreevents.icon_picture(img, r))
+                if picked is not None:
+                    scoreicons.save(self.data_dir, r.category, picked)
+                    self.post("score_icon", category=r.category)
+        except Exception:
+            self._report("Score-Icons", traceback.format_exc())
 
     def _score_final(self, gen):
         """The round ended: every event still on screen counts, the totals go to the app (before "match_end")."""

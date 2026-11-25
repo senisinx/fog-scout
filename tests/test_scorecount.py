@@ -129,14 +129,16 @@ def test_a_ring_far_below_the_running_total_is_a_misreading():
 # --- 1.57.56: the live tracker in the worker and the app ----------------------------------------------------------
 
 def _worker_stub(posts):
+    import tempfile
     import types
     from fogscout import worker
     from fogscout.ticktime import LookTimes
     w = types.SimpleNamespace(settings={"score_track": True}, times=LookTimes(), post=lambda k, **d: posts.append((k, d)),
                               _report=lambda what, text: posts.append(("report", {"what": what, "text": text})),
                               _mask_screen=lambda img, *a: None, _score=None,
-                              _score_stats={"looks": 0, "shown": 0, "covered": 0, "ms": 0.0}, score_info="–")
-    for name in ("_score_round", "_score_look", "_score_final", "_score_post", "_score_describe"):
+                              _score_stats={"looks": 0, "shown": 0, "covered": 0, "ms": 0.0}, score_info="–",
+                              _score_icons=None, data_dir=tempfile.mkdtemp(prefix="fogscout-test-"))
+    for name in ("_score_round", "_score_look", "_score_final", "_score_post", "_score_describe", "_learn_icons"):
         setattr(w, name, types.MethodType(getattr(worker.DetectionWorker, name), w))
     return w
 

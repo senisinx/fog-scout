@@ -111,9 +111,30 @@ ICONS = {"brutality": _skull, "deviousness": _knot, "hunter": _stag, "sacrifice"
          "objective": _gear, "survival": _heart, "altruism": _hand, "boldness": _flame}
 
 
+LEARNED: dict = {}                # 1.57.67: category -> "L" picture taken from the user's own screen (scoreicons)
+REV = [0]                         # counts set_learned – part of for_overlay's value, so every cache sees a new icon
+LEARNED_SHARE = 0.74              # a learned icon fills this share of its ring (the part inside the ring), a drawn
+DRAWN_SHARE = 0.56                # one this
+
+
+def set_learned(pictures: dict) -> None:
+    """The game's own icons seen so far ({category: "L" picture}); the drawn ones stand in for the rest."""
+    LEARNED.clear()
+    LEARNED.update(pictures or {})
+    REV[0] += 1
+    icon.cache_clear()
+    picture.cache_clear()
+
+
 @lru_cache(maxsize=64)
 def icon(category: str, size: int, colour=WHITE) -> Image.Image:
-    """The white icon of ``category``, ``size`` px square – rough edges and a few worn specks like the game's."""
+    """The white icon of ``category``, ``size`` px square – the game's own once it was seen (``LEARNED``), else the
+    drawing: rough edges and a few worn specks like the game's."""
+    seen = LEARNED.get(category)
+    if seen is not None:
+        out = Image.new("RGBA", (size, size), colour[:3] + (0,))
+        out.putalpha(seen.resize((size, size), Image.LANCZOS).point(lambda v: v * colour[3] // 255))
+        return out
     big = 100 * SS
     mask = Image.new("L", (100, 100), 0)
     ICONS.get(category, _skull)(ImageDraw.Draw(mask))
@@ -147,13 +168,18 @@ def for_overlay(totals: dict, full=(), style: str = DEFAULT_STYLE) -> tuple:
     text = line(totals, full)
     if not text:
         return ()
-    return tuple(text) + (items(totals, full), style if style in STYLES else DEFAULT_STYLE)
+    return tuple(text) + (items(totals, full), style if style in STYLES else DEFAULT_STYLE, REV[0])
 
 
 def of(score) -> Image.Image | None:
     """The picture of a ``for_overlay`` value at unit 1 – None for the plain text form (text, widest) or nothing."""
     score = tuple(score or ())
-    return picture(score[2], score[3]) if len(score) >= 4 and score[2] else None
+    return picture(score[2], score[3], 1.0, rev(score)) if len(score) >= 4 and score[2] else None
+
+
+def rev(score) -> int:
+    """The icons' revision a ``for_overlay`` value was made with (0 for older, shorter values)."""
+    return score[4] if len(score) > 4 else 0
 
 
 def value(points: int, full: bool) -> str:
@@ -175,7 +201,8 @@ def _ring(size: int, share: float, full: bool, width: float, plate: bool = True,
         d.arc(box, -90, -90 + 360 * min(1.0, share), fill=RED, width=w)
     im = im.resize((size, size), Image.LANCZOS)
     if glyph:
-        g = icon(glyph, max(4, int(size * 0.56)), GOLD if full else WHITE)
+        share = LEARNED_SHARE if glyph in LEARNED else DRAWN_SHARE
+        g = icon(glyph, max(4, int(size * share)), GOLD if full else WHITE)
         im.alpha_composite(g, ((size - g.width) // 2, (size - g.height) // 2))
     return im
 
@@ -197,8 +224,9 @@ def _w(font, text) -> int:
 
 
 @lru_cache(maxsize=32)
-def picture(entries: tuple, style: str = DEFAULT_STYLE, u: float = 1.0) -> Image.Image | None:
-    """The look ``style`` of ``entries`` (``items``) at unit ``u`` (1.0 = the size of a 14-px text line)."""
+def picture(entries: tuple, style: str = DEFAULT_STYLE, u: float = 1.0, rev: int = 0) -> Image.Image | None:
+    """The look ``style`` of ``entries`` (``items``) at unit ``u`` (1.0 = the size of a 14-px text line). ``rev``:
+    the icons' revision – only a part of the cache key."""
     if not entries:
         return None
     style = style if style in STYLES else DEFAULT_STYLE

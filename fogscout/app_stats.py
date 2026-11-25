@@ -2202,6 +2202,16 @@ class StatsTab:
                                                 self.settings["overlay"].get("score_style", scoreview.DEFAULT_STYLE))
                           if on and totals else ())
 
+    def _score_icons_load(self):
+        """1.57.67: the category icons taken from the user's own screen (scoreicons, cache/score_icons) for the
+        overlay's rings – at the start and whenever the worker saved a new one."""
+        from . import scoreicons
+        try:
+            scoreview.set_learned(scoreicons.load(self.data_dir))
+        except Exception:
+            logging.getLogger("fogscout").exception("Score-Icons")
+        self._update_score()
+
     def _score_event(self, d):
         """1.57.56: the worker's points per category of the round on display (``final`` at its end, just before
         "match_end") – kept for the round and said once in the log."""
