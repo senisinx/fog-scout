@@ -100,6 +100,18 @@ def linked_root(folder: str, levels: int = 1) -> bool:
     return False
 
 
+def plain_dir(folder: str, levels: int = 1) -> bool:
+    """Code review 1.57.68 (CR-4): make ``folder`` and say whether the program may write into it – False when it or
+    one of its ``levels - 1`` parents is a link/junction (``linked_root``), before or after making it. The caches
+    below the data folder were only *pruned* with that check (RS-002); their pictures were still written through a
+    folder a program of the user had swapped for a junction – with administrator rights, wherever it pointed (a
+    junction to an object directory even makes the file name itself a link). An OSError of makedirs is the caller's."""
+    if linked_root(folder, levels):
+        return False
+    os.makedirs(folder, exist_ok=True)
+    return not linked_root(folder, levels)
+
+
 def _unsupported(what: str, path: str, code: int = errno.ENOSYS) -> UnsupportedFS:
     return UnsupportedFS(code, f"{what} is not supported here", path)
 

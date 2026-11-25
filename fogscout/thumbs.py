@@ -113,7 +113,8 @@ def thumbnail(path: str, box: tuple, cache_dir: str | None = None, by_content: b
     if target:
         tmp = None
         try:
-            os.makedirs(cache_dir, exist_ok=True)
+            if not fsops.plain_dir(cache_dir, 2):     # CR-4: cache/<x> or cache is a link – not kept, never written
+                raise OSError("linked cache folder")
             # CR-017 (code review): a temp name of this thread – the Loader's workers made the same tile at once and
             # wrote the same "<pid>.tmp" (a half picture, or a replace of a file the other had just moved)
             tmp = target + f".{os.getpid()}-{threading.get_ident()}.tmp"

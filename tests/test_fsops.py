@@ -534,3 +534,37 @@ def test_a_file_system_without_attribute_tags_still_deletes_inside(tmp_path, mon
     with pytest.raises(OSError):
         fsops.delete_inside(str(tmp_path), str(g))
     assert g.exists()
+
+
+def test_a_cache_folder_behind_a_link_is_never_written_by_any_cache(tmp_path):
+    """Code review 1.57.68 (CR-4): the caches below the data folder were only pruned with a link check – thumbnails,
+    styled maps, the OBS overlay picture, the corpus and the analysis cache were still written through a folder a
+    program of the user had swapped for a junction, with the administrator rights of the program."""
+    import numpy as np
+    import pytest
+    from PIL import Image
+    from fogscout import clipedit, corpus, fsops, mapstyle, obsoverlay, thumbs
+    plain = tmp_path / "plain" / "cache" / "thumbs"
+    assert fsops.plain_dir(str(plain), 2) and plain.is_dir()
+    outside = tmp_path / "outside"
+    outside.mkdir()
+    data = tmp_path / "data"
+    data.mkdir()
+    try:
+        os.symlink(str(outside), str(data / "cache"), target_is_directory=True)
+        os.symlink(str(outside), str(data / "corpus"), target_is_directory=True)
+    except (OSError, NotImplementedError):
+        pytest.skip("no symlinks here")
+    cache = str(data / "cache")
+    assert not fsops.plain_dir(os.path.join(cache, "thumbs"), 2) and not fsops.plain_dir(cache, 1)
+    src = tmp_path / "map.png"
+    Image.new("RGBA", (300, 200), (200, 200, 200, 255)).save(src)
+    assert thumbs.thumbnail(str(src), (64, 64), cache_dir=os.path.join(cache, "thumbs")) is not None    # still a picture
+    assert mapstyle.styled_path(str(src), os.path.join(cache, "maps_dark")) == str(src)                # the original
+    import types
+    with pytest.raises(OSError):
+        obsoverlay.Writer._write(types.SimpleNamespace(file=os.path.join(cache, "obs-overlay.png")), [], (0, 0))
+    clipedit._analysis_write(os.path.join(cache, "analysis"), os.path.join(cache, "analysis", "x.json"), {"a": 1})
+    assert corpus.save(str(data), np.zeros((40, 200, 3), np.uint8), None, None, "x", (200, 40), False, None,
+                       ("en",), "1") is None
+    assert os.listdir(outside) == []                                     # nothing arrived behind the links

@@ -149,8 +149,8 @@ class Cache:
         if not self.folder:
             return
         try:
-            os.makedirs(self.folder, exist_ok=True)
-            fsops.write_atomic(os.path.join(self.folder, CACHE_FILE), data)
+            if fsops.plain_dir(self.folder, 1):             # CR-4: never through a folder swapped for a link
+                fsops.write_atomic(os.path.join(self.folder, CACHE_FILE), data)
         except OSError:
             pass
 

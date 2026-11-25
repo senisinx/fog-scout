@@ -241,7 +241,8 @@ def _analysis_write(cache_dir: str, file: str | None, data):
         first = cache_dir not in _ANALYSIS_PRUNED
         _ANALYSIS_PRUNED.add(cache_dir)
     try:
-        os.makedirs(cache_dir, exist_ok=True)
+        if not fsops.plain_dir(cache_dir, 2):               # CR-4: cache/analysis through a link – not kept
+            return
         if first:
             from .thumbs import prune
             prune(cache_dir, exts=(".json",))

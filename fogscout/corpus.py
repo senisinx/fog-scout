@@ -71,7 +71,8 @@ def save(data_dir: str, img: np.ndarray, sep, res, decision, frame: tuple, lette
     sake beyond what the caller catches)."""
     now = time.time() if now is None else now
     dst = folder(data_dir)
-    os.makedirs(dst, exist_ok=True)
+    if not fsops.plain_dir(dst, 1):                         # CR-4: corpus/ is a link – nothing written there
+        return None
     stamp = time.strftime("%Y%m%d-%H%M%S", time.localtime(now)) + f"-{int(now * 1000) % 1000:03d}"
     x0, y0, x1, y1 = crop_box(img.shape, sep)
     ok, buf = cv2.imencode(".jpg", np.ascontiguousarray(img[y0:y1, x0:x1]), [cv2.IMWRITE_JPEG_QUALITY, JPEG_QUALITY])
