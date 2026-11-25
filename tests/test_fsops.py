@@ -500,3 +500,36 @@ def test_the_style_sheet_pictures_go_to_a_folder_of_this_process_alone():
     if os.name != "nt":
         assert os.stat(folder).st_mode & 0o077 == 0                       # only the user may enter
     assert qt_theme._qss_url('C:\\a"b') == 'C:/a\\"b'
+
+
+@pytest.mark.skipif(not WIN, reason="Windows handles")
+def test_a_file_system_without_attribute_tags_still_deletes_inside(tmp_path, monkeypatch):
+    """1.57.58 (the user's recordings on an exFAT SSD): GetFileInformationByHandleEx(FileAttributeTagInfo) fails there
+    with ERROR_INVALID_PARAMETER – every delete_inside failed and the farming recordings stayed for weeks. The same
+    attributes come from GetFileInformationByHandle; a link is still refused."""
+    real = fsops._k32_more()
+
+    class NoTagInfo:                                # exFAT: the call fails, the error is "invalid parameter"
+        def __getattr__(self, name):
+            return getattr(real, name)
+
+        @staticmethod
+        def GetFileInformationByHandleEx(*a):
+            return 0
+    monkeypatch.setattr(fsops, "_k32_more", lambda: NoTagInfo())
+    monkeypatch.setattr(fsops.ctypes, "get_last_error", lambda: fsops.ERROR_INVALID_PARAMETER)
+    f = tmp_path / "round.mp4"
+    f.write_bytes(b"video")
+    fsops.delete_inside(str(tmp_path), str(f))
+    assert not f.exists()
+    d = tmp_path / "sub"
+    d.mkdir()
+    with pytest.raises(OSError):                    # a directory is still never deleted (it is not even opened)
+        fsops.delete_inside(str(tmp_path), str(d))
+    assert d.is_dir()
+    monkeypatch.setattr(fsops.ctypes, "get_last_error", lambda: 5)          # any other error: raised as before
+    g = tmp_path / "other.mp4"
+    g.write_bytes(b"x")
+    with pytest.raises(OSError):
+        fsops.delete_inside(str(tmp_path), str(g))
+    assert g.exists()

@@ -41,10 +41,11 @@ from .recindex import (  # 1.38.35: index, clips and pruning live there; every n
     CLIPS_DIR, CLIPS_INDEX, CLIP_EXTS, CLIP_KINDS, Clip, DEFAULT_FARMING_DAYS, FARMING_CHECK_S, FARMING_DAYS, INDEX,
     NAME_CHARS, OLD_CLIPS_INDEX, OLD_INDEX, PARTS_CHECK_S, PARTS_WRITING, PART_EXT, PART_STALE_S, RESERVE, Recording,
     SHORT_ROUND_S, STILL_EXTS, Space, VIDEO_EXTS, _COPY_RE, _SPACE, _STAMP_RE, _entry, _finite_num, _index_stamp, _kind_value,
-    _who, adopt_clip, adopt_old_file, adopted, clips_dir, deletable, expired_farming, own_files, file_name, in_use, list_clips,
+    _failed, _who, adopt_clip, adopt_old_file, adopted, clips_dir, deletable, expired_farming, own_files, file_name, in_use,
+    list_clips,
     load_clips, load_index, part_key, protected_paths, prune, prune_farming, prune_rank, save_clips, save_index, select_clips, select_recordings, settle_parts, space, whole,
     FARMING_SUB, FORECAST_MIN, UNINDEXED_MAX_AGE_S, UNINDEXED_QUIET_S, rounds_left, unindexed_videos)
-_INDEX_NAMES = (CLIPS_DIR, CLIPS_INDEX, CLIP_EXTS, CLIP_KINDS, Clip, DEFAULT_FARMING_DAYS, FARMING_CHECK_S, FARMING_DAYS, INDEX, NAME_CHARS, OLD_CLIPS_INDEX, OLD_INDEX, PARTS_CHECK_S, PARTS_WRITING, PART_EXT, PART_STALE_S, RESERVE, Recording, SHORT_ROUND_S, STILL_EXTS, Space, VIDEO_EXTS, _COPY_RE, _SPACE, _STAMP_RE, _entry, _finite_num, _index_stamp, _kind_value, _who, adopt_clip, adopt_old_file, adopted, clips_dir, deletable, expired_farming, own_files, file_name, in_use, list_clips, load_clips, load_index, part_key, protected_paths, prune, prune_farming, prune_rank, save_clips, save_index, select_clips, select_recordings, settle_parts, space, whole, FARMING_SUB, FORECAST_MIN, UNINDEXED_MAX_AGE_S, UNINDEXED_QUIET_S, rounds_left, unindexed_videos)   # re-exported
+_INDEX_NAMES = (CLIPS_DIR, CLIPS_INDEX, CLIP_EXTS, CLIP_KINDS, Clip, DEFAULT_FARMING_DAYS, FARMING_CHECK_S, FARMING_DAYS, INDEX, NAME_CHARS, OLD_CLIPS_INDEX, OLD_INDEX, PARTS_CHECK_S, PARTS_WRITING, PART_EXT, PART_STALE_S, RESERVE, Recording, SHORT_ROUND_S, STILL_EXTS, Space, VIDEO_EXTS, _COPY_RE, _SPACE, _STAMP_RE, _entry, _finite_num, _index_stamp, _kind_value, _failed, _who, adopt_clip, adopt_old_file, adopted, clips_dir, deletable, expired_farming, own_files, file_name, in_use, list_clips, load_clips, load_index, part_key, protected_paths, prune, prune_farming, prune_rank, save_clips, save_index, select_clips, select_recordings, settle_parts, space, whole, FARMING_SUB, FORECAST_MIN, UNINDEXED_MAX_AGE_S, UNINDEXED_QUIET_S, rounds_left, unindexed_videos)   # re-exported
 
 log = logging.getLogger("fogscout")
 
@@ -2641,8 +2642,8 @@ class Recorder(threading.Thread):
             if folder and _inside(src, folder) and obs_file(src, inside=folder, since=asked, strict=True):
                 try:
                     fsops.delete_inside(folder, src)
-                except OSError:
-                    pass
+                except OSError as e:                     # 1.57.58: said, not swallowed (exFAT: every one failed)
+                    log.warning("Sofort-Clip: Puffer-Datei nicht gelöscht: %s – %s", os.path.basename(src), e)
         else:                                            # no ffmpeg / cut failed: the whole buffer is the clip
             target = os.path.join(clips, self._unique(clips, name + (os.path.splitext(src)[1] or ".mkv")))
             out = self._move(src, target) if obs_file(src, inside=folder, since=asked, strict=True) else src

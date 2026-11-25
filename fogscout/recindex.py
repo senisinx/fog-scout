@@ -8,6 +8,7 @@ Recorder thread talks to OBS): file names, the recordings index (``Recording``, 
 from __future__ import annotations
 
 import json
+import logging
 import math
 import os
 import re
@@ -21,6 +22,16 @@ from . import fsops, history
 from .fsops import rel_path
 from .inputs import INPUTS_SUFFIX
 from .i18n import _
+
+log = logging.getLogger("fogscout")
+
+
+def _failed(what: str, failed: list):
+    """1.57.58: deletes that did not happen go to the log – once per pass, with how many and the first reason (on the
+    user's exFAT drive every one failed for weeks and nothing said so)."""
+    if failed:
+        name, err = failed[0]
+        log.warning("%s: %d Datei(en) nicht gelöscht, z. B. %s – %s", what, len(failed), name, err)
 
 INDEX = "fogscout-recordings.jsonl"
 OLD_INDEX = "dbdmapscout-recordings.jsonl"     # 1.9: the name until 1.8.91 – taken over when first read
@@ -225,7 +236,7 @@ def prune_farming(folder: str, recs: list[Recording], days: int, now: float | No
     paths = protected_paths(folder, protect)
     gone = [r for r in expired_farming(recs, days, time.time() if now is None else now)
             if not in_use(folder, r, paths)]
-    deleted = []
+    deleted, failed = [], []
     for r in gone:
         for n, ok in own_files(r):
             p = rel_path(folder, n) if ok else None                     # 1.38.57: only recording files
@@ -233,8 +244,9 @@ def prune_farming(folder: str, recs: list[Recording], days: int, now: float | No
                 try:
                     fsops.delete_inside(folder, p)      # 1.33.5 (S2): never through a link out of the folder
                     deleted.append(n)
-                except OSError:
-                    pass
+                except OSError as e:
+                    failed.append((n, e))
+    _failed("Farming-Aufnahmen aufräumen", failed)
     gone_ids = {id(r) for r in gone}
     left = [r for r in recs if id(r) not in gone_ids or os.path.exists(rel_path(folder, r.file) or "")]
     return left, deleted
@@ -272,6 +284,7 @@ def prune(folder: str, recs: list[Recording], limit: int, reserve: int = RESERVE
             free = reserve
     total = sum(r.size for r in left)
     paths = protected_paths(folder, protect)
+    failed = []
     for r in sorted([r for r in left if not r.keep and not adopted(r) and not in_use(folder, r, paths)],
                     key=lambda r: (prune_rank(r), r.t)):
         if (limit <= 0 or total <= limit) and free >= reserve:
@@ -282,14 +295,15 @@ def prune(folder: str, recs: list[Recording], limit: int, reserve: int = RESERVE
                 try:
                     fsops.delete_inside(folder, p)                        # 1.33.5 (S2): and no link out of it
                     deleted.append(n)
-                except OSError:
-                    pass
+                except OSError as e:
+                    failed.append((n, e))
         main = rel_path(folder, r.file)
         if main and os.path.exists(main):   # 1.8.38: not deleted (open in a player): the entry stays and counts –
             continue                        # dropped, the file was an orphan no later pass would ever remove
         total -= r.size
         free += r.size
         left.remove(r)
+    _failed("Platz schaffen", failed)
     return left, deleted
 
 

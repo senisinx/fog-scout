@@ -443,16 +443,27 @@ def _open_handle(path: str, access: int, share: int, flags: int):
     return h
 
 
+# 1.57.58: GetFileInformationByHandleEx(FileAttributeTagInfo) fails on exFAT/FAT32 with these – the user's recordings
+# are on an exFAT SSD (Samsung T7): every delete_inside there failed, farming recordings stayed for weeks (~200 GB)
+ERROR_INVALID_FUNCTION, ERROR_NOT_SUPPORTED, ERROR_INVALID_PARAMETER = 1, 50, 87
+
+
 def _attributes(h) -> int:
+    """The file's attributes (FILE_ATTRIBUTE_*) by handle. FileAttributeTagInfo first (NTFS, ReFS); a file system
+    without it (exFAT, FAT32 – no reparse points at all) gives the same attributes through
+    GetFileInformationByHandle, which every file system has."""
     from ctypes import wintypes
 
     class FILE_ATTRIBUTE_TAG_INFO(ctypes.Structure):
         _fields_ = [("FileAttributes", wintypes.DWORD), ("ReparseTag", wintypes.DWORD)]
     info = FILE_ATTRIBUTE_TAG_INFO()
-    if not _k32_more().GetFileInformationByHandleEx(h, FILE_ATTRIBUTE_TAG_INFO_CLASS, ctypes.byref(info),
-                                                     ctypes.sizeof(info)):
-        raise ctypes.WinError(ctypes.get_last_error())
-    return info.FileAttributes
+    if _k32_more().GetFileInformationByHandleEx(h, FILE_ATTRIBUTE_TAG_INFO_CLASS, ctypes.byref(info),
+                                                ctypes.sizeof(info)):
+        return info.FileAttributes
+    err = ctypes.get_last_error()
+    if err not in (ERROR_INVALID_FUNCTION, ERROR_NOT_SUPPORTED, ERROR_INVALID_PARAMETER):
+        raise ctypes.WinError(err)
+    return _by_handle(h).dwFileAttributes
 
 
 def _final_path(h) -> str:
@@ -463,7 +474,8 @@ def _final_path(h) -> str:
     return buf.value
 
 
-def _link_count(h) -> int:
+def _by_handle(h):
+    """BY_HANDLE_FILE_INFORMATION of the open handle (attributes, link count …) – on every file system."""
     from ctypes import wintypes
 
     class BY_HANDLE_FILE_INFORMATION(ctypes.Structure):
@@ -475,7 +487,11 @@ def _link_count(h) -> int:
     info = BY_HANDLE_FILE_INFORMATION()
     if not _k32_more().GetFileInformationByHandle(h, ctypes.byref(info)):
         raise ctypes.WinError(ctypes.get_last_error())
-    return info.nNumberOfLinks
+    return info
+
+
+def _link_count(h) -> int:
+    return _by_handle(h).nNumberOfLinks
 
 
 def _folder_final(folder: str) -> str:
