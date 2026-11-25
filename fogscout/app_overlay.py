@@ -218,6 +218,7 @@ class OverlayTab:
         self.record_var = ui.BooleanVar(value=o.get("show_record", False))
         self.notes_var = ui.BooleanVar(value=o.get("show_notes", True))
         self.last_round_var = ui.BooleanVar(value=o.get("show_last_round", False))
+        self.score_show_var = ui.BooleanVar(value=o.get("show_score", True))       # 1.57.56
         self._reg("ov.keep_bar", ui.Checkbutton(
             pos, text=_("Karte im schwarzen Rand halten"),
             variable=self.keep_bar_var, command=self._overlay_flags_changed)).pack(anchor="w", pady=(4, 0))
@@ -240,9 +241,11 @@ class OverlayTab:
                                 self.floor_auto_var),
                                ("record", N_("Eigene Bilanz unter dem Timer"), self.record_var),
                                ("last_round", N_("Zuletzt auf dieser Map (Datum, Ergebnis)"), self.last_round_var),
+                               ("score", N_("Gezählte Punkte je Kategorie (Score Events)"), self.score_show_var),
                                ("notes", N_("Eigene Notiz unter dem Timer"), self.notes_var),
                                ("transparent", N_("Transparenter Rand um die Karte"), self.transp_var)):
-            self._reg(f"ov.{key}", ui.Checkbutton(info if key in ("timer", "server", "record", "last_round", "notes")
+            self._reg(f"ov.{key}", ui.Checkbutton(info if key in ("timer", "server", "record", "last_round", "score",
+                                                               "notes")
                                                    else look, text=_(text), variable=var,
                                                    command=self._overlay_flags_changed)).pack(anchor="w", pady=1)
         self.fade_var = ui.BooleanVar(value=o.get("fade", True))
@@ -684,6 +687,9 @@ class OverlayTab:
             o["show_record"] = bool(self.record_var.get())
             o["show_last_round"] = bool(self.last_round_var.get())
             self._update_record()
+        if bool(self.score_show_var.get()) != o.get("show_score", True):        # 1.57.56
+            o["show_score"] = bool(self.score_show_var.get())
+            self._update_score()
         if bool(self.notes_var.get()) != o.get("show_notes", True):
             o["show_notes"] = bool(self.notes_var.get())
             self._update_memo()

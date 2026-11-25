@@ -6022,6 +6022,9 @@ T = {
         '이 선택에는 이 역할의 대기 시간이 없습니다.',
     'Zeile FPS (HWiNFO)':
         'FPS 행 (HWiNFO)',
+    'Gezählte Punkte je Kategorie (Score Events)': '카테고리별 집계 점수(점수 이벤트)',
+    'Zeigt unter dem Timer die Punkte dieser Runde je Kategorie, gezählt aus den Score Events oben rechts (BRU/DEV/HUN/SAC bzw. OBJ/SUR/ALT/BOL, in Tausend; MAX = Kategorie voll).':
+        '타이머 아래에 오른쪽 위 점수 이벤트에서 집계한 이번 라운드의 카테고리별 점수를 표시합니다(BRU/DEV/HUN/SAC 또는 OBJ/SUR/ALT/BOL, 천 단위; MAX = 카테고리 가득 참).',
     'Zuletzt auf dieser Map (Datum, Ergebnis)':
         '이 맵에서 마지막 (날짜, 결과)',
     'Serie der laufenden Sitzung (4K / Entkommen)':

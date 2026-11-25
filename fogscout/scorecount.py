@@ -72,6 +72,25 @@ class _Track:
         return collections.Counter(known).most_common(1)[0][0] if known else None
 
 
+SHORT = {"brutality": "BRU", "deviousness": "DEV", "hunter": "HUN", "sacrifice": "SAC",
+         "objective": "OBJ", "survival": "SUR", "altruism": "ALT", "boldness": "BOL"}
+
+
+def line(totals: dict, full=()) -> tuple:
+    """1.57.56: the overlay's line "Punkte" – (text, widest text) as ``PictureOverlay.set_score`` takes it:
+    "BRU 4.3k · DEV 1.5k · HUN 8.3k · SAC MAX" (thousands, one decimal; a full category MAX), and the same with
+    every number at its widest, so the line never changes its size. () without any category."""
+    cats = [c for c in CATEGORIES if c in totals]
+    if not cats:
+        return ()
+
+    def value(c):
+        return "MAX" if c in full or totals[c] >= CAP else f"{totals[c] / 1000:.1f}k"
+    text = " · ".join(f"{SHORT[c]} {value(c)}" for c in cats)
+    widest = " · ".join(f"{SHORT[c]} 00.0k" for c in cats)
+    return text, widest
+
+
 def names_fit(a: str, b: str) -> bool:
     if not a or not b:
         return True

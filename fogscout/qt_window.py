@@ -183,7 +183,8 @@ SPECS = {
               ("ov.info_f", N_("Infos"), (
                   ("row", (("label", "ov.info_pos.label"), ("combo", "ov.info_pos"), ("stretch",))),     # 1.8.24
                   ("sub", N_("Zeilen")), ("check", "ov.timer"), ("check", "ov.server"),
-                  ("check", "ov.record"), ("check", "ov.last_round"), ("check", "ov.notes"))),
+                  ("check", "ov.record"), ("check", "ov.last_round"), ("check", "ov.score"),
+                  ("check", "ov.notes"))),
               ("ov.sys", N_("Systemwerte"), (
                   ("row", (("label", "ov.sysinfo.label"), ("combo", "ov.sysinfo"), ("stretch",))),
                   ("hint", "ov.sys_text"), ("hint", "ov.sys_hint"), ("check", "ov.hud_backdrop"),

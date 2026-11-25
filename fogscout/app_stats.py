@@ -13,6 +13,7 @@ import traceback
 from types import SimpleNamespace
 
 from . import builds, dashboard, history, launch, mapnotes, official, overview, recindex, records, regions, sysinfo
+from . import scorecount
 from . import uimodel as ui
 from .capture import foreground_root, is_game_window
 from .catalog import shown
@@ -2125,6 +2126,8 @@ class StatsTab:
         m = self.catalog.maps.get(map_id)
         now = time.time()
         old = self._hist
+        self._score_now, self._score_full = {}, ()          # 1.57.56: a new round – no points counted yet
+        self._update_score()
         if old is not None and history.should_record(now - old["t"]):
             try:                                     # its end was never detected: note it, do not count it
                 history.append_lost(self._hist_path(), old["t"], old["map"], "banner",
@@ -2187,12 +2190,24 @@ class StatsTab:
         if isinstance(latency, (int, float)) and not isinstance(latency, bool) and latency >= 0:
             rec["latency"] = round(float(latency), 2)
 
+    def _update_score(self):
+        """1.57.56: the line "Punkte" of the element Infos – the counted points of the round on display (setting
+        overlay.show_score; nothing before the first counted event or without a round)."""
+        overlay = getattr(self, "overlay", None)
+        if overlay is None:
+            return
+        on = self.settings["overlay"].get("show_score", True) and self.settings.get("score_track", True)
+        totals = getattr(self, "_score_now", None) or {}
+        overlay.set_score(scorecount.line(totals, getattr(self, "_score_full", ())) if on and totals else ())
+
     def _score_event(self, d):
         """1.57.56: the worker's points per category of the round on display (``final`` at its end, just before
         "match_end") – kept for the round and said once in the log."""
         totals = {c: int(v) for c, v in (d.get("totals") or {}).items()
                   if isinstance(v, (int, float)) and not isinstance(v, bool)}
         self._score_now = totals
+        self._score_full = tuple(d.get("full") or ())
+        self._update_score()
         if not d.get("final") or not totals:
             return
         rec = self._hist
