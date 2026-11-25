@@ -34,7 +34,8 @@ datas = [
     (os.path.join(PACKAGE, "perkdata.json"), "fogscout"),          # 1.51: the generator calculator's numbers
     (os.path.join(PACKAGE, "perkicons"), os.path.join("fogscout", "perkicons")),   # 1.52: the perks' pictures
     (os.path.join(PACKAGE, "loadoutnames.json"), "fogscout"),      # 1.57: what the loadout reader knows
-    (os.path.join(PACKAGE, "loadout_hidden_offering.png"), "fogscout"),   # 1.57.4: a hidden offering's drawing
+    (os.path.join(PACKAGE, "loadout_hidden_offering.png"), "fogscout"),
+    (os.path.join(PACKAGE, "score_icons.png"), "fogscout"),        # 1.57.54: the score categories' templates   # 1.57.4: a hidden offering's drawing
 ]
 # 1.33: build number/version/commit for the update check (relupdate.own_build) – written by CI before the build
 if os.path.isfile(os.path.join(ROOT, "build-info.json")):
