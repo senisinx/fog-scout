@@ -40,7 +40,7 @@ def test_score_events_are_seen_only_with_white_words_and_red_points():
 
 def test_score_pictures_go_to_debug_score_full_size_and_only_the_newest_are_kept(tmp_path, monkeypatch):
     clock = iter(range(10_000))
-    monkeypatch.setattr(worker.time, "strftime", lambda fmt: f"20261125-{next(clock):06d}")   # one name each
+    monkeypatch.setattr(worker.time, "strftime", lambda fmt, *a: f"20261125-{next(clock):06d}")   # one name each
     stub = SimpleNamespace(data_dir=str(tmp_path), _last_score_save=0.0)
     worker.DetectionWorker._save_score_look(stub, np.zeros((1440, 3440, 3), np.uint8), 5.0)
     assert not (tmp_path / "debug" / "score").exists() and stub._last_score_save == 0.0    # nothing shown: nothing kept
@@ -206,3 +206,14 @@ def test_the_template_tool_takes_only_seed_names_and_needs_every_category():
     with pytest.raises(SystemExit, match="objective"):                   # survivors' categories missing here
         score_icons.make(rows)
     assert not set(score_icons.SEED_OF) & {"HEAL", "GOODSKILLCHECK", "GREATSKILLCHECK", "COOPACTION", "MEDKITHEAL"}
+
+
+def test_a_debug_name_reads_the_clock_once_so_names_sort_in_time(monkeypatch):
+    """1.57.54: seconds and milliseconds from two readings straddled a second (…-12:00:00-000 for 12:00:00.999 →
+    12:00:01.000 – a name 1 s early); one reading gives the true order."""
+    import time as real
+    clock = iter([1795600000.999, 1795600001.0005, 1795600001.2])
+    monkeypatch.setattr(worker.time, "time", lambda: next(clock))
+    a, b = worker._stamp(), worker._stamp()
+    assert a < b and a.endswith("-999") and b.endswith("-000")
+    assert a[:15] == real.strftime("%Y%m%d-%H%M%S", real.localtime(1795600000.999))

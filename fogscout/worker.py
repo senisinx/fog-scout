@@ -181,6 +181,14 @@ def score_shown(part) -> bool:
     return white >= SCORE_WHITE * n and red >= SCORE_RED * n
 
 
+def _stamp() -> str:
+    """Name stamp of a debug picture, "YYYYmmdd-HHMMSS-mmm", from ONE reading of the clock (1.57.54: seconds and
+    milliseconds read apart could straddle a second – the name came out up to 1 s early, out of order, and pruning
+    "the newest" kept the wrong pictures; CI saw a HUD look sort before the menu looks)."""
+    now = time.time()
+    return time.strftime("%Y%m%d-%H%M%S", time.localtime(now)) + f"-{int(now * 1000) % 1000:03d}"
+
+
 def _debug_dir(data_dir, *sub):
     """Code review CR-001: the debug folder (``debug`` or ``debug/<sub>``) made and returned – None when it or
     ``debug`` is a link/junction (RS-002): the program runs with administrator rights and must neither write
@@ -1193,7 +1201,7 @@ class DetectionWorker(threading.Thread):
             h, w = frame.shape[:2]
             s = min(1.0, 1280.0 / max(1, w))
             small = cv2.resize(frame, None, fx=s, fy=s, interpolation=cv2.INTER_AREA) if s < 1 else frame
-            stamp = time.strftime("%Y%m%d-%H%M%S") + f"-{int(time.time() * 1000) % 1000:03d}"
+            stamp = _stamp()
             cv2.imencode(".jpg", small, [cv2.IMWRITE_JPEG_QUALITY, 82])[1].tofile(os.path.join(d, f"{stamp}-{tag}.jpg"))
             _prune_debug(d, os.listdir(d), 150)
         except Exception:
@@ -1268,7 +1276,7 @@ class DetectionWorker(threading.Thread):
             d = _debug_dir(self.data_dir, "score")
             if d is None:
                 return
-            stamp = time.strftime("%Y%m%d-%H%M%S") + f"-{int(time.time() * 1000) % 1000:03d}"
+            stamp = _stamp()
             write_lossless(os.path.join(d, f"{stamp}-score.webp"), part)
             _prune_debug(d, [f for f in os.listdir(d) if f.endswith("-score.webp")], SCORE_KEPT)
         except Exception:
@@ -1289,7 +1297,7 @@ class DetectionWorker(threading.Thread):
                 part = frame[:, vx + vw // 5:vx + vw * 4 // 5]
             else:
                 part = frame[:, vx:vx + vw * 2 // 5]
-            stamp = time.strftime("%Y%m%d-%H%M%S") + f"-{int(time.time() * 1000) % 1000:03d}"
+            stamp = _stamp()
             write_lossless(os.path.join(d, f"{stamp}-{tag}.webp"), part)
             _prune_debug(d, [f for f in os.listdir(d)                    # .png: before 1.57.24
                                   if f.endswith((f"-{tag}.webp", f"-{tag}.png"))], LOADOUT_KEPT)
@@ -1303,7 +1311,7 @@ class DetectionWorker(threading.Thread):
             d = _debug_dir(self.data_dir, "midmatch")
             if d is None:
                 return None
-            stamp = time.strftime("%Y%m%d-%H%M%S") + f"-{int(time.time() * 1000) % 1000:03d}"
+            stamp = _stamp()
             name = f"{stamp}-{tag}.jpg"
             vis = img.copy()
             cv2.line(vis, (sep.x0, sep.y), (sep.x1, sep.y), (0, 0, 255), 1)
@@ -1324,7 +1332,7 @@ class DetectionWorker(threading.Thread):
             d = _debug_dir(self.data_dir)
             if d is None:
                 return
-            stamp = time.strftime("%Y%m%d-%H%M%S") + f"-{int(time.time() * 1000) % 1000:03d}"
+            stamp = _stamp()
             vis = img.copy()
             cv2.line(vis, (sep.x0, sep.y), (sep.x1, sep.y), (0, 0, 255), 1)
             write_lossless(os.path.join(d, f"{stamp}.webp"), vis)
