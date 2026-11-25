@@ -825,7 +825,11 @@ def _map_card_base(body, name, realm, timer, note, record, server, ping, status,
         widest = max(last + tuple(_widest(t) for t in last), key=lambda t: _width(cf, t))
         chips.append(chip(last[0], u, cf, colour=GREY, edge=s["tile_edge"], pad=int(12 * u), h=int(30 * u),
                           fill=s["tile"], width_text=widest))
-    if score:                                            # 1.57.56: the counted points, sized for the widest numbers
+    score_pic = None
+    if len(score) >= 4 and score[2]:                     # 1.57.64: rings / bars / line as a picture (scoreview)
+        from . import scoreview
+        score_pic = scoreview.picture(score[2], score[3], round(u, 2))
+    elif score:                                          # 1.57.56: the counted points, sized for the widest numbers
         widest = max(score + tuple(_widest(t) for t in score), key=lambda t: _width(cf, t))
         chips.append(chip(score[0], u, cf, colour=GREY, edge=s["tile_edge"], pad=int(12 * u), h=int(30 * u),
                           fill=s["tile"], width_text=widest))
@@ -838,7 +842,8 @@ def _map_card_base(body, name, realm, timer, note, record, server, ping, status,
     field_w = timer_w
     # the waiting card's lobby line counts seconds: sized with the widest digits, so the card never breathes
     parts = [body.width if body is not None else 0, _header_w(realm, u) if realm else 0,
-             _width(nf, name) if name else 0, field_w, row_pic.width if row_pic else 0] + \
+             _width(nf, name) if name else 0, field_w, row_pic.width if row_pic else 0,
+             score_pic.width if score_pic else 0] + \
         [max(_width(f, t), _width(f, _widest(t))) for f, t, _c in lines] + [_width(mf, t) for t in memo]
     w =max(int(max(parts)) + 2 * pad, int(140 * u))
     head = bool(realm or name)
@@ -847,7 +852,7 @@ def _map_card_base(body, name, realm, timer, note, record, server, ping, status,
         blocks.append(("realm", int(HEAD_H * u), 0))
     if name:
         blocks.append(("name", int(30 * u), 0))
-    top = bool(lines_top and body is not None and (timer or lines or row_pic or memo))
+    top = bool(lines_top and body is not None and (timer or lines or row_pic or memo or score_pic))
     if body is not None and not top:
         blocks.append(("body", body.height, int(6 * u) if head else 0))
     if timer:
@@ -856,6 +861,9 @@ def _map_card_base(body, name, realm, timer, note, record, server, ping, status,
         blocks.append((f"status{i}", int(28 * u), int(8 * u) if i == 0 and body is not None else 0))
     if row_pic:
         blocks.append(("chips", row_pic.height, int(16 * u) if (timer or lines) else int(10 * u) if body is not None else 0))
+    if score_pic:
+        blocks.append(("scorepic", score_pic.height,
+                       int(12 * u) if (timer or lines or row_pic) else int(10 * u) if body is not None else 0))
     for i in range(len(memo)):                       # 1.8.54: the own note, below a hairline when it is alone
         first = int(16 * u) if (timer or lines or row_pic) else int(10 * u) if body is not None else 0
         blocks.append((f"memo{i}", int(22 * u), first if i == 0 else 0))
@@ -886,6 +894,10 @@ def _map_card_base(body, name, realm, timer, note, record, server, ping, status,
             if kind == "memo0" and (timer or lines) and not row_pic:
                 _hairline(im, pad, w - pad, y - g // 2)
             _text(im, (w - _width(mf, t)) / 2 if body is not None else pad, y, t, mf, MEMO)
+        elif kind == "scorepic":
+            if (timer or lines) and not row_pic:
+                _hairline(im, pad, w - pad, y - g // 2)
+            im.alpha_composite(score_pic, ((w - score_pic.width) // 2 if body is not None else pad, y))
         elif kind == "chips":
             if timer or lines:
                 _hairline(im, pad, w - pad, y - g // 2)

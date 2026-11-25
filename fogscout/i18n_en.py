@@ -4500,6 +4500,10 @@ EN = {
         'No waiting times of this role in this selection.',
     'Zeile FPS (HWiNFO)':
         'Row FPS (HWiNFO)',
+    'Punkte-Ansicht': 'Points look',
+    'Ringe mit Symbolen': 'Rings with icons',
+    'Eine Zeile': 'One line',
+    'Balken': 'Bars',
     'Gezählte Punkte je Kategorie (Score Events)': 'Counted points per category (score events)',
     'Zeigt unter dem Timer die Punkte dieser Runde je Kategorie, gezählt aus den Score Events oben rechts (BRU/DEV/HUN/SAC bzw. OBJ/SUR/ALT/BOL, in Tausend; MAX = Kategorie voll).':
         'Shows the points of this round per category below the timer, counted from the score events top right (BRU/DEV/HUN/SAC or OBJ/SUR/ALT/BOL, in thousands; MAX = category full).',

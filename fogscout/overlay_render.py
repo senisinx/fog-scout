@@ -337,7 +337,12 @@ def add_info(pic: Image.Image, timer: str, server: str, height: int, backdrop: b
         rows.append(("record", [(record.upper(), INFO_SERVER)], sfont))
     if last:
         rows.append(("last", [(last[0].upper(), INFO_SERVER)], sfont))
-    if score:
+    score_pic = None
+    if len(score) >= 4 and score[2]:                 # 1.57.64: rings / bars / line as a picture (scoreview)
+        from . import scoreview
+        score_pic = scoreview.picture(score[2], score[3], round(sfont.size / 14, 2))
+        rows.append(("scorepic", [("", INFO_SERVER)], sfont))
+    elif score:
         rows.append(("score", [(score[0].upper(), INFO_SERVER)], sfont))
     memo_rows = [("memo", [(line, INFO_MEMO)], sfont) for line in memo]    # 1.8.54: as written – no caps, no tracking
     if not status:
@@ -357,6 +362,10 @@ def add_info(pic: Image.Image, timer: str, server: str, height: int, backdrop: b
             text = re.sub(r"\d", "0", text).rjust(5, "0")   # proportional – measure with the widest so the field and the
         elif kind == "ping":                     # dot never move; 1.8.28: at least "00:00", the ping three digits
             text = re.sub(r"\d+", "000", text)
+        if kind == "scorepic":
+            boxes.append((0, 0, score_pic.width, score_pic.height))
+            widths.append(score_pic.width)
+            continue
         boxes.append(d0.textbbox((0, 0), text if kind == "timer" else text or "0", font=font))   # dot never move
         if kind == "timer":
             widths.append(boxes[-1][2] - boxes[-1][0])
@@ -404,7 +413,10 @@ def add_info(pic: Image.Image, timer: str, server: str, height: int, backdrop: b
         y = pad
         for i, ((kind, segs, font), (x0, y0, x1, y1), w, h) in enumerate(zip(rows, boxes, widths, heights)):
             w = drawn.get(i, w)                  # centred by what it shows, the room stays the widest
-            if kind == "timer":
+            if kind == "scorepic":
+                if not shadow:                   # its own dark ring plates and text shadow
+                    im.alpha_composite(score_pic, ((layer_w - w) // 2, y))
+            elif kind == "timer":
                 d.text(((layer_w - w) // 2 - x0, y - y0), segs[0][0], font=font,
                        fill=dark if shadow else segs[0][1],
                        stroke_width=2 * halo if shadow else 0, stroke_fill=dark)

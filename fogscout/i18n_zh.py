@@ -6022,6 +6022,10 @@ T = {
         '此筛选中没有该角色的等待时间。',
     'Zeile FPS (HWiNFO)':
         'FPS 行（HWiNFO）',
+    'Punkte-Ansicht': '分数显示',
+    'Ringe mit Symbolen': '带图标的圆环',
+    'Balken': '条形',
+    'Eine Zeile': '单行',
     'Gezählte Punkte je Kategorie (Score Events)': '按类别统计的分数（得分事件）',
     'Zeigt unter dem Timer die Punkte dieser Runde je Kategorie, gezählt aus den Score Events oben rechts (BRU/DEV/HUN/SAC bzw. OBJ/SUR/ALT/BOL, in Tausend; MAX = Kategorie voll).':
         '在计时器下方显示本局各类别的分数，由右上角的得分事件统计（BRU/DEV/HUN/SAC 或 OBJ/SUR/ALT/BOL，单位为千；MAX = 类别已满）。',

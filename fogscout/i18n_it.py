@@ -6022,6 +6022,10 @@ T = {
         'Nessun tempo di attesa per questo ruolo in questa selezione.',
     'Zeile FPS (HWiNFO)':
         'Riga FPS (HWiNFO)',
+    'Punkte-Ansicht': 'Vista punti',
+    'Ringe mit Symbolen': 'Anelli con simboli',
+    'Balken': 'Barre',
+    'Eine Zeile': 'Una riga',
     'Gezählte Punkte je Kategorie (Score Events)': 'Punti contati per categoria (eventi di punteggio)',
     'Zeigt unter dem Timer die Punkte dieser Runde je Kategorie, gezählt aus den Score Events oben rechts (BRU/DEV/HUN/SAC bzw. OBJ/SUR/ALT/BOL, in Tausend; MAX = Kategorie voll).':
         'Mostra sotto il timer i punti di questa partita per categoria, contati dagli eventi di punteggio in alto a destra (BRU/DEV/HUN/SAC o OBJ/SUR/ALT/BOL, in migliaia; MAX = categoria piena).',

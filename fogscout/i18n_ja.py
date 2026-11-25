@@ -6022,6 +6022,10 @@ T = {
         'この選択にはこの役割の待ち時間がありません。',
     'Zeile FPS (HWiNFO)':
         'FPS の行（HWiNFO）',
+    'Punkte-Ansicht': 'ポイント表示',
+    'Ringe mit Symbolen': 'アイコン付きリング',
+    'Balken': 'バー',
+    'Eine Zeile': '1行',
     'Gezählte Punkte je Kategorie (Score Events)': 'カテゴリ別の集計ポイント（スコアイベント）',
     'Zeigt unter dem Timer die Punkte dieser Runde je Kategorie, gezählt aus den Score Events oben rechts (BRU/DEV/HUN/SAC bzw. OBJ/SUR/ALT/BOL, in Tausend; MAX = Kategorie voll).':
         'タイマーの下に、右上のスコアイベントから集計したこの試合のカテゴリ別ポイントを表示します（BRU/DEV/HUN/SAC または OBJ/SUR/ALT/BOL、千単位。MAX = カテゴリ上限）。',

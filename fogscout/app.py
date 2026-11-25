@@ -11,7 +11,7 @@ import time
 import traceback
 
 from . import corpus, i18n, inputs, launch, layout, mapimage, mapnotes, mapstyle, obsrec, regions, restart, tooltip
-from . import scorecount
+from . import scoreview
 from . import uimodel as ui
 from .capture import IS_WIN, find_game_window
 from .catalog import Catalog
@@ -1500,7 +1500,8 @@ class App(ServerTab, StatsTab, ExportDialog, RecordingsTab, DiscordPresence, Spo
                 "ping": 31.0,
                 "record": _("Bilanz: Ø 2,8 Kills · 12 Runden") if on and o.get("show_record", False) else "",
                 "last": self._preview_last() if on and o.get("show_last_round", False) else (),
-                "score": scorecount.line({"brutality": 4300, "deviousness": 1450, "hunter": 8260, "sacrifice": 10000})
+                "score": scoreview.for_overlay({"brutality": 4300, "deviousness": 1450, "hunter": 8260, "sacrifice": 10000},
+                                               (), o.get("score_style", scoreview.DEFAULT_STYLE))
                 if on and o.get("show_score", True) and self.settings.get("score_track", True) else (),   # 1.57.56
                 "memo": mapnotes.lines(mapnotes.get(self.settings.get(mapnotes.KEY), self.current[0]))
                 if on and self.current and o.get("show_notes", True) else (),   # 1.8.54: the own note
