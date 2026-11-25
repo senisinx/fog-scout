@@ -52,3 +52,34 @@ def test_score_pictures_go_to_debug_score_full_size_and_only_the_newest_are_kept
     assert len(files) == worker.SCORE_KEPT and all(f.endswith("-score.webp") for f in files)
     assert np.array_equal(cv2.imread(str(d / files[-1])), worker.score_part(frame))       # lossless, full size
     assert stub._last_score_save == 10.0 + worker.SCORE_KEPT + 2
+
+
+def test_the_recording_tool_cuts_each_new_sight_once(tmp_path):
+    """tools/score_frames.py: the same box and test on the user's own recordings – each new sight once."""
+    import subprocess
+    import sys
+    import pytest
+    from fogscout.obsrec import ffmpeg_exe
+    sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "tools"))
+    import score_frames
+    ffmpeg = ffmpeg_exe()
+    if not ffmpeg:
+        pytest.skip("imageio-ffmpeg 0.6.0 missing")
+    w, h = 1720, 720
+    plain = np.zeros((h, w, 3), np.uint8)
+    seen = cv2.resize(_frame_with_events(), (w, h), interpolation=cv2.INTER_AREA)
+    shown = [plain, seen, seen, plain, seen]                     # one second each: two separate sights
+    video = tmp_path / "Runde 1.mkv"
+    proc = subprocess.Popen([ffmpeg, "-hide_banner", "-loglevel", "error", "-f", "rawvideo", "-pix_fmt", "bgr24",
+                             "-s", f"{w}x{h}", "-r", "4", "-i", "-", "-c:v", "libx264", "-crf", "12",
+                             "-pix_fmt", "yuv444p", str(video)], stdin=subprocess.PIPE)
+    for pic in shown:
+        for _ in range(4):
+            proc.stdin.write(pic.tobytes())
+    proc.stdin.close()
+    assert proc.wait(timeout=60) == 0
+    assert score_frames.crop_box(3440, 1440)[:2] == worker.score_part(np.zeros((1440, 3440, 3), np.uint8)).shape[1::-1]
+    looks, saved = score_frames.scan(str(video), str(tmp_path / "out"), 4.0, ffmpeg)
+    assert (looks, saved) == (20, 2)
+    files = sorted(os.listdir(tmp_path / "out" / "Runde_1"))
+    assert files == ["000m001.00s.webp", "000m004.00s.webp"]
