@@ -167,7 +167,9 @@ class Writer(threading.Thread):
         else:
             pic, (x, y, w, h) = made
             box = (x - game_xy[0], y - game_xy[1], w, h)
-        os.makedirs(os.path.dirname(self.file) or ".", exist_ok=True)
+        from . import fsops
+        if not fsops.plain_dir(os.path.dirname(self.file) or ".", 1):   # CR-4: cache is a link – nothing written
+            raise OSError("linked folder")
         tmp = self.file + ".tmp"
         pic.save(tmp, "PNG", compress_level=COMPRESS)
         for i in range(REPLACE_TRIES):

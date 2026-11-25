@@ -418,7 +418,8 @@ def styled_path(path: str, cache_dir: str, make: bool = True, style: str = "dark
                 if dark is src:
                     return path
                 dark = [(dark, 0)]
-        os.makedirs(os.path.dirname(target), exist_ok=True)
+        if not fsops.plain_dir(os.path.dirname(target), 3):     # CR-4: cache/maps_dark/<sub> through a link: the
+            return path                                         # original picture, nothing written
         tmp = f"{target}.{os.getpid()}-{threading.get_ident()}.tmp"     # the warm-up thread may make it too
         first, rest = dark[0][0], [f for f, _d in dark[1:]]
         # exact: also the invisible pixels as they were; several frames: an animated WebP with the same timing

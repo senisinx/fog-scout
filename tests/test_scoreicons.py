@@ -108,3 +108,44 @@ def test_the_worker_learns_an_icon_after_enough_sure_looks_and_tells_the_app(tmp
     for _ in range(scoreicons.KEEP + 2):
         types.MethodType(worker.DetectionWorker._learn_icons, w2)(part, rows)
     assert scoreicons.load(str(tmp_path / "b")) == {}                    # no ring read: not sure enough to learn from
+
+
+def test_a_cache_folder_swapped_for_a_link_is_neither_written_nor_read(tmp_path):
+    """Code review 1.57.68 (CR-1): the program runs as administrator, the data folder is the user's – with
+    cache/score_icons (or cache) a junction, the icon was written wherever it pointed."""
+    part, rows = _rows("killer-max.webp")
+    mask = scoreevents.icon_picture(part, rows[0])
+    outside = tmp_path / "outside"
+    outside.mkdir()
+    data = tmp_path / "data"
+    (data / "cache").mkdir(parents=True)
+    try:
+        os.symlink(str(outside), str(data / "cache" / "score_icons"), target_is_directory=True)
+    except (OSError, NotImplementedError):
+        pytest.skip("no symlinks here")
+    assert scoreicons.folder(str(data)) is None
+    assert scoreicons.save(str(data), "sacrifice", mask) is None and os.listdir(outside) == []
+    cv2.imwrite(str(outside / "sacrifice.png"), mask)                    # planted behind the link: not read either
+    assert scoreicons.load(str(data)) == {}
+
+
+def test_the_worker_tells_nothing_when_the_icon_could_not_be_saved_and_looks_again_each_round(tmp_path, monkeypatch):
+    import types
+    from fogscout import worker
+    part, rows = _rows("killer-max.webp")
+    rows[0].category, rows[0].ring = "sacrifice", 1.0
+    posts = []
+    w = types.SimpleNamespace(data_dir=str(tmp_path), _score_icons=None, _score=None, _score_stats={},
+                              post=lambda k, **d: posts.append(k), _report=lambda *a: posts.append("report"))
+    learn = types.MethodType(worker.DetectionWorker._learn_icons, w)
+    monkeypatch.setattr(scoreicons, "save", lambda *a: None)             # the cache folder is a link
+    for _ in range(scoreicons.KEEP):
+        learn(part, rows)
+    assert posts == []
+    monkeypatch.undo()
+    # CR-3: a new round asks the cache again – the icon not saved before is learned now
+    types.MethodType(worker.DetectionWorker._score_round, w)((1, "auto"), False)
+    assert w._score_icons is None
+    for _ in range(scoreicons.KEEP):
+        learn(part, rows)
+    assert posts == ["score_icon"] and list(scoreicons.load(str(tmp_path))) == ["sacrifice"]

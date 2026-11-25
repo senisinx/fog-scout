@@ -1341,6 +1341,7 @@ class DetectionWorker(threading.Thread):
             self._score = (gen, self._score[1])
         else:
             self._score = (gen, scorecount.ScoreCounter()) if gen is not None else None
+            self._score_icons = None             # CR-3: a new round looks again which icons the cache holds
             self._score_stats = {"looks": 0, "shown": 0, "covered": 0, "ms": 0.0}
 
     def _score_look(self, grab, fw, fh, origin, from_screen, t, rec):
@@ -1384,8 +1385,7 @@ class DetectionWorker(threading.Thread):
                 if not r.category or r.ring is None or r.category in col.done:
                     continue
                 picked = col.add(r.category, scoreevents.icon_picture(img, r))
-                if picked is not None:
-                    scoreicons.save(self.data_dir, r.category, picked)
+                if picked is not None and scoreicons.save(self.data_dir, r.category, picked):
                     self.post("score_icon", category=r.category)
         except Exception:
             self._report("Score-Icons", traceback.format_exc())
@@ -1405,6 +1405,8 @@ class DetectionWorker(threading.Thread):
         role = counter.role()
         cats = scoreevents.KILLER if role == "killer" else scoreevents.SURVIVOR if role else ()
         totals = counter.totals()
+        if isinstance(gen, tuple):               # CR-2: the map's generation as "menu"/"match_end" carry it – the
+            gen = gen[0] if gen else None        # looks passed (generation, key), the final one the number alone
         self.post("score", gen=gen, final=final, role=role, events=len(counter.events),
                   totals={c: totals[c] for c in cats}, full=sorted(counter.full))
 

@@ -1231,7 +1231,7 @@ class App(ServerTab, StatsTab, ExportDialog, RecordingsTab, DiscordPresence, Spo
 
     def _event(self, ev):
         k, d = ev.kind, ev.data
-        if k in ("menu", "match_end") and d.get("gen") not in (None, self._watch_gen):
+        if k in ("menu", "match_end", "score") and d.get("gen") not in (None, self._watch_gen):   # CR-2: score too
             return                               # about a map that is no longer on display
         if k == "status":
             self._set_status(d["text"], d.get("problem", False))

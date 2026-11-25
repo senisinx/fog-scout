@@ -279,3 +279,24 @@ def test_one_ring_misread_as_full_does_not_fill_the_category():
     assert c.totals()["objective"] == 1120                    # … unless it says "full" without MAX
     c.events = [ScoreEvent(10, "HOOKED", 500, "sacrifice", ring=0.30), ScoreEvent(40, "SACRIFICE", 0, "sacrifice", True, 1.0)]
     assert c.totals()["sacrifice"] == 10000                   # "MAX" beside the full ring: believed at once
+
+
+def test_score_events_carry_the_maps_generation_as_a_number_and_stale_ones_are_dropped():
+    """Code review 1.57.68 (CR-2): the looks posted the worker's (generation, source) pair, the final event the
+    number – and the app took every score event, also one of a map no longer on display."""
+    import types
+    from fogscout import app as app_mod
+    posts = []
+    w = _worker_stub(posts)
+    w._score_round((7, "auto"), same_round=False)
+    w._score_post(w._score[0], w._score[1], final=False)
+    w._score_post(7, w._score[1], final=True)
+    assert [d["gen"] for k, d in posts if k == "score"] == [7, 7]
+    seen = []
+    a = types.SimpleNamespace(_watch_gen=8, _score_event=lambda d: seen.append(d["gen"]))
+    ev = types.SimpleNamespace(kind="score", data={"gen": 7, "totals": {}})
+    app_mod.App._event(a, ev)
+    assert seen == []                                            # generation 7 is gone: ignored
+    a._watch_gen = 7
+    app_mod.App._event(a, ev)
+    assert seen == [7]

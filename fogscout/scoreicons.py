@@ -7,7 +7,7 @@ picture inside the ring (``scoreevents.icon_picture``: the pale drawing as a gre
 were read for sure, and after ``KEEP`` sightings of a category picks the one most like their median – a single sharp
 sighting, never an outlier (a row sliding in, a bright background). It is saved once as
 ``<data_dir>/cache/score_icons/<category>.png`` (the program's own cache, like every other picture there; deleting the
-folder makes it learn again) and ``scoreview`` draws it instead of its own drawing. Until a category was seen in a
+folder makes it learn again from the next round on) and ``scoreview`` draws it instead of its own drawing. Until a category was seen in a
 match, its drawn icon stands in.
 
 Screen pixels only (CLAUDE.md), nothing sent, nothing read from the game's files. Pure but for the two file helpers.
@@ -63,16 +63,27 @@ def path(data_dir: str, category: str) -> str:
     return os.path.join(data_dir, FOLDER, f"{category}.png")
 
 
-def save(data_dir: str, category: str, mask) -> str:
-    """Write the picked icon (complete or not at all – fsops.write_atomic); returns its path."""
+def folder(data_dir: str):
+    """Code review 1.57.68 (CR-1): ``cache/score_icons`` made and returned – None when it or ``cache`` is a link or
+    junction (``fsops.linked_root``, as every other cache here): the program runs with administrator rights and the
+    data folder is the user's – a folder swapped for a junction would have had our PNG written wherever it points."""
+    from . import fsops
+    d = os.path.join(data_dir, FOLDER)
+    return d if fsops.plain_dir(d, 2) else None
+
+
+def save(data_dir: str, category: str, mask):
+    """Write the picked icon (complete or not at all – fsops.write_atomic); returns its path, None when the cache
+    folder is a link (nothing written)."""
     from PIL import Image
     from . import fsops
     if category not in CATEGORIES:
         raise ValueError(category)
+    if folder(data_dir) is None:
+        return None
     buf = io.BytesIO()
     Image.fromarray(np.asarray(mask, np.uint8), "L").save(buf, "PNG")
     target = path(data_dir, category)
-    os.makedirs(os.path.dirname(target), exist_ok=True)
     fsops.write_atomic(target, buf.getvalue())
     return target
 
@@ -80,7 +91,10 @@ def save(data_dir: str, category: str, mask) -> str:
 def load(data_dir: str) -> dict:
     """{category: PIL "L" picture} of the icons learned so far – only our own names, sizes and plain files."""
     from PIL import Image
+    from . import fsops
     out = {}
+    if fsops.linked_root(os.path.join(data_dir, FOLDER), 2):         # CR-1: never read through a swapped folder
+        return out
     for c in CATEGORIES:
         p = path(data_dir, c)
         try:
