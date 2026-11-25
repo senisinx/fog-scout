@@ -462,6 +462,9 @@ TIPS = {
     "Overlay pausieren, solange ein DBD-Menü offen ist":
         "Karte verschwindet, solange der Mauszeiger im Spiel sichtbar ist (ESC-Menü), und kommt danach "
         "wieder.",
+    "Punkte der Score Events oben rechts zählen":
+        "Liest im Match die Score Events oben rechts (Name, Punkte, Kategorie am Symbol, Füllstand des Rings) und "
+        "zählt jede einmal – die Punkte je Kategorie stehen danach bei der Runde.",
     "Auch erkennen, wenn andere Fenster über DBD liegen":
         "Fensteraufnahme wie bei OBS: erkennt das Banner auch, wenn DBD verdeckt ist. Nur solange DBD im "
         "Hintergrund ist.",

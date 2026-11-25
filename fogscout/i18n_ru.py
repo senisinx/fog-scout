@@ -507,6 +507,10 @@ T = {
         'Дополнительно (поиск неполадок)',
     'Technik':
         'Технические',
+    'Punkte der Score Events oben rechts zählen': 'Считать очки событий счёта справа вверху',
+    'im Match bis zu 4 Blicke pro Sekunde auf die Ecke; die Punkte je Kategorie kommen zur Runde': 'в матче до 4 взглядов в секунду на угол; очки по категориям сохраняются с раундом',
+    'Liest im Match die Score Events oben rechts (Name, Punkte, Kategorie am Symbol, Füllstand des Rings) und zählt jede einmal – die Punkte je Kategorie stehen danach bei der Runde.': 'В матче читает события счёта справа вверху (название, очки, категорию по значку, заполнение кольца) и считает каждое один раз – очки по категориям потом сохраняются с раундом.',
+    'Punkte dieser Runde (gezählt, oben rechts): {points}': 'Очки этого раунда (подсчитано справа вверху): {points}',
     'Auch erkennen, wenn andere Fenster über DBD liegen':
         'Распознавать и тогда, когда DBD закрыта другими окнами',
     'Fensteraufnahme wie bei OBS, nur solange DBD im Hintergrund ist':

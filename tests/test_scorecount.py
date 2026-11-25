@@ -124,3 +124,93 @@ def test_a_ring_far_below_the_running_total_is_a_misreading():
     # missed events: a ring above the running total is always believed
     up = feed(ScoreCounter(), [[ringed(500, 0.10)]] * 4 + [[]] * 5 + [[ringed(100, 0.50)]] * 4)
     assert up.totals()["objective"] == 5000
+
+
+# --- 1.57.56: the live tracker in the worker and the app ----------------------------------------------------------
+
+def _worker_stub(posts):
+    import types
+    from fogscout import worker
+    from fogscout.ticktime import LookTimes
+    w = types.SimpleNamespace(settings={"score_track": True}, times=LookTimes(), post=lambda k, **d: posts.append((k, d)),
+                              _report=lambda what, text: posts.append(("report", {"what": what, "text": text})),
+                              _mask_screen=lambda img, *a: None, _score=None,
+                              _score_stats={"looks": 0, "shown": 0, "covered": 0, "ms": 0.0}, score_info="–")
+    for name in ("_score_round", "_score_look", "_score_final", "_score_post", "_score_describe"):
+        setattr(w, name, types.MethodType(getattr(worker.DetectionWorker, name), w))
+    return w
+
+
+def test_the_worker_counts_the_score_corner_and_gives_the_totals_before_the_round_ends():
+    import os
+    import cv2
+    import numpy as np
+    from fogscout import worker
+    from fogscout.ocr import Recognizer
+    root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    rec = Recognizer(os.path.join(root, "models", "ch_PP-OCRv4_rec_infer.onnx"))
+    corner = cv2.imread(os.path.join(root, "tests", "data", "score", "killer-three-rows.webp"))
+    fw, fh = 3440, 1440
+    x, y, w_, h_ = worker.score_box(fw, fh)
+    assert (w_, h_) == corner.shape[1::-1]
+    frame = np.zeros((fh, fw, 3), np.uint8)
+    frame[y:y + h_, x:x + w_] = corner
+    empty = np.zeros_like(frame)
+    pictures = [frame] * 6 + [empty] * 6
+    posts = []
+    w = _worker_stub(posts)
+    w._score_round(("gen", 1), same_round=False)
+    for i, pic in enumerate(pictures):
+        w._score_look(lambda box, p=pic: p[box[1]:box[1] + box[3], box[0]:box[0] + box[2]].copy(),
+                      fw, fh, (0, 0), lambda: False, i * 0.25, rec)
+    w._score_look(lambda box: None, fw, fh, (0, 0), lambda: False, 3.5, rec)       # covered: no look
+    w._score_final(("gen", 1))
+    scores = [d for k, d in posts if k == "score"]
+    assert [k for k, _d in posts if k == "report"] == []
+    assert scores and scores[-1]["final"] and scores[-1]["role"] == "killer"
+    assert scores[-1]["events"] == 3 and set(scores[-1]["totals"]) == {"brutality", "deviousness", "hunter", "sacrifice"}
+    tot = scores[-1]["totals"]
+    assert tot["sacrifice"] == 0 and all(2000 < tot[c] < 8000 for c in ("brutality", "deviousness", "hunter"))
+    assert w._score is None and w._score_stats["covered"] == 1 and w._score_stats["shown"] == 6
+    assert "Runde vorbei" in w.score_info
+
+
+def test_a_banner_read_twice_keeps_the_rounds_counter():
+    posts = []
+    w = _worker_stub(posts)
+    w._score_round(("a", 1), same_round=False)
+    first = w._score[1]
+    w._score_round(("a", 2), same_round=True)
+    assert w._score == (("a", 2), first)
+    w._score_round(("b", 3), same_round=False)
+    assert w._score[1] is not first
+    w._score_round(None, same_round=False)
+    assert w._score is None
+    w._score_final(None)                    # nothing open: nothing posted
+    assert posts == []
+
+
+def test_the_app_keeps_the_final_points_with_the_round_and_logs_them():
+    import types
+    from fogscout.app_stats import StatsTab
+    logged = []
+    app = types.SimpleNamespace(_hist={"t": 1.0}, _log=lambda text, cat: logged.append(text))
+    StatsTab._score_event(app, {"final": False, "totals": {"objective": 100}})
+    assert "score" not in app._hist and app._score_now == {"objective": 100} and logged == []
+    StatsTab._score_event(app, {"final": True, "totals": {"objective": 4200, "boldness": 10000, "x": True}})
+    assert app._hist["score"] == {"objective": 4200, "boldness": 10000}
+    assert len(logged) == 1 and "Objective 4200" in logged[0]
+
+
+def test_a_rounds_counted_points_are_stored_and_broken_ones_dropped(tmp_path):
+    import json
+    from fogscout import history
+    path = str(tmp_path / "rounds.jsonl")
+    history.append(path, history.Round(t=1795600000.0, seconds=600.0, map_id="m", map="M",
+                                       score={"hunter": 8300, "sacrifice": 10000}))
+    with open(path, "a", encoding="utf-8") as fh:
+        fh.write(json.dumps({"t": 1795601000.0, "seconds": 500.0, "map_id": "m", "map": "M",
+                             "score": {"hunter": "9000", "nope": 5, "brutality": -1, "deviousness": 4000}}) + "\n")
+    rounds = history.load(path)
+    assert rounds[0].score == {"hunter": 8300, "sacrifice": 10000}
+    assert rounds[1].score == {"deviousness": 4000}

@@ -153,6 +153,7 @@ DEFAULTS = {
     "lobby_notify": True,               # sound + notification when a lobby was found
     "lobby_remind": True,               # … and when its countdown runs out while READY is not pressed
     "notify_background_only": True,     # only while DBD is not the active window
+    "score_track": True,                # 1.57.56: count the score events top right in a match (scoreevents/scorecount)
     "bp_cap_notify": True,              # 1.13: sound + notification when a round left the bloodpoint balance unchanged (cap)
     "banner_missed_notify": True,       # sound + notification when no banner came within a minute of the match start
     "session_notify": True,             # 1.38.27: notification with the session's numbers once DBD was closed

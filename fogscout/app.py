@@ -343,6 +343,13 @@ class App(ServerTab, StatsTab, ExportDialog, RecordingsTab, DiscordPresence, Spo
         self._reg("st.det_menu_hint", ui.Label(
             auto, text=_("erkannt am sichtbaren Mauszeiger (ESC-Menü, Ergebnisbildschirm, Lobby)"),
             style="Dim.TLabel", wraplength=400)).pack(anchor="w", padx=(22, 0))
+        self.score_var = ui.BooleanVar(value=self.settings.get("score_track", True))      # 1.57.56
+        self._reg("st.det_score", ui.Checkbutton(auto, text=_("Punkte der Score Events oben rechts zählen"),
+                                                  variable=self.score_var,
+                                                  command=self._detect_flags_changed)).pack(anchor="w", pady=(4, 1))
+        self._reg("st.det_score_hint", ui.Label(
+            auto, text=_("im Match bis zu 4 Blicke pro Sekunde auf die Ecke; die Punkte je Kategorie kommen zur Runde"),
+            style="Dim.TLabel", wraplength=400)).pack(anchor="w", padx=(22, 0))
         # 1.38.12: the two settings of the old "Erweitert" (log page) live with the other detection settings
         tech = self._reg("st.det_tech", ui.LabelFrame(f, text=_("Technik"), padding=8))
         tech.pack(fill="x", pady=(8, 0))
@@ -1281,6 +1288,8 @@ class App(ServerTab, StatsTab, ExportDialog, RecordingsTab, DiscordPresence, Spo
             self._loadouts_event(d)
         elif k == "bloodpoints":                  # 1.13: a reading of the bloodpoint counter in the lobby
             self._bp_reading(d)
+        elif k == "score":                        # 1.57.56: points per category counted from the score events
+            self._score_event(d)
         elif k == "match_start":                  # 1.6: end of the loading screen (recording from the spawn)
             self._match_started(d)
         elif k == "match_end":
@@ -1719,6 +1728,7 @@ class App(ServerTab, StatsTab, ExportDialog, RecordingsTab, DiscordPresence, Spo
         self.settings.set("hide_after_match", bool(self.hide_var.get()))
         self.settings.set("pause_in_menus", bool(self.menu_var.get()))
         self.settings.set("window_capture", bool(self.wgc_var.get()))
+        self.settings.set("score_track", bool(self.score_var.get()))
         if not self.menu_var.get() and self.menu_paused:
             self.menu_paused = False
             self._tick_overlay(reschedule=False)
