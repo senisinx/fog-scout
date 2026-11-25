@@ -542,15 +542,18 @@ class App(ServerTab, StatsTab, ExportDialog, RecordingsTab, DiscordPresence, Spo
         if m is None:
             return
         path, shown = self._map_file(map_id, variant)
-        if path is None:
-            self._log(_("Für „{map}“ gibt es kein Bild.", map=m.shown_label(variant)), "Overlay")
-            return
         rotation = self._map_rotation(map_id)
-        try:
-            frames = load_frames(path, rotation, self._map_title(m, shown))
-        except Exception as e:
-            self._log(_("Bild konnte nicht geladen werden: {path} ({error})", path=path, error=e), "Fehler")
-            return
+        if path is None:
+            # 1.57.51 (Saru: a new map without a callout picture – the round, timer, server and ping run anyway):
+            # the overlay shows the info lines only (PictureOverlay.set_map without a path)
+            self._log(_("Für „{map}“ gibt es kein Bild.", map=m.shown_label(variant)), "Overlay")
+            frames = None
+        else:
+            try:
+                frames = load_frames(path, rotation, self._map_title(m, shown))
+            except Exception as e:
+                self._log(_("Bild konnte nicht geladen werden: {path} ({error})", path=path, error=e), "Fehler")
+                return
         was_on = self._map_on()
         same_map = was_on and self.current is not None and self.current[0] == map_id
         self._test_map = False                   # a real/manual choice replaces the test picture
@@ -574,7 +577,8 @@ class App(ServerTab, StatsTab, ExportDialog, RecordingsTab, DiscordPresence, Spo
         self._watch(source)
         self.tray.set_title(f"Fog Scout – {m.shown_label(shown)}")
         self._detail = detail or {"manual": _("manuell gewählt"), "scan": _("per Scan gefunden")}.get(source, "")
-        self._set_thumb(frames[0][0])
+        if frames:                               # 1.57.51: a map without a picture has no thumbnail
+            self._set_thumb(frames[0][0])
         self._show_map_size()
         if source == "manual":
             self._log(_("Map gewählt: {map}", map=m.shown_label(shown)), "Overlay")

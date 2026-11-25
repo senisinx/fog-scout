@@ -76,3 +76,31 @@ def test_killer_names_follow_the_language_of_the_interface_and_discord_stays_eng
     assert lobby.killer_label("The Nurse") == "ナース"
     lang("en")
     assert lobby.killer_label("The Nurse") == "Nurse"
+
+
+def test_hartshorne_mall_is_known_with_its_realm():
+    """1.57.51 (Saru: "Es gibt eine neue Map in DBD die heisst: Hartshorne Mall"; debug banners: the OCR read
+    "HARTSHORNE MALL" / "THE SUBDIVISIONS" exactly, but the catalog had no such map – best guess Coal Tower II at fit
+    -111). The name and realm are hypotheses of the main model now; no picture is supplied yet."""
+    from fogscout.textnorm import MAIN
+    cat = Catalog(ROOT, ["en", "de"])
+    hyp = [h for h in cat.hypotheses if h.map_id == "hartshorne-mall"]
+    assert hyp and all(h.model == MAIN and h.name_key == "HARTSHORNEMALL" for h in hyp)
+    realms = {h.lang: h.realm_keys for h in hyp}
+    assert "THESUBDIVISIONS" in realms["en"] and "DIEUNTERABTEILUNGEN" in realms["de"]     # DE from the DBD wiki
+    assert "HARTSHORNEMALL" in cat.name_strings and "THESUBDIVISIONS" in cat.realm_strings
+    assert cat.image_path("hartshorne-mall")[0] is None                 # until a picture is there: name only
+
+
+def test_an_own_picture_fills_a_new_map_without_a_supplied_one(tmp_path):
+    """1.57.51: no callout map of Hartshorne Mall exists yet – an own picture under the name maps.json plans
+    (user_maps/The Subdivisions/Hartshorne Mall.*) becomes its picture, never a second, custom map."""
+    from PIL import Image
+    cat = Catalog(ROOT, ["en"], data_dir=str(tmp_path))
+    assert cat.own_stem("hartshorne-mall") == "The Subdivisions/Hartshorne Mall"
+    folder = tmp_path / "user_maps" / "The Subdivisions"
+    folder.mkdir(parents=True)
+    Image.new("RGBA", (8, 8)).save(folder / "Hartshorne Mall.webp")
+    cat = Catalog(ROOT, ["en"], data_dir=str(tmp_path))
+    assert cat.image_path("hartshorne-mall")[0].endswith("Hartshorne Mall.webp")
+    assert not [m for m in cat.maps if m.startswith("custom:")]

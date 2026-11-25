@@ -3885,3 +3885,27 @@ def test_switching_light_and_dark_reaches_every_statistics_chart(app_root):
                 assert chart is None or chart.dark == dark, name
     finally:
         app.quit()
+
+
+def test_a_map_without_a_picture_still_runs_the_round_and_shows_the_timer(app_root):
+    """1.57.51 (Saru: "die map gibt es noch nicht … Wichtig ist das wenn ich die map aktuell kriege timer etc trotzdem
+    laufen"): Hartshorne Mall has no callout picture yet – show_map stopped at "kein Bild" and nothing showed. Now the
+    round is counted and the overlay shows the info lines alone, like "nur Infos"."""
+    from fogscout.app import App
+    from fogscout.worker import Event
+    app = App(str(app_root), simulate=str(app_root / "sim"))
+    try:
+        assert app.catalog.image_path("hartshorne-mall")[0] is None
+        app._dispatch(Event("detected", dict(lobby=None, map_id="hartshorne-mall", variant=1, probability=1.0,
+                                             variant_probability=1.0, name_text="HARTSHORNE MALL",
+                                             realm_text="THE SUBDIVISIONS", frames=3, name_fit=0.0, unsure=False,
+                                             latency=0.1)))
+        assert app.current == ("hartshorne-mall", 1) and app._hist is not None and app.round.running
+        assert app.overlay.has_map() and not app.overlay.show_map                # info only: no map drawn
+        app.overlay.set_timer("0:05")
+        w, h = app.overlay.render(200, push=False)
+        assert w > 1 and h > 1                                                    # the timer is drawn
+        app.overlay.set_map(None)                                                  # the next map has its picture
+        assert app.overlay.show_map and not app.overlay.has_map()
+    finally:
+        app.quit()
