@@ -217,3 +217,51 @@ def test_a_debug_name_reads_the_clock_once_so_names_sort_in_time(monkeypatch):
     a, b = worker._stamp(), worker._stamp()
     assert a < b and a.endswith("-999") and b.endswith("-000")
     assert a[:15] == real.strftime("%Y%m%d-%H%M%S", real.localtime(1795600000.999))
+
+
+# --- 1.57.55: the ring shows how full the category is -----------------------------------------------------------------
+
+def _ring_picture(share, h=21, grey=(120, 120, 120)):
+    """A row's name and its ring drawn as DBD does: grey all round, red from RING_START for ``share`` of it."""
+    from fogscout import scoreevents
+    part = np.zeros((634, 973, 3), np.uint8)
+    word = (400, 200, 560, 200 + h)
+    cx, cy = word[2] + scoreevents.RING_MIDDLE[0] * h, word[1] + scoreevents.RING_MIDDLE[1] * h
+    axes = (int(round(scoreevents.RING_AXES[0] * h / 2)), int(round(scoreevents.RING_AXES[1] * h / 2)))
+    centre = (int(round(cx)), int(round(cy)))
+    cv2.ellipse(part, centre, axes, scoreevents.RING_ANGLE, 0, 360, grey, 3)
+    if share > 0:
+        cv2.ellipse(part, centre, axes, scoreevents.RING_ANGLE, scoreevents.RING_START,
+                    scoreevents.RING_START + 360 * share, (30, 30, 230), 3)
+    return part, scoreevents.Row(word=word)
+
+
+def test_a_drawn_ring_is_read_back_at_its_share():
+    from fogscout import scoreevents
+    for share in (0.0, 0.05, 0.25, 0.5, 0.73, 0.98, 1.0):
+        part, row = _ring_picture(share)
+        got = scoreevents.ring_progress(part, row)
+        # 3.5 points: near the ends of the long axis a few pixels of stroke span several degrees (0.05 → 0.08)
+        assert got is not None and abs(got - share) <= 0.035, (share, got)
+    part, row = _ring_picture(0.4, grey=(60, 60, 60))              # the Nurse's dark ring on black (was None)
+    assert abs(scoreevents.ring_progress(part, row) - 0.4) <= 0.035
+
+
+def test_no_ring_no_progress():
+    from fogscout import scoreevents
+    part, row = _ring_picture(0.5)
+    assert scoreevents.ring_progress(np.zeros_like(part), row) is None
+    off = scoreevents.Row(word=(900, 600, 973, 621))                 # its ring would be outside the box
+    assert scoreevents.ring_progress(part, off) is None
+
+
+def test_the_rings_of_own_recordings():
+    """MAX = full; two Boldness rows: the newer (upper) one is at least as full as the older one."""
+    from fogscout import scoreevents
+    rec = _recognizer()
+    full = scoreevents.read_rows(rec, cv2.imread(os.path.join(SCORE_DATA, "killer-max.webp")))
+    assert full[0].ring == 1.0
+    two = scoreevents.read_rows(rec, cv2.imread(os.path.join(SCORE_DATA, "survivor-two-rows.webp")))
+    assert 0.8 < two[1].ring <= two[0].ring < 0.95
+    three = scoreevents.read_rows(rec, cv2.imread(os.path.join(SCORE_DATA, "killer-three-rows.webp")))
+    assert all(r.ring is not None and 0.3 < r.ring < 0.7 for r in three)
