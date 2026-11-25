@@ -258,7 +258,8 @@ SPECS = {
             ("st.tab.detect", N_("Erkennung"), (
                 # 1.8.78: the page "Erkennung" is gone – its cards live here, "Erweitert" on the log page
                 ("card", "st.detect", (("check", "st.det_auto"), ("check", "st.det_hide"), ("hint", "st.det_hide_hint"),
-                                       ("check", "st.det_menu"), ("hint", "st.det_menu_hint"))),
+                                       ("check", "st.det_menu"), ("hint", "st.det_menu_hint"),
+                                       ("check", "st.det_score"), ("hint", "st.det_score_hint"))),        # 1.57.56
                 # 1.38.12: window capture and scan rate came from Log → "Erweitert" (that keeps only the tools)
                 ("card", "st.det_tech", (("check", "st.det_wgc"), ("hint", "st.det_wgc_hint"), ("slider", "st.det_rate"))),
                 ("card", "st.langs", (("grid", 5, tuple(("check", f"det.lang.{code}") for code in GAME_LANGS)),

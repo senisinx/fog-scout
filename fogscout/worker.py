@@ -15,7 +15,7 @@ from dataclasses import dataclass
 import cv2
 import numpy as np
 
-from . import __version__, bloodpoints, corpus, fsops, gamelang, loadouts
+from . import __version__, bloodpoints, corpus, fsops, gamelang, loadouts, scorecount, scoreevents
 from .capture import (IS_WIN, ImageSource, ScreenGrabber, cursor_state, find_game_window, foreground_root,
                       overlaps, windows_above)
 from .i18n import _
@@ -86,6 +86,10 @@ SCORE_KEPT = 120                  # newest pictures kept in debug/score
 SCORE_SAVE_GAP_S = 1.0            # at most one a second
 SCORE_WHITE = 0.0004              # share of near-white pixels (the words) …
 SCORE_RED = 0.00004               # … and of red ones (the points) for "something is shown" (screenshots: ≥ 0.0011 / 0.00012)
+# 1.57.56 (user: "Arbeite selbständig" – the live tracker): in a match the score corner is looked at between the ticks
+# this often (own recordings: 4 looks/s 7 % off the official points by the sum alone, 2/s 11 %, 1/s 26 %); only the
+# corner (973×634 at 1440p), ~29 ms per look with events
+SCORE_INTERVAL = 0.25
 GLOBE_KEPT = 10                   # 1.5.4: unreadable cross-play globe crops kept in debug/lobby
 GLOBE_SAVE_EVERY = 120.0          # s between two saved crops (one per lobby is enough)
 MENU_RATE = 1.0                   # 1.6.4: banner scans per second in menus, store, bloodweb … (no banner there)
@@ -158,6 +162,15 @@ def scan_rate(base: float, *, in_match: bool, session: bool, since_button: float
     if not live or since_loading <= FAST_AFTER_LOADING or since_button <= FAST_AFTER_LOBBY:
         return base
     return min(base, MENU_RATE)
+
+
+def score_box(fw: int, fh: int):
+    """1.57.56: SCORE_BOX as (x, y, w, h) in a picture of fw×fh – the same cut as ``score_part``."""
+    vw = min(fw, fh * 16 // 9)
+    vx = (fw - vw) // 2
+    x0, y0, x1, y1 = SCORE_BOX
+    x, y = vx + int(x0 * vw), int(y0 * fh)
+    return x, y, vx + int(x1 * vw) - x, int(y1 * fh) - y
 
 
 def score_part(frame):
@@ -276,6 +289,9 @@ class DetectionWorker(threading.Thread):
         self._broken = None                              # 1.38.9: why the current run gave up (None: it did not)
         self._last_frame_save = 0.0
         self._last_score_save = 0.0
+        self.score_info = "–"                            # 1.57.56: the live score tracker for the diagnosis
+        self._score = None                               # (gen, ScoreCounter) of the round on display
+        self._score_stats = {"looks": 0, "shown": 0, "covered": 0, "ms": 0.0}
         self._last_sighting_save = 0.0
         self._banner_due = None          # when to hint "scan by hand" if no banner was decided since the match began
 
@@ -405,6 +421,7 @@ class DetectionWorker(threading.Thread):
             return source is None and via["screen"]
 
         role_retry = None                 # 1.11.8: {"gen", "t", "due": [tick …], "crop", "text"} after a role-less end
+        score_next = 0.0                  # 1.57.56: next look at the score corner
         self.hidden_looks = 0
         self.scan_rate = 0.0                                 # 1.6.4: banner scans per second right now (diagnosis)
         self._globe_saved = 0.0           # 1.5.4: last saved cross-play crop             # looks skipped: DBD in the background, another window over it
@@ -794,6 +811,7 @@ class DetectionWorker(threading.Thread):
                     # loadouts read in between were thrown away. Shown again early in a round not ended: the same
                     # round, its survivors stay (and are posted for the new generation)
                     same_round = same_round_again(gen, tracker_gen, tracker.ended, tick - round_since)
+                    self._score_round(gen, same_round)
                     tracker.reset(gen[0] if gen else None, gen[1] if gen else None, tick)
                     tracker_gen = gen
                     trial_since = tick
@@ -970,6 +988,7 @@ class DetectionWorker(threading.Thread):
                                                       "text": getattr(lobby_reader, "last_result_text", "")}
                                 except Exception:
                                     self._report("Rolle", traceback.format_exc())
+                            self._score_final(tracker.generation)          # 1.57.56: the round's points first
                             self.post("match_end", reason=ev[1], gen=tracker.generation, t=tracker.end_t, role=role)
                         elif ev[0] == "armed" and tracker.source != "auto":
                             self.post("watch_info", text=_("Rundenende-Erkennung für die gewählte Map ist jetzt aktiv."))
@@ -998,11 +1017,28 @@ class DetectionWorker(threading.Thread):
                 if source is None and window is None:
                     rate = 1.0                               # no DBD: only looking for its window
                 self.scan_rate = rate                        # diagnosis
-                try:
-                    cmd = self.commands.get(timeout=max(0.02, 1.0 / rate - (time.time() - tick)))
-                    self.commands.put(cmd)          # handled at the top of the next loop
-                except queue.Empty:
-                    pass
+                # 1.57.56: in a match the score corner is looked at while waiting for the next tick
+                score_on = bool(self._score is not None and in_match and watching and not tracker.ended
+                                and self.settings.get("score_track", True)
+                                and (window is not None or source is not None))
+                deadline = tick + 1.0 / rate
+                while True:
+                    now = time.time()
+                    if score_on and now >= score_next:
+                        score_next = now + SCORE_INTERVAL
+                        shot.clear()                 # the tick's whole picture is old now: grab the corner anew
+                        self._score_look(grab, fw, fh, origin, from_screen, now, rec)
+                        now = time.time()
+                    left = deadline - now
+                    if left <= 0 and score_on:
+                        break
+                    try:
+                        cmd = self.commands.get(timeout=max(0.02, min(left, score_next - now) if score_on else left))
+                        self.commands.put(cmd)       # handled at the top of the next loop
+                        break
+                    except queue.Empty:
+                        if not score_on:
+                            break
             except Exception:                    # 1.8.38: one bad frame must not end the detection for good
                 fails, failed = fails + 1, True
                 if not self._tick_failed(traceback.format_exc(), fails):
@@ -1263,6 +1299,75 @@ class DetectionWorker(threading.Thread):
             _prune_debug(d, [f for f in os.listdir(d) if f.endswith(".jpg")], RESULT_MISSES_KEPT)
         except Exception:
             pass
+
+    # ------------------------------------------------------------------ 1.57.56: live score tracker
+    def _score_round(self, gen, same_round: bool):
+        """A new map on display: a new counter – the same round shown again (a banner read twice) keeps its own."""
+        if same_round and self._score is not None:
+            self._score = (gen, self._score[1])
+        else:
+            self._score = (gen, scorecount.ScoreCounter()) if gen is not None else None
+            self._score_stats = {"looks": 0, "shown": 0, "covered": 0, "ms": 0.0}
+
+    def _score_look(self, grab, fw, fh, origin, from_screen, t, rec):
+        """One look at the score corner: read its rows, count them; "score" to the app when an event ended."""
+        if self._score is None:
+            return
+        gen, counter = self._score
+        st = self._score_stats
+        t0 = time.perf_counter()
+        try:
+            box = score_box(fw, fh)
+            img = grab(box)
+            st["looks"] += 1
+            if img is None:                       # covered: no look – nothing ends because of it
+                st["covered"] += 1
+                return
+            self._mask_screen(img, from_screen(), origin[0] + box[0], origin[1] + box[1])
+            rows = []
+            if score_shown(img):
+                st["shown"] += 1
+                with self.times.measure("score"):
+                    rows = scoreevents.read_rows(rec, img)
+            if counter.feed(t, rows):
+                self._score_post(gen, counter, final=False)
+        except Exception:
+            self._report("Score", traceback.format_exc())
+        finally:
+            st["ms"] += (time.perf_counter() - t0) * 1000
+            self._score_describe()
+
+    def _score_final(self, gen):
+        """The round ended: every event still on screen counts, the totals go to the app (before "match_end")."""
+        if self._score is None:
+            return
+        counter = self._score[1]
+        counter.flush()
+        self._score_post(gen, counter, final=True)
+        self._score_describe()
+        self._score = None
+        self.score_info = f"{time.strftime('%H:%M:%S')} Runde vorbei: {self.score_info}"   # kept for the diagnosis
+
+    def _score_post(self, gen, counter, final: bool):
+        role = counter.role()
+        cats = scoreevents.KILLER if role == "killer" else scoreevents.SURVIVOR if role else ()
+        totals = counter.totals()
+        self.post("score", gen=gen, final=final, role=role, events=len(counter.events),
+                  totals={c: totals[c] for c in cats}, full=sorted(counter.full))
+
+    def _score_describe(self):
+        st = self._score_stats
+        looks = st["looks"]
+        if self._score is None:
+            return
+        counter = self._score[1]
+        tot = counter.totals()
+        role = counter.role()
+        cats = scoreevents.KILLER if role == "killer" else scoreevents.SURVIVOR if role else ()
+        parts = ", ".join(f"{c} {tot[c]}" for c in cats)
+        self.score_info = (f"{looks} Blicke ({st['shown']} mit Events, {st['covered']} verdeckt), "
+                           f"Ø {st['ms'] / max(1, looks):.0f} ms · {len(counter.events)} Events, "
+                           f"{counter.dropped} verworfen" + (f" · {parts}" if parts else ""))
 
     def _save_score_look(self, frame, tick):
         """1.57.52: the top right of the 16:9 picture at full size (own windows already blacked out) to debug/score

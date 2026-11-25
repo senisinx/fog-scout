@@ -507,6 +507,10 @@ T = {
         '高级（故障排除）',
     'Technik':
         '技术',
+    'Punkte der Score Events oben rechts zählen': '统计右上角得分事件的分数',
+    'im Match bis zu 4 Blicke pro Sekunde auf die Ecke; die Punkte je Kategorie kommen zur Runde': '比赛中每秒最多查看该角落 4 次；各类别的分数随对局保存',
+    'Liest im Match die Score Events oben rechts (Name, Punkte, Kategorie am Symbol, Füllstand des Rings) und zählt jede einmal – die Punkte je Kategorie stehen danach bei der Runde.': '比赛中读取右上角的得分事件（名称、分数、按图标判断的类别、圆环的填充程度），每个只计一次 – 各类别的分数随后随对局保存。',
+    'Punkte dieser Runde (gezählt, oben rechts): {points}': '本局分数（右上角统计）：{points}',
     'Auch erkennen, wenn andere Fenster über DBD liegen':
         '其他窗口遮挡 DBD 时也进行识别',
     'Fensteraufnahme wie bei OBS, nur solange DBD im Hintergrund ist':

@@ -507,6 +507,10 @@ T = {
         '詳細（トラブルシューティング）',
     'Technik':
         '技術',
+    'Punkte der Score Events oben rechts zählen': '右上のスコアイベントのポイントを数える',
+    'im Match bis zu 4 Blicke pro Sekunde auf die Ecke; die Punkte je Kategorie kommen zur Runde': '試合中は角を毎秒最大4回確認し、カテゴリ別のポイントを試合に記録します',
+    'Liest im Match die Score Events oben rechts (Name, Punkte, Kategorie am Symbol, Füllstand des Rings) und zählt jede einmal – die Punkte je Kategorie stehen danach bei der Runde.': '試合中に右上のスコアイベント（名前、ポイント、アイコンによるカテゴリ、リングの埋まり具合）を読み取り、それぞれ一度だけ数えます – カテゴリ別のポイントは試合に記録されます。',
+    'Punkte dieser Runde (gezählt, oben rechts): {points}': 'この試合のポイント（右上から集計）: {points}',
     'Auch erkennen, wenn andere Fenster über DBD liegen':
         '他のウィンドウが DBD を覆っていても検出する',
     'Fensteraufnahme wie bei OBS, nur solange DBD im Hintergrund ist':

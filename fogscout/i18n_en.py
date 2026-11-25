@@ -379,6 +379,14 @@ EN = {
     "Erweitert (Fehlersuche)": "Advanced (troubleshooting)",
     "Technik": "Technical",
     "Auch erkennen, wenn andere Fenster über DBD liegen": "Also detect when other windows cover DBD",
+    "Punkte der Score Events oben rechts zählen": "Count the points of the score events top right",
+    "im Match bis zu 4 Blicke pro Sekunde auf die Ecke; die Punkte je Kategorie kommen zur Runde":
+        "in a match up to 4 looks a second at the corner; the points per category are kept with the round",
+    "Liest im Match die Score Events oben rechts (Name, Punkte, Kategorie am Symbol, Füllstand des Rings) und "
+    "zählt jede einmal – die Punkte je Kategorie stehen danach bei der Runde.":
+        "Reads the score events top right in a match (name, points, category by its icon, how full its ring is) "
+        "and counts each once – the points per category are kept with the round afterwards.",
+    "Punkte dieser Runde (gezählt, oben rechts): {points}": "Points of this round (counted, top right): {points}",
     "Fensteraufnahme wie bei OBS, nur solange DBD im Hintergrund ist":
         "window capture like OBS, only while DBD is in the background",
     "Scans/Sek.": "Scans/sec.",

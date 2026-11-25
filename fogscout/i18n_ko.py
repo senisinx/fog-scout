@@ -507,6 +507,10 @@ T = {
         '고급(문제 해결)',
     'Technik':
         '기술 정보',
+    'Punkte der Score Events oben rechts zählen': '오른쪽 위 점수 이벤트의 점수 세기',
+    'im Match bis zu 4 Blicke pro Sekunde auf die Ecke; die Punkte je Kategorie kommen zur Runde': '매치 중 모서리를 초당 최대 4번 확인하며, 카테고리별 점수는 라운드에 저장됩니다',
+    'Liest im Match die Score Events oben rechts (Name, Punkte, Kategorie am Symbol, Füllstand des Rings) und zählt jede einmal – die Punkte je Kategorie stehen danach bei der Runde.': '매치 중 오른쪽 위의 점수 이벤트(이름, 점수, 아이콘으로 본 카테고리, 링이 채워진 정도)를 읽고 각각 한 번씩 셉니다 – 카테고리별 점수는 이후 라운드에 저장됩니다.',
+    'Punkte dieser Runde (gezählt, oben rechts): {points}': '이번 라운드 점수(오른쪽 위에서 집계): {points}',
     'Auch erkennen, wenn andere Fenster über DBD liegen':
         '다른 창이 DBD를 가려도 인식',
     'Fensteraufnahme wie bei OBS, nur solange DBD im Hintergrund ist':

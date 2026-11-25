@@ -219,6 +219,8 @@ def collect(app) -> str:
         tally = getattr(w, "loadout_menu_tally", None) or {}     # 1.57.16: a later look hid why the others failed
         lines.append("  Menü-Blicke dieser Runde: " + (" · ".join(f"{k} {v}×" for k, v in tally.items()) or "–"))
         lines.append(f"  Zustand: {getattr(w, 'loadout_state', '–')}")
+        lines.append(f"Score-Tracker (oben rechts): an={bool(getattr(app, 'settings', {}).get('score_track', True))} · "
+                     f"{getattr(w, 'score_info', '–')}")                # 1.57.56: looks, time per look, counted
         lines.append(f"Runde: {getattr(app, '_hist', None)} · Lobby der App: "
                      f"{ {k: v for k, v in getattr(app, '_queue', {}).items() if k != 'since'} }")
         try:                                                  # 1.38.29: the corpus of decided banners

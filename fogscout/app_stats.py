@@ -2187,6 +2187,20 @@ class StatsTab:
         if isinstance(latency, (int, float)) and not isinstance(latency, bool) and latency >= 0:
             rec["latency"] = round(float(latency), 2)
 
+    def _score_event(self, d):
+        """1.57.56: the worker's points per category of the round on display (``final`` at its end, just before
+        "match_end") – kept for the round and said once in the log."""
+        totals = {c: int(v) for c, v in (d.get("totals") or {}).items()
+                  if isinstance(v, (int, float)) and not isinstance(v, bool)}
+        self._score_now = totals
+        if not d.get("final") or not totals:
+            return
+        rec = self._hist
+        if rec is not None:
+            rec["score"] = totals
+        self._log(_("Punkte dieser Runde (gezählt, oben rechts): {points}",
+                    points=" · ".join(f"{c.capitalize()} {v}" for c, v in totals.items())), "Erkennung")
+
     def _hist_follow(self, map_id, label):
         """1.8.39 (QA audit): the map on display changed while a round is open – a later banner frame read the other
         layout (Coal Tower I → II), or the user corrected it (layout button, a map picked). Before, the round and

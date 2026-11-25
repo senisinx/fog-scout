@@ -67,6 +67,7 @@ class Round:
     latency: float | None = None    # seconds from the first sight of the banner to the decision
     load: float | None = None       # seconds from the lobby found to the end of the loading screen (None: not seen)
     est: float | None = None        # DBD's queue estimate ("EST.") when the search began, seconds (None: not read)
+    score: dict | None = None       # 1.57.56: points per category counted from the score events ({category: points})
 
 
 _FIELDS = tuple(f.name for f in fields(Round))
@@ -332,7 +333,20 @@ def _round_line(line: str):
                  custom=bool(d.get("custom")), farming=bool(d.get("farming")),
                  ping=_num(d.get("ping"), 0.0, MAX_PING),
                  killer=str(d.get("killer") or ""), sys=_sys(d.get("sys")), **_stalls(d),
-                 balance=_balance(d.get("balance")), **_extra(d))
+                 balance=_balance(d.get("balance")), score=_score(d.get("score")), **_extra(d))
+
+
+SCORE_MAX = 100_000           # 1.57.56: a category's points in a round – the cap is 10 000; anything above is broken
+
+
+def _score(v) -> dict | None:
+    """1.57.56: the stored points per category – only known categories with whole numbers 0..SCORE_MAX."""
+    if not isinstance(v, dict):
+        return None
+    from .scoreevents import CATEGORIES
+    out = {k: n for k, n in v.items() if k in CATEGORIES and isinstance(n, int) and not isinstance(n, bool)
+           and 0 <= n <= SCORE_MAX}
+    return out or None
 
 
 def _balance(v) -> int | None:

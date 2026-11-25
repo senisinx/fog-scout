@@ -639,8 +639,12 @@ def test_one_grab_per_match_tick_banner_and_round_end_look_share_it(tmp_path, mo
     wholes = [t for t, size in grabs if size == W * H]
     assert len(wholes) >= 3                                        # ticks are ~1 s apart, grabs of one tick ms
     later = [g for g in grabs if g[0] > wholes[0] + 0.3]          # (the tick the map came: no look prepared)
-    strips = [t for t, size in later if size != W * H]
+    # 1.57.56: between the ticks the live score tracker grabs only its corner (worker.score_box), ~4 a second
+    sx, sy, sw, sh = worker.score_box(W, H)
+    corners = [t for t, size in later if size == sw * sh]
+    strips = [t for t, size in later if size not in (W * H, sw * sh)]
     assert not [t for t in strips if any(abs(t - u) < 0.3 for u in wholes)], grabs[:8]
+    assert len(corners) >= 2 * (len(wholes) - 1)                  # several corner looks per tick, never the whole
 
 
 def test_an_unchanged_lobby_corner_is_not_read_again(reader):

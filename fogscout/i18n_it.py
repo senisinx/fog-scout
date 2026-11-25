@@ -507,6 +507,10 @@ T = {
         'Avanzate (risoluzione problemi)',
     'Technik':
         'Tecnico',
+    'Punkte der Score Events oben rechts zählen': 'Conta i punti degli eventi di punteggio in alto a destra',
+    'im Match bis zu 4 Blicke pro Sekunde auf die Ecke; die Punkte je Kategorie kommen zur Runde': "in partita fino a 4 sguardi al secondo sull'angolo; i punti per categoria vengono salvati con la partita",
+    'Liest im Match die Score Events oben rechts (Name, Punkte, Kategorie am Symbol, Füllstand des Rings) und zählt jede einmal – die Punkte je Kategorie stehen danach bei der Runde.': "In partita legge gli eventi di punteggio in alto a destra (nome, punti, categoria dall'icona, riempimento dell'anello) e conta ciascuno una volta – i punti per categoria restano poi con la partita.",
+    'Punkte dieser Runde (gezählt, oben rechts): {points}': 'Punti di questa partita (contati, in alto a destra): {points}',
     'Auch erkennen, wenn andere Fenster über DBD liegen':
         'Rileva anche quando altre finestre coprono DBD',
     'Fensteraufnahme wie bei OBS, nur solange DBD im Hintergrund ist':
