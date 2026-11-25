@@ -33,9 +33,11 @@ MIN_GLYPHS = 2             # "+7" has two
 POINTS_RE = re.compile(r"\+(\d{1,5})")
 MAX_TEXT = "MAX"
 NAME_MIN_LETTERS = 2
-# italic: the points end about one name height left of the name's end (measured 1.1–1.2 h); the ring's red arc
-# starts right of that
-RIGHT_GAP = 0.6
+# 1.57.65: the points end at the name's end (right-aligned; measured on straight live looks: their last digit up to
+# 0.3 h left of it) – a glyph may reach this far past it; the ring's red arc begins about 0.45 h right of the name
+# (1.57.53–64 said "0.6 h left of it": measured on sheared pictures, see tools/score_frames.crop_box – live the last
+# digit was cut off, "+627" read as 62)
+RIGHT_GAP = -0.2
 LEFT_REACH = 2.5           # short names ("HIT") are narrower than their points: look left of the name too
 
 # 1.57.54: the four categories with a cap of each role, in the order of the template picture
@@ -43,26 +45,28 @@ KILLER = ("brutality", "deviousness", "hunter", "sacrifice")
 SURVIVOR = ("objective", "survival", "altruism", "boldness")
 CATEGORIES = KILLER + SURVIVOR
 ICONS_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "score_icons.png")
-# the ring's middle from the name's box (x1, y0, height h; measured on own recordings) and the cut around it
-ICON_DX, ICON_DY = 1.5, 0.8
+# the ring's middle from the name's box (x1, y0, height h) and the cut around it – 1.57.65: measured again on 114 straight
+# live rows (median; quartiles ±0.05 h); 1.5/0.8 came from the sheared corpus
+ICON_DX, ICON_DY = 1.9, 1.15
 ICON_HALF_W, ICON_HALF_H = 1.7, 1.3
 ICON_CUT = (68, 52)        # the cut, scaled to this (w, h)
 ICON_FEATURE = (34, 26)    # the compared picture (w, h)
-ICON_SHIFT = 3             # tried shifts (px of the feature) – the icon slides in, the ring is tilted
+ICON_SHIFT = 3             # tried shifts (px of the feature) – the icon slides in
 ICON_MIN = 0.4             # correlation with the best template …
 ICON_MARGIN = 0.1          # … and its lead over the second (held-out rounds: 97 % kept, 99.9 % of them right)
 
 # 1.57.55: the ring around the icon fills red with the category's points (the idea of a friend of the user): red from
-# RING_START on the ellipse, growing with the parametric angle, full = the category's cap. Measured on own recordings:
-# the ellipse in name heights (axes, OpenCV box angle) and its middle from (x1, y0); 383 of 425 arcs began at 240–250°
-RING_AXES = (1.62 * 1.04, 4.15 * 1.04)
-RING_ANGLE = 57.0
-RING_MIDDLE = (1.09, 1.10)
+# RING_START, growing clockwise, full = the category's cap. 1.57.65: a circle (diameter in name heights; radius 1.34 h
+# measured on 114 straight live rows), its middle as the icon's, red from 12 o'clock (270° – y grows downwards).
+# 1.57.55–64 fitted a tilted ellipse (axes 1.7/4.3 h, 57°, start 245°): the shape of a ring in the sheared corpus.
+RING_AXES = (2 * 1.34, 2 * 1.34)
+RING_ANGLE = 0.0
+RING_MIDDLE = (ICON_DX, ICON_DY)
 RING_SEARCH = 0.35         # the middle is searched this far (name heights) – rows slide in
 RING_SCALES = (0.96, 1.0, 1.04)
-RING_START = 245
+RING_START = 270
 RING_BRIDGE = 12           # gaps between the ring's quarters (and blur) up to this many degrees are bridged
-RING_MIN_FIT = 0.6         # share of the ellipse on grey or red pixels for a ring that was found
+RING_MIN_FIT = 0.6         # share of the circle on grey or red pixels for a ring that was found
 
 
 @dataclass

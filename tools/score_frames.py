@@ -40,7 +40,11 @@ def videos(paths):
 
 
 def crop_box(width: int, height: int):
-    """(w, h, x, y) of ``worker.SCORE_BOX`` in a picture of this size – the same cut as ``worker.score_part``."""
+    """(w, h, x, y) of ``worker.SCORE_BOX`` in a picture of this size – the same cut as ``worker.score_part``.
+
+    1.57.65: ffmpeg crops after ``format=bgr24`` – cropped in the video's yuv420p it rounded an odd width down
+    (973 → 972) while the frames were read 973 wide: every row shifted one pixel more, the whole corpus came out
+    sheared (rings as tilted ellipses, the points far left of the name), and the tracker, tuned on it, failed live."""
     vw = min(width, height * 16 // 9)
     vx = (width - vw) // 2
     x0, y0, x1, y1 = worker.SCORE_BOX
@@ -62,7 +66,7 @@ def scan(path: str, out: str, fps: float, ffmpeg: str) -> tuple[int, int]:
     need = w * h * 3
     folder = os.path.join(out, safe_name(path))
     proc = subprocess.Popen([ffmpeg, "-hide_banner", "-loglevel", "error", "-i", path, "-an",
-                             "-vf", f"fps={fps},crop={w}:{h}:{x}:{y}", "-f", "rawvideo", "-pix_fmt", "bgr24", "-"],
+                             "-vf", f"fps={fps},format=bgr24,crop={w}:{h}:{x}:{y}", "-f", "rawvideo", "-pix_fmt", "bgr24", "-"],
                             stdin=subprocess.DEVNULL, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL,
                             creationflags=clipedit._flags())
     looks = saved = 0

@@ -37,7 +37,7 @@ def count(path: str, fps: float, ffmpeg: str, rec) -> scorecount.ScoreCounter | 
     if need <= 0:
         return None
     proc = subprocess.Popen([ffmpeg, "-hide_banner", "-loglevel", "error", "-i", path, "-an",
-                             "-vf", f"fps={fps},crop={w}:{h}:{x}:{y}", "-f", "rawvideo", "-pix_fmt", "bgr24", "-"],
+                             "-vf", f"fps={fps},format=bgr24,crop={w}:{h}:{x}:{y}", "-f", "rawvideo", "-pix_fmt", "bgr24", "-"],
                             stdin=subprocess.DEVNULL, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL,
                             creationflags=clipedit._flags())
     counter = scorecount.ScoreCounter()
