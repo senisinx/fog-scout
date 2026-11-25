@@ -257,3 +257,23 @@ def test_the_worker_lists_every_own_window_clipped_to_the_picture():
                               guide_rects=[], fade_rects=[(-50, -50, 100, 100)])
     boxes = worker.DetectionWorker._own_boxes(w, (1440, 3440, 3), 0, 0)
     assert boxes == [(100, 200, 400, 600), (3300, 100, 3440, 400), (0, 0, 50, 50)]
+
+
+def test_one_ring_misread_as_full_does_not_fill_the_category():
+    """1.57.66 (live, Rotten Fields: Objective and Boldness stood at 10 000, officially 8 333 and 7 300): one ring
+    read as full on a reddish background set the total, and every later, lower ring was then "not believed". A jump
+    the event's points do not explain counts only when the next ring of the category agrees."""
+    from fogscout.scorecount import ScoreCounter, ScoreEvent
+    c = ScoreCounter()
+    c.events = [ScoreEvent(10, "CHASED", 400, "boldness", ring=0.30), ScoreEvent(12, "ESCAPED", 375, "boldness", ring=1.0),
+                ScoreEvent(20, "CHASED", 400, "boldness", ring=0.39), ScoreEvent(22, "ESCAPED", 375, "boldness", ring=0.43)]
+    assert c.totals()["boldness"] == 4300                     # the false full ring gave only its points
+    c.events = [ScoreEvent(10, "REPAIRS", 100, "objective", ring=0.10), ScoreEvent(30, "REPAIRS", 120, "objective", ring=0.50),
+                ScoreEvent(32, "GREATSKILLCHECK", 300, "objective", ring=0.53)]
+    assert c.totals()["objective"] == 5300                    # a real jump (events missed): the next ring confirms it
+    c.events = c.events[:2]
+    assert c.totals()["objective"] == 5000                    # the newest ring, nothing after it yet: believed …
+    c.events = [ScoreEvent(10, "REPAIRS", 100, "objective", ring=0.10), ScoreEvent(30, "REPAIRS", 120, "objective", ring=1.0)]
+    assert c.totals()["objective"] == 1120                    # … unless it says "full" without MAX
+    c.events = [ScoreEvent(10, "HOOKED", 500, "sacrifice", ring=0.30), ScoreEvent(40, "SACRIFICE", 0, "sacrifice", True, 1.0)]
+    assert c.totals()["sacrifice"] == 10000                   # "MAX" beside the full ring: believed at once

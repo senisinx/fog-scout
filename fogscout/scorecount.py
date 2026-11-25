@@ -36,6 +36,10 @@ NAME_ALIKE = 0.6           # difflib ratio for names that are not one part of th
 RING_LAST = 0.5            # an event's ring: the median of this last part of its readings (it may still fill)
 RING_DROP_ABS = 500        # a ring this many points …
 RING_DROP_REL = 0.1        # … plus this share below the running total is not believed
+RING_FULL = 0.97           # a ring from here on says "full"
+RING_JUMP_ABS = 1500       # 1.57.66: a ring this far above the total plus the event's own points is believed only when
+                           # the category's next ring agrees (live: one ring misread as full on reddish wood set a
+                           # category to 10 000 for the rest of the round)
 
 
 @dataclass
@@ -157,9 +161,18 @@ class ScoreCounter:
         out = {}
         for c in CATEGORIES:
             total = 0.0
-            for e in sorted((e for e in self.events if e.category == c), key=lambda e: e.t):
+            mine = sorted((e for e in self.events if e.category == c), key=lambda e: e.t)
+            for i, e in enumerate(mine):
                 ring = None if e.ring is None else e.ring * self.cap
-                if ring is not None and ring >= total - (RING_DROP_ABS + RING_DROP_REL * total):
+                ok = ring is not None and ring >= total - (RING_DROP_ABS + RING_DROP_REL * total)
+                if ok and ring > total + e.points + RING_JUMP_ABS and not e.capped:
+                    # a jump the event's points do not explain: only when a later ring of the category is up there
+                    # too; the newest ring (none after it yet) is believed unless it says "full" – the misreadings
+                    # seen were red all round
+                    later = [n.ring * self.cap for n in mine[i + 1:] if n.ring is not None]
+                    ok = (any(v >= ring - (RING_DROP_ABS + RING_DROP_REL * ring) for v in later) if later
+                          else e.ring < RING_FULL)
+                if ok:
                     total = ring
                 else:
                     total += e.points
