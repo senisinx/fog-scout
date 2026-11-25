@@ -13,6 +13,7 @@ import traceback
 from dataclasses import dataclass
 
 import cv2
+import numpy as np
 
 from . import __version__, bloodpoints, corpus, fsops, gamelang, loadouts
 from .capture import (IS_WIN, ImageSource, ScreenGrabber, cursor_state, find_game_window, foreground_root,
@@ -77,6 +78,14 @@ ROLE_RETRY_S = (1.5, 3.0, 5.0)
 SIGHTINGS_KEPT = 20               # mid-match sightings kept in debug/midmatch (picture + text each), newest first
 # CR-001: the names our debug pictures are saved under (stamp, optional tag) – only these are ever pruned
 DEBUG_NAME = re.compile(r"^\d{8}-\d{6}(?:-[\w.-]+)?\.(?:jpg|webp|png|txt)$", re.ASCII)
+# 1.57.52 (user: score event live tracker, step 1 – full-size pictures to tune on): the score events DBD shows top right
+# in a match (category word in white, "+points"/"MAX" in red below, category icon in a ring). The user's screenshots
+# (16:9 viewport fractions): words x 0.83–0.96, three rows y 0.10–0.29 – the box leaves room for longer words and more rows
+SCORE_BOX = (0.62, 0.06, 1.0, 0.50)   # x0, y0 (fraction of the height), x1, y1 – inside the 16:9 viewport
+SCORE_KEPT = 120                  # newest pictures kept in debug/score
+SCORE_SAVE_GAP_S = 1.0            # at most one a second
+SCORE_WHITE = 0.0004              # share of near-white pixels (the words) …
+SCORE_RED = 0.00004               # … and of red ones (the points) for "something is shown" (screenshots: ≥ 0.0011 / 0.00012)
 GLOBE_KEPT = 10                   # 1.5.4: unreadable cross-play globe crops kept in debug/lobby
 GLOBE_SAVE_EVERY = 120.0          # s between two saved crops (one per lobby is enough)
 MENU_RATE = 1.0                   # 1.6.4: banner scans per second in menus, store, bloodweb … (no banner there)
@@ -149,6 +158,27 @@ def scan_rate(base: float, *, in_match: bool, session: bool, since_button: float
     if not live or since_loading <= FAST_AFTER_LOADING or since_button <= FAST_AFTER_LOBBY:
         return base
     return min(base, MENU_RATE)
+
+
+def score_part(frame):
+    """1.57.52: SCORE_BOX cut from ``frame`` (inside the 16:9 viewport, never the black bars); None when empty."""
+    if frame is None or frame.ndim != 3 or not frame.size:
+        return None
+    h, w = frame.shape[:2]
+    vw = min(w, h * 16 // 9)
+    vx = (w - vw) // 2
+    x0, y0, x1, y1 = SCORE_BOX
+    part = frame[int(y0 * h):int(y1 * h), vx + int(x0 * vw):vx + int(x1 * vw), :3]
+    return part if part.size else None
+
+
+def score_shown(part) -> bool:
+    """1.57.52: does ``part`` (BGR) seem to show score events – enough near-white (words) and red pixels (points)."""
+    b, g, r = (part[:, :, i].astype(np.int16) for i in range(3))
+    white = int(np.count_nonzero((b > 200) & (g > 200) & (r > 200)))
+    red = int(np.count_nonzero((r > 170) & (g < 70) & (b < 70)))
+    n = part.shape[0] * part.shape[1]
+    return white >= SCORE_WHITE * n and red >= SCORE_RED * n
 
 
 def _debug_dir(data_dir, *sub):
@@ -237,6 +267,7 @@ class DetectionWorker(threading.Thread):
         self._fail_text, self._fail_logged = "", 0.0     # 1.8.38: last tick error logged, when
         self._broken = None                              # 1.38.9: why the current run gave up (None: it did not)
         self._last_frame_save = 0.0
+        self._last_score_save = 0.0
         self._last_sighting_save = 0.0
         self._banner_due = None          # when to hint "scan by hand" if no banner was decided since the match began
 
@@ -911,6 +942,8 @@ class DetectionWorker(threading.Thread):
                                "menue" if events else "hinweis" if interesting else None)
                         if tag or tick - self._last_frame_save > 5:
                             self._save_frame(full, tag or "runde")
+                        if not events and tick - self._last_score_save >= SCORE_SAVE_GAP_S:
+                            self._save_score_look(full, tick)
                     for ev in events:
                         if ev[0] == "menu":
                             self.post("menu", on=ev[1], gen=tracker.generation)
@@ -1220,6 +1253,24 @@ class DetectionWorker(threading.Thread):
             cv2.imencode(".jpg", crop, [cv2.IMWRITE_JPEG_QUALITY, 90])[1].tofile(
                 os.path.join(d, time.strftime("%Y%m%d-%H%M%S") + ".jpg"))
             _prune_debug(d, [f for f in os.listdir(d) if f.endswith(".jpg")], RESULT_MISSES_KEPT)
+        except Exception:
+            pass
+
+    def _save_score_look(self, frame, tick):
+        """1.57.52: the top right of the 16:9 picture at full size (own windows already blacked out) to debug/score
+        when it seems to show score events – white words and red points (``score_shown``); the newest SCORE_KEPT.
+        Only with "Debug-Bilder speichern"; the score event tracker is tuned on them."""
+        try:
+            part = score_part(frame)
+            if part is None or not score_shown(part):
+                return
+            self._last_score_save = tick
+            d = _debug_dir(self.data_dir, "score")
+            if d is None:
+                return
+            stamp = time.strftime("%Y%m%d-%H%M%S") + f"-{int(time.time() * 1000) % 1000:03d}"
+            write_lossless(os.path.join(d, f"{stamp}-score.webp"), part)
+            _prune_debug(d, [f for f in os.listdir(d) if f.endswith("-score.webp")], SCORE_KEPT)
         except Exception:
             pass
 
