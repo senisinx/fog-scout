@@ -66,12 +66,33 @@ class HomeFilter(logging.Filter):
         return True
 
 
+LOG_KEPT = 3                                   # 1.57.60: earlier sessions' logs kept as fogscout.log.1 … .3
+
+
+def _keep_old_logs(data):
+    """1.57.60 (user's diagnosis after a restart: the log held 30 s of the new session, nothing of the round before):
+    the last sessions' logs move on – fogscout.log → .1 → .2 → .3 (the oldest goes) – before the new one opens.
+    Only renames (no link is followed: one of the names a link, nothing moves – the program runs elevated)."""
+    from .fsops import is_link
+    base = os.path.join(data, "fogscout.log")
+    names = [base] + [f"{base}.{i}" for i in range(1, LOG_KEPT + 1)]
+    try:
+        if any(os.path.lexists(n) and is_link(n) for n in names):
+            return
+        for i in range(LOG_KEPT, 0, -1):
+            if os.path.exists(names[i - 1]):
+                os.replace(names[i - 1], names[i])
+    except OSError:
+        pass                                   # in use or read-only: the new log simply starts over, as before
+
+
 def _setup_logging(data=None):
     data = data or _data()
     moved = []
     if data == ROOT:                           # only a source checkout ever had the old name's files
         from .rename import migrate
         moved = migrate(ROOT)                  # 1.9: crash files/log/icon of the old name, before the log opens
+    _keep_old_logs(data)
     logging.basicConfig(
         filename=os.path.join(data, "fogscout.log"), filemode="w", level=logging.INFO,
         format="%(asctime)s %(levelname)s %(message)s", encoding="utf-8")

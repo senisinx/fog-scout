@@ -9,6 +9,7 @@ settings.json
 settings.json.tmp
 settings.json.broken
 fogscout.log
+fogscout.log.*
 dbdmapscout.log
 diagnose.txt
 fogscout-crash.txt

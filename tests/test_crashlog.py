@@ -130,3 +130,33 @@ def test_a_closed_dialog_is_deleted(monkeypatch):
     qt_window.MainWindow.close_dialog(owner, "assign")
     QCoreApplication.sendPostedEvents(None, QEvent.DeferredDelete)
     assert owner.dialogs == {} and dlg.closing_from_app and not shiboken6.isValid(dlg)
+
+
+def test_the_logs_of_the_last_sessions_are_kept(tmp_path):
+    """1.57.60: the log was opened with "w" – after a restart nothing of the session before was left. Now the last
+    LOG_KEPT logs move on (.1 newest) and the oldest goes; only renames."""
+    from fogscout import __main__ as main
+    log = tmp_path / "fogscout.log"
+    for i in range(5):
+        log.write_text(f"Sitzung {i}", encoding="utf-8")
+        main._keep_old_logs(str(tmp_path))
+    assert not log.exists()
+    kept = {n: (tmp_path / n).read_text(encoding="utf-8") for n in ("fogscout.log.1", "fogscout.log.2", "fogscout.log.3")}
+    assert kept == {"fogscout.log.1": "Sitzung 4", "fogscout.log.2": "Sitzung 3", "fogscout.log.3": "Sitzung 2"}
+    assert not (tmp_path / "fogscout.log.4").exists()
+    main._keep_old_logs(str(tmp_path / "missing"))                  # nothing there: nothing happens, no error
+
+
+def test_a_linked_log_name_moves_nothing(tmp_path):
+    import os
+    import pytest
+    from fogscout import __main__ as main
+    (tmp_path / "fogscout.log").write_text("jetzt", encoding="utf-8")
+    target = tmp_path / "elsewhere.txt"
+    target.write_text("fremd", encoding="utf-8")
+    try:
+        os.symlink(str(target), str(tmp_path / "fogscout.log.2"))
+    except (OSError, NotImplementedError):
+        pytest.skip("no symlinks here")
+    main._keep_old_logs(str(tmp_path))
+    assert (tmp_path / "fogscout.log").read_text(encoding="utf-8") == "jetzt" and target.read_text(encoding="utf-8") == "fremd"
