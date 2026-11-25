@@ -58,6 +58,7 @@ DEFAULTS = {
         "show_notes": True,             # 1.8.54: own note on the map below the timer (mapnotes)
         "show_last_round": False,       # "Zuletzt hier": date (+ official result) of the own last round on the map
         "show_score": True,             # 1.57.56: the points counted from the score events (scorecount.line)
+        "score_style": "rings",         # 1.57.64: how they look – rings / bars / line (scoreview.STYLES)
         "show_map": True,               # off: overlay shows only timer, server and ping
         "show_info": True,              # 1.9.x: the element "Infos" (timer, server, record, last round, note) on/off
         "show_media": True,             # "Läuft gerade": music of the Windows media controls (1.64)

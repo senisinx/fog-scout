@@ -13,7 +13,7 @@ import traceback
 from types import SimpleNamespace
 
 from . import builds, dashboard, history, launch, mapnotes, official, overview, recindex, records, regions, sysinfo
-from . import scorecount
+from . import scoreview
 from . import uimodel as ui
 from .capture import foreground_root, is_game_window
 from .catalog import shown
@@ -2198,7 +2198,9 @@ class StatsTab:
             return
         on = self.settings["overlay"].get("show_score", True) and self.settings.get("score_track", True)
         totals = getattr(self, "_score_now", None) or {}
-        overlay.set_score(scorecount.line(totals, getattr(self, "_score_full", ())) if on and totals else ())
+        overlay.set_score(scoreview.for_overlay(totals, getattr(self, "_score_full", ()),
+                                                self.settings["overlay"].get("score_style", scoreview.DEFAULT_STYLE))
+                          if on and totals else ())
 
     def _score_event(self, d):
         """1.57.56: the worker's points per category of the round on display (``final`` at its end, just before

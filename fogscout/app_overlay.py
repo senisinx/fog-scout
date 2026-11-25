@@ -7,6 +7,7 @@ from . import layout
 from . import uimodel as ui
 from .i18n import N_, _
 from .skin import STYLE_LABELS
+from .scoreview import DEFAULT_STYLE as SCORE_DEFAULT, STYLE_LABELS as SCORE_LOOKS
 from .appconst import (INPUT_LAYOUTS, INPUT_SPOTS, LOADOUT_LOOKS, LOADOUT_SPOTS, LOADOUT_STYLES, MEDIA_NEXT_N,
                        MEDIA_NEXT_SPOTS)
 from .appconst import (BAR_ALIGNS, HUD_ROW_LABELS, HUD_SIDES, MAP_SCALE, MEDIA_SPOTS, MEDIA_STYLES,
@@ -248,6 +249,16 @@ class OverlayTab:
                                                                "notes")
                                                    else look, text=_(text), variable=var,
                                                    command=self._overlay_flags_changed)).pack(anchor="w", pady=1)
+        # 1.57.64 (user: "den Kreis mit den Symbolen wie im Spiel"): how the counted points look
+        sr2 = ui.Frame(info)
+        sr2.pack(fill="x", pady=(2, 0))
+        self._reg("ov.score_style.label", ui.Label(sr2, text=_("Punkte-Ansicht"), width=12)).pack(side="left")
+        looks = dict(SCORE_LOOKS)
+        self.score_style_var = ui.StringVar(value=_(looks.get(o.get("score_style", SCORE_DEFAULT), looks[SCORE_DEFAULT])))
+        sscb = self._reg("ov.score_style", ui.Combobox(sr2, textvariable=self.score_style_var, state="readonly",
+                                                       width=24, values=[_(t) for _k, t in SCORE_LOOKS]))
+        sscb.pack(side="left", padx=6)
+        sscb.bind("<<ComboboxSelected>>", lambda e: self._score_style_changed())
         self.fade_var = ui.BooleanVar(value=o.get("fade", True))
         self._reg("ov.fade", ui.Checkbutton(look, text=_("Weich ein- und ausblenden"),
                                             variable=self.fade_var, command=self._look_flags_changed)
@@ -707,6 +718,17 @@ class OverlayTab:
         if self.current:
             self.overlay.show_caption = o["show_caption"]
             self._reload_picture()
+        self._save_soon()
+        self._tick_overlay(reschedule=False)
+
+    def _score_style_changed(self):
+        """1.57.64: rings / bars / line for the counted points (scoreview)."""
+        key = dict((_(label), k) for k, label in SCORE_LOOKS).get(self.score_style_var.get(), SCORE_DEFAULT)
+        if self.settings["overlay"].get("score_style") == key:
+            return
+        self._layout_mark()
+        self.settings["overlay"]["score_style"] = key
+        self._update_score()
         self._save_soon()
         self._tick_overlay(reschedule=False)
 
