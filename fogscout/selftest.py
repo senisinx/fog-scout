@@ -161,6 +161,40 @@ def _launch() -> str:
     return "Bundle bei Fog Scout" if before else "ohne eigene DLL-Suche"
 
 
+PROBE_DLL = "fogscout-pathprobe.dll"
+
+
+def _dll_search() -> str:
+    """1.57.63 (SEC-62-2): a DLL that only a PATH folder holds is not loaded by bare name – checked with a copy of
+    Windows' version.dll in a fresh folder put in front of PATH (the packaged program; from source Windows' own
+    search stays)."""
+    from . import launch
+    if sys.platform != "win32" or not launch.bundle_dir():
+        return "aus dem Quellcode"
+    import ctypes
+    import shutil
+    import tempfile
+    from ctypes import wintypes
+    k32 = ctypes.WinDLL("kernel32", use_last_error=True)
+    k32.LoadLibraryW.argtypes = [wintypes.LPCWSTR]
+    k32.LoadLibraryW.restype = ctypes.c_void_p
+    k32.FreeLibrary.argtypes = [ctypes.c_void_p]
+    system = os.path.join(os.environ.get("SystemRoot", r"C:\Windows"), "System32", "version.dll")
+    folder = tempfile.mkdtemp(prefix="fogscout-probe-")
+    old = os.environ.get("PATH", "")
+    try:
+        shutil.copyfile(system, os.path.join(folder, PROBE_DLL))
+        os.environ["PATH"] = folder + os.pathsep + old
+        handle = k32.LoadLibraryW(PROBE_DLL)
+        if handle:
+            k32.FreeLibrary(handle)
+            raise RuntimeError("eine DLL aus PATH wurde geladen")
+    finally:
+        os.environ["PATH"] = old
+        shutil.rmtree(folder, ignore_errors=True)
+    return "ohne PATH"
+
+
 def run(root: str, clock=None) -> dict:
     """1.35: ``clock`` (starttime.StartClock of __main__) – the result says how long the .exe took to reach Python
     and to import every module (the bulk of a real start's loading), so CI shows Windows numbers for every build."""
@@ -179,6 +213,7 @@ def run(root: str, clock=None) -> dict:
     c.run("ffmpeg", _ffmpeg)
     c.run("Qt", _qt)
     c.run("Programme starten", _launch)
+    c.run("DLL-Suche", _dll_search)
     start = {"modules_ms": modules_ms}
     if clock is not None and clock.before is not None:
         start["python_ms"] = round(clock.before * 1000)
