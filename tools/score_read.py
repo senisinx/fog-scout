@@ -41,7 +41,8 @@ def pictures(paths):
 
 
 def label(row) -> str:
-    return "MAX" if row.capped else f"+{row.points}" if row.points is not None else f"?{row.raw}"
+    points = "MAX" if row.capped else f"+{row.points}" if row.points is not None else f"?{row.raw}"
+    return f"{points} {row.category or '?'}"
 
 
 def sheet_tile(part, row):
@@ -52,7 +53,7 @@ def sheet_tile(part, row):
     cut = cv2.resize(cut, (240, 60))
     text = np.full((60, 260, 3), 255, np.uint8)
     cv2.putText(text, row.name[:16], (4, 24), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 0, 0), 1)
-    cv2.putText(text, label(row), (4, 52), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 0, 200), 2)
+    cv2.putText(text, label(row), (4, 52), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 0, 200), 2)
     return np.hstack([cut, text])
 
 
@@ -85,7 +86,7 @@ def main(argv=None) -> int:
             print(f"{os.path.relpath(f)}: " + " | ".join(f"{r.name} {label(r)}" for r in rows))
         for r in rows:
             table.append((os.path.relpath(f), r.name, r.points if r.points is not None else "", int(r.capped),
-                          r.raw, int(r.readable)))
+                          r.raw, int(r.readable), r.category or ""))
             if args.sheet and len(tiles) < SHEET_MAX:
                 tiles.append(sheet_tile(part, r))
     share = f"{100 * n_read / n_rows:.0f} %" if n_rows else "–"
@@ -93,7 +94,7 @@ def main(argv=None) -> int:
     if args.csv:
         with open(args.csv, "w", newline="", encoding="utf-8") as fh:
             w = csv.writer(fh)
-            w.writerow(("bild", "name", "punkte", "max", "gelesen", "lesbar"))
+            w.writerow(("bild", "name", "punkte", "max", "gelesen", "lesbar", "kategorie"))
             w.writerows(table)
     if args.sheet and tiles:
         cols = [np.vstack(tiles[i:i + SHEET_ROWS]) for i in range(0, len(tiles), SHEET_ROWS)]

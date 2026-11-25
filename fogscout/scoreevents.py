@@ -7,11 +7,18 @@ right-aligned, and the category icon in a ring right of both. The rows are found
 points with an alphabet of digits only. One look may misread a row (events slide in and fade out, recordings
 smear them); the counting step decides over several looks.
 
+Step 3 (1.57.54): the category of each row from its icon (``icon_category``) – not from the name: the same event
+counts for different categories (a heal of oneself is Survival, of another Altruism; a good skill check is
+Objective, Survival or Altruism by what it is done for). Eight icons, compared with the templates in
+``score_icons.png`` (made by ``tools/score_icons.py`` from own recordings); an icon that is not clearly one of
+them (sliding in, smeared, a light background) gives None.
+
 Works on ``worker.score_part`` – the box of the 16:9 picture, any size (lengths scale with its height).
 Pure: numpy/cv2 and a ``Recognizer``; nothing is saved or sent.
 """
 from __future__ import annotations
 
+import os
 import re
 from dataclasses import dataclass, field
 
@@ -31,6 +38,20 @@ NAME_MIN_LETTERS = 2
 RIGHT_GAP = 0.6
 LEFT_REACH = 2.5           # short names ("HIT") are narrower than their points: look left of the name too
 
+# 1.57.54: the four categories with a cap of each role, in the order of the template picture
+KILLER = ("brutality", "deviousness", "hunter", "sacrifice")
+SURVIVOR = ("objective", "survival", "altruism", "boldness")
+CATEGORIES = KILLER + SURVIVOR
+ICONS_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "score_icons.png")
+# the ring's middle from the name's box (x1, y0, height h; measured on own recordings) and the cut around it
+ICON_DX, ICON_DY = 1.5, 0.8
+ICON_HALF_W, ICON_HALF_H = 1.7, 1.3
+ICON_CUT = (68, 52)        # the cut, scaled to this (w, h)
+ICON_FEATURE = (34, 26)    # the compared picture (w, h)
+ICON_SHIFT = 3             # tried shifts (px of the feature) – the icon slides in, the ring is tilted
+ICON_MIN = 0.4             # correlation with the best template …
+ICON_MARGIN = 0.1          # … and its lead over the second (held-out rounds: 97 % kept, 99.9 % of them right)
+
 
 @dataclass
 class Row:
@@ -43,6 +64,7 @@ class Row:
     points: int | None = None
     capped: bool = False
     raw: str = ""
+    category: str | None = None
 
     @property
     def readable(self) -> bool:
@@ -193,9 +215,89 @@ def read_name(rec, part, word, s=1.0) -> str:
     return rec.text(rec.probs(sub)).upper().strip()
 
 
+def icon_cut(part, row):
+    """The icon beside ``row`` scaled to ICON_CUT – None when it reaches out of the part (it slides in)."""
+    x0, y0, x1, y1 = row.word
+    h = y1 - y0
+    cx, cy = x1 + ICON_DX * h, y0 + ICON_DY * h
+    a, b = int(cx - ICON_HALF_W * h), int(cy - ICON_HALF_H * h)
+    w, hh = int(2 * ICON_HALF_W * h), int(2 * ICON_HALF_H * h)
+    if a < 0 or b < 0 or a + w > part.shape[1] or b + hh > part.shape[0] or w < 8 or hh < 8:
+        return None
+    return cv2.resize(part[b:b + hh, a:a + w], ICON_CUT, interpolation=cv2.INTER_AREA)
+
+
+def icon_feature(cut):
+    """Grey levels of the pale, unsaturated pixels (the drawing; not the red arc) inside the ring, minus their
+    surroundings, blurred and normalised – compared by correlation."""
+    hsv = cv2.cvtColor(cut, cv2.COLOR_BGR2HSV)
+    h, w = cut.shape[:2]
+    yy, xx = np.mgrid[0:h, 0:w]
+    inner = (((xx - w / 2) / (w * 0.30)) ** 2 + ((yy - h / 2) / (h * 0.36)) ** 2 <= 1).astype(np.float32)
+    g = hsv[:, :, 2].astype(np.float32) * (hsv[:, :, 1] < 90)
+    img = cv2.GaussianBlur((g - cv2.GaussianBlur(g, (0, 0), 4)) * inner, (0, 0), 1.2)
+    v = cv2.resize(img, ICON_FEATURE, interpolation=cv2.INTER_AREA)
+    v -= v.mean()
+    n = float(np.linalg.norm(v))
+    return v / n if n > 0 else v
+
+
+_TEMPLATES = []
+
+
+def templates():
+    """The eight templates (CATEGORIES order) from ICONS_FILE: one row of tiles, stored as 128 ± 127 · value / max."""
+    if not _TEMPLATES:
+        pic = cv2.imread(ICONS_FILE, cv2.IMREAD_GRAYSCALE)
+        if pic is None:
+            raise FileNotFoundError(ICONS_FILE)
+        fw, fh = ICON_FEATURE
+        out = []
+        for i in range(len(CATEGORIES)):
+            t = pic[:fh, i * fw:(i + 1) * fw].astype(np.float32) - 128.0
+            t -= t.mean()
+            out.append(t / max(1e-6, float(np.linalg.norm(t))))
+        _TEMPLATES.append(np.array(out))
+    return _TEMPLATES[0]
+
+
+def save_templates(path, temps):
+    """``templates`` written as ICONS_FILE (lossless PNG) – for tools/score_icons.py."""
+    tiles = []
+    for t in temps:
+        m = float(np.abs(t).max()) or 1.0
+        tiles.append(np.clip(np.round(128 + 127 * t / m), 0, 255).astype(np.uint8))
+    cv2.imwrite(path, np.hstack(tiles))
+
+
+def icon_scores(feature, temps=None):
+    """Best correlation of ``feature`` with each template over shifts of up to ICON_SHIFT."""
+    temps = templates() if temps is None else temps
+    k = ICON_SHIFT
+    padded = np.pad(feature, k)
+    fh, fw = feature.shape
+    best = np.full(len(temps), -1.0)
+    for dy in range(2 * k + 1):
+        for dx in range(2 * k + 1):
+            best = np.maximum(best, temps.reshape(len(temps), -1) @ padded[dy:dy + fh, dx:dx + fw].ravel())
+    return best
+
+
+def icon_category(part, row, temps=None):
+    """(category, score, lead) of the icon beside ``row`` – category None when unsure or not to be seen."""
+    cut = icon_cut(part, row)
+    if cut is None:
+        return None, 0.0, 0.0
+    s = icon_scores(icon_feature(cut), temps)
+    order = np.argsort(s)
+    top, lead = float(s[order[-1]]), float(s[order[-1]] - s[order[-2]])
+    sure = top >= ICON_MIN and lead >= ICON_MARGIN
+    return (CATEGORIES[int(order[-1])] if sure else None), top, lead
+
+
 def read_rows(rec, part) -> list[Row]:
-    """``find_rows`` with each row read: name, points, capped. Rows without a name are dropped – the white picture
-    in a ring passes as a word, and the points beside it belong to the next row."""
+    """``find_rows`` with each row read: name, points, capped, category. Rows without a name are dropped – the white
+    picture in a ring passes as a word, and the points beside it belong to the next row."""
     rows = find_rows(part)
     s = part.shape[0] / BOX_H if rows else 1.0
     out = []
@@ -205,5 +307,6 @@ def read_rows(rec, part) -> list[Row]:
             continue
         r.raw = read_points(rec, part, r.glyphs, s)
         r.points, r.capped = parse_points(r.raw)
+        r.category = icon_category(part, r)[0]
         out.append(r)
     return out
