@@ -52,6 +52,18 @@ ICON_SHIFT = 3             # tried shifts (px of the feature) – the icon slide
 ICON_MIN = 0.4             # correlation with the best template …
 ICON_MARGIN = 0.1          # … and its lead over the second (held-out rounds: 97 % kept, 99.9 % of them right)
 
+# 1.57.55: the ring around the icon fills red with the category's points (the idea of a friend of the user): red from
+# RING_START on the ellipse, growing with the parametric angle, full = the category's cap. Measured on own recordings:
+# the ellipse in name heights (axes, OpenCV box angle) and its middle from (x1, y0); 383 of 425 arcs began at 240–250°
+RING_AXES = (1.62 * 1.04, 4.15 * 1.04)
+RING_ANGLE = 57.0
+RING_MIDDLE = (1.09, 1.10)
+RING_SEARCH = 0.35         # the middle is searched this far (name heights) – rows slide in
+RING_SCALES = (0.96, 1.0, 1.04)
+RING_START = 245
+RING_BRIDGE = 12           # gaps between the ring's quarters (and blur) up to this many degrees are bridged
+RING_MIN_FIT = 0.6         # share of the ellipse on grey or red pixels for a ring that was found
+
 
 @dataclass
 class Row:
@@ -65,6 +77,7 @@ class Row:
     capped: bool = False
     raw: str = ""
     category: str | None = None
+    ring: float | None = None      # 1.57.55: how full the category is, 0..1 (None: the ring was not found)
 
     @property
     def readable(self) -> bool:
@@ -295,6 +308,79 @@ def icon_category(part, row, temps=None):
     return (CATEGORIES[int(order[-1])] if sure else None), top, lead
 
 
+_RING_T = np.deg2rad(np.arange(360))
+
+
+def _ring_points(cx, cy, h, scale=1.0):
+    """Points of the ring's ellipse for t = 0..359° (the parametric angle, as cv2.ellipse2Poly)."""
+    a, b = RING_AXES[0] * h / 2 * scale, RING_AXES[1] * h / 2 * scale
+    x, y = a * np.cos(_RING_T), b * np.sin(_RING_T)
+    c, s = np.cos(np.deg2rad(RING_ANGLE)), np.sin(np.deg2rad(RING_ANGLE))
+    return cx + x * c - y * s, cy + x * s + y * c
+
+
+def _at(m, xs, ys):
+    xi, yi = np.round(xs).astype(int), np.round(ys).astype(int)
+    ok = (xi >= 0) & (yi >= 0) & (xi < m.shape[1]) & (yi < m.shape[0])
+    out = np.zeros(len(xs), np.float32)
+    out[ok] = m[yi[ok], xi[ok]]
+    return out, ok
+
+
+def ring_progress(part, row):
+    """How full the ring beside ``row`` is, 0..1: the red run from RING_START (gaps up to RING_BRIDGE bridged);
+    None when the ring is not found (cut off, sliding in, on a busy picture)."""
+    x0, y0, x1, y1 = row.word
+    h = y1 - y0
+    k = max(1, int(RING_SEARCH * h))
+    pad = int(RING_AXES[1] * h * 0.6) + k + 2
+    cx0, cy0 = x1 + RING_MIDDLE[0] * h, y0 + RING_MIDDLE[1] * h
+    bx, by = int(cx0) - pad, int(cy0) - pad
+    sub = part[max(0, by):by + 2 * pad, max(0, bx):bx + 2 * pad].astype(np.int16)
+    if sub.size == 0:
+        return None
+    ox, oy = cx0 - max(0, bx), cy0 - max(0, by)
+    b, g, r = sub[:, :, 0], sub[:, :, 1], sub[:, :, 2]
+    red = ((r > 120) & (r - np.maximum(g, b) > 60)).astype(np.float32)
+    hi, lo = np.maximum(np.maximum(r, g), b), np.minimum(np.minimum(r, g), b)
+    ring = np.maximum(red, ((hi - lo < 40) & (hi > 55)).astype(np.float32))      # the grey of the empty part
+    best = (-1.0, 0.0, 0.0, 1.0)
+    step = 2 if k > 3 else 1
+    for sc in RING_SCALES:
+        for dy in range(-k, k + 1, step):
+            for dx in range(-k, k + 1, step):
+                v, ok = _at(ring, *_ring_points(ox + dx, oy + dy, h, sc))
+                if ok.mean() >= 0.95 and v.mean() > best[0]:
+                    best = (float(v.mean()), ox + dx, oy + dy, sc)
+    fit, cx, cy, sc = best
+    if step > 1 and fit >= 0:                                    # refine the coarse middle by one pixel
+        for dy in (-1, 0, 1):
+            for dx in (-1, 0, 1):
+                v, ok = _at(ring, *_ring_points(cx + dx, cy + dy, h, sc))
+                if ok.mean() >= 0.95 and v.mean() > fit:
+                    fit, best = float(v.mean()), (float(v.mean()), cx + dx, cy + dy, sc)
+        fit, cx, cy, sc = best
+    if fit < RING_MIN_FIT:
+        return None
+    prof = np.zeros(360, np.float32)
+    for f in (0.95, 0.975, 1.0, 1.025, 1.05):                     # the red band is a few pixels wide
+        prof = np.maximum(prof, _at(red, *_ring_points(cx, cy, h, sc * f))[0])
+    on = np.roll(prof > 0.5, -(RING_START - 6))                  # index 0 = 6° before the start
+    if not on[:20].any():
+        return 0.0
+    end, gap = 0, 0
+    for i in range(360):
+        if on[i]:
+            end, gap = i, 0
+        else:
+            gap += 1
+            if gap > RING_BRIDGE and i > 12:
+                break
+    else:
+        return 1.0                                               # red all round: full
+    return max(0.0, min(1.0, (end - 6 + 1) / 360))
+
+
 def read_rows(rec, part) -> list[Row]:
     """``find_rows`` with each row read: name, points, capped, category. Rows without a name are dropped – the white
     picture in a ring passes as a word, and the points beside it belong to the next row."""
@@ -308,5 +394,6 @@ def read_rows(rec, part) -> list[Row]:
         r.raw = read_points(rec, part, r.glyphs, s)
         r.points, r.capped = parse_points(r.raw)
         r.category = icon_category(part, r)[0]
+        r.ring = ring_progress(part, r)
         out.append(r)
     return out
