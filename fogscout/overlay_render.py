@@ -340,7 +340,7 @@ def add_info(pic: Image.Image, timer: str, server: str, height: int, backdrop: b
     score_pic = None
     if len(score) >= 4 and score[2]:                 # 1.57.64: rings / bars / line as a picture (scoreview)
         from . import scoreview
-        score_pic = scoreview.picture(score[2], score[3], round(sfont.size / 14, 2))
+        score_pic = scoreview.picture(score[2], score[3], round(sfont.size / 14, 2), scoreview.rev(score))
         rows.append(("scorepic", [("", INFO_SERVER)], sfont))
     elif score:
         rows.append(("score", [(score[0].upper(), INFO_SERVER)], sfont))

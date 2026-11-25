@@ -244,6 +244,29 @@ def icon_cut(part, row):
     return cv2.resize(part[b:b + hh, a:a + w], ICON_CUT, interpolation=cv2.INTER_AREA)
 
 
+ICON_PIC = 96              # 1.57.67: side of the icon's picture for the overlay (scoreicons.SIZE)
+ICON_INNER = 1.02          # … the part inside the ring: this radius in name heights (the ring's is 1.34)
+
+
+def icon_picture(part, row):
+    """1.57.67: the drawing inside the ring beside ``row`` as a grey mask (uint8, ICON_PIC × ICON_PIC: the pale,
+    unsaturated pixels – the game draws its icons white) – what the overlay shows as this category's icon. None when
+    it reaches out of the part."""
+    x0, y0, x1, y1 = row.word
+    h = y1 - y0
+    cx, cy, r = x1 + ICON_DX * h, y0 + ICON_DY * h, ICON_INNER * h
+    a, b, d = int(round(cx - r)), int(round(cy - r)), int(round(2 * r))
+    if a < 0 or b < 0 or a + d > part.shape[1] or b + d > part.shape[0] or d < 12:
+        return None
+    hsv = cv2.cvtColor(np.ascontiguousarray(part[b:b + d, a:a + d, :3]), cv2.COLOR_BGR2HSV)
+    v = hsv[:, :, 2].astype(np.float32) * (hsv[:, :, 1] < 70)
+    m = np.clip((v - 110.0) / 125.0, 0.0, 1.0)
+    yy, xx = np.mgrid[0:d, 0:d]
+    m *= ((xx - d / 2 + 0.5) ** 2 + (yy - d / 2 + 0.5) ** 2 <= (d / 2) ** 2)
+    m = cv2.resize(m, (ICON_PIC, ICON_PIC), interpolation=cv2.INTER_CUBIC)
+    return np.clip(m * 255.0, 0, 255).astype(np.uint8)
+
+
 def icon_feature(cut):
     """Grey levels of the pale, unsaturated pixels (the drawing; not the red arc) inside the ring, minus their
     surroundings, blurred and normalised – compared by correlation."""

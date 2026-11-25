@@ -828,7 +828,7 @@ def _map_card_base(body, name, realm, timer, note, record, server, ping, status,
     score_pic = None
     if len(score) >= 4 and score[2]:                     # 1.57.64: rings / bars / line as a picture (scoreview)
         from . import scoreview
-        score_pic = scoreview.picture(score[2], score[3], round(u, 2))
+        score_pic = scoreview.picture(score[2], score[3], round(u, 2), scoreview.rev(score))
     elif score:                                          # 1.57.56: the counted points, sized for the widest numbers
         widest = max(score + tuple(_widest(t) for t in score), key=lambda t: _width(cf, t))
         chips.append(chip(score[0], u, cf, colour=GREY, edge=s["tile_edge"], pad=int(12 * u), h=int(30 * u),

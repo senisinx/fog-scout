@@ -219,6 +219,7 @@ class App(ServerTab, StatsTab, ExportDialog, RecordingsTab, DiscordPresence, Spo
         self._news_check()                      # 1.8.79: "Neu seit …" on the overview after an update
         self._crash_check()                     # 1.36: the last run crashed – ask once to copy the diagnosis
         self._backup_start()                    # 1.8.80: daily copy of rounds.jsonl/official.jsonl → backup/
+        self._score_icons_load()                # 1.57.67: the game's category icons seen so far (cache/score_icons)
         if self.settings.get("show_connection"):
             self.root.after(1500, self._conn_start)
         if not IS_WIN and not simulate:
@@ -1291,6 +1292,8 @@ class App(ServerTab, StatsTab, ExportDialog, RecordingsTab, DiscordPresence, Spo
             self._bp_reading(d)
         elif k == "score":                        # 1.57.56: points per category counted from the score events
             self._score_event(d)
+        elif k == "score_icon":                   # 1.57.67: the game's own icon of a category, taken from the screen
+            self._score_icons_load()
         elif k == "match_start":                  # 1.6: end of the loading screen (recording from the spawn)
             self._match_started(d)
         elif k == "match_end":
