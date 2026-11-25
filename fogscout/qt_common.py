@@ -174,7 +174,12 @@ class PlainLabel(QLabel):
 
 
 def _label(text="", cls=None, wrap=False):
-    w = QLabel(text)
+    w = QLabel()
+    # 1.57.62 (security review): Qt's AutoText renders a text with a tag as HTML – <img src="..."> loads that path
+    # (checked with a local file; a network path would make Windows contact that share), for a name from an imported
+    # match file, say. No label here is meant as HTML (no tag in any program text): every one shows its text as is.
+    w.setTextFormat(Qt.PlainText)
+    w.setText(text)
     if cls:
         w.setProperty("class", cls)
     if wrap:

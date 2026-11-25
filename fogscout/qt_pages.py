@@ -580,6 +580,7 @@ class HintLabel(QLabel):
 
     def __init__(self, cls="hint"):
         super().__init__("")
+        self.setTextFormat(Qt.PlainText)          # 1.57.62 (security review): never HTML (qt_common._label)
         self.setProperty("class", cls)
         self.setWordWrap(True)
         self._capped = None                       # None = not decided yet (first show), then True/False

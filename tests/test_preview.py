@@ -1,6 +1,7 @@
 """1.64: the overlay tab's preview shows every element like the game (preview.layers)."""
 import os
 import sys
+import pytest
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
@@ -340,3 +341,24 @@ def test_a_cache_key_holds_its_picture_so_its_id_is_never_reused():
     b = Image.new("RGB", (2, 2))
     assert Same(b) != key and key.obj is not b and Same(b) == Same(b) and hash(Same(b)) == id(b)
     assert Same(None) == Same(None)
+
+
+def test_opencv_loads_no_plugin_dll_from_the_path_or_the_environment(tmp_path):
+    """1.57.62 (security review, reproduced on Windows): OpenCV's first parallel operation looked for
+    opencv_core_parallel_*.dll by bare name – through PATH, where the user's WindowsApps folder is writable by any of
+    their programs – and loaded what it found into the elevated Fog Scout. OPENCV_CORE_PLUGIN_PATH and
+    OPENCV_OPENCL_RUNTIME named a DLL directly. With fogscout imported first, no plugin is ever tried."""
+    import subprocess
+    pytest.importorskip("cv2")
+    root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    env = dict(os.environ, OPENCV_LOG_LEVEL="DEBUG", OPENCV_CORE_PLUGIN_PATH=str(tmp_path),
+               OPENCV_PARALLEL_BACKEND="tbb", OPENCV_OPENCL_RUNTIME=str(tmp_path / "evil.dll"))
+    code = ("import fogscout, os, cv2, numpy as np\n"
+            "a = np.zeros((1440, 3440, 3), np.uint8)\n"
+            "cv2.resize(a, (860, 360)); cv2.GaussianBlur(a, (5, 5), 0); cv2.cvtColor(a, cv2.COLOR_BGR2GRAY)\n"
+            "print(cv2.ocl.haveOpenCL(), sorted(k for k in os.environ if k.startswith('OPENCV_')))\n")
+    out = subprocess.run([sys.executable, "-c", code], capture_output=True, text=True, cwd=root, env=env, timeout=120)
+    assert out.returncode == 0, out.stderr
+    assert "libraryLoad" not in out.stderr and str(tmp_path) not in out.stderr, out.stderr
+    assert out.stdout.split()[0] == "False"
+    assert "OPENCV_CORE_PLUGIN_PATH" not in out.stdout and "OPENCV_PARALLEL_BACKEND" not in out.stdout
