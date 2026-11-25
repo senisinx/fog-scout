@@ -209,3 +209,40 @@ def test_the_dll_search_is_windows_own_while_a_program_starts(tmp_path, monkeypa
         assert os.path.normcase(launch.dll_directory()) == os.path.normcase(bundle)
     finally:
         k32.SetDllDirectoryW(old or None)
+
+
+_PROBE = r'''
+import ctypes, os, shutil, sys
+from fogscout import launch
+probe, bundle = sys.argv[1], sys.argv[2]
+shutil.copyfile(os.path.join(os.environ["SystemRoot"], "System32", "version.dll"), os.path.join(probe, "fs-probe.dll"))
+os.environ["PATH"] = probe + os.pathsep + os.environ["PATH"]
+if len(sys.argv) > 3:
+    print("set", launch.restrict_dll_search(bundle))
+k32 = ctypes.WinDLL("kernel32")
+k32.LoadLibraryW.restype = ctypes.c_void_p
+print("from-path", bool(k32.LoadLibraryW("fs-probe.dll")))
+shutil.copyfile(os.path.join(os.environ["SystemRoot"], "System32", "version.dll"), os.path.join(bundle, "fs-own.dll"))
+print("from-bundle", bool(k32.LoadLibraryW("fs-own.dll")), bool(k32.LoadLibraryW("kernelbase.dll")))
+'''
+
+
+@pytest.mark.skipif(sys.platform != "win32", reason="Windows' DLL search")
+def test_the_packaged_programs_dll_search_leaves_out_the_path(tmp_path):
+    """1.57.63 (security review SEC-62-2): a DLL by bare name came from any PATH folder – the user's WindowsApps is
+    writable by every program of the user, and the .exe runs as administrator. restrict_dll_search: only the .exe's
+    folder, the bundle and System32."""
+    import subprocess
+    root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    probe, bundle = tmp_path / "path", tmp_path / "bundle"
+    probe.mkdir()
+    bundle.mkdir()
+
+    def run(*extra):
+        out = subprocess.run([sys.executable, "-c", _PROBE, str(probe), str(bundle), *extra], capture_output=True,
+                             text=True, cwd=root, timeout=60)
+        assert out.returncode == 0, out.stderr
+        return out.stdout.split()
+    assert run()[:2] == ["from-path", "True"]                          # Windows' own search: the PATH counts
+    assert run("restrict") == ["set", "True", "from-path", "False", "from-bundle", "True", "True"]
+    assert launch.restrict_dll_search("") is False                    # from source: nothing changes

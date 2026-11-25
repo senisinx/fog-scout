@@ -42,15 +42,16 @@ und GitHub Actions (öffentliches Repo).
   bleiben, die Plugins lagen ohnehin nie vor) und `OPENCV_OPENCL_RUNTIME=disabled` (Fog Scout nutzt kein OpenCL).
 - **Prüfstatus:** Test `test_opencv_loads_no_plugin_dll_from_the_path_or_the_environment` – ohne Fix rot, mit Fix grün.
 
-### SEC-62-2 – MEDIUM – andere fehlende DLLs könnten ebenso über den `PATH` kommen (offen, Empfehlung)
+### SEC-62-2 – MEDIUM – andere fehlende DLLs könnten ebenso über den `PATH` kommen (behoben in 1.57.63)
 
 - **Ort:** ganzer Admin-Prozess; Ursache wie oben (keine prozessweite Einschränkung der DLL-Suche).
 - **Beleg:** Nur für OpenCV nachgewiesen. Ob Qt, onnxruntime oder Windows-Komponenten im Prozess weitere fehlende DLLs
   per Namen suchen, ist **nicht geprüft** (braucht Process Monitor auf dem echten Programm).
 - **Fix-Vorschlag:** In der .exe ganz am Anfang `SetDefaultDllDirectories(LOAD_LIBRARY_SEARCH_DEFAULT_DIRS)` plus
   `AddDllDirectory` für `_internal` – dann sucht Windows nie mehr im `PATH`. Risiko: eine Bibliothek, die eine DLL
-  über den `PATH` erwartet, bricht; nur zusammen mit dem Windows-CI-Selbsttest der .exe einführen. **Entscheidung
-  des Nutzers nötig.**
+  über den `PATH` erwartet, bricht; nur zusammen mit dem Windows-CI-Selbsttest der .exe einführen.
+- **Umgesetzt 1.57.63** (Saru: „Ja, einschränken“): `launch.restrict_dll_search` am Anfang von `main`; Selbsttest
+  `DLL-Suche` der gebauten und der installierten .exe in CI, Test `test_the_packaged_programs_dll_search_leaves_out_the_path`.
 
 ### SEC-62-3 – MEDIUM – fremde Mediendateien werden mit Adminrechten zerlegt (offen, Architektur)
 

@@ -357,7 +357,8 @@ def _ask_yes_no(text: str) -> bool:
 
 
 def main():
-    from .launch import harden_start_environment
+    from .launch import harden_start_environment, restrict_dll_search
+    restrict_dll_search()                         # 1.57.63 (SEC-62-2): the .exe's DLL search without PATH, first of all
     dropped = harden_start_environment()          # 1.38.21: first of all – as administrator, no SSL_CERT_*/PYTHON*/GIT_*
     if len(sys.argv) > 1 and sys.argv[1] == "--helper":      # before anything else: runs with administrator rights
         sys.exit(run_helper(sys.argv[2:]))

@@ -107,6 +107,32 @@ def harden_start_environment() -> list:
     return sorted(gone)
 
 
+LOAD_LIBRARY_SEARCH_DEFAULT_DIRS = 0x1000    # the program's folder, System32 and AddDllDirectory folders – no PATH
+
+
+def restrict_dll_search(bundle: str | None = None) -> bool:
+    """1.57.63 (security review SEC-62-2): the packaged program's DLL search without PATH and the current folder.
+    Windows' standard search ends with PATH, and the user's PATH holds folders any program of the user may write to
+    (%LOCALAPPDATA%\\Microsoft\\WindowsApps): a library that loads an optional DLL by bare name (OpenCV did, 1.57.62)
+    ran a DLL from there with the administrator rights of the scheduled task. After this, a bare name is looked for in
+    the .exe's folder, ``_internal`` (the bundle) and System32 only. Python itself already loads its modules this
+    way; per process, so programs started from here keep Windows' own search. Only the packaged program (a source
+    checkout's folder is the user's anyway); True when set."""
+    bundle = bundle_dir() if bundle is None else bundle
+    if sys.platform != "win32" or not bundle:
+        return False
+    import ctypes
+    from ctypes import wintypes
+    k32 = ctypes.WinDLL("kernel32", use_last_error=True)
+    k32.AddDllDirectory.argtypes = [wintypes.LPCWSTR]
+    k32.AddDllDirectory.restype = ctypes.c_void_p
+    k32.SetDefaultDllDirectories.argtypes = [wintypes.DWORD]
+    k32.SetDefaultDllDirectories.restype = wintypes.BOOL
+    if not k32.AddDllDirectory(os.path.abspath(bundle)):
+        return False                                   # without the bundle in the search nothing would load
+    return bool(k32.SetDefaultDllDirectories(LOAD_LIBRARY_SEARCH_DEFAULT_DIRS))
+
+
 def _kernel32():
     import ctypes
     from ctypes import wintypes
