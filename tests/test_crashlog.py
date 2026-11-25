@@ -130,3 +130,47 @@ def test_a_closed_dialog_is_deleted(monkeypatch):
     qt_window.MainWindow.close_dialog(owner, "assign")
     QCoreApplication.sendPostedEvents(None, QEvent.DeferredDelete)
     assert owner.dialogs == {} and dlg.closing_from_app and not shiboken6.isValid(dlg)
+
+
+def test_the_logs_of_the_last_sessions_are_kept(tmp_path):
+    """1.57.60: the log was opened with "w" – after a restart nothing of the session before was left. Now the last
+    LOG_KEPT logs move on (.1 newest) and the oldest goes; only renames."""
+    from fogscout import __main__ as main
+    log = tmp_path / "fogscout.log"
+    for i in range(5):
+        log.write_text(f"Sitzung {i}", encoding="utf-8")
+        main._keep_old_logs(str(tmp_path))
+    assert not log.exists()
+    kept = {n: (tmp_path / n).read_text(encoding="utf-8") for n in ("fogscout.log.1", "fogscout.log.2", "fogscout.log.3")}
+    assert kept == {"fogscout.log.1": "Sitzung 4", "fogscout.log.2": "Sitzung 3", "fogscout.log.3": "Sitzung 2"}
+    assert not (tmp_path / "fogscout.log.4").exists()
+    main._keep_old_logs(str(tmp_path / "missing"))                  # nothing there: nothing happens, no error
+
+
+def test_a_linked_log_name_moves_nothing(tmp_path):
+    import os
+    import pytest
+    from fogscout import __main__ as main
+    (tmp_path / "fogscout.log").write_text("jetzt", encoding="utf-8")
+    target = tmp_path / "elsewhere.txt"
+    target.write_text("fremd", encoding="utf-8")
+    try:
+        os.symlink(str(target), str(tmp_path / "fogscout.log.2"))
+    except (OSError, NotImplementedError):
+        pytest.skip("no symlinks here")
+    main._keep_old_logs(str(tmp_path))
+    assert (tmp_path / "fogscout.log").read_text(encoding="utf-8") == "jetzt" and target.read_text(encoding="utf-8") == "fremd"
+
+
+def test_the_diagnosis_shows_the_warnings_of_the_session_before(tmp_path, monkeypatch):
+    """1.57.60: "Diagnose kopieren" after a restart – the last warnings/errors of fogscout.log.1, masked."""
+    home = os.path.expanduser("~")
+    lines = ["2026-11-25 10:00:00,000 INFO alles gut"]
+    lines += [f"2026-11-25 10:00:{i:02d},000 WARNING Platz schaffen: 1 Datei(en) nicht gelöscht, z. B. "
+              + os.path.join(home, f"x{i}.mp4") + " – Fehler 87" for i in range(20)]
+    (tmp_path / "fogscout.log.1").write_text("\n".join(lines) + "\n", encoding="utf-8")
+    lines = diagnose.previous_log_lines(str(tmp_path))
+    assert lines[0].startswith("Vorige Sitzung (fogscout.log.1), letzte 12 von 20")
+    assert len(lines) == 13 and "x19.mp4" in lines[-1] and "alles gut" not in " ".join(lines)
+    assert home not in " ".join(lines)                                 # the account name never in the diagnosis
+    assert diagnose.previous_log_lines(str(tmp_path / "nichts")) == ["Vorige Sitzung: kein Log"]

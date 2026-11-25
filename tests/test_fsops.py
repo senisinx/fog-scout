@@ -338,6 +338,7 @@ REPLACE_PLACES = {               # (module, function): why it may rename/replace
     ("recindex", "settle_parts"): "a whole clip left as .tmp by a quit gets its name",
     ("recindex", "adopt_old_file"): "an index of the old program name taken over once",
     ("diagnose", "keep_crash"): "the crash file of the last run kept",
+    ("__main__", "_keep_old_logs"): "the last sessions' logs move on by fixed names (1.57.60; never through a link)",
     ("rename", "migrate"): "files of the old program name taken over once",
     ("restart", "staged_setup"): "the checked setup copy under its final name",
     ("relupdate", "download"): "a whole, checked download gets its name",
