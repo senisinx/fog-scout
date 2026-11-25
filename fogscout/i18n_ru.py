@@ -6022,6 +6022,9 @@ T = {
         'В этой выборке нет времени ожидания для этой роли.',
     'Zeile FPS (HWiNFO)':
         'Строка FPS (HWiNFO)',
+    'Gezählte Punkte je Kategorie (Score Events)': 'Подсчитанные очки по категориям (события счёта)',
+    'Zeigt unter dem Timer die Punkte dieser Runde je Kategorie, gezählt aus den Score Events oben rechts (BRU/DEV/HUN/SAC bzw. OBJ/SUR/ALT/BOL, in Tausend; MAX = Kategorie voll).':
+        'Показывает под таймером очки этого раунда по категориям, подсчитанные по событиям счёта справа вверху (BRU/DEV/HUN/SAC или OBJ/SUR/ALT/BOL, в тысячах; MAX = категория заполнена).',
     'Zuletzt auf dieser Map (Datum, Ergebnis)':
         'Последний раз на этой карте (дата, результат)',
     'Serie der laufenden Sitzung (4K / Entkommen)':

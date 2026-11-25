@@ -194,12 +194,24 @@ def test_the_app_keeps_the_final_points_with_the_round_and_logs_them():
     import types
     from fogscout.app_stats import StatsTab
     logged = []
-    app = types.SimpleNamespace(_hist={"t": 1.0}, _log=lambda text, cat: logged.append(text))
+    shown = []
+    app = types.SimpleNamespace(_hist={"t": 1.0}, _log=lambda text, cat: logged.append(text),
+                                _update_score=lambda: shown.append(dict(app._score_now)))
     StatsTab._score_event(app, {"final": False, "totals": {"objective": 100}})
     assert "score" not in app._hist and app._score_now == {"objective": 100} and logged == []
     StatsTab._score_event(app, {"final": True, "totals": {"objective": 4200, "boldness": 10000, "x": True}})
     assert app._hist["score"] == {"objective": 4200, "boldness": 10000}
     assert len(logged) == 1 and "Objective 4200" in logged[0]
+    assert shown == [{"objective": 100}, {"objective": 4200, "boldness": 10000}]      # the overlay line follows
+
+
+def test_the_overlay_line_is_short_and_never_changes_its_size():
+    from fogscout.scorecount import line
+    text, widest = line({"brutality": 4300, "deviousness": 1460, "hunter": 8260, "sacrifice": 10000})
+    assert text == "BRU 4.3k · DEV 1.5k · HUN 8.3k · SAC MAX"
+    assert widest == "BRU 00.0k · DEV 00.0k · HUN 00.0k · SAC 00.0k"
+    assert line({"objective": 0, "boldness": 9999}, full=("boldness",))[0] == "OBJ 0.0k · BOL MAX"
+    assert line({}) == ()
 
 
 def test_a_rounds_counted_points_are_stored_and_broken_ones_dropped(tmp_path):

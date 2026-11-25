@@ -506,6 +506,7 @@ class PictureOverlay:
         self._record = ""               # own results on this map below the timer ("" = none)
         self._memo = ()                 # 1.8.54: lines of the own note on this map (mapnotes.lines)
         self._last = ()                 # the own last round on this map: (text, other texts it may become …)
+        self._score = ()                # 1.57.56: points counted from the score events: (text, widest text)
         self._rec = False               # 1.4.1: OBS records the round – blinking red dot right of the timer
         self._base = []                 # [(PIL RGBA, duration)] scaled map (+ caption), cached per size
         self._base_key = None
@@ -601,6 +602,11 @@ class PictureOverlay:
         self._raw["last"] = tuple(texts or ())
         self._last = self._raw["last"] if self.show_info else ()
 
+    def set_score(self, texts):
+        """1.57.56: the points counted from the score events (scorecount.line): (text, widest text); () = none."""
+        self._raw["score"] = tuple(texts or ())
+        self._score = self._raw["score"] if self.show_info else ()
+
     def set_show_info(self, on: bool):
         """1.57.49 (user: "Ein/Aus-Knopf für jedes Overlay-Element"): the element "Infos" off hides the timer, server,
         record, last round and note at once – wherever they are drawn; the amber note (doubtful detection) stays.
@@ -615,6 +621,7 @@ class PictureOverlay:
         self.set_record(raw.get("record", ""))
         self.set_memo(raw.get("memo", ()))
         self.set_last(raw.get("last", ()))
+        self.set_score(raw.get("score", ()))
         self._base_key = self._key = self._fit = self._fit_room = None
 
     def set_rec(self, on: bool):   # 1.4.1 / 1.5.2: blinking red dot right of the round timer
@@ -677,7 +684,8 @@ class PictureOverlay:
         return self._view_frames()[0][0][0].size if self._frames and self.show_map and not self._waiting else (0, 0)
 
     def has_info(self) -> bool:
-        return bool(self._timer or self._server or self._note or self._record or self._memo or self._last)
+        return bool(self._timer or self._server or self._note or self._record or self._memo or self._last
+                    or self._score)
 
     def set_lines_top(self, on: bool):
         """1.8.34 (user: "mit der Map kombinieren, oben oder unten"): the lines drawn with the map go above it."""
@@ -704,11 +712,11 @@ class PictureOverlay:
         if not self.show_info:
             return None
         timer = self._timer or ("" if self.has_info() else placeholder)
-        if not (timer or self._server or self._note or self._record or self._memo or self._last):
+        if not (timer or self._server or self._note or self._record or self._memo or self._last or self._score):
             return None
         rec = rec_phase() if self._rec else None
         key = (int(text_h), timer, self._server, self._ping, self._note, self._record, self._memo, rec, self.skin,
-               self.accent, self.transparent, self.backdrop, self._last)
+               self.accent, self.transparent, self.backdrop, self._last, self._score)
         if getattr(self, "_info_key", None) != key:
             # 1.46.4: the App measures at the full text size and then draws a smaller one when the card is wider
             # than the bar – a few cards are kept, so the pair is not drawn again on every tick
@@ -716,7 +724,8 @@ class PictureOverlay:
             pic = memo.pop(key, None)
             if pic is None:
                 pic = info_card(timer, self._server, self._ping, self._note, self._record, int(text_h),
-                                self.skin, self.accent, self.transparent, self.backdrop, rec, self._memo, self._last)
+                                self.skin, self.accent, self.transparent, self.backdrop, rec, self._memo, self._last,
+                                self._score)
             memo[key] = pic
             while len(memo) > self.INFO_KEPT:
                 memo.pop(next(iter(memo)))
@@ -780,12 +789,12 @@ class PictureOverlay:
         new_base = base_key != self._base_key
         here = self._lines_here()                    # 1.8.24: the lines apart – the map alone
         rec = rec_phase() if self._rec and here else None     # 1.5.2: the dot blinks with the seconds
-        timer, server, ping, note, record, memo, last = (
-            (self._timer, self._server, self._ping, self._note, self._record, self._memo, self._last) if here
-            else ("", "", None, "", "", (), ()))
+        timer, server, ping, note, record, memo, last, score = (
+            (self._timer, self._server, self._ping, self._note, self._record, self._memo, self._last, self._score)
+            if here else ("", "", None, "", "", (), (), ()))
         top = self.lines_top and not self.info_beside
         key = (base_key, self._editing, timer, server, ping, note, record, memo,
-               self.info_beside, self.backdrop, self.skin, self.accent, self.realm, rec, top, last)
+               self.info_beside, self.backdrop, self.skin, self.accent, self.realm, rec, top, last, score)
         size_key = (self._gen, key, self.edit_label if self._editing else "")
         if not push and key != self._key and size_key in self._sizes:
             return self._sizes[size_key]          # measured before: the picture on hand stays as it is
@@ -816,18 +825,20 @@ class PictureOverlay:
                 for pic, dur in self._base:
                     pics.append(map_card(pic if self.show_map else None, self._caption, self.realm, timer,
                                          note, record, server, ping, (), text_h, self.skin,
-                                         self.accent, rec=rec, lines_top=top, memo=memo, last=last))
+                                         self.accent, rec=rec, lines_top=top, memo=memo, last=last,
+                                         score=score))
             for pic, dur in ([] if modern else self._base):
                 if here and self.has_info() and top and self.show_map:      # 1.8.34: the lines above the map
                     pic = lines_above(pic, add_info(Image.new("RGBA", (1, 1), (0, 0, 0, 0)), self._timer,
                                                     self._server, text_h, backdrop=not self.transparent,
                                                     ping=self._ping, note=self._note, record=self._record,
-                                                    rec=rec, memo=self._memo, last=self._last), text_h)
+                                                    rec=rec, memo=self._memo, last=self._last,
+                                                    score=self._score), text_h)
                 elif here and self.has_info():
                     pic = add_info(pic, self._timer, self._server, text_h, backdrop=not self.transparent,
                                    ping=self._ping, note=self._note, record=self._record,
                                    beside=self.info_beside and self.show_map, rec=rec, memo=self._memo,
-                                   last=self._last)
+                                   last=self._last, score=self._score)
                 pics.append(pic)
             if self.backdrop and not modern:
                 pics = map_backdrop(pics, text_h)
@@ -936,7 +947,7 @@ class PictureOverlay:
                 self.info_apart, self.lines_top,
                 self._editing, self.show_map, self.show_caption, self._caption, self.transparent, self.backdrop,
                 self._floor, id(self._frames[0][0]) if self._frames else None, self.skin, self.accent, self.realm,
-                self._rec, self._last, self._waiting_memo,
+                self._rec, self._last, self._score, self._waiting_memo,
                 # 1.55.6: the waiting card (its lobby line counts seconds: measured with the widest digits) – last
                 tuple(re.sub(r"\d", "0", line) for line in self._waiting))
 

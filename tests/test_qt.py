@@ -192,7 +192,7 @@ def _registered_keys():
                                                               "banner_missed_notify",
                                                               "show_map", "focus", "caption", "timer", "server",
                                                               "waiting", "floors", "record", "notes", "transparent",
-                                                              "last_round"] + \
+                                                              "last_round", "score"] + \
                         [code for code, _l in LANGS]
                     keys.update(pattern.format(k) for k in names)
     return keys

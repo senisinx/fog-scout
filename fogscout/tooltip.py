@@ -84,6 +84,9 @@ TIPS = {
     "Eigene Bilanz unter dem Timer":
         "Zeigt unter dem Rundentimer, wie es dir auf dieser Map bisher ging: als Killer Ø Kills, als Survivor den "
         "Anteil Escapes – aus den Runden mit Daten der Stats-Seite, ab 3 Runden.",
+    "Gezählte Punkte je Kategorie (Score Events)":
+        "Zeigt unter dem Timer die Punkte dieser Runde je Kategorie, gezählt aus den Score Events oben rechts "
+        "(BRU/DEV/HUN/SAC bzw. OBJ/SUR/ALT/BOL, in Tausend; MAX = Kategorie voll).",
     "Zuletzt auf dieser Map (Datum, Ergebnis)":
         "Zeigt unter der Bilanz, wann du zuletzt auf dieser Map warst – mit dem Ergebnis, wenn die Runde mit "
         "Daten der Stats-Seite verknüpft ist (Kills bzw. entkommen), sonst nur das Datum.",

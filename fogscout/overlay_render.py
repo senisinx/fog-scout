@@ -300,7 +300,7 @@ def wrap_status(line: str) -> tuple:
 
 def add_info(pic: Image.Image, timer: str, server: str, height: int, backdrop: bool = False,
              ping: float | None = None, status=(), note: str = "", record: str = "",
-             beside: bool = False, rec=None, memo=(), last=()) -> Image.Image:
+             beside: bool = False, rec=None, memo=(), last=(), score=()) -> Image.Image:
     """Round timer, connected server and its ping below the map, styled like the map title: white heavy
     digits with a soft shadow (no box); below them a green "connected" dot with the region in small
     caps, and the ping coloured by quality. The ping is only shown together with a server.
@@ -311,14 +311,16 @@ def add_info(pic: Image.Image, timer: str, server: str, height: int, backdrop: b
     waiting card (with ``status``) below the status lines (the note on the lobby's killer).
     ``last``: the own last round on this map, below the record – (text shown, other texts it may become …): the
     row is as wide as the widest of them with every digit a "0", so a later round never resizes the card.
+    ``score`` (1.57.56): the points counted from the score events, below the record and the last round – (text,
+    widest text) like ``last``.
     ``backdrop``: the map sits on a dark rectangle (transparent edge off) – extend it behind the info.
     ``beside``: the block goes right of the map, centred in height (low wide bar above/below the picture).
     ``rec``: OBS records – True = the red dot right of the timer is on, False = off phase of the blink (1.5.2,
     user: "rechts von der Rundenzeit blinkend"), None = not recording."""
     if not server:
         ping = None
-    last = tuple(last or ())
-    if not timer and not server and not status and not note and not record and not memo and not last:
+    last, score = tuple(last or ()), tuple(score or ())
+    if not timer and not server and not status and not note and not record and not memo and not last and not score:
         return pic
     d0 = ImageDraw.Draw(pic)
     tfont, sfont = _font(max(22, height // 11), heavy=True), _font(max(14, height // 24))
@@ -335,6 +337,8 @@ def add_info(pic: Image.Image, timer: str, server: str, height: int, backdrop: b
         rows.append(("record", [(record.upper(), INFO_SERVER)], sfont))
     if last:
         rows.append(("last", [(last[0].upper(), INFO_SERVER)], sfont))
+    if score:
+        rows.append(("score", [(score[0].upper(), INFO_SERVER)], sfont))
     memo_rows = [("memo", [(line, INFO_MEMO)], sfont) for line in memo]    # 1.8.54: as written – no caps, no tracking
     if not status:
         rows += memo_rows
@@ -361,10 +365,11 @@ def add_info(pic: Image.Image, timer: str, server: str, height: int, backdrop: b
         elif kind == "status":                   # the lobby line counts seconds: the widest digits set the room
             drawn[len(widths)] = int(_tracked_width(d0, text, font, track))
             widths.append(max(drawn[len(widths)], int(_tracked_width(d0, re.sub(r"\d", "0", text), font, track))))
-        elif kind == "last":                     # the widest text this row may show: the next round moves nothing
+        elif kind in ("last", "score"):          # the widest text this row may show: the next value moves nothing
             drawn[len(widths)] = int(_tracked_width(d0, text, font, track))
             widths.append(max(int(_tracked_width(d0, v, font, track))
-                              for t in last for v in (t.upper(), re.sub(r"\d", "0", t.upper()))))
+                              for t in (last if kind == "last" else score)
+                              for v in (t.upper(), re.sub(r"\d", "0", t.upper()))))
         else:
             widths.append(int(_tracked_width(d0, text, font, track)) + (2 * dot if kind == "server" else 0))
     heights = [b[3] - b[1] for b in boxes]
@@ -991,16 +996,16 @@ def rec_phase(now: float | None = None) -> bool:
 
 def info_card(timer: str, server: str, ping, note: str, record: str, text_h: int, style: str = "classic",
               accent=None, transparent: bool = True, dark_area: bool = False, rec=None, memo=(),
-              last=()) -> Image.Image:
+              last=(), score=()) -> Image.Image:
     """1.8.24 (user: "Zeit etc. nicht mehr mit der Map verbunden, eigene Elemente – ich will ab und zu nur die
     eigentliche Map-Grösse ändern"): timer, note, record, server and ping as a card of their own – the same lines
     as below the map, without the map; shared by the overlay (App.info_win) and the preview."""
     if style != "classic":
         from .skin import map_card
         return map_card(None, "", "", timer, note, record, server, ping, (), text_h, style, accent, rec=rec,
-                        memo=memo, last=last)
+                        memo=memo, last=last, score=score)
     pic = add_info(Image.new("RGBA", (1, 1), (0, 0, 0, 0)), timer, server, text_h, backdrop=not transparent,
-                   ping=ping, note=note, record=record, rec=rec, memo=memo, last=last)
+                   ping=ping, note=note, record=record, rec=rec, memo=memo, last=last, score=score)
     return map_backdrop([pic], text_h)[0] if dark_area else pic
 
 
