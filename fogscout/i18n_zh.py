@@ -6164,4 +6164,8 @@ T = {
         '已在叠加层中隐藏信息。',
     'Neustart gerade nicht möglich: eine Runde läuft, OBS nimmt auf oder ein Clip wird gespeichert. Danach noch einmal versuchen.':
         '现在无法重启：正在进行对局、OBS 正在录制或正在保存剪辑。请稍后再试。',
+    'Aufnahme ist schwarz – nur das Overlay, kein Spielbild ({n}. Runde in Folge): {file}. OBS zeigt DBD nicht mehr: DBD oder OBS neu starten, oder unter Einstellungen → Aufnahmen die Spielaufnahme statt der Fensteraufnahme wählen.':
+        '录像是黑屏 – 只有叠加层，没有游戏画面（连续第 {n} 局）：{file}。OBS 不再显示 DBD：请重启 DBD 或 OBS，或在 设置 → 录制 中选择游戏捕获而不是窗口捕获。',
+    'Aufnahme zeigt nur ein stehendes Bild ({n}. Runde in Folge): {file}. OBS nimmt nicht das laufende Spiel auf – ein hängendes oder ein anderes Fenster (z. B. der Launcher): DBD oder OBS neu starten.':
+        '录像只有静止画面（连续第 {n} 局）：{file}。OBS 没有录制正在运行的游戏 – 是卡住的窗口或其他窗口（例如启动器）：请重启 DBD 或 OBS。',
 }

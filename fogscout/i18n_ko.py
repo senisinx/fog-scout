@@ -6164,4 +6164,8 @@ T = {
         '오버레이에서 정보를 숨깁니다.',
     'Neustart gerade nicht möglich: eine Runde läuft, OBS nimmt auf oder ein Clip wird gespeichert. Danach noch einmal versuchen.':
         '지금은 다시 시작할 수 없습니다: 라운드 진행 중이거나 OBS가 녹화 중이거나 클립을 저장하는 중입니다. 나중에 다시 시도하세요.',
+    'Aufnahme ist schwarz – nur das Overlay, kein Spielbild ({n}. Runde in Folge): {file}. OBS zeigt DBD nicht mehr: DBD oder OBS neu starten, oder unter Einstellungen → Aufnahmen die Spielaufnahme statt der Fensteraufnahme wählen.':
+        '녹화가 검은 화면입니다 – 오버레이만 있고 게임 화면이 없습니다({n}번째 연속 라운드): {file}. OBS가 DBD를 더 이상 보여 주지 않습니다: DBD나 OBS를 다시 시작하거나, 설정 → 녹화에서 창 캡처 대신 게임 캡처를 선택하세요.',
+    'Aufnahme zeigt nur ein stehendes Bild ({n}. Runde in Folge): {file}. OBS nimmt nicht das laufende Spiel auf – ein hängendes oder ein anderes Fenster (z. B. der Launcher): DBD oder OBS neu starten.':
+        '녹화에 정지된 화면만 있습니다({n}번째 연속 라운드): {file}. OBS가 실행 중인 게임을 녹화하지 않습니다 – 멈춘 창이거나 다른 창(예: 런처)입니다: DBD나 OBS를 다시 시작하세요.',
 }

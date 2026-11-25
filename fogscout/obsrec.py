@@ -619,6 +619,54 @@ def media_duration(path: str, ffmpeg: str | None = None, run=None) -> float | No
     return int(m.group(1)) * 3600 + int(m.group(2)) * 60 + float(m.group(3))
 
 
+# 1.57.59 (the user's recordings: 31 rounds with only the overlay on black, in runs – 17 in a row on 24.11. – none
+# noticed): three looks into the finished recording, at these shares of its length, the middle of the picture (where
+# the game is, not the black bars with our overlay). Measured on the user's recordings, 64×32 grey: black ones had
+# max ≤ 16 and spread ≤ 1.7, the darkest real rounds max ≥ 34 and spread ≥ 4.5.
+PICTURE_AT = (0.3, 0.5, 0.7)
+PICTURE_MIN_S = 20                # shorter recordings are not looked at (nothing to say about them)
+BLACK_MAX = 24                    # brightest grey value of a black look …
+BLACK_SPREAD = 3.0                # … and the spread of its values
+
+
+def _gray_look(ffmpeg: str, path: str, t: float) -> bytes:
+    """One 64×32 grey picture of the middle of the frame at ``t`` s (b"" when ffmpeg gives none)."""
+    flags = getattr(subprocess, "CREATE_NO_WINDOW", 0)
+    try:
+        p = subprocess.run([ffmpeg, "-hide_banner", "-v", "error", "-ss", f"{t:.2f}", "-i", path, "-frames:v", "1",
+                            "-vf", "crop=iw/3:ih/2:iw/3:ih/4,scale=64:32,format=gray", "-f", "rawvideo", "-"],
+                           stdin=subprocess.DEVNULL, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL,
+                           timeout=30, creationflags=flags)
+    except (OSError, subprocess.TimeoutExpired):
+        return b""
+    return p.stdout or b""
+
+
+def picture_check(path: str, ffmpeg: str | None = None, look=None, duration=None) -> str | None:
+    """1.57.59: "schwarz" when the recording shows no game picture (black in all looks – OBS lost the window),
+    "eingefroren" when all looks are the very same picture, else None (also when it cannot be looked at). Only the
+    own recording file, with the bundled ffmpeg (hard rule); ``look``/``duration`` for tests."""
+    ffmpeg = ffmpeg or ffmpeg_exe()
+    if not ffmpeg and look is None:
+        return None
+    dur = duration if duration is not None else media_duration(path, ffmpeg)
+    if not dur or dur < PICTURE_MIN_S:
+        return None
+    looks = [(look or _gray_look)(ffmpeg, path, dur * f) for f in PICTURE_AT]
+    if any(len(v) < 64 for v in looks):
+        return None
+
+    def black(v: bytes) -> bool:
+        mean = sum(v) / len(v)
+        spread = (sum((x - mean) ** 2 for x in v) / len(v)) ** 0.5
+        return max(v) <= BLACK_MAX and spread <= BLACK_SPREAD
+    if all(black(v) for v in looks):
+        return "schwarz"
+    if looks[0] == looks[1] == looks[2]:
+        return "eingefroren"
+    return None
+
+
 def track_flags(tracks) -> dict:
     """The ``inputAudioTracks`` value for SetInputAudioTracks: tracks 1–5 on or off (6 is left alone)."""
     return {str(n): n in tracks for n in range(1, 6)}
@@ -855,6 +903,7 @@ class Recorder(threading.Thread):
         super().__init__(name="obs-recorder", daemon=True)
         self._post = post
         self.cmds = queue.Queue()
+        self._picture_streak = 0          # 1.57.59: rounds in a row whose recording was black or frozen
         self.cfg = Config()
         self.active = None           # the round being recorded: dict(t, map_id, label, role, killer, pre, since)
         self.status = ""
@@ -1837,6 +1886,9 @@ class Recorder(threading.Thread):
         extra = {}
         if bad:
             extra["bad"] = bad
+        picture = None if bad or self._quitting else picture_check(final)      # 1.57.59: black or frozen
+        if picture:
+            extra["picture"] = picture
         if rec.get("manual"):                          # 1.15: started by hand (button/hotkey)
             extra["manual"] = True
         if rec.get("sources") is not None:             # 1.8.23: the sources OBS had (the clip editor tells "none")
@@ -1871,9 +1923,19 @@ class Recorder(threading.Thread):
         recs, deleted = prune(folder, recs, limit, protect=self._protected)
         save_index(folder, recs)         # … and again with the sizes prune measured and without what it deleted
         marks = entry.marks
+        self._picture_streak = self._picture_streak + 1 if picture else 0
         if bad:
             self._warn(_("Aufnahme sieht beschädigt aus ({why}): {file} – OBS-Einstellungen prüfen (Encoder, Platte).",
                          why=bad, file=os.path.basename(final)))
+        elif picture == "schwarz":
+            self._warn(_("Aufnahme ist schwarz – nur das Overlay, kein Spielbild ({n}. Runde in Folge): {file}. OBS "
+                         "zeigt DBD nicht mehr: DBD oder OBS neu starten, oder unter Einstellungen → Aufnahmen die "
+                         "Spielaufnahme statt der Fensteraufnahme wählen.", n=self._picture_streak,
+                         file=os.path.basename(final)))
+        elif picture == "eingefroren":
+            self._warn(_("Aufnahme zeigt nur ein stehendes Bild ({n}. Runde in Folge): {file}. OBS nimmt nicht das "
+                         "laufende Spiel auf – ein hängendes oder ein anderes Fenster (z. B. der Launcher): DBD oder OBS "
+                         "neu starten.", n=self._picture_streak, file=os.path.basename(final)))
         elif extra.get("merge_failed"):
             self._say(_("Gespeichert: {file} – Vorlauf nicht angefügt, liegt als eigene Datei daneben",
                         file=os.path.basename(final)), True)
