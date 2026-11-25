@@ -179,7 +179,8 @@ def _dll_search() -> str:
     k32.LoadLibraryW.argtypes = [wintypes.LPCWSTR]
     k32.LoadLibraryW.restype = ctypes.c_void_p
     k32.FreeLibrary.argtypes = [ctypes.c_void_p]
-    system = os.path.join(os.environ.get("SystemRoot", r"C:\Windows"), "System32", "version.dll")
+    from .paths import system_dir
+    system = os.path.join(system_dir(), "version.dll")        # from Windows, never from the environment
     folder = tempfile.mkdtemp(prefix="fogscout-probe-")
     old = os.environ.get("PATH", "")
     try:
