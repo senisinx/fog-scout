@@ -26,6 +26,7 @@ QUALITIES = ("fast", "balanced", "high")
 QUALITY_LABELS = {"fast": N_("Schnell"), "balanced": N_("Ausgewogen"), "high": N_("Hoch")}
 HEIGHTS = (0, 1440, 1080, 720)               # 0 = the recording's own size
 HW = ("nvenc", "amf", "qsv")                 # graphics-card encoders, in the order "auto" tries them
+HW_MIN_SIDE = 160                            # 1.57.71 (WIN-02): smaller pictures go to the CPU (NVENC refused < 146 px)
 HW_LABELS = {"": N_("CPU (x264/x265)"), "auto": N_("Automatisch"), "nvenc": "NVIDIA NVENC", "amf": "AMD AMF",
              "qsv": "Intel Quick Sync"}
 ENCODERS = {("h264", ""): "libx264", ("hevc", ""): "libx265",
@@ -79,6 +80,14 @@ class Encoding:
         if not hw and codec == "hevc" and avail and not avail.get("libx265", True):
             codec = "h264"
         return Encoding(codec, quality, height, hw)
+
+    def fit(self, w: int, h: int) -> "Encoding":
+        """1.57.71 (deep review WIN-02, measured on an RTX 4070): the hardware encoders refuse small pictures (NVENC:
+        "Frame Dimension less than the minimum supported value" below 146 px) – a small crop then failed with an
+        ffmpeg message that named no reason. Below HW_MIN_SIDE the CPU encodes; the picture is small, so it is fast."""
+        if self.hw in HW and min(int(w or 0), int(h or 0)) < HW_MIN_SIDE:
+            return Encoding(self.codec, self.quality, self.height, "")
+        return self
 
     def target_height(self, src_h: int) -> int:
         """The picture height to encode (0 = as it is): never larger than the recording, always even."""

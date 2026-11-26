@@ -148,3 +148,16 @@ def test_the_real_ffmpeg_lists_x264_and_passes_the_self_test():
     assert "libx264" in listed
     assert encoders.works(ffmpeg, "libx264")
     assert not encoders.works(ffmpeg, "no_such_encoder")
+
+
+def test_a_small_picture_is_encoded_by_the_cpu(tmp_path):
+    """1.57.71 (deep review WIN-02, measured on an RTX 4070): NVENC refuses pictures below 146 px ("Frame Dimension
+    less than the minimum supported value") – a 9:16 crop of a small clip failed once the editor knew the graphics
+    card, with no reason given. Below HW_MIN_SIDE the CPU encodes; a crop of a real recording keeps the card."""
+    nv = Encoding("h264", "balanced", 0, "nvenc")
+    assert nv.fit(101, 180).hw == "" and nv.fit(101, 180).encoder == "libx264"
+    assert nv.fit(810, 1440) is nv and Encoding("h264", "balanced", 0, "").fit(10, 10).hw == ""
+    edit = clipedit.Edit(parts=[clipedit.Part(0.0, 2.0)], crop=(0.0, 0.0, 0.3, 1.0))
+    info = clipedit.Info(10.0, 320, 180, 30.0, 1)
+    *_rest, args = clipedit.edit_graph(edit, info, "exact", encoding=nv)
+    assert args[args.index("-c:v") + 1] == "libx264"

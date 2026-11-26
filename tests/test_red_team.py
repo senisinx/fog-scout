@@ -23,9 +23,14 @@ OLD = time.time() - 400 * 86400          # older than every prune age the progra
 
 def _symlink_dir(target, link):
     """A directory link the way a normal program of the same user makes one (a junction on Windows needs no
-    privilege; os.symlink may) – skipped where the test cannot make it."""
+    privilege; os.symlink may) – skipped where the test cannot make it. 1.57.71: on Windows a junction (these tests
+    were skipped on every Windows without developer mode – exactly where the program runs elevated)."""
     try:
-        os.symlink(target, link, target_is_directory=True)
+        if WIN:
+            import _winapi
+            _winapi.CreateJunction(os.path.abspath(str(target)), os.path.abspath(str(link)))
+        else:
+            os.symlink(target, link, target_is_directory=True)
     except (OSError, NotImplementedError) as e:
         pytest.skip(f"cannot create a directory link here: {e}")
 
@@ -382,7 +387,7 @@ def test_rs_013_verified_a_queued_upload_cannot_point_outside_the_recordings_fol
     assert json.dumps(fsops.rel_path("/rec", "Farming/a.mp4"))
 
 
-def test_a_library_thumbnail_is_written_whole_and_never_through_a_link(tmp_path):
+def test_a_library_thumbnail_is_written_whole_and_never_through_a_link(tmp_path, dir_link):
     """CR-011 (code review): two editors' loaders wrote the same JPEG at once into a half picture; the cache
     folder swapped for a link was written through."""
     from PIL import Image
@@ -394,7 +399,7 @@ def test_a_library_thumbnail_is_written_whole_and_never_through_a_link(tmp_path)
     assert [n for n in os.listdir(tmp_path / "cache" / "clipthumbs") if n.endswith(".tmp")] == []
     elsewhere = tmp_path / "elsewhere"
     elsewhere.mkdir()
-    os.symlink(str(elsewhere), str(tmp_path / "cache" / "linked"))
+    dir_link(elsewhere, tmp_path / "cache" / "linked")
     linked = qt_library.ThumbLoader(str(tmp_path / "cache" / "linked"), None)
     linked._store(img, str(tmp_path / "cache" / "linked" / "b.jpg"))
     assert os.listdir(elsewhere) == []

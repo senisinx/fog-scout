@@ -359,6 +359,11 @@ def test_opencv_loads_no_plugin_dll_from_the_path_or_the_environment(tmp_path):
             "print(cv2.ocl.haveOpenCL(), sorted(k for k in os.environ if k.startswith('OPENCV_')))\n")
     out = subprocess.run([sys.executable, "-c", code], capture_output=True, text=True, cwd=root, env=env, timeout=120)
     assert out.returncode == 0, out.stderr
-    assert "libraryLoad" not in out.stderr and str(tmp_path) not in out.stderr, out.stderr
-    assert out.stdout.split()[0] == "False"
-    assert "OPENCV_CORE_PLUGIN_PATH" not in out.stdout and "OPENCV_PARALLEL_BACKEND" not in out.stdout
+    # 1.57.71 (deep review TEST-02, checked on Windows and Linux): OpenCV writes its DEBUG/INFO lines – the plugin
+    # loads too – to stdout; the test only looked at stderr and would not have seen a load. Both channels now, and
+    # the program's own line is found among OpenCV's (it was not always the first)
+    both = out.stdout + out.stderr
+    assert "libraryLoad" not in both and str(tmp_path) not in both, both
+    ours = [ln for ln in out.stdout.splitlines() if ln.startswith(("True ", "False "))]
+    assert len(ours) == 1 and ours[0].split()[0] == "False", out.stdout
+    assert "OPENCV_CORE_PLUGIN_PATH" not in ours[0] and "OPENCV_PARALLEL_BACKEND" not in ours[0]

@@ -97,3 +97,19 @@ def dir_link():
         else:
             os.symlink(str(target), str(link), target_is_directory=True)
     return make
+
+
+@pytest.fixture
+def file_link():
+    """1.57.71: make ``link`` a symlink to the file ``target`` if this system lets the test (Windows: developer mode
+    or the privilege) – True; False when it may not, the caller then checks what still can be checked. Before, seven
+    tests failed on every Windows without developer mode instead of skipping that part."""
+    def make(target, link) -> bool:
+        try:
+            os.symlink(str(target), str(link))
+        except (OSError, NotImplementedError) as e:
+            if WIN and getattr(e, "winerror", None) == 1314:          # ERROR_PRIVILEGE_NOT_HELD
+                return False
+            raise
+        return True
+    return make

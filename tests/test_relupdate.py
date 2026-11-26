@@ -654,7 +654,7 @@ def test_other_refusals_keep_their_raw_message(exc):
     assert relupdate.describe_error(exc) == str(exc)
 
 
-def test_a_link_planted_at_the_part_name_is_never_written_through(tmp_path):
+def test_a_link_planted_at_the_part_name_is_never_written_through(tmp_path, file_link):
     """CR-017 (code review): the download opened <setup>.part with open(…, "wb") – a link planted there by a program
     of the user pointed the elevated program's write at any file. Now the .part is made exclusively."""
     rel = relupdate.parse_release(_release())
@@ -662,7 +662,8 @@ def test_a_link_planted_at_the_part_name_is_never_written_through(tmp_path):
     folder.mkdir(parents=True)
     victim = tmp_path / "victim.dll"
     victim.write_bytes(b"system file")
-    os.symlink(str(victim), str(folder / ("FogScout-Setup-1.33.exe" + ".part")))
+    if not file_link(victim, folder / ("FogScout-Setup-1.33.exe" + ".part")):
+        pytest.skip("no file links without developer mode here (the Windows job of CI has the privilege)")
     with pytest.raises(OSError):
         relupdate.download(rel, str(tmp_path), opener=FakeGitHub())
     assert victim.read_bytes() == b"system file"
