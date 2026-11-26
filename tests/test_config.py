@@ -238,7 +238,8 @@ def test_claude_switches_and_recent_picks_of_the_wrong_type_read_as_their_defaul
     p.write_text(json.dumps({"palette_recent": ["a:scan"], "claude_on": True, "rec_port": "4455"}), encoding="utf-8")
     s = config.Settings(str(p))
     assert s.get("palette_recent") == ["a:scan"] and s.get("claude_on") is True
-    assert s.get("rec_port") == "4455"                  # only the TYPED keys are checked, nothing else changes
+    assert s.get("rec_port") == config.DEFAULTS["rec_port"] and s.fixed == ["rec_port"]   # 1.57.70 (STAB-01): every
+    # key with a default is checked against its type now – a port as text is no port (before: only the TYPED keys)
 
 
 def test_the_picked_claude_model_survives_a_restart(tmp_path):
@@ -287,3 +288,69 @@ def test_discords_keep_out_settings_are_dropped_on_load(tmp_path):
                                                                     "opacity": 0.7}}), encoding="utf-8")
     s = Settings(str(path))
     assert "keep_out_on" not in s["overlay"] and "keep_out" not in s["overlay"] and s["overlay"]["opacity"] == 0.7
+
+
+def test_a_readable_file_with_wrong_types_loads_the_defaults_for_those_keys(tmp_path):
+    """1.57.70 (deep review STAB-01, 156 of 1 980 fuzzed files stopped every start): a value whose type does not
+    fit its default, a number that is not finite or absurd, an out-of-range zoom – the default instead, the key
+    named in ``fixed`` (the log says it); the rest of the file stays."""
+    p = tmp_path / "settings.json"
+    p.write_text(json.dumps({"ui_zoom": 1e9, "languages": 5, "log_categories": 1, "youtube_queue": 7,
+                             "rec_port": "x", "overlay": {"opacity": [], "height": 0.4, "media_xy": [1, "a"]},
+                             "dark_mode": "no", "ui_language": "en"}), encoding="utf-8")
+    s = config.Settings(str(p))
+    d = config.DEFAULTS
+    assert s.load_error == "" and s["ui_language"] == "en" and s["overlay"]["height"] == 0.4
+    assert (s["ui_zoom"], s["languages"], s["log_categories"], s["youtube_queue"], s["rec_port"], s["dark_mode"]) == \
+        (d["ui_zoom"], d["languages"], d["log_categories"], d["youtube_queue"], d["rec_port"], d["dark_mode"])
+    assert s["overlay"]["opacity"] == d["overlay"]["opacity"] and s["overlay"]["media_xy"] == d["overlay"]["media_xy"]
+    assert sorted(s.fixed) == sorted(["ui_zoom", "languages", "log_categories", "youtube_queue", "rec_port",
+                                      "overlay.opacity", "overlay.media_xy", "dark_mode"])
+    p.write_text('{"settings_version": 1e999, "ui_zoom": 1.25}', encoding="utf-8")
+    s = config.Settings(str(p))                                    # raised OverflowError before
+    assert s.load_error == "" and s["ui_zoom"] == 1.25 and s.fixed == []
+    p.write_text(json.dumps({"rec_port": 10 ** 400}), encoding="utf-8")
+    assert config.Settings(str(p))["rec_port"] == d["rec_port"]
+    p.write_text(json.dumps({"clip_height": 720, "overlay": {"hud_scale": 1.5}}), encoding="utf-8")
+    s = config.Settings(str(p))                                    # pixels are no fraction: only overlay.height is
+    assert s["clip_height"] == 720 and s["overlay"]["hud_scale"] == 1.5 and s.fixed == []
+
+
+def test_a_start_that_failed_can_start_over_with_the_defaults(tmp_path, monkeypatch):
+    """1.57.70 (deep review STAB-01): a start that failed offers to reset settings.json (kept as .broken) – before,
+    every start stopped at the same value and the file had to be found and deleted by hand."""
+    from fogscout import __main__ as main
+    shown = []
+    monkeypatch.setattr(main, "_message", lambda text, error=False: shown.append(text))   # never a real message box
+    p = tmp_path / "settings.json"
+    p.write_text(json.dumps({"welcome_seen": True, "qt_geometry": "g", "hotkeys": {"x": "y"},
+                             "map_notes": {"coal": "note"}}), encoding="utf-8")
+    asked = []
+    main._start_failed("Traceback …", str(p), ask=lambda text: asked.append(text) or False)
+    assert len(asked) == 1 and "settings.json.broken" in asked[0] and not (tmp_path / "settings.json.broken").exists()
+    main._start_failed("Traceback …", str(p), ask=lambda text: True)
+    kept = json.loads((tmp_path / "settings.json.broken").read_text(encoding="utf-8"))
+    now = json.loads(p.read_text(encoding="utf-8"))
+    assert kept["hotkeys"] == {"x": "y"} and now["hotkeys"] == config.DEFAULTS["hotkeys"]
+    assert now["welcome_seen"] and now["qt_geometry"] == "g" and now["map_notes"] == {}   # nothing of the bad file
+    asked.clear()
+    main._start_failed("Traceback …", str(tmp_path / "missing.json"), ask=lambda text: asked.append(text) or True)
+    assert asked == [] and len(shown) == 1 and "Traceback" in shown[0]   # no settings: nothing to offer, only said
+
+
+def test_resetting_all_settings_keeps_the_notes_and_saves_a_copy_first(tmp_path):
+    """1.57.70 (deep review DATA-03): "Alle Einstellungen zurücksetzen" deleted the notes per map and killer and the
+    editor's templates without a word, and the daily backup holds no settings. Now those stay, and a copy of the
+    settings (as exported: no secrets) is written to backup/ first."""
+    cur = config.reset_data({})
+    cur.update({"map_notes": {"coal": "links"}, "killer_notes": {"Nurse": "x"}, "edit_templates": [{"n": 1}],
+                "claude_key": "dpapi:secret", "ui_zoom": 1.25})
+    data = config.reset_data(cur)
+    assert data["map_notes"] == {"coal": "links"} and data["killer_notes"] == {"Nurse": "x"}
+    assert data["edit_templates"] == [{"n": 1}] and data["ui_zoom"] == config.DEFAULTS["ui_zoom"]
+    assert data["claude_key"] == config.DEFAULTS["claude_key"]
+    assert config.reset_data(cur, keep_content=False)["map_notes"] == {}
+    path = config.save_before_reset(cur, str(tmp_path / "backup"), now=1_780_000_000)
+    saved = json.loads(open(path, encoding="utf-8").read())
+    assert os.path.basename(path).startswith("settings-") and saved["ui_zoom"] == 1.25 and "claude_key" not in saved
+    assert config.read_backup(path, {})["map_notes"] == {"coal": "links"}

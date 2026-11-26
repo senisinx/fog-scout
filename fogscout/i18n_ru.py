@@ -2772,8 +2772,6 @@ T = {
         'Общие',
     'Alle Einstellungen zurücksetzen':
         'Сбросить все настройки',
-    'Alle Einstellungen auf die Auslieferung zurücksetzen? Runden, Match-Daten und eigene Bilder bleiben. Das Programm startet danach neu.':
-        'Вернуть все настройки к исходному состоянию? Раунды, данные матчей и свои изображения сохранятся. После этого программа перезапустится.',
     'Alle Einstellungen zurückgesetzt.':
         'Все настройки сброшены.',
     'Standard wiederherstellen':
@@ -6172,4 +6170,16 @@ T = {
         'Запись чёрная – только оверлей, без изображения игры ({n}-й раунд подряд): {file}. OBS больше не показывает DBD: перезапустите DBD или OBS либо выберите в Настройки → Записи захват игры вместо захвата окна.',
     'Aufnahme zeigt nur ein stehendes Bild ({n}. Runde in Folge): {file}. OBS nimmt nicht das laufende Spiel auf – ein hängendes oder ein anderes Fenster (z. B. der Launcher): DBD oder OBS neu starten.':
         'На записи только неподвижная картинка ({n}-й раунд подряд): {file}. OBS не записывает запущенную игру – зависшее или другое окно (например, лаунчер): перезапустите DBD или OBS.',
+    'Alle Einstellungen auf die Auslieferung zurücksetzen? Runden, Match-Daten, eigene Bilder und Notizen bleiben; die bisherigen Einstellungen werden vorher unter backup gesichert (ohne Zugangsdaten). Das Programm startet danach neu.':
+        'Вернуть все настройки к исходному состоянию? Раунды, данные матчей, свои изображения и заметки сохранятся; текущие настройки сначала сохраняются в backup (без учётных данных). После этого программа перезапустится.',
+    'settings.json: unpassende Werte durch Standardwerte ersetzt: {names}.':
+        'settings.json: неподходящие значения заменены значениями по умолчанию: {names}.',
+    'Einstellungen auf Standard zurücksetzen? Die alte Datei bleibt als settings.json.broken erhalten. Danach Fog Scout neu starten.':
+        'Сбросить настройки к значениям по умолчанию? Старый файл сохранится как settings.json.broken. Затем снова запустите Fog Scout.',
+    'Die Einstellungen konnten nicht zurückgesetzt werden.':
+        'Не удалось сбросить настройки.',
+    'Die Einstellungen konnten nicht gesichert werden – nichts zurückgesetzt ({error}).':
+        'Не удалось сохранить настройки – ничего не сброшено ({error}).',
+    'Einstellungen vor dem Zurücksetzen gesichert: {name}':
+        'Настройки сохранены перед сбросом: {name}',
 }

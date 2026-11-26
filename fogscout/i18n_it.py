@@ -2772,8 +2772,6 @@ T = {
         'Generale',
     'Alle Einstellungen zurücksetzen':
         'Ripristina tutte le impostazioni',
-    'Alle Einstellungen auf die Auslieferung zurücksetzen? Runden, Match-Daten und eigene Bilder bleiben. Das Programm startet danach neu.':
-        'Riportare ogni impostazione allo stato di consegna? Round, dati partita e immagini personali restano. Il programma si riavvierà subito dopo.',
     'Alle Einstellungen zurückgesetzt.':
         'Tutte le impostazioni ripristinate.',
     'Standard wiederherstellen':
@@ -6172,4 +6170,16 @@ T = {
         "La registrazione è nera – solo l'overlay, nessuna immagine di gioco ({n}ª partita di fila): {file}. OBS non mostra più DBD: riavvia DBD o OBS, oppure in Impostazioni → Registrazioni scegli la cattura del gioco invece della cattura finestra.",
     'Aufnahme zeigt nur ein stehendes Bild ({n}. Runde in Folge): {file}. OBS nimmt nicht das laufende Spiel auf – ein hängendes oder ein anderes Fenster (z. B. der Launcher): DBD oder OBS neu starten.':
         "La registrazione mostra solo un'immagine ferma ({n}ª partita di fila): {file}. OBS non registra il gioco in corso – una finestra bloccata o un'altra finestra (ad es. il launcher): riavvia DBD o OBS.",
+    'Alle Einstellungen auf die Auslieferung zurücksetzen? Runden, Match-Daten, eigene Bilder und Notizen bleiben; die bisherigen Einstellungen werden vorher unter backup gesichert (ohne Zugangsdaten). Das Programm startet danach neu.':
+        'Ripristinare tutte le impostazioni allo stato di consegna? Round, dati partita, immagini personali e note restano; le impostazioni attuali vengono prima salvate in backup (senza credenziali). Il programma si riavvia dopo.',
+    'settings.json: unpassende Werte durch Standardwerte ersetzt: {names}.':
+        'settings.json: valori non adatti sostituiti con i valori predefiniti: {names}.',
+    'Einstellungen auf Standard zurücksetzen? Die alte Datei bleibt als settings.json.broken erhalten. Danach Fog Scout neu starten.':
+        'Ripristinare le impostazioni predefinite? Il vecchio file resta come settings.json.broken. Poi avvia di nuovo Fog Scout.',
+    'Die Einstellungen konnten nicht zurückgesetzt werden.':
+        'Non è stato possibile ripristinare le impostazioni.',
+    'Die Einstellungen konnten nicht gesichert werden – nichts zurückgesetzt ({error}).':
+        'Non è stato possibile salvare le impostazioni – nulla è stato ripristinato ({error}).',
+    'Einstellungen vor dem Zurücksetzen gesichert: {name}':
+        'Impostazioni salvate prima del ripristino: {name}',
 }

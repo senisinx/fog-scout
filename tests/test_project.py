@@ -265,3 +265,23 @@ def test_a_project_names_only_local_media_files():
     spec = musictrack.from_dict({"clips": [["\\\\attacker\\share\\song.mp3", 0, 0, 10],
                                            ["C:\\Musik\\song.mp3", 0, 0, 10]]})
     assert spec is not None and [c.path for c in spec.clips] == ["C:\\Musik\\song.mp3"]
+
+
+def test_a_number_the_parsers_cannot_take_never_breaks_a_project():
+    """1.57.70 (deep review STAB-06, reproduced): NaN, 10**400 or a list in a project field raised OverflowError/
+    ValueError/TypeError – the editor stayed at "Projekt wird gesucht …", saved nothing and closed without a word.
+    Every field parser now takes anything: a value it cannot use gets the default or drops out."""
+    from fogscout import annotate, inputtrack, musictrack, shorts
+    huge = 10 ** 400
+    nan = float("nan")
+    assert inputtrack.from_dict({"size": nan}) is not None and inputtrack.from_dict({"size": huge}) is not None
+    assert inputtrack.from_dict({"size": float("inf")}) is not None
+    spec = musictrack.from_dict({"clips": [["C:\\Musik\\a.mp3", 0, 0, 10]], "duck": [], "game_vol": huge,
+                                 "music_vol": nan, "fade_in": huge})
+    assert spec is not None and spec.duck == "medium" and spec.game_vol == 1.0
+    assert musictrack.from_dict({"clips": [["C:\\Musik\\a.mp3", huge, 0, 10]]}) is None
+    assert shorts.from_dict({"subs": [[huge, 1, "x"], [0, huge, "y"]], "title": "t"}) is not None
+    assert annotate.from_dict({"kind": "line", "pts": [[0.1, 0.1], [0.2, 0.2]], "size": huge}) is None
+    assert project._box([huge, 0, 0.5, 0.5]) is None
+    d = {"version": 2, "parts": [[0, 5]], "crop": [huge, 0, 1, 1], "censor": {"boxes": [[0, 0, 1, 1, 0, huge]]}}
+    project.validate(d, 10.0, [])                                     # never raises

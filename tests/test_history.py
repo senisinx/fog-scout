@@ -724,3 +724,27 @@ def test_a_farming_round_without_a_wait_counts_as_instant_for_bloodpoints_per_ho
           h.Round(t=5, seconds=500, map_id="a", map="A", role="survivor", farming=True, custom=True)]  # unknown
     ms = [Match(t=0, map="A", seconds=600, bp=10000) for _r in rs]
     assert dashboard.bp_rate(list(zip(rs, ms))).wait_s == 60 + 120 + 0 + 90 + 90
+
+
+def test_a_line_no_reader_can_take_is_kept_aside_and_never_deleted_by_a_correction(tmp_path):
+    """1.57.70 (deep review DATA-01, reproduced): _rewrite wrote only what could be read – an unreadable round line
+    vanished from the statistics and the next correction (set_balance, twice per round) deleted it for good. Now it
+    goes to rounds.jsonl.rejected first; a lost round with a number too big for a float no longer breaks the join."""
+    p = str(tmp_path / h.FILE)
+    t0 = 1_780_000_000.0
+    h.append(p, rnd("Coal Tower", 600, t=t0))
+    broken = '{"t": %r, "seconds": 1e300, "map_id": "x"}' % (t0 + 1000)
+    lost = json.dumps({"lost": True, "t": t0 + 2000, "map": "A", "reason": "x", "ping": 10 ** 400, "wait": 10 ** 400})
+    with open(p, "a", encoding="utf-8") as fh:
+        fh.write(broken + "\n" + lost + "\n")
+    lost_rounds = h.load_lost_rounds(p)                                # raised OverflowError before
+    assert len(lost_rounds) == 1 and lost_rounds[0].ping is None and lost_rounds[0].wait is None
+    h.set_balance(p, t0, 123456)
+    assert [r.balance for r in h.load(p)] == [123456]
+    with open(p + h.REJECTED, encoding="utf-8") as fh:
+        assert fh.read().splitlines() == [broken]
+    with open(p, encoding="utf-8") as fh:
+        assert broken not in fh.read()
+    h.set_balance(p, t0, 7)                                            # nothing odd left: nothing added again
+    with open(p + h.REJECTED, encoding="utf-8") as fh:
+        assert fh.read().splitlines() == [broken]

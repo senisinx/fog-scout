@@ -683,8 +683,9 @@ class SettingsTab:
     def _reset_all_settings(self):
         """1.2.19: back to the defaults (PC-specific values stay), then a restart like after an import."""
         if not self._ask(_("Alle Einstellungen zurücksetzen"),
-                         _("Alle Einstellungen auf die Auslieferung zurücksetzen? Runden, Match-Daten und eigene "
-                           "Bilder bleiben. Das Programm startet danach neu."), self._reset_all_settings,
+                         _("Alle Einstellungen auf die Auslieferung zurücksetzen? Runden, Match-Daten, eigene Bilder "
+                           "und Notizen bleiben; die bisherigen Einstellungen werden vorher unter backup gesichert "
+                           "(ohne Zugangsdaten). Das Programm startet danach neu."), self._reset_all_settings,
                          ok_text=_("Zurücksetzen"), danger=True):
             return
         self._reset_all_settings_go()
@@ -704,7 +705,15 @@ class SettingsTab:
             return
         if not self._quit_phase1(self._reset_all_settings_go):   # editor projects secured first, then again here
             return
-        from .config import reset_data
+        from .config import reset_data, save_before_reset
+        try:                                            # 1.57.70 (deep review DATA-03): first a copy, else no reset
+            kept = save_before_reset(self.settings.data, os.path.join(self.data_dir, "backup"))
+        except OSError as e:
+            self._inform(_("Alle Einstellungen zurücksetzen"),
+                         _("Die Einstellungen konnten nicht gesichert werden – nichts zurückgesetzt ({error}).",
+                           error=e))
+            return
+        self._log(_("Einstellungen vor dem Zurücksetzen gesichert: {name}", name=os.path.basename(kept)), "System")
         self.settings.data = reset_data(self.settings.data)
         self._no_bar_defaults(self.settings.data)       # 1.46.8: the defaults of this screen, like a first start
         self.settings.save()

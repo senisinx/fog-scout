@@ -13,6 +13,7 @@ Nothing here writes a file itself – projectsave does, through fsops."""
 from __future__ import annotations
 
 import json
+import logging
 import os
 import threading
 import time
@@ -23,6 +24,10 @@ from PySide6.QtWidgets import QApplication, QFrame, QHBoxLayout, QLabel, QMenu, 
 from . import filehash, project, projectsave, sequence
 from .projectsave import source_meta
 from .i18n import _
+
+log = logging.getLogger("fogscout")
+# 1.57.70 (deep review STAB-06): what a project file the parsers cannot take may raise while it is shown
+PROJECT_ERRORS = (TypeError, ValueError, ArithmeticError, AttributeError, KeyError, IndexError, RecursionError)
 
 SAVE_DELAY_MS = 1500
 SAVE_MAX_MS = 10000
@@ -288,8 +293,17 @@ class ProjectMixin:
             return None, None
 
     def _apply_data(self, data) -> dict | None:
-        """Show project ``data`` (format 1 or 2, field by field – project.validate); its view, or None."""
-        got = project.validate(data, float(self.info.duration or 0), self.parts or [], durations=self._durations())
+        """Show project ``data`` (format 1 or 2, field by field – project.validate); its view, or None.
+        1.57.70 (deep review STAB-06, reproduced): a number the parsers could not take (NaN, 10**400, a list) raised
+        here – the editor stayed at "Projekt wird gesucht …", saved nothing and let the window close without a word.
+        Now such a file is broken: None, ``_apply_failed`` set, the caller says so and keeps the file."""
+        self._apply_failed = False
+        try:
+            got = project.validate(data, float(self.info.duration or 0), self.parts or [], durations=self._durations())
+        except PROJECT_ERRORS as e:
+            log.info("Projektdatei nicht anwendbar (%s)", type(e).__name__)
+            self._apply_failed = True
+            return None
         if got is None:
             return None
         state, extra, view, notes = got
@@ -320,6 +334,9 @@ class ProjectMixin:
         view = self._apply_data(data)
         if view is None:
             self._start_new(quiet=True)
+            if self._apply_failed:                                # 1.57.70 (STAB-06): say it, as for an unreadable file
+                self.notice.show_notice("broken", _("Die Projektdatei ist unlesbar und wurde nicht geladen."),
+                                        [("ignore", _("Neu beginnen"))])
             return
         self._lock_editing(False)
         self.notice.clear()

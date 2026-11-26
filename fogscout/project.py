@@ -111,7 +111,7 @@ def _box(v, timed: bool = False) -> list | None:
     would suddenly hide all the time instead – or nothing)."""
     try:
         vals = [float(a) for a in v]
-    except (TypeError, ValueError):
+    except (TypeError, ValueError, OverflowError):     # 1.57.70 (STAB-06): 10**400
         return None
     if len(vals) == 6 and timed:
         t0, t1 = vals[4], vals[5]

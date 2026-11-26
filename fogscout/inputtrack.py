@@ -9,6 +9,7 @@ the finished clip's seconds: [(t0, t1, code)] – one picture per distinct code,
 from __future__ import annotations
 
 import bisect
+import math
 from dataclasses import dataclass
 
 from . import inputs, sequence
@@ -50,7 +51,11 @@ def from_dict(d) -> InputSpec | None:
     if d.get("corner") in CORNERS:
         s.corner = d["corner"]
     size = d.get("size")
-    if isinstance(size, (int, float)) and not isinstance(size, bool):
+    try:                                   # 1.57.70 (deep review STAB-06): NaN, inf, 10**400 raised here
+        size = float(size) if isinstance(size, (int, float)) and not isinstance(size, bool) else None
+    except OverflowError:
+        size = None
+    if size is not None and math.isfinite(size):
         s.size = int(min(SIZE_RANGE[1], max(SIZE_RANGE[0], round(size))))
     if isinstance(d.get("backdrop"), bool):
         s.backdrop = d["backdrop"]
