@@ -88,8 +88,14 @@ def test_from_start_bat_the_restart_is_unchanged():
     assert restart.process_name() == "pythonw.exe"
 
 
-def test_the_taskbar_button_of_the_packaged_program_starts_the_exe(packaged):
+def test_the_taskbar_button_of_the_packaged_program_starts_the_exe(packaged, monkeypatch):
+    # 1.57.71: "installed" was read from the real disk – on a PC with Fog Scout installed at EXE's folder the test saw
+    # unins000.exe and failed; both cases are set here
+    from fogscout import paths
+    monkeypatch.setattr(paths, "installed", lambda: False)
     assert autostart.relaunch_command() == f'"{EXE}"'      # not installed (the CI folder): no task to run
+    monkeypatch.setattr(paths, "installed", lambda: True)
+    assert autostart.relaunch_command().endswith('schtasks.exe" /run /tn "Fog Scout"')
 
 
 def test_the_packaged_program_renews_its_own_tasks_and_checks_releases_not_git(packaged, monkeypatch):
@@ -229,7 +235,7 @@ def test_the_self_check_really_runs_as_a_child_from_the_source_tree(tmp_path):
     assert {"Dateien", "Kartenbilder", "Module", "OCR", "Qt"} <= set(names), res
 
 
-def test_the_self_check_never_writes_through_a_link_in_the_data_folder(tmp_path):
+def test_the_self_check_never_writes_through_a_link_in_the_data_folder(tmp_path, dir_link, file_link):
     """V-002 (code review): the elevated program's check wrote its result with open() – a link planted at
     cache/selftest.json pointed the write at any file; a cache folder swapped for a link is not used at all."""
     import json as _json
@@ -239,7 +245,7 @@ def test_the_self_check_never_writes_through_a_link_in_the_data_folder(tmp_path)
     cache = tmp_path / "data" / "cache"
     cache.mkdir(parents=True)
     out = cache / "selftest.json"
-    os.symlink(str(victim), str(out))
+    file_link(victim, out)                                    # where the system allows a file link (else: plain)
 
     def child(args, **kw):
         from fogscout import fsops
@@ -248,6 +254,7 @@ def test_the_self_check_never_writes_through_a_link_in_the_data_folder(tmp_path)
     assert res["passed"] == ["Dateien"] and victim.read_text() == "keep me" and not os.path.islink(out)
     linked = tmp_path / "data2"
     linked.mkdir()
-    os.symlink(str(tmp_path / "elsewhere"), str(linked / "cache"))
+    (tmp_path / "elsewhere").mkdir()
+    dir_link(tmp_path / "elsewhere", linked / "cache")         # a junction on Windows
     res = selftest.run_child(str(tmp_path), str(linked / "cache" / "selftest.json"), run=child)
     assert res["ok"] is False and "Link" in res["failed"][0]

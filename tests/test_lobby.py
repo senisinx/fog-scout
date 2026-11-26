@@ -704,7 +704,7 @@ def test_a_lasting_fault_of_a_look_is_logged_once_a_minute_not_every_second(tmp_
         assert len(caplog.records) == 4 and len(posted) == 2
 
 
-def test_the_debug_pictures_never_prune_through_a_junction_nor_foreign_files(tmp_path, monkeypatch):
+def test_the_debug_pictures_never_prune_through_a_junction_nor_foreign_files(tmp_path, monkeypatch, dir_link):
     """CR-001 (code review): the elevated program pruned debug/<x> with a raw os.remove – a debug folder swapped for
     a junction/link had its target's files deleted, and foreign files inside were deleted as well. Now: a linked
     debug folder is neither written nor pruned, and only our own stamped names are ever deleted."""
@@ -718,19 +718,19 @@ def test_the_debug_pictures_never_prune_through_a_junction_nor_foreign_files(tmp
         (victim / f"keep{i:02d}.txt").write_text("x")
     data = tmp_path / "data"
     (data / "debug").mkdir(parents=True)
-    os.symlink(str(victim), str(data / "debug" / "result"))           # debug/result is a link
+    dir_link(victim, data / "debug" / "result")                        # debug/result is a link (Windows: a junction)
     w.data_dir = str(data)
     monkeypatch.setattr(worker, "RESULT_MISSES_KEPT", 1)
     w._result_miss(np.zeros((30, 200, 3), np.uint8), "X")
     w._save_globe(np.zeros((10, 10, 3), np.uint8), "PLAY")
     assert len(os.listdir(victim)) == 30                              # nothing deleted, nothing written there
     import shutil
-    shutil.rmtree(str(data / "debug"))                                # the debug folder itself a link
-    os.symlink(str(victim), str(data / "debug"))
+    shutil.rmtree(str(data / "debug"))                                # the debug folder itself a link (rmtree
+    dir_link(victim, data / "debug")                                  # never empties a junction's target, 3.8+)
     w._result_miss(np.zeros((30, 200, 3), np.uint8), "X")
     assert sorted(os.listdir(victim)) == [f"keep{i:02d}.txt" for i in range(30)]
     # a plain folder: foreign files stay, only our own stamped names are pruned
-    os.remove(str(data / "debug"))
+    (os.rmdir if sys.platform == "win32" else os.remove)(str(data / "debug"))     # a junction goes with rmdir
     res = data / "debug" / "result"
     res.mkdir(parents=True)
     (res / "notes.jpg").write_text("x")

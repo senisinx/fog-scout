@@ -312,7 +312,7 @@ def test_matches_a_restore_pushes_beyond_the_limit_go_to_the_archive(tmp_path, m
     assert [json.loads(line)["t"] for line in open(arch, encoding="utf-8")] == [1.70e9 + i * 1000 for i in range(4)]
 
 
-def test_the_archive_never_packs_through_a_link_and_is_written_whole(tmp_path, monkeypatch):
+def test_the_archive_never_packs_through_a_link_and_is_written_whole(tmp_path, monkeypatch, dir_link, file_link):
     """CR-007 (code review): os.path.islink does not see a Windows junction – user_maps swapped for one packed the
     target's files; a failure left a half ZIP under the user's name. Now: fsops.is_link/linked_root, limits, and
     the ZIP is written to a temp file and only then takes the name."""
@@ -322,11 +322,11 @@ def test_the_archive_never_packs_through_a_link_and_is_written_whole(tmp_path, m
     secret = tmp_path / "elsewhere"
     secret.mkdir()
     (secret / "private.txt").write_text("x")
-    os.symlink(str(secret), str(data / "user_maps"))                  # the folder itself a link
+    dir_link(secret, data / "user_maps")                               # the folder itself a link
     (data / "corpus").mkdir()
     (data / "corpus" / "a.json").write_text("{}")
-    os.symlink(str(secret), str(data / "corpus" / "sub"))              # a folder inside a link
-    os.symlink(str(secret / "private.txt"), str(data / "corpus" / "b.json"))
+    dir_link(secret, data / "corpus" / "sub")                          # a folder inside a link
+    file_link(secret / "private.txt", data / "corpus" / "b.json")       # a file link (where the system allows one)
     dest = tmp_path / "out.zip"
     assert backups.archive(str(data), str(dest), {}) == 2               # the settings and corpus/a.json
     with zipfile.ZipFile(dest) as z:

@@ -2939,7 +2939,7 @@ def test_a_timeout_in_stoprecord_keeps_the_round_and_is_tried_again(obs, tmp_pat
 
 
 # ---- CR-007 (code review): looked at again right before a move or delete
-def test_the_last_look_before_a_move_needs_the_file_and_no_link_below_the_folder(tmp_path):
+def test_the_last_look_before_a_move_needs_the_file_and_no_link_below_the_folder(tmp_path, dir_link):
     folder = tmp_path / "Aufnahmen"
     (folder / "sub").mkdir(parents=True)
     video = folder / "sub" / "a.mkv"
@@ -2950,8 +2950,8 @@ def test_the_last_look_before_a_move_needs_the_file_and_no_link_below_the_folder
     elsewhere = tmp_path / "elsewhere"
     elsewhere.mkdir()
     (elsewhere / "b.mkv").write_bytes(b"x")
-    os.symlink(str(elsewhere), str(folder / "linked"))                           # a junction below our folder
+    dir_link(elsewhere, folder / "linked")                                       # a junction below our folder
     assert obsrec.obs_file(str(folder / "linked" / "b.mkv"), inside=str(folder), strict=True) == ""
-    os.symlink(str(folder), str(tmp_path / "chosen"))                            # the folder itself may be a link
+    dir_link(folder, tmp_path / "chosen")                                        # the folder itself may be a link
     assert obsrec.obs_file(str(tmp_path / "chosen" / "sub" / "a.mkv"), inside=str(tmp_path / "chosen"),
                            strict=True) != ""

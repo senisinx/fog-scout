@@ -1544,6 +1544,8 @@ def edit_graph(edit: Edit, info: Info, mode: str = "exact", target_mb: float = D
             chains.append(flt)
             acur = mlabel
     sound_out = acur is not None and (sound or music is not None)
+    if mode != "shorts":                                           # 1.57.71 (WIN-02): a small crop – the CPU encodes
+        enc = enc.fit(out_w, out_h)                                # (shorts: always the 1080×1920 canvas)
     post = []
     args = []
     if mode == "discord":
