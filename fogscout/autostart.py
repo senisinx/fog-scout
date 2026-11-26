@@ -177,13 +177,20 @@ def powershell(script: str, timeout: float = 60.0):
     """Run a PowerShell script (encoded: no quoting trouble). Returns (ok, output). 1.38.57: the scheduled-task
     cmdlets come from Windows' own module by its full path (imported first), never from a module search."""
     tasks = _system_exe("WindowsPowerShell", "v1.0", "Modules", "ScheduledTasks", "ScheduledTasks.psd1")
+    # 1.57.69 (deep review WIN-01, reproduced on a German Windows): PowerShell wrote its output in the OEM code page,
+    # Python read it as ANSI – one "ü" (0x81 in cp850) and the whole output, the error message too, came back empty.
+    # Now UTF-8 on both sides (the line follows the module import, which stays first); a byte that still does not
+    # fit becomes "�" instead of losing the text.
+    utf8 = "[Console]::OutputEncoding = [System.Text.UTF8Encoding]::new($false)\n"
     if "ScheduledTask" in script:
-        script = f"Import-Module -Name {_q(tasks)} -ErrorAction Stop\n" + script
+        script = f"Import-Module -Name {_q(tasks)} -ErrorAction Stop\n" + utf8 + script
+    else:
+        script = utf8 + script
     enc = base64.b64encode(script.encode("utf-16-le")).decode("ascii")
     try:
         r = subprocess.run([_system_exe("WindowsPowerShell", "v1.0", "powershell.exe"), "-NoProfile", "-NonInteractive", "-ExecutionPolicy", "Bypass",
-                            "-EncodedCommand", enc], capture_output=True, text=True, timeout=timeout,
-                           env=powershell_env(), creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0))
+                            "-EncodedCommand", enc], capture_output=True, text=True, encoding="utf-8", errors="replace",
+                           timeout=timeout, env=powershell_env(), creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0))
     except (OSError, subprocess.TimeoutExpired) as e:
         return False, str(e)
     out = (r.stdout or "").strip() or (r.stderr or "").strip()

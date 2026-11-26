@@ -93,9 +93,15 @@ def _setup_logging(data=None):
         from .rename import migrate
         moved = migrate(ROOT)                  # 1.9: crash files/log/icon of the old name, before the log opens
     _keep_old_logs(data)
-    logging.basicConfig(
-        filename=os.path.join(data, "fogscout.log"), filemode="w", level=logging.INFO,
-        format="%(asctime)s %(levelname)s %(message)s", encoding="utf-8")
+    # 1.57.69 (deep review SEC-04, reproduced): basicConfig(filename=…, filemode="w") opened the name even when it was
+    # a link – the elevated program cut and overwrote its target at every start. Now never through a link; when the
+    # name is one (or the file cannot be opened) there is no log file this session, the program still starts.
+    from .fsops import open_own_for_write
+    try:
+        handler = logging.StreamHandler(open_own_for_write(os.path.join(data, "fogscout.log")))
+    except OSError:
+        handler = logging.NullHandler()
+    logging.basicConfig(handlers=[handler], level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
     for h in logging.getLogger().handlers:
         h.addFilter(HomeFilter())
     if moved:
@@ -113,9 +119,10 @@ def _enable_crash_log(root=ROOT):
     global _crash_fh
     import faulthandler
     from .diagnose import CRASH_FILE, keep_crash
+    from .fsops import open_own_for_write
     keep_crash(root)
     try:
-        _crash_fh = open(os.path.join(root, CRASH_FILE), "w", encoding="utf-8")
+        _crash_fh = open_own_for_write(os.path.join(root, CRASH_FILE))     # 1.57.69 (SEC-04): never through a link
         faulthandler.enable(_crash_fh, all_threads=True)
     except OSError:
         _crash_fh = None

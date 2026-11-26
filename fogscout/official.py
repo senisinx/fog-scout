@@ -420,37 +420,50 @@ def take_downloads(folder: str, store: str, now=None) -> Taken:
     """Read the userscript's files from ``folder`` into ``store`` and delete them."""
     res = Taken()
     for path in pending(folder):
+        # 1.57.69 (deep review SEC-02, reproduced with a junction on Windows): read and deleted through one handle that
+        # nobody else can open meanwhile – what goes is the very file that was read and found ours. Before, it was
+        # deleted by name after the merge: a download folder swapped for a junction in between made the elevated
+        # program delete a file of that name wherever the junction pointed.
         try:
-            if os.path.getsize(path) > MAX_FILE:
-                res.foreign.append(path)
-                continue
-            with open(path, encoding="utf-8") as fh:
-                data = json.load(fh)
-        except (OSError, ValueError):
+            fh = fsops.ExclusiveHandle(path, plain=True)
+        except fsops.NotInside:           # a link of that name: not ours
+            res.foreign.append(path)
+            continue
+        except OSError:                   # still being written (the browser holds it), locked, gone
             res.unreadable.append(path)
             continue
-        except RecursionError:            # 1.8.38: nested deeper than json can read – not ours
-            res.foreign.append(path)
-            continue
-        try:
-            matches, script = parse(data, now)
-        except Exception:                 # 1.8.38: any other shape (before: a TypeError ended every later import)
-            res.foreign.append(path)
-            continue
-        if matches:
-            known = {round(m.t) for m in load(store)} | {round(m.t) for m in res.fresh}
-            res.fresh.extend(m for m in matches if round(m.t) not in known)
-            new, gap = merge(store, matches)
-            res.new += new
-            if gap:
-                res.gaps.append(gap)
-        res.files += 1
-        res.matches += len(matches)
-        res.script = script if not res.script else min(res.script, script)
-        try:
-            os.remove(path)
-        except OSError as e:
-            res.undeleted.append((path, str(e)))
+        with fh:
+            try:
+                raw = fh.read(MAX_FILE)
+                if len(raw) > MAX_FILE:
+                    res.foreign.append(path)
+                    continue
+                data = json.loads(raw.decode("utf-8"))
+            except (OSError, ValueError):
+                res.unreadable.append(path)
+                continue
+            except RecursionError:        # 1.8.38: nested deeper than json can read – not ours
+                res.foreign.append(path)
+                continue
+            try:
+                matches, script = parse(data, now)
+            except Exception:             # 1.8.38: any other shape (before: a TypeError ended every later import)
+                res.foreign.append(path)
+                continue
+            if matches:
+                known = {round(m.t) for m in load(store)} | {round(m.t) for m in res.fresh}
+                res.fresh.extend(m for m in matches if round(m.t) not in known)
+                new, gap = merge(store, matches)
+                res.new += new
+                if gap:
+                    res.gaps.append(gap)
+            res.files += 1
+            res.matches += len(matches)
+            res.script = script if not res.script else min(res.script, script)
+            try:
+                fh.delete()
+            except OSError as e:
+                res.undeleted.append((path, str(e)))
     return res
 
 

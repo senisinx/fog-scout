@@ -162,6 +162,42 @@ def test_a_linked_log_name_moves_nothing(tmp_path):
     assert (tmp_path / "fogscout.log").read_text(encoding="utf-8") == "jetzt" and target.read_text(encoding="utf-8") == "fremd"
 
 
+def test_the_log_and_the_crash_file_are_never_opened_through_a_link(tmp_path, dir_link):
+    """1.57.69 (deep review SEC-04, reproduced): logging.basicConfig(filename=…, filemode="w") opened fogscout.log even
+    when the name was a link – the elevated program cut and overwrote its target at every start. Now a link at the
+    log's or the crash file's name is not followed: no log file this session, the start goes on."""
+    target = tmp_path / "elsewhere"
+    target.mkdir()
+    data = tmp_path / "data"
+    data.mkdir()
+    dir_link(target, data / "fogscout.log")
+    dir_link(target, data / diagnose.CRASH_FILE)
+    r = _run("import sys, logging\nfrom fogscout import __main__ as m\n"
+             "m._setup_logging(sys.argv[1] + '/data')\nlogging.getLogger('fogscout').info('probe')\n"
+             "m._crash_log_clear(sys.argv[1] + '/data')\nprint('started')\n", tmp_path)
+    assert r.returncode == 0 and "started" in r.stdout, r.stderr
+    assert list(target.iterdir()) == []
+
+
+def test_the_log_is_written_to_a_plain_file_and_never_to_a_second_hard_link(tmp_path):
+    """1.57.69 (SEC-04): the log file of the data folder opens fresh; a file of that name with a second hard link
+    (that could be any file of the user) is not written."""
+    from fogscout import fsops
+    data = tmp_path / "data"
+    data.mkdir()
+    r = _run("import sys, logging\nfrom fogscout import __main__ as m\n"
+             "m._setup_logging(sys.argv[1] + '/data')\nlogging.getLogger('fogscout').info('Probe-Zeile')\n"
+             "logging.shutdown()\n", tmp_path)
+    assert r.returncode == 0, r.stderr
+    assert "Probe-Zeile" in (data / "fogscout.log").read_text(encoding="utf-8")
+    victim = tmp_path / "victim.txt"
+    victim.write_text("bleibt", encoding="utf-8")
+    os.link(str(victim), str(tmp_path / "hard.log"))
+    with pytest.raises(fsops.NotInside):
+        fsops.open_own_for_write(str(tmp_path / "hard.log"))
+    assert victim.read_text(encoding="utf-8") == "bleibt"
+
+
 def test_the_diagnosis_shows_the_warnings_of_the_session_before(tmp_path, monkeypatch):
     """1.57.60: "Diagnose kopieren" after a restart – the last warnings/errors of fogscout.log.1, masked."""
     home = os.path.expanduser("~")

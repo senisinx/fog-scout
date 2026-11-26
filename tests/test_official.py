@@ -196,6 +196,46 @@ def test_an_odd_file_never_blocks_the_import_of_the_others(tmp_path):
     assert set(stored) == {T0, T0 + 600, T0 + 1200} and stored[T0].role == "" and stored[T0].character == ""   # odd fields left empty
 
 
+def test_a_download_folder_swapped_for_a_link_while_reading_never_costs_a_file_elsewhere(tmp_path, monkeypatch,
+                                                                                         dir_link):
+    """1.57.69 (deep review SEC-02, reproduced on Windows with a junction): the export was deleted by name after the
+    merge – a folder swapped for a link in between made the elevated program delete a file of that name wherever the
+    link pointed. Now the file that was read goes, through the handle it was read with; the other one stays."""
+    dl, other, store = tmp_path / "Downloads", tmp_path / "other", str(tmp_path / o.FILE)
+    dl.mkdir()
+    other.mkdir()
+    write(dl, "fogscout-matches.json", export(entry(T0)))
+    victim = write(other, "fogscout-matches.json", export(entry(T0 + 600)))
+    real_merge = o.merge
+    swapped = []
+
+    def merge_and_swap(path, matches):
+        out = real_merge(path, matches)
+        try:
+            os.rename(str(dl), str(dl) + "-moved")
+        except PermissionError:           # Windows: the open handle keeps its folder from being renamed at all
+            return out
+        dir_link(other, dl)
+        swapped.append(True)
+        return out
+    monkeypatch.setattr(o, "merge", merge_and_swap)
+    res = o.take_downloads(str(dl), store, now=T0 + 3600)
+    assert os.path.exists(victim)                                              # the file elsewhere stays
+    read = os.path.join(str(dl) + "-moved" if swapped else str(dl), "fogscout-matches.json")
+    assert not os.path.exists(read) and res.files == 1 and res.undeleted == []   # the one read is gone
+    assert [m.t for m in o.load(store)] == [T0]
+
+
+def test_a_link_with_the_export_name_is_never_read_or_deleted(tmp_path, dir_link):
+    """1.57.69 (SEC-02): the name itself a link (here to a folder) – not followed, not ours, left alone."""
+    dl, other, store = tmp_path / "Downloads", tmp_path / "other", str(tmp_path / o.FILE)
+    dl.mkdir()
+    other.mkdir()
+    dir_link(other, dl / "fogscout-matches.json")
+    res = o.take_downloads(str(dl), store, now=T0)
+    assert res.files == 0 and os.path.isdir(other)
+
+
 def test_take_downloads_skips_huge_files(tmp_path, monkeypatch):
     monkeypatch.setattr(o, "MAX_FILE", 10)
     big = write(tmp_path, "fogscout-matches.json", export(entry(T0)))
