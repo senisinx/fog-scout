@@ -218,7 +218,12 @@ class RecordingsTab:
                                     command=lambda: self._reveal_rec("st.more.obs"))
         # 1.11.14 (user picked "leere Zustände mit Handlung"): nothing recorded yet – the next step instead of an empty
         # table (the button while recording is off, the note while it is on)
-        self.rec_setup_btn = ui.Button(f, text=_("Aufnahmen einrichten …"), command=self._reveal_rec)
+        # design review 26.11.2026: the page with recording off was two grey buttons on an empty page – what recording
+        # gives, then its one main action in the accent
+        self.rec_offer_label = ui.Label(f, text=_("Mit OBS nimmt Fog Scout jede Runde von selbst auf und benennt sie "
+                                                  "nach Map und Rolle. F8 speichert einen Clip, der Editor schneidet "
+                                                  "ihn."), wraplength=560)
+        self.rec_setup_btn = ui.primary(ui.Button(f, text=_("Aufnahmen einrichten …"), command=self._reveal_rec))
         self.rec_empty_var = ui.StringVar(value="")
         self.rec_empty_label = ui.Label(f, textvariable=self.rec_empty_var, wraplength=560)
 
@@ -975,7 +980,8 @@ class RecordingsTab:
         self.rec_empty_var.set(_("Noch keine Aufnahmen – OBS nimmt ab dem nächsten Map-Banner auf. Runden erscheinen "
                                  "hier, Clips (F8 oder aus dem Editor) im Reiter „Clips“.") if on and empty else "")
         below = None              # placed in the page's order, from the bottom up: before the next one that is shown
-        for w, show in reversed(((self.rec_setup_btn, not on and empty), (self.rec_empty_label, on and empty),
+        for w, show in reversed(((self.rec_offer_label, not on and empty), (self.rec_setup_btn, not on and empty),
+                                 (self.rec_empty_label, on and empty),
                                  (self.rec_empty_shots, empty), (self.rec_nb, not empty))):
             if show and not w.winfo_manager():
                 opts = dict(fill="both", expand=True) if w is self.rec_nb else dict(anchor="w")

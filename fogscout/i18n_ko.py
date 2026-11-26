@@ -6182,4 +6182,6 @@ T = {
         '설정을 저장할 수 없습니다 – 아무것도 초기화하지 않았습니다({error}).',
     'Einstellungen vor dem Zurücksetzen gesichert: {name}':
         '초기화 전에 설정을 저장했습니다: {name}',
+    'Mit OBS nimmt Fog Scout jede Runde von selbst auf und benennt sie nach Map und Rolle. F8 speichert einen Clip, der Editor schneidet ihn.':
+        'OBS와 함께 쓰면 Fog Scout가 라운드마다 자동으로 녹화하고 맵과 역할로 이름을 붙입니다. F8로 클립을 저장하고 편집기에서 자릅니다.',
 }

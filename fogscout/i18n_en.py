@@ -4659,4 +4659,6 @@ EN = {
         'The settings could not be saved – nothing was reset ({error}).',
     'Einstellungen vor dem Zurücksetzen gesichert: {name}':
         'Settings saved before the reset: {name}',
+    'Mit OBS nimmt Fog Scout jede Runde von selbst auf und benennt sie nach Map und Rolle. F8 speichert einen Clip, der Editor schneidet ihn.':
+        'With OBS, Fog Scout records every round by itself and names it after the map and your role. F8 saves a clip, the editor cuts it.',
 }
