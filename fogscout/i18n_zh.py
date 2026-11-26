@@ -6182,4 +6182,6 @@ T = {
         '无法保存设置——未重置任何内容（{error}）。',
     'Einstellungen vor dem Zurücksetzen gesichert: {name}':
         '重置前已保存设置：{name}',
+    'Mit OBS nimmt Fog Scout jede Runde von selbst auf und benennt sie nach Map und Rolle. F8 speichert einen Clip, der Editor schneidet ihn.':
+        '配合 OBS，Fog Scout 会自动录制每个对局，并按地图和角色命名。F8 保存片段，编辑器负责剪辑。',
 }

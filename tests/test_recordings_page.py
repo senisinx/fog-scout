@@ -391,7 +391,8 @@ def test_the_empty_page_keeps_its_order_when_recording_is_switched(app_root, tmp
     _settings(app_root, rec_folder=_mkdir(str(tmp_path / "rec")))
     app = App(str(app_root), simulate=str(app_root / "sim"))
     try:
-        own = (app.rec_setup_btn, app.rec_empty_label, app.rec_empty_shots, app.rec_nb)
+        own = (app.rec_offer_label, app.rec_setup_btn, app.rec_empty_label, app.rec_empty_shots, app.rec_nb)
+        assert app.rec_setup_btn._dbdms_primary          # design review: the one main action of the empty page
 
         def placed():
             return [w for w in app.rec_nb.master.placed_children() if w in own]
@@ -399,7 +400,8 @@ def test_the_empty_page_keeps_its_order_when_recording_is_switched(app_root, tmp
         for on in (False, True, False, True):
             app.settings.set("rec_on", on)
             app._rec_render(force=True)
-            assert placed() == [app.rec_empty_label if on else app.rec_setup_btn, app.rec_empty_shots]
+            want = [app.rec_empty_label] if on else [app.rec_offer_label, app.rec_setup_btn]   # off: what it gives
+            assert placed() == want + [app.rec_empty_shots]
         _pictures(tmp_path / "mine")
         app._shot_folder_chosen(str(tmp_path / "mine"))
         assert placed() == [app.rec_nb]

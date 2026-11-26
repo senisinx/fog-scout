@@ -6182,4 +6182,6 @@ T = {
         'Non è stato possibile salvare le impostazioni – nulla è stato ripristinato ({error}).',
     'Einstellungen vor dem Zurücksetzen gesichert: {name}':
         'Impostazioni salvate prima del ripristino: {name}',
+    'Mit OBS nimmt Fog Scout jede Runde von selbst auf und benennt sie nach Map und Rolle. F8 speichert einen Clip, der Editor schneidet ihn.':
+        "Con OBS, Fog Scout registra da solo ogni round e lo nomina con mappa e ruolo. F8 salva una clip, l'editor la taglia.",
 }

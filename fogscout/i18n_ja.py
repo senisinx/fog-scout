@@ -6182,4 +6182,6 @@ T = {
         '設定を保存できませんでした – 何もリセットしていません（{error}）。',
     'Einstellungen vor dem Zurücksetzen gesichert: {name}':
         'リセット前に設定を保存しました: {name}',
+    'Mit OBS nimmt Fog Scout jede Runde von selbst auf und benennt sie nach Map und Rolle. F8 speichert einen Clip, der Editor schneidet ihn.':
+        'OBS と組み合わせると、Fog Scout は各ラウンドを自動で録画し、マップとロールで名前を付けます。F8 でクリップを保存し、エディターで編集します。',
 }

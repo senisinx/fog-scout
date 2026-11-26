@@ -6182,4 +6182,6 @@ T = {
         'Не удалось сохранить настройки – ничего не сброшено ({error}).',
     'Einstellungen vor dem Zurücksetzen gesichert: {name}':
         'Настройки сохранены перед сбросом: {name}',
+    'Mit OBS nimmt Fog Scout jede Runde von selbst auf und benennt sie nach Map und Rolle. F8 speichert einen Clip, der Editor schneidet ihn.':
+        'С OBS Fog Scout сам записывает каждый раунд и называет его по карте и роли. F8 сохраняет клип, редактор его обрезает.',
 }
