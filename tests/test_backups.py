@@ -342,3 +342,18 @@ def test_the_archive_never_packs_through_a_link_and_is_written_whole(tmp_path, m
         backups.archive(str(data), str(dest), {})
     assert dest.read_bytes() == b"the user's old file"                 # no half ZIP, no temp file left
     assert [n for n in os.listdir(tmp_path) if n.endswith(".tmp")] == []
+
+
+def test_a_round_with_a_line_separator_in_its_text_comes_back(tmp_path):
+    """1.57.70 (deep review DATA-02, reproduced: 3 saved, 1 restored): splitlines() also split at U+2028, U+2029 and
+    U+0085, which json writes raw – such a round fell apart and was silently left out. Now split at "\\n" only."""
+    import json
+    from fogscout import history
+    rounds = "".join(json.dumps({"t": 1000.0 + i, "seconds": 600, "map_id": "coal", "map": "A" + sep + "B"},
+                                ensure_ascii=False) + "\n" for i, sep in enumerate(("\u2028", "\u2029", "\u0085")))
+    p = str(tmp_path / "s.zip")
+    _zip(p, {"rounds.jsonl": rounds.encode("utf-8")})
+    now = str(tmp_path / "now")
+    os.makedirs(now)
+    assert backups.restore(now, p)["rounds"] == 3
+    assert len(history.load(os.path.join(now, history.FILE))) == 3

@@ -51,7 +51,7 @@ class ShortSpec:
 def _finite(v):
     try:
         f = float(v)
-    except (TypeError, ValueError):
+    except (TypeError, ValueError, OverflowError):     # 1.57.70 (STAB-06): 10**400
         return None
     return f if math.isfinite(f) else None
 

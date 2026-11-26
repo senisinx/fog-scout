@@ -210,6 +210,9 @@ class App(ServerTab, StatsTab, ExportDialog, RecordingsTab, DiscordPresence, Spo
                         "nichts gespeichert.", error=self.settings.load_error) if self.settings.frozen else
                       _("settings.json war nicht lesbar ({error}) – Standardwerte geladen, die alte Datei liegt als "
                         "settings.json.broken daneben.", error=self.settings.load_error), "Fehler")
+        if self.settings.fixed:                 # 1.57.70 (STAB-01): key names only – never a value
+            self._log(_("settings.json: unpassende Werte durch Standardwerte ersetzt: {names}.",
+                        names=", ".join(self.settings.fixed[:20])), "Fehler")
         if self._secrets_plain:                 # 1.28: names only – never a value
             self._log(_("Unverschlüsselt gespeichert (von früher, die Windows-Verschlüsselung ist nicht verfügbar): "
                         "{names}.", names=", ".join(self._secrets_plain)), "Fehler")
@@ -561,8 +564,11 @@ class App(ServerTab, StatsTab, ExportDialog, RecordingsTab, DiscordPresence, Spo
             try:
                 frames = load_frames(path, rotation, self._map_title(m, shown))
             except Exception as e:
+                # 1.57.70 (deep review STAB-03, reproduced): this returned – the round (and its recording) had been
+                # opened, but the end of the round was never armed (_watch) and the overlay stayed off. A broken
+                # picture now counts as no picture: info lines only, the round runs as for a map without one.
                 self._log(_("Bild konnte nicht geladen werden: {path} ({error})", path=path, error=e), "Fehler")
-                return
+                path, frames = None, None
         was_on = self._map_on()
         same_map = was_on and self.current is not None and self.current[0] == map_id
         self._test_map = False                   # a real/manual choice replaces the test picture

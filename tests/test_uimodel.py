@@ -3913,3 +3913,26 @@ def test_a_map_without_a_picture_still_runs_the_round_and_shows_the_timer(app_ro
         assert app.overlay.show_map and not app.overlay.has_map()
     finally:
         app.quit()
+
+
+def test_a_broken_map_picture_still_arms_the_end_of_the_round(app_root, monkeypatch):
+    """1.57.70 (deep review STAB-03, reproduced): a picture that did not decode made show_map return after the round
+    (and its recording) had been opened – the end of the round was never armed and the overlay stayed off, at every
+    match on that map. Now it counts as no picture: the info lines show, the end of the round is watched."""
+    from fogscout import app as app_mod
+    from fogscout.app import App
+    from fogscout.worker import Event
+    app = App(str(app_root), simulate=str(app_root / "sim"))
+    try:
+        map_id = next(k for k in app.catalog.maps if app.catalog.image_path(k)[0] is not None)
+
+        def broken(*a, **k):
+            raise OSError("cannot identify image file")
+        monkeypatch.setattr(app_mod, "load_frames", broken)
+        app._dispatch(Event("detected", dict(lobby=None, map_id=map_id, variant=1, probability=1.0,
+                                             variant_probability=1.0, name_text="X", realm_text="Y", frames=3,
+                                             name_fit=0.0, unsure=False, latency=0.1)))
+        assert app.current is not None and app.current[0] == map_id and app._hist is not None
+        assert app.worker.map_on_screen and app.overlay.has_map() and not app.overlay.show_map   # info lines only
+    finally:
+        app.quit()

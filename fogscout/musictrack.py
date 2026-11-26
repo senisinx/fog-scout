@@ -66,7 +66,7 @@ class MusicSpec:
 def _f(v):
     try:
         f = float(v)
-    except (TypeError, ValueError):
+    except (TypeError, ValueError, OverflowError):     # 1.57.70 (STAB-06): 10**400
         return None
     return f if math.isfinite(f) else None
 
@@ -140,7 +140,7 @@ def from_dict(d) -> MusicSpec | None:
         clips.append(AudioClip(raw[0], at, s, e, vol))
     spec = MusicSpec(clean(clips), _clamp(d.get("game_vol"), 0.0, VOL_MAX, 1.0),
                      _clamp(d.get("music_vol"), 0.0, VOL_MAX, 0.8),
-                     d.get("duck") if d.get("duck") in DUCKS else "medium",
+                     d.get("duck") if isinstance(d.get("duck"), str) and d.get("duck") in DUCKS else "medium",
                      _clamp(d.get("fade_in"), 0.0, FADE_MAX, 0.0), _clamp(d.get("fade_out"), 0.0, FADE_MAX, 2.0))
     return None if spec.empty() else spec
 

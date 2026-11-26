@@ -558,12 +558,12 @@ def test_a_project_shape_that_the_painter_cannot_draw_is_mended_or_dropped():
     import math
     good = {"kind": "rect", "pts": [[0.1, 0.1], [0.5, 0.5]], "colour": "#zzzzzz", "size": 1e308, "text": ""}
     s = annotate.from_dict(good)
-    assert s is not None and s.colour == annotate.COLOURS[0] and s.size == annotate.SIZE_MAX
+    assert s is not None and s.colour == annotate.COLOURS[0] and s.size == 2 * max(annotate.SIZES)   # 1.57.70 (STAB-05)
     for bad in ({"kind": "line", "pts": [[float("nan"), 0.2], [0.5, 0.5]]},
                 {"kind": "line", "pts": [[1e9, 0.2], [0.5, 0.5]]}):
         assert annotate.from_dict(bad) is None
     t = annotate.from_dict({"kind": "text", "pts": [[0.2, 0.2]], "text": "x", "size": 1e9, "t0": float("inf")})
-    assert t is not None and t.size == annotate.SIZE_MAX and t.t0 is None
+    assert t is not None and t.size == 2 * max(annotate.TEXT_SIZES) and t.t0 is None
     neg = annotate.from_dict({"kind": "arrow", "pts": [[0.2, 0.2], [0.6, 0.6]], "size": -3})
     assert neg is not None and neg.size == annotate.DEFAULT_SIZE and math.isfinite(neg.size)
     img = annotate.draw(Image.new("RGBA", (160, 90), (0, 0, 0, 0)), [s, t, neg])   # draws without raising
@@ -588,3 +588,20 @@ def test_stale_temporary_files_go_but_never_through_a_link(tmp_path):
         os.utime(folder / "b.png.1-3.tmp", (1, 1), follow_symlinks=False)
     imageedit._drop_stale_tmp(str(folder), now=10 ** 9)
     assert not stale.exists() and os.path.lexists(folder / "b.png.1-3.tmp") and (outside / "keep.png.1-1.tmp").exists()
+
+
+def test_a_tiny_file_of_a_giant_picture_is_never_decoded(tmp_path):
+    """1.57.70 (deep review STAB-08, reproduced): a 21 KB PNG of 13 300 × 13 300 (1 bit) cost 1.5 GB per thumbnail –
+    Pillow only warns below 179 megapixels. A picture over imageedit.MAX_PIXELS is broken for the tiles and the
+    image editor; an ordinary one still opens."""
+    from fogscout import imageedit, thumbs
+    big = tmp_path / "big.png"
+    Image.new("1", (7100, 7100)).save(big)                     # 50.4 megapixels, a few KB
+    assert big.stat().st_size < 100_000
+    with Image.open(big) as im, pytest.raises(ValueError):
+        imageedit.converted(im, "RGBA")
+    loader = thumbs.Loader((32, 32), str(tmp_path / "cache"), name="shot-thumbs")
+    assert loader.make(str(big)) == (str(big), 0, 0, b"")
+    ok = tmp_path / "ok.png"
+    Image.new("1", (2000, 2000)).save(ok)                      # an ordinary size still opens
+    assert loader.make(str(ok))[1] > 0

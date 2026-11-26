@@ -4,6 +4,7 @@ from __future__ import annotations
 import copy
 import json
 import logging
+import math
 import os
 import shutil
 import time
@@ -280,15 +281,69 @@ def _typed(key, value, default):
     return [v for v in value if isinstance(v, str)][:RECENT_KEPT]
 
 
-def _merge(base: dict, override: dict) -> dict:
+# 1.57.70 (deep review STAB-01, 156 of 1 980 fuzzed files): a readable settings.json with a wrong type or an absurd
+# number ("ui_zoom": 1e9, "languages": 5) passed the load and stopped every start in App.__init__ – now a value whose
+# type does not fit its default is replaced by the default (``fixed``, logged), numbers must be finite and within
+# NUM_LIMIT, and these keys within their range (the ends of what the controls offer, generously)
+NUM_LIMIT = 1e6
+RANGES = {"ui_zoom": (0.5, 3.0), "height": (0.01, 1.0), "margin": (0.0, 0.5)}     # these exact keys (overlay.height)
+RANGE_ENDS = {"opacity": (0.0, 1.0), "scale": (0.05, 20.0)}                         # and every key ending "_<end>"
+
+
+def _range(key: str):
+    if key in RANGES:
+        return RANGES[key]
+    for end, lo_hi in RANGE_ENDS.items():
+        if key == end or key.endswith("_" + end):
+            return lo_hi
+    return None
+
+
+def _number(v) -> bool:
+    if isinstance(v, bool) or not isinstance(v, (int, float)):
+        return False
+    try:
+        return math.isfinite(v) and abs(v) <= NUM_LIMIT
+    except OverflowError:                                 # an int too big for a float
+        return False
+
+
+def _fits(key: str, value, default) -> bool:
+    """Does a stored ``value`` have the shape of ``default`` (bool, number, text, list of texts/numbers)? A default
+    of None or an empty list says nothing – anything fits."""
+    if default is None:
+        return True
+    if isinstance(default, bool):
+        return isinstance(value, bool)
+    if isinstance(default, (int, float)):
+        if not _number(value):
+            return False
+        lo_hi = _range(key)
+        return lo_hi is None or lo_hi[0] <= value <= lo_hi[1]
+    if isinstance(default, str):
+        return isinstance(value, str)
+    if isinstance(default, list):
+        if not isinstance(value, list):
+            return False
+        if default and all(isinstance(d, str) for d in default):
+            return all(isinstance(v, str) for v in value)
+        if default and all(_number(d) for d in default):
+            return len(value) == len(default) and all(_number(v) for v in value)
+    return True
+
+
+def _merge(base: dict, override: dict, fixed: list | None = None, where: str = "") -> dict:
     out = copy.deepcopy(base)
     for k, v in (override if isinstance(override, dict) else {}).items():
         if isinstance(out.get(k), dict):
             if isinstance(v, dict):
-                out[k] = _merge(out[k], v)
+                out[k] = _merge(out[k], v, fixed, f"{where}{k}.")
             # 1.8.38: anything else where the defaults hold a dict ("overlay": null) keeps the defaults
         elif base is DEFAULTS and k in TYPED:
             out[k] = _typed(k, v, base.get(k))
+        elif fixed is not None and k in base and k != "settings_version" and not _fits(k, v, base[k]):
+            out[k] = copy.deepcopy(base[k])               # 1.57.70 (STAB-01)
+            fixed.append(where + str(k))
         else:
             out[k] = v
     return out
@@ -301,7 +356,7 @@ def _version(raw: dict) -> int:
         return SETTINGS_VERSION
     try:
         return int(v)
-    except (TypeError, ValueError):
+    except (TypeError, ValueError, OverflowError):        # 1.57.70 (STAB-01): 1e999 = inf stopped Settings()
         return SETTINGS_VERSION
 
 
@@ -337,17 +392,54 @@ def no_bar_defaults(data: dict) -> dict:
     return data
 
 
-def reset_data(current: dict) -> dict:
+KEPT_CONTENT = ("map_notes", "killer_notes", "edit_templates")   # 1.57.70 (DATA-03): the user's own texts, not settings
+
+
+def reset_data(current: dict, keep_content: bool = True) -> dict:
     """1.2.19 ("Alle Einstellungen zurücksetzen"): the defaults, with the PC-specific values (LOCAL_KEYS) of
     ``current`` kept – the window geometry, the setup marker, the download folder; the layouts per window size
-    go with the layout (they are layout). ``welcome_seen`` stays: the assistant is not forced again."""
+    go with the layout (they are layout). ``welcome_seen`` stays: the assistant is not forced again. 1.57.70 (deep
+    review DATA-03): the notes per map and killer and the editor's templates stay too (``keep_content``) – they are
+    the user's writing, the reset deleted them without a word."""
     data = copy.deepcopy(DEFAULTS)
     for k in ("setup_version", "setup_root", "qt_geometry", "official_dir"):
         if k in current:
             data[k] = copy.deepcopy(current[k])
     if current.get("welcome_seen"):
         data["welcome_seen"] = True
+    if keep_content:
+        for k in KEPT_CONTENT:
+            if k in current and _fits(k, current[k], DEFAULTS.get(k)) and isinstance(current[k], type(DEFAULTS[k])):
+                data[k] = copy.deepcopy(current[k])
     return data
+
+
+def save_before_reset(data: dict, folder: str, now: float | None = None) -> str:
+    """1.57.70 (deep review DATA-03): the settings as they are, written to ``folder`` (the data folder's backup/)
+    before "Alle Einstellungen zurücksetzen" – as "Einstellungen exportieren" writes them (no secrets, no PC-own
+    values), so "Einstellungen importieren" brings them back. Its path; OSError when it could not be written."""
+    if not fsops.plain_dir(folder, 1):
+        raise OSError("the backup folder is a link")
+    path = os.path.join(folder, time.strftime("settings-%Y-%m-%d-%H%M%S.json", time.localtime(now)))
+    export_settings(data, path)
+    return path
+
+
+def keep_and_reset(path: str) -> bool:
+    """1.57.70 (deep review STAB-01): the program did not start with these settings – the file is kept as
+    ``settings.json.broken`` (an older one there is replaced) and settings.json starts over with the defaults (the
+    PC-specific values kept, as "Alle Einstellungen zurücksetzen"). False when it could not be done."""
+    try:
+        current = _read_json(path)
+    except (OSError, ValueError, RecursionError):
+        current = {}
+    try:
+        shutil.copy2(path, path + ".broken")
+        fsops.write_atomic(path, json.dumps(reset_data(current if isinstance(current, dict) else {}, keep_content=False),
+                                            ensure_ascii=False, indent=2).encode("utf-8"))
+    except (OSError, TypeError, ValueError):
+        return False
+    return True
 
 
 def read_backup(path: str, current: dict) -> dict:
@@ -367,7 +459,7 @@ def read_backup(path: str, current: dict) -> dict:
             raw[k] = current[k]
     try:
         return _load(raw)
-    except (TypeError, ValueError, AttributeError, KeyError, RecursionError) as e:   # as Settings() catches them
+    except (TypeError, ValueError, AttributeError, KeyError, RecursionError, ArithmeticError) as e:   # as Settings()
         raise ValueError(f"{type(e).__name__}: {e}") from e
 
 
@@ -383,13 +475,13 @@ def _read_json(path: str):
             time.sleep(0.5)
 
 
-def _load(raw) -> dict:
+def _load(raw, fixed: list | None = None) -> dict:
     """Stored settings -> merged over the defaults and migrated (1.8.38: built aside, so a failure leaves nothing
-    half-merged behind)."""
+    half-merged behind). ``fixed`` collects the keys whose stored value did not fit (1.57.70, STAB-01)."""
     if not isinstance(raw, dict):
         raise ValueError("settings.json holds no object")
     ver = _version(raw)
-    data = _merge(DEFAULTS, raw)
+    data = _merge(DEFAULTS, raw, fixed if fixed is not None else [])
     ov = data["overlay"]
     if ver < 2:  # defaults changed in 1.1
         if ov.get("anchor") == "top-left":
@@ -444,11 +536,12 @@ class Settings:
         self._save_failed = False
         self.data = copy.deepcopy(DEFAULTS)
         self.load_error = ""            # 1.8.38: the file could not be read (the app says so in the log)
+        self.fixed = []                 # 1.57.70 (STAB-01): keys whose stored value did not fit – the default instead
         self.fresh = not os.path.exists(path)   # 1.46.8: a first start – nothing here was chosen by the user yet
         if os.path.exists(path):
             try:
-                self.data = _load(_read_json(path))
-            except (OSError, ValueError, TypeError, AttributeError, KeyError, RecursionError) as e:
+                self.data = _load(_read_json(path), self.fixed)
+            except (OSError, ValueError, TypeError, AttributeError, KeyError, RecursionError, ArithmeticError) as e:
                 self.load_error = f"{type(e).__name__}: {e}"
                 self._keep_broken(path)
 

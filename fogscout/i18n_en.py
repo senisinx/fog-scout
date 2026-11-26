@@ -2196,9 +2196,6 @@ EN = {
     'Zurück zu den Karten des Realms (Esc).': "Back to the realm's maps (Esc).",
     'Allgemein': 'General',
     'Alle Einstellungen zurücksetzen': 'Reset all settings',
-    'Alle Einstellungen auf die Auslieferung zurücksetzen? Runden, Match-Daten und eigene Bilder bleiben. Das '
-    'Programm startet danach neu.': 'Reset every setting to the delivered state? Rounds, match data and own pictures '
-                                     'stay. The program restarts afterwards.',
     'Alle Einstellungen zurückgesetzt.': 'All settings reset.',
     'Standard wiederherstellen': 'Restore default',
     'Ausschalten': 'Switch off',
@@ -4650,4 +4647,16 @@ EN = {
         'Recording is black – only the overlay, no game picture ({n}. round in a row): {file}. OBS no longer shows DBD: restart DBD or OBS, or choose the game capture instead of the window capture under Settings → Recordings.',
     'Aufnahme zeigt nur ein stehendes Bild ({n}. Runde in Folge): {file}. OBS nimmt nicht das laufende Spiel auf – ein hängendes oder ein anderes Fenster (z. B. der Launcher): DBD oder OBS neu starten.':
         'Recording shows only a still picture ({n}. round in a row): {file}. OBS is not recording the running game – a hung or a different window (e.g. the launcher): restart DBD or OBS.',
+    'Alle Einstellungen auf die Auslieferung zurücksetzen? Runden, Match-Daten, eigene Bilder und Notizen bleiben; die bisherigen Einstellungen werden vorher unter backup gesichert (ohne Zugangsdaten). Das Programm startet danach neu.':
+        'Reset every setting to the delivered state? Rounds, match data, own pictures and notes stay; the current settings are saved under backup first (without credentials). The program restarts afterwards.',
+    'settings.json: unpassende Werte durch Standardwerte ersetzt: {names}.':
+        'settings.json: values that did not fit were replaced by the defaults: {names}.',
+    'Einstellungen auf Standard zurücksetzen? Die alte Datei bleibt als settings.json.broken erhalten. Danach Fog Scout neu starten.':
+        'Reset the settings to the defaults? The old file is kept as settings.json.broken. Then start Fog Scout again.',
+    'Die Einstellungen konnten nicht zurückgesetzt werden.':
+        'The settings could not be reset.',
+    'Die Einstellungen konnten nicht gesichert werden – nichts zurückgesetzt ({error}).':
+        'The settings could not be saved – nothing was reset ({error}).',
+    'Einstellungen vor dem Zurücksetzen gesichert: {name}':
+        'Settings saved before the reset: {name}',
 }

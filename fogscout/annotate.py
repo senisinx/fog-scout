@@ -281,7 +281,9 @@ def from_dict(d: dict) -> Shape | None:
         size = float(d.get("size") or DEFAULT_SIZE)
         if not math.isfinite(size) or size <= 0:
             size = TEXT_SIZE if kind == "text" else DEFAULT_SIZE
-        size = min(size, SIZE_MAX)
+        # 1.57.70 (deep review STAB-05, reproduced): up to SIZE_MAX, 2 000 points of stroke 0.5 took 9–92 s in the
+        # window thread – the editor and the overlay stood still. Now at most twice what the controls offer.
+        size = min(size, SIZE_MAX, 2 * (max(TEXT_SIZES) if kind == "text" else max(SIZES)))
         t0 = d.get("t0")
         t1 = d.get("t1")
         t0 = None if t0 is None else float(t0)
@@ -291,5 +293,5 @@ def from_dict(d: dict) -> Shape | None:
         src = d.get("src", 0)
         src = src if isinstance(src, int) and not isinstance(src, bool) and 0 <= src < 1000 else 0
         return Shape(kind, pts, colour, size, str(d.get("text") or "")[:500], t0, t1, src)
-    except (TypeError, ValueError, IndexError, AttributeError):
+    except (TypeError, ValueError, IndexError, AttributeError, OverflowError):   # 1.57.70 (STAB-06): 10**400
         return None

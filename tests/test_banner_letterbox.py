@@ -207,3 +207,20 @@ def test_the_worker_reads_a_letterboxed_banner_with_no_map_on_display(tmp_path, 
     steps = {k for t in wk.times.ticks for k in t}
     assert {"grab", "banner", "total"} <= steps and "Erkennungs-Takt" in wk.times.line(), steps
     assert len(wk.cpu.samples) >= 2
+
+
+def test_a_flat_or_endless_cut_never_blows_up_the_ocr():
+    """1.57.70 (deep review STAB-02, measured on Windows): a 1 px high cut was stretched to 52 944 network columns –
+    4 s and 6.4 GB that stayed until the restart. A cut flatter than MIN_REC_HEIGHT runs nothing; a very wide one is
+    squeezed to MAX_REC_WIDTH. The real cuts (at most 947 columns) are not touched."""
+    import numpy as np
+    pytest.importorskip("onnxruntime")
+    from fogscout import ocr
+    rec = ocr.Recognizer(os.path.join(ROOT, "models", "ch_PP-OCRv4_rec_infer.onnx"))
+    widths = []
+    real_run = rec.session.run
+    rec.session.run = lambda names, feed: widths.append(next(iter(feed.values())).shape[3]) or real_run(names, feed)
+    assert rec.probs(np.full((1, 1103, 3), 128, np.uint8)).shape[0] == 0 and widths == []
+    rec.probs(np.full((8, 4000, 3), 128, np.uint8))
+    rec.probs(np.full((48, 900, 3), 128, np.uint8))
+    assert widths == [ocr.MAX_REC_WIDTH, 900]

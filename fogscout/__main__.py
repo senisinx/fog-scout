@@ -176,6 +176,36 @@ def _message(text: str, error: bool = False):
     print(text, file=sys.stderr)
 
 
+def _ask_yes(text: str) -> bool:
+    """A yes/no message box without a window of our own (Windows); False elsewhere (nothing to click)."""
+    if sys.platform == "win32":
+        try:
+            import ctypes
+            return ctypes.windll.user32.MessageBoxW(None, text, "Fog Scout", 0x14) == 6    # MB_YESNO|ICONERROR, IDYES
+        except Exception:
+            pass
+    print(text, file=sys.stderr)
+    return False
+
+
+def _start_failed(text: str, settings_path: str, ask=None):
+    """1.57.70 (deep review STAB-01): a start that failed – with a settings.json there, the user may start over with
+    the defaults (the file is kept as settings.json.broken); before, a bad value stopped every start, the autostart
+    too, and the only way out was to find and delete the file by hand. Nothing else is retried in this process (the
+    half-built window, threads and hotkeys of the first try)."""
+    head = _("Start fehlgeschlagen:") + "\n\n" + text[-1500:]
+    if not os.path.isfile(settings_path):
+        _message(head, error=True)
+        return
+    if (ask or _ask_yes)(head + "\n\n" + _("Einstellungen auf Standard zurücksetzen? Die alte Datei bleibt als "
+                                           "settings.json.broken erhalten. Danach Fog Scout neu starten.")):
+        from .config import keep_and_reset
+        ok = keep_and_reset(settings_path)
+        logging.getLogger("fogscout").info("Einstellungen nach fehlgeschlagenem Start zurückgesetzt: %s", ok)
+        if not ok:
+            _message(_("Die Einstellungen konnten nicht zurückgesetzt werden."), error=True)
+
+
 def _single_instance() -> bool:
     """Only one running copy (a second one could not register the hotkeys)."""
     if sys.platform != "win32":
@@ -443,7 +473,7 @@ def main():
             splash.close()                        # never over the error message
         text = traceback.format_exc()
         logging.getLogger("fogscout").error(text)
-        _message(_("Start fehlgeschlagen:") + "\n\n" + text[-1500:], error=True)
+        _start_failed(text, os.path.join(data, "settings.json"))
         sys.exit(1)
     # 1.65.1 (user: after an update the program did not come back, a click said "läuft bereits"): end the
     # process now. Settings are saved in App.quit; a thread that does not stop (tray icon, window capture)

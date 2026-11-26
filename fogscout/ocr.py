@@ -53,6 +53,8 @@ def installed() -> bool:
         return False
 
 REC_HEIGHT = 48
+MAX_REC_WIDTH = 2000                    # 1.57.70 (STAB-02): network input columns at most (real cuts: <= 947)
+MIN_REC_HEIGHT = 6                      # 1.57.70 (STAB-02): a flatter cut holds no text – nothing is run on it
 N_GROUPS = len(ALPHABET) + 2          # 0 = blank/ignorable, 1..36 = A-Z0-9, 37 = other
 JUNK = N_GROUPS - 1
 _GROUP_OF = {c: i + 1 for i, c in enumerate(ALPHABET)}
@@ -153,7 +155,9 @@ class Recognizer:
     @staticmethod
     def _prepare(bgr: np.ndarray) -> np.ndarray:
         h, w = bgr.shape[:2]
-        new_w = max(16, int(math.ceil(REC_HEIGHT * w / max(1, h))))
+        # 1.57.70 (deep review STAB-02, measured on Windows): a 1 px high cut stretched to 52 944 columns – 4 s and
+        # 6.4 GB that stayed until the restart. Real cuts reach 947 (tests with real pictures); wider is squeezed
+        new_w = min(MAX_REC_WIDTH, max(16, int(math.ceil(REC_HEIGHT * w / max(1, h)))))
         interp = cv2.INTER_AREA if h > REC_HEIGHT else cv2.INTER_CUBIC
         img = cv2.resize(bgr, (new_w, REC_HEIGHT), interpolation=interp).astype(np.float32)
         img = (img.transpose(2, 0, 1) / 255.0 - 0.5) / 0.5
@@ -164,7 +168,7 @@ class Recognizer:
 
     def probs(self, bgr: np.ndarray) -> np.ndarray:
         """Per-frame class probabilities, shape (T, C)."""
-        if bgr is None or bgr.size == 0:
+        if bgr is None or bgr.size == 0 or bgr.shape[0] < MIN_REC_HEIGHT:   # 1.57.70 (STAB-02): no text that flat
             return np.zeros((0, len(self.chars)), np.float32)
         if bgr.ndim == 2:
             bgr = cv2.cvtColor(bgr, cv2.COLOR_GRAY2BGR)

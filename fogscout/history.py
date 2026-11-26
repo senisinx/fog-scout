@@ -6,6 +6,7 @@ count). Stored only locally, nothing leaves the PC. The file is a runtime file (
 from __future__ import annotations
 
 import json
+import logging
 import math
 import os
 import re
@@ -13,6 +14,8 @@ import threading
 from dataclasses import dataclass, fields
 
 from . import fsops, jsonlcache
+
+log = logging.getLogger("fogscout")
 
 FILE = "rounds.jsonl"
 # red-team audit RS-001: what a stored start/length may be – the statistics turn both into local dates; a value
@@ -195,6 +198,7 @@ def _rewrite(path: str, rounds, lost, stored: dict | None = None, changed=()) ->
     1.57.36 (user's diagnosis: "Ereignis bloodpoints 81 ms" – one balance rewrote 1814 rounds, ~25 of 29 ms here
     went to dumping every one of them again): ``stored`` = {start: [line as stored, …]} (``_file_lines``) – a round
     not in ``changed`` keeps its stored line as it is; only the changed ones (and any without one) are dumped."""
+    _rescue_unreadable(path, len(lost))
     changed = {id(r) for r in changed}
     count = {}
     for r in rounds:
@@ -213,6 +217,38 @@ def _rewrite(path: str, rounds, lost, stored: dict | None = None, changed=()) ->
     # 1.38.24 (PERF-1): the cache knows the new file – after set_result_role / set_balance (twice per round) every
     # load parsed the whole file again, and the statistics' join followed on the window's thread
     _LINES.prime(path, data, sorted(rounds, key=lambda r: r.t))
+
+
+REJECTED = ".rejected"      # 1.57.70 (deep review DATA-01): lines no reader could take, kept beside the file
+
+
+def _rescue_unreadable(path: str, lost_count: int) -> None:
+    """1.57.70 (deep review DATA-01, reproduced): ``_rewrite`` writes only what could be read – a round line with one
+    odd value vanished from the statistics and the next correction (set_balance, twice per round) deleted it for
+    good. Lines that are neither a round nor a lost round go to ``<file>.rejected`` first. Cheap in the normal case:
+    the lines are counted against the rounds the cache already parsed; only a difference reads them all."""
+    try:
+        with open(path, "rb") as fh:
+            lines = [raw for raw in fh.read().split(b"\n") if raw.strip()]
+    except OSError:
+        return
+    if len(lines) == len(_LINES.items(path)) + lost_count:
+        return
+    bad = []
+    for raw in lines:
+        try:
+            text = raw.decode("utf-8")
+            if _round_line(text) is not None:
+                continue
+            d = json.loads(text)
+            if isinstance(d, dict) and d.get("lost") and plausible(float(d["t"])):
+                continue
+        except (ValueError, KeyError, TypeError, UnicodeDecodeError, ArithmeticError, RecursionError):
+            pass
+        bad.append(raw.decode("utf-8", "replace").rstrip("\r"))
+    if bad:
+        _append_line(path + REJECTED, "\n".join(bad))
+        log.info("Verlauf: %d unlesbare Zeile(n) nach %s verschoben", len(bad), os.path.basename(path) + REJECTED)
 
 
 LOST_KEYS = ("map_id", "region", "source", "wait", "role", "custom", "farming", "killer", "ping", "sys",   # since 1.35/1.43
@@ -293,9 +329,14 @@ def load_lost_rounds(path: str) -> list:
 
 def _num(v, low: float = 0.0, high: float = math.inf):
     """A stored optional number: a finite int/float within [low, high] as float, else None (bool is no number)."""
-    if isinstance(v, bool) or not isinstance(v, (int, float)) or not math.isfinite(v) or not low <= v <= high:
+    if isinstance(v, bool) or not isinstance(v, (int, float)):
         return None
-    return float(v)
+    try:
+        if not math.isfinite(v) or not low <= v <= high:
+            return None
+        return float(v)
+    except OverflowError:          # 1.57.70 (deep review DATA-01): math.isfinite(10**400) raises – it broke every join
+        return None
 
 
 def _extra(d: dict) -> dict:

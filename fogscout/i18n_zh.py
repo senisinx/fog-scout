@@ -2772,8 +2772,6 @@ T = {
         '常规',
     'Alle Einstellungen zurücksetzen':
         '重置所有设置',
-    'Alle Einstellungen auf die Auslieferung zurücksetzen? Runden, Match-Daten und eigene Bilder bleiben. Das Programm startet danach neu.':
-        '将所有设置重置为初始状态吗？对局、比赛数据和自己的图片会保留。之后程序将重新启动。',
     'Alle Einstellungen zurückgesetzt.':
         '所有设置已重置。',
     'Standard wiederherstellen':
@@ -6172,4 +6170,16 @@ T = {
         '录像是黑屏 – 只有叠加层，没有游戏画面（连续第 {n} 局）：{file}。OBS 不再显示 DBD：请重启 DBD 或 OBS，或在 设置 → 录制 中选择游戏捕获而不是窗口捕获。',
     'Aufnahme zeigt nur ein stehendes Bild ({n}. Runde in Folge): {file}. OBS nimmt nicht das laufende Spiel auf – ein hängendes oder ein anderes Fenster (z. B. der Launcher): DBD oder OBS neu starten.':
         '录像只有静止画面（连续第 {n} 局）：{file}。OBS 没有录制正在运行的游戏 – 是卡住的窗口或其他窗口（例如启动器）：请重启 DBD 或 OBS。',
+    'Alle Einstellungen auf die Auslieferung zurücksetzen? Runden, Match-Daten, eigene Bilder und Notizen bleiben; die bisherigen Einstellungen werden vorher unter backup gesichert (ohne Zugangsdaten). Das Programm startet danach neu.':
+        '将所有设置恢复为出厂状态？对局、比赛数据、自己的图片和备注会保留；当前设置会先保存到 backup（不含凭据）。之后程序会重新启动。',
+    'settings.json: unpassende Werte durch Standardwerte ersetzt: {names}.':
+        'settings.json：不合适的值已替换为默认值：{names}。',
+    'Einstellungen auf Standard zurücksetzen? Die alte Datei bleibt als settings.json.broken erhalten. Danach Fog Scout neu starten.':
+        '将设置恢复为默认值？旧文件会保留为 settings.json.broken。之后请重新启动 Fog Scout。',
+    'Die Einstellungen konnten nicht zurückgesetzt werden.':
+        '无法重置设置。',
+    'Die Einstellungen konnten nicht gesichert werden – nichts zurückgesetzt ({error}).':
+        '无法保存设置——未重置任何内容（{error}）。',
+    'Einstellungen vor dem Zurücksetzen gesichert: {name}':
+        '重置前已保存设置：{name}',
 }

@@ -249,9 +249,12 @@ def _picture_ok(data: bytes) -> bool:
 
 
 def _lines(data: bytes):
-    for line in data.decode("utf-8", errors="replace").splitlines():
+    """The lines of a stored jsonl file – split at "\\n" only, as the program's own readers do. 1.57.70 (deep review
+    DATA-02, reproduced): splitlines() also split at U+2028/U+2029/U+0085 inside a text (json writes them raw) –
+    such a round fell apart into two broken pieces and was silently not restored."""
+    for line in data.decode("utf-8", errors="replace").split("\n"):
         if line.strip():
-            yield line
+            yield line.rstrip("\r")
 
 
 def _key(t) -> float:

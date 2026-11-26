@@ -161,9 +161,16 @@ def flipped(edit: ImageEdit, horizontal: bool, size: tuple = (1000, 1000)) -> Im
     return out
 
 
+MAX_PIXELS = 50_000_000         # 1.57.70 (deep review STAB-08): ~7 000 × 7 000 – far above any screenshot or map
+
+
 def converted(img: Image.Image, mode: str = "RGB") -> Image.Image:
     """``img`` in ``mode``; a 16-bit grey picture (PNG: "I;16", older Pillow "I") scaled to 8 bit first – convert
-    alone cuts every value above 255 to white."""
+    alone cuts every value above 255 to white. 1.57.70 (deep review STAB-08, reproduced): a 21 KB PNG of 13 300 ×
+    13 300 cost 1.5 GB per thumbnail (Pillow only warns below 179 megapixels) – a picture over MAX_PIXELS is not
+    decoded (ValueError)."""
+    if img.width * img.height > MAX_PIXELS:
+        raise ValueError(f"picture too big: {img.width}×{img.height}")
     if img.mode.startswith("I"):
         img = img.convert("I") if img.mode != "I" else img
         hi = img.getextrema()[1]

@@ -2772,8 +2772,6 @@ T = {
         '일반',
     'Alle Einstellungen zurücksetzen':
         '모든 설정 초기화',
-    'Alle Einstellungen auf die Auslieferung zurücksetzen? Runden, Match-Daten und eigene Bilder bleiben. Das Programm startet danach neu.':
-        '모든 설정을 처음 상태로 되돌릴까요? 라운드, 매치 데이터, 내 이미지는 유지됩니다. 그 후 프로그램이 다시 시작됩니다.',
     'Alle Einstellungen zurückgesetzt.':
         '모든 설정이 초기화되었습니다.',
     'Standard wiederherstellen':
@@ -6172,4 +6170,16 @@ T = {
         '녹화가 검은 화면입니다 – 오버레이만 있고 게임 화면이 없습니다({n}번째 연속 라운드): {file}. OBS가 DBD를 더 이상 보여 주지 않습니다: DBD나 OBS를 다시 시작하거나, 설정 → 녹화에서 창 캡처 대신 게임 캡처를 선택하세요.',
     'Aufnahme zeigt nur ein stehendes Bild ({n}. Runde in Folge): {file}. OBS nimmt nicht das laufende Spiel auf – ein hängendes oder ein anderes Fenster (z. B. der Launcher): DBD oder OBS neu starten.':
         '녹화에 정지된 화면만 있습니다({n}번째 연속 라운드): {file}. OBS가 실행 중인 게임을 녹화하지 않습니다 – 멈춘 창이거나 다른 창(예: 런처)입니다: DBD나 OBS를 다시 시작하세요.',
+    'Alle Einstellungen auf die Auslieferung zurücksetzen? Runden, Match-Daten, eigene Bilder und Notizen bleiben; die bisherigen Einstellungen werden vorher unter backup gesichert (ohne Zugangsdaten). Das Programm startet danach neu.':
+        '모든 설정을 초기 상태로 되돌릴까요? 라운드, 매치 데이터, 내 이미지와 메모는 유지됩니다. 현재 설정은 먼저 backup에 저장됩니다(자격 증명 제외). 그 후 프로그램이 다시 시작됩니다.',
+    'settings.json: unpassende Werte durch Standardwerte ersetzt: {names}.':
+        'settings.json: 맞지 않는 값을 기본값으로 바꿨습니다: {names}.',
+    'Einstellungen auf Standard zurücksetzen? Die alte Datei bleibt als settings.json.broken erhalten. Danach Fog Scout neu starten.':
+        '설정을 기본값으로 되돌릴까요? 이전 파일은 settings.json.broken으로 남습니다. 그런 다음 Fog Scout를 다시 시작하세요.',
+    'Die Einstellungen konnten nicht zurückgesetzt werden.':
+        '설정을 초기화할 수 없습니다.',
+    'Die Einstellungen konnten nicht gesichert werden – nichts zurückgesetzt ({error}).':
+        '설정을 저장할 수 없습니다 – 아무것도 초기화하지 않았습니다({error}).',
+    'Einstellungen vor dem Zurücksetzen gesichert: {name}':
+        '초기화 전에 설정을 저장했습니다: {name}',
 }
