@@ -44,6 +44,7 @@ class UnsupportedFS(OSError):
 
 
 _SCHEME = re.compile(r"^[A-Za-z][A-Za-z0-9+.\-]+:")          # "file:", "http:", "concat:" – not "C:"
+_DEVICES = {"CON", "PRN", "AUX", "NUL", "CONIN$", "CONOUT$"} | {f"{n}{i}" for n in ("COM", "LPT") for i in range(1, 10)}
 
 
 def local_media_path(path, exts) -> bool:
@@ -55,6 +56,16 @@ def local_media_path(path, exts) -> bool:
         return False
     p = path.strip()
     if p.startswith(("\\\\", "//", "\\/", "/\\")) or _SCHEME.match(p) or "://" in p:
+        return False
+    # 1.57.69 (deep review SEC-06, checked on Windows): "\??\UNC\server\share\x" is handed to the kernel as is – a
+    # share again; ":" anywhere but after a drive letter is a stream ("C:\x.mp4:s") or an ffmpeg option string
+    # ("subfile,,…:/…"); a reserved device name is no file
+    if p.replace("/", "\\").startswith("\\??\\"):
+        return False
+    if ":" in (p[2:] if len(p) > 1 and p[1] == ":" and p[0].isascii() and p[0].isalpha() else p):
+        return False
+    stem = re.split(r"[\\/]", p)[-1].split(".")[0].rstrip(" ").upper()
+    if stem in _DEVICES:
         return False
     return p.lower().endswith(tuple(exts))
 
@@ -345,16 +356,40 @@ class ExclusiveHandle:
     Opening fails with PermissionError (winerror 32) while anybody else has the file open, FileNotFoundError when it
     is gone. POSIX: an ordinary descriptor – no such protection (plan RR17)."""
 
-    def __init__(self, path: str):
+    def __init__(self, path: str, plain: bool = False):
+        """``plain`` (1.57.69, deep review SEC-02): the name itself must be a plain file – a link or junction there is
+        not followed (NotInside). POSIX: opened below a descriptor of its folder, and ``delete`` unlinks it there
+        only while the name still is this very file – a folder swapped for a link meanwhile changes nothing."""
         self.path = path
         self._fd = None
+        self._dir_fd = None
         if WIN:
             import msvcrt
             k = _k32()
-            h = k.CreateFileW(path, GENERIC_READ | DELETE, 0, None, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, None)
+            flags = FILE_ATTRIBUTE_NORMAL | (FILE_FLAG_OPEN_REPARSE_POINT if plain else 0)
+            h = k.CreateFileW(path, GENERIC_READ | DELETE, 0, None, OPEN_EXISTING, flags, None)
             if _invalid(h):
                 raise ctypes.WinError(ctypes.get_last_error())
-            self._fd = msvcrt.open_osfhandle(h, os.O_RDONLY)
+            try:
+                if plain and _attributes(h) & (FILE_ATTRIBUTE_REPARSE_POINT | FILE_ATTRIBUTE_DIRECTORY):
+                    raise NotInside(errno.EPERM, "a link or not a plain file", path)
+                self._fd = msvcrt.open_osfhandle(h, os.O_RDONLY)
+            except BaseException:
+                k.CloseHandle(h)
+                raise
+        elif plain:
+            import stat
+            folder, name = os.path.split(os.path.abspath(path))
+            self._dir_fd = os.open(folder, os.O_RDONLY | getattr(os, "O_DIRECTORY", 0))
+            try:
+                self._fd = os.open(name, os.O_RDONLY | getattr(os, "O_NOFOLLOW", 0), dir_fd=self._dir_fd)
+                if not stat.S_ISREG(os.fstat(self._fd).st_mode):
+                    raise NotInside(errno.EPERM, "a link or not a plain file", path)
+            except OSError as e:
+                self.close()
+                if isinstance(e, NotInside) or e.errno == errno.ELOOP:     # O_NOFOLLOW on a symlink: ELOOP
+                    raise NotInside(errno.EPERM, "a link or not a plain file", path) from None
+                raise
         else:
             self._fd = os.open(path, os.O_RDONLY)
 
@@ -369,8 +404,12 @@ class ExclusiveHandle:
         if self._fd is not None:
             fd, self._fd = self._fd, None
             os.close(fd)
+        if self._dir_fd is not None:
+            fd, self._dir_fd = self._dir_fd, None
+            os.close(fd)
 
-    def read(self) -> bytes:
+    def read(self, limit: int | None = None) -> bytes:
+        """The whole file – or, with ``limit``, at most ``limit + 1`` bytes (more than ``limit``: too big)."""
         os.lseek(self._fd, 0, os.SEEK_SET)
         out = bytearray()
         while True:
@@ -378,6 +417,8 @@ class ExclusiveHandle:
             if not chunk:
                 return bytes(out)
             out += chunk
+            if limit is not None and len(out) > limit:
+                return bytes(out[:limit + 1])
 
     def rename_to(self, dst: str):
         """The file takes the name ``dst`` – never over an existing file (FileExistsError). Windows: through this
@@ -410,6 +451,12 @@ class ExclusiveHandle:
             if not _k32().SetFileInformationByHandle(msvcrt.get_osfhandle(self._fd), FILE_DISPOSITION_INFO_CLASS,
                                                      ctypes.byref(info), ctypes.sizeof(info)):
                 raise ctypes.WinError(ctypes.get_last_error())
+        elif self._dir_fd is not None:
+            name = os.path.basename(os.path.abspath(self.path))
+            st, mine = os.stat(name, dir_fd=self._dir_fd, follow_symlinks=False), os.fstat(self._fd)
+            if (st.st_dev, st.st_ino) != (mine.st_dev, mine.st_ino):
+                raise NotInside(errno.EPERM, "the name is no longer this file", self.path)
+            os.unlink(name, dir_fd=self._dir_fd)
         else:
             os.unlink(self.path)
 
@@ -590,6 +637,18 @@ def open_plain_for_write(path: str):
             os.close(fd)
             raise NotInside(errno.EPERM, "a link or not a plain file", path)
     os.ftruncate(fd, 0)
+    return os.fdopen(fd, "w", encoding="utf-8")
+
+
+def open_own_for_write(path: str):
+    """1.57.69 (deep review SEC-04): a file of the program's own with a fixed name (the log, the crash file) opened
+    for writing, never through a link: created exclusively (a link or junction of that name is not followed – the
+    name exists, so that fails), else the existing file only if it is plain with one name (``open_plain_for_write``,
+    NotInside otherwise). Truncated; a text file object (UTF-8)."""
+    try:
+        fd = os.open(path, os.O_WRONLY | os.O_CREAT | os.O_EXCL | getattr(os, "O_NOFOLLOW", 0), 0o644)
+    except FileExistsError:
+        return open_plain_for_write(path)
     return os.fdopen(fd, "w", encoding="utf-8")
 
 

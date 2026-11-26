@@ -74,14 +74,15 @@ def test_powershell_is_encoded(monkeypatch):
     seen = {}
 
     def fake_run(args, **kw):
-        seen["args"] = args
+        seen["args"], seen["kw"] = args, kw
         return types.SimpleNamespace(returncode=0, stdout="ok\n", stderr="")
     monkeypatch.setattr(au.subprocess, "run", fake_run)
     ok, out = au.powershell("Write-Output 'ä \" $x'")
     assert ok and out == "ok"
     enc = seen["args"][seen["args"].index("-EncodedCommand") + 1]
-    assert base64.b64decode(enc).decode("utf-16-le") == "Write-Output 'ä \" $x'"
-    assert "-NonInteractive" in seen["args"]
+    script = base64.b64decode(enc).decode("utf-16-le").splitlines()
+    assert script == ["[Console]::OutputEncoding = [System.Text.UTF8Encoding]::new($false)", "Write-Output 'ä \" $x'"]
+    assert "-NonInteractive" in seen["args"] and seen["kw"]["encoding"] == "utf-8"   # 1.57.69 (WIN-01): UTF-8 both ways
 
 
 # ------------------------------------------------------------------ tray

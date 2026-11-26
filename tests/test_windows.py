@@ -728,3 +728,12 @@ def test_the_input_reader_loads_and_reads_nothing_for_a_window_not_in_front():
     r.allow(None)
     r.look()
     assert r.state == inputs.EMPTY
+
+
+def test_powershell_output_with_umlauts_comes_back(tmp_path):
+    """1.57.69 (deep review WIN-01, reproduced on a German Windows): PowerShell wrote in the OEM code page, Python read
+    ANSI – one "ü" and the whole output, the error message too, came back empty."""
+    from fogscout.autostart import powershell
+    assert powershell('Write-Output "Grüße äöü"') == (True, "Grüße äöü")
+    ok, out = powershell('[Console]::Error.WriteLine("Zugriff verweigert: ü"); exit 1')
+    assert not ok and out == "Zugriff verweigert: ü"

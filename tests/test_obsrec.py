@@ -882,8 +882,12 @@ def test_the_pre_roll_is_joined_into_the_round_file_and_marks_move_with_it(tmp_p
         with open(obsrec.rel_path(str(tmp_path), rec.file), "rb") as f:
             assert f.read(len(PRE_BYTES)) == PRE_BYTES              # the pre-roll comes first
         concat = next(a for a in calls if "concat" in a)
-        assert concat[-3:] == ["-c", "copy", os.path.join(str(tmp_path), "Farming", names[0][:-4] + " (zusammen).mkv")]
-        assert "-y" in concat and not os.path.exists(concat[concat.index("-i") + 1])          # the list file is gone
+        assert concat[-3:-1] == ["-c", "copy"]
+        joined = os.path.relpath(concat[-1], os.path.join(str(tmp_path), "Farming"))       # 1.57.69: a random name
+        assert re.fullmatch(re.escape(names[0][:-4]) + r" \(zusammen [0-9a-f]{8}\)\.mkv", joined), joined
+        lst = concat[concat.index("-i") + 1]
+        assert "-n" in concat and "-y" not in concat and not os.path.exists(lst)          # never over a file; list gone
+        assert os.path.basename(lst).startswith(".") and lst.endswith(obsrec.fsops.TMP_SUFFIX)   # exclusive (write_tmp)
         saved = next(d for k, d in _drain(posted) if k == "saved")
         assert saved["marks"] == 1
     finally:
@@ -945,6 +949,32 @@ def test_merge_files_joins_real_videos_without_re_encoding(tmp_path):
     assert obsrec.merge_files(parts, out, ff)
     d = obsrec.media_duration(out, ff)
     assert d is not None and 1.8 <= d <= 2.3 and not os.path.exists(out + ".txt")
+
+
+def test_merge_files_never_writes_through_a_name_known_in_advance(tmp_path):
+    """1.57.69 (deep review SEC-03, reproduced on Windows with a junction): the list was "<out>.txt" (open "w") and
+    ffmpeg ran with -y – whatever sat at those names was overwritten by the elevated program, then deleted. Now an
+    existing output stops the join before ffmpeg runs, and the old list name is never touched."""
+    calls = []
+
+    def run(cmd, timeout=None):
+        calls.append(cmd)
+        return 0, b""
+    out = tmp_path / "Runde (zusammen 1234abcd).mkv"
+    out.write_bytes(b"not ours")
+    assert obsrec.merge_files(["a.mkv", "b.mkv"], str(out), "ffmpeg", run=run) is False
+    assert calls == [] and out.read_bytes() == b"not ours"
+    out.unlink()
+    planted = tmp_path / (out.name + ".txt")
+    planted.write_bytes(b"keep me")
+
+    def run_made(cmd, timeout=None):
+        calls.append(cmd)
+        out.write_bytes(b"joined")
+        return 0, b""
+    assert obsrec.merge_files(["a.mkv", "b.mkv"], str(out), "ffmpeg", run=run_made) is True
+    assert planted.read_bytes() == b"keep me" and calls[0][calls[0].index("-i") + 1] != str(planted)
+    assert sorted(p.name for p in tmp_path.iterdir()) == sorted([out.name, planted.name])   # the list is gone
 
 
 def test_prune_goes_for_farming_and_short_rounds_first_and_marked_last(tmp_path):

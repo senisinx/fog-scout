@@ -84,3 +84,16 @@ def _tests_run_as_a_plain_user(monkeypatch):
     that want the elevated path set it themselves (test_launch)."""
     from fogscout import launch
     monkeypatch.setattr(launch, "elevated", lambda: False)
+
+
+@pytest.fixture
+def dir_link():
+    """1.57.69: make ``link`` a directory link to ``target`` the way an unprivileged program can – a junction on
+    Windows (no privilege, no developer mode), a symlink elsewhere. ``dir_link(target, link)``."""
+    def make(target, link):
+        if WIN:
+            import _winapi
+            _winapi.CreateJunction(os.path.abspath(str(target)), os.path.abspath(str(link)))
+        else:
+            os.symlink(str(target), str(link), target_is_directory=True)
+    return make

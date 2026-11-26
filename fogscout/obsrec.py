@@ -23,6 +23,7 @@ import logging
 import os
 import queue
 import re
+import secrets
 import shutil
 import stat
 import socket
@@ -754,23 +755,30 @@ def merge_files(parts: list[str], out: str, ffmpeg: str | None = None, run=None)
     ffmpeg = ffmpeg or ffmpeg_exe()
     if not ffmpeg or len(parts) < 2:
         return False
-    lst = out + ".txt"
+    # 1.57.69 (deep review SEC-03, reproduced with a junction on Windows): the list was "<out>.txt", opened with
+    # open(…, "w") and ffmpeg ran with -y – a link planted at a name known in advance made the elevated program
+    # overwrite (and then delete) its target. Now: the list under a new random name, created exclusively
+    # (fsops.write_tmp); ffmpeg never overwrites (-n) and nothing runs when ``out`` is already there; only what this
+    # call made is removed.
+    if os.path.lexists(out):
+        log.info("ffmpeg: Zusammenfügen übersprungen – Zieldatei existiert schon")
+        return False
+    text = "".join("file '" + os.path.abspath(p).replace("'", "'\\''") + "'\n" for p in parts)
     try:
-        with open(lst, "w", encoding="utf-8") as f:
-            for p in parts:
-                f.write("file '" + os.path.abspath(p).replace("'", "'\\''") + "'\n")
-        rc, err = (run or _run)([ffmpeg, "-hide_banner", "-loglevel", "error", "-y", "-f", "concat", "-safe", "0",
+        lst = fsops.write_tmp(out + ".txt", text.encode("utf-8"))
+    except OSError as e:
+        log.info("ffmpeg: Liste zum Zusammenfügen nicht angelegt (%s)", e)
+        return False
+    try:
+        rc, err = (run or _run)([ffmpeg, "-hide_banner", "-loglevel", "error", "-n", "-f", "concat", "-safe", "0",
                                 "-i", lst, "-map", "0", "-c", "copy", out])
     finally:
-        try:
-            os.remove(lst)
-        except OSError:
-            pass
+        fsops.discard_tmp(lst)
     ok = rc == 0 and os.path.exists(out) and os.path.getsize(out) > 0
     if not ok:
         log.info("ffmpeg: Zusammenfügen fehlgeschlagen (%s): %s", rc, err[-400:].decode("utf-8", "replace").strip())
         try:
-            os.remove(out)
+            fsops.delete_inside(os.path.dirname(os.path.abspath(out)), out)   # ffmpeg's unfinished output, never a link
         except OSError:
             pass
     return ok
@@ -1970,7 +1978,8 @@ class Recorder(threading.Thread):
         if not ffmpeg or os.path.splitext(pre_path)[1].lower() != os.path.splitext(round_path)[1].lower():
             return round_path, os.path.basename(pre_path), 0.0, False
         pre_s = media_duration(pre_path, ffmpeg)
-        tmp = os.path.splitext(round_path)[0] + " (zusammen)" + os.path.splitext(round_path)[1]
+        # 1.57.69 (deep review SEC-03): a name nobody can know in advance (was "<round> (zusammen).<ext>")
+        tmp = f"{os.path.splitext(round_path)[0]} (zusammen {secrets.token_hex(4)}){os.path.splitext(round_path)[1]}"
         if not merge_files([pre_path, round_path], tmp, ffmpeg):
             return round_path, os.path.basename(pre_path), 0.0, False
         # 1.55.1 (audit R-3, reproduced): the pre-roll was removed before the joined file took the round's name – a

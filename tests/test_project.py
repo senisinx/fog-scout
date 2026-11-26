@@ -251,7 +251,11 @@ def test_a_project_names_only_local_media_files():
     clip drops out."""
     from fogscout import fsops, musictrack
     for bad in ("\\\\attacker\\share\\a.mkv", "//attacker/share/a.mkv", "\\\\?\\C:\\a.mkv", "\\\\.\\pipe\\x.mkv",
-                "http://x/a.mkv", "file:C:/a.mkv", "concat:a.mkv|b.mkv", "C:\\a.m3u8", "C:\\a.txt", "", None, 3):
+                "http://x/a.mkv", "file:C:/a.mkv", "concat:a.mkv|b.mkv", "C:\\a.m3u8", "C:\\a.txt", "", None, 3,
+                # 1.57.69 (deep review SEC-06, checked on Windows): "\??\" goes to the kernel as is (a share again),
+                # a stream, an ffmpeg option string, a device name
+                "\\??\\UNC\\attacker\\share\\a.mkv", "/??/UNC/attacker/share/a.mkv", "C:\\a.mkv:stream.mkv",
+                "subfile,,start,0,end,100,,:/etc/passwd.mkv", "CON.mkv", "C:\\Aufnahmen\\nul.mkv", "COM1.mkv"):
         assert not fsops.local_media_path(bad, project.MEDIA_EXTS), bad
         assert project.montage_sources({"sources": ["C:\\Aufnahmen\\a.mkv", bad]}) == []
     for good in ("C:\\Aufnahmen\\a.mkv", "D:/Clips/b.mp4", "/home/x/c.webm", "a.mkv"):

@@ -234,10 +234,9 @@ RAW_DELETES = {
     ("history", "clear"),                   # rounds.jsonl by its fixed name in the data folder
     ("imageedit", "save"),                  # its own .tmp next to the copy
     ("mapimage", "save"),                   # user_maps/<slug>.<ext> variants of the picture just saved
-    ("obsrec", "merge_files"),              # the concat list / unfinished output it made itself
     ("obsrec", "_join"),                    # its own .tmp and the joined part after a checked join
     ("obsrec", "_instant_clip"),            # its own ffmpeg output that failed (the buffer: delete_inside, CR-007)
-    ("official", "clear"), ("official", "take_downloads"),   # official.jsonl; our own marked exports
+    ("official", "clear"),                  # official.jsonl (1.57.69: the exports go through ExclusiveHandle)
     ("picturedlg", "delete"),               # a user_maps picture the user deleted
     ("qt_clip", "_drop_wav"),               # its own temp wav
     ("regions", "run_job"),                 # its own job/result files (mkstemp)
