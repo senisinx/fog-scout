@@ -6376,4 +6376,10 @@ T = {
         'Apri la navigazione',
     'Navigation einklappen (nur Symbole)':
         'Riduci la navigazione (solo icone)',
+    'Zurück zu {page}':
+        'Torna a {page}',
+    'Öffnet die Seite {page}.':
+        'Apre la pagina {page}.',
+    'Öffnet den Rechner: Reparatur-, Heil- und andere Zeiten aus Perks, Items und Add-ons.':
+        'Apre il calcolatore: tempi di riparazione, cura e altri da competenze, oggetti e accessori.',
 }

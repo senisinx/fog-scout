@@ -566,6 +566,7 @@ TIPS = {
     "Meldung, wenn Match-Daten eingelesen und gelöscht wurden":
         "Zeigt unten rechts kurz, wie viele Matches gelesen wurden und dass die Datei gelöscht ist – nicht, solange "
         "DBD im Vordergrund ist. Im Log steht es immer.",
+    "Rechner": "Öffnet den Rechner: Reparatur-, Heil- und andere Zeiten aus Perks, Items und Add-ons.",
     "Stats-Seite öffnen": "Öffnet stats.deadbydaylight.com jetzt. Mit installiertem Userscript kommen die Matches "
                           "gleich danach an.",
     "Alle löschen": "Alle eigenen Map-Zuordnungen löschen (die Namen werden dann wieder als unbekannt "

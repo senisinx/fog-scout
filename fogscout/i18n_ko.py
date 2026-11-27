@@ -6376,4 +6376,10 @@ T = {
         '탐색 펼치기',
     'Navigation einklappen (nur Symbole)':
         '탐색 접기 (아이콘만)',
+    'Zurück zu {page}':
+        '{page}(으)로 돌아가기',
+    'Öffnet die Seite {page}.':
+        '{page} 페이지를 엽니다.',
+    'Öffnet den Rechner: Reparatur-, Heil- und andere Zeiten aus Perks, Items und Add-ons.':
+        '계산기를 엽니다: 퍽, 아이템, 애드온으로 수리·치료 등의 시간을 계산합니다.',
 }

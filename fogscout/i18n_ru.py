@@ -6376,4 +6376,10 @@ T = {
         'Развернуть навигацию',
     'Navigation einklappen (nur Symbole)':
         'Свернуть навигацию (только значки)',
+    'Zurück zu {page}':
+        'Назад: {page}',
+    'Öffnet die Seite {page}.':
+        'Открывает страницу «{page}».',
+    'Öffnet den Rechner: Reparatur-, Heil- und andere Zeiten aus Perks, Items und Add-ons.':
+        'Открывает калькулятор: время ремонта, лечения и другое по навыкам, предметам и улучшениям.',
 }

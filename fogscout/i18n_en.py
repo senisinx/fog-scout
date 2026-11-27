@@ -4853,4 +4853,10 @@ EN = {
         'Open the navigation',
     'Navigation einklappen (nur Symbole)':
         'Fold the navigation (icons only)',
+    'Zurück zu {page}':
+        'Back to {page}',
+    'Öffnet die Seite {page}.':
+        'Opens the page {page}.',
+    'Öffnet den Rechner: Reparatur-, Heil- und andere Zeiten aus Perks, Items und Add-ons.':
+        'Opens the calculator: repair, healing and other times from perks, items and add-ons.',
 }

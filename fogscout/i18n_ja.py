@@ -6376,4 +6376,10 @@ T = {
         'ナビゲーションを開く',
     'Navigation einklappen (nur Symbole)':
         'ナビゲーションをたたむ（アイコンのみ）',
+    'Zurück zu {page}':
+        '{page}に戻る',
+    'Öffnet die Seite {page}.':
+        '「{page}」ページを開きます。',
+    'Öffnet den Rechner: Reparatur-, Heil- und andere Zeiten aus Perks, Items und Add-ons.':
+        '計算機を開きます：パーク、アイテム、アドオンから修理・治療などの時間を計算。',
 }

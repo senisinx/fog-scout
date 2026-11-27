@@ -345,6 +345,14 @@ QListWidget#nav::item:hover:!selected {{ background: {c['hover']}; color: {c['fg
 QListWidget#tablist {{ background: transparent; border: none; outline: 0; padding: 8px 0 0 0; }}  /* 1.57.78 */
 QListWidget#tablist::item {{ padding: 7px 12px; border-radius: {RADIUS['m']}px; margin: 1px 0; color: {c['dim']}; }}
 QListWidget#tablist::item:selected {{ background: {c['nav_sel']}; color: {c['head']}; font-weight: 600; }}
+QPushButton#tablistlink {{ background: transparent; border: 1px solid transparent; color: {c['dim']};
+    text-align: left; padding: 7px 12px; border-radius: {RADIUS['m']}px; }}  /* 1.57.81: a page reached from the list */
+QPushButton#tablistlink:hover {{ background: {c['hover']}; color: {c['fg']}; }}
+QPushButton#tablistlink:focus {{ border-color: {c['accent']}; }}
+QPushButton#pageback {{ background: transparent; border: 1px solid transparent; color: {c['dim']}; padding: 0 4px 2px 0;
+    font-size: {px(TYPE['small'])}; }}
+QPushButton#pageback:hover {{ color: {c['fg']}; }}
+QPushButton#pageback:focus {{ border-color: {c['accent']}; }}
 QListWidget#tablist::item:hover:!selected {{ background: {c['hover']}; color: {c['fg']}; }}
 QFrame[class="card"] {{ background: {c['card']}; border: 1px solid {c['border']}; border-radius: {RADIUS['xl']}px; }}
 QFrame[class="card"] QLabel {{ background: transparent; }}

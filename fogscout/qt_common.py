@@ -9,7 +9,7 @@ from PIL import Image
 from PySide6.QtCore import QEvent, QObject, Qt
 from PySide6.QtGui import QImage, QPixmap
 from PySide6.QtWidgets import (QAbstractScrollArea, QAbstractSlider, QAbstractSpinBox, QApplication, QComboBox, QFrame,
-                               QLabel, QScrollArea, QVBoxLayout, QWidget)
+                               QLabel, QScrollArea, QVBoxLayout, QWidget, QPushButton, QSizePolicy)
 
 from . import qt_theme           # 1.24.6: at module level – an import statement in set_glyph cost ~1.9 µs per call
 from .i18n import N_, _
@@ -278,11 +278,27 @@ def steady_scroll(sa):
     return sa
 
 
+# 1.57.81 (user picked "sechs Seiten"): pages that are no row of the navigation any more – page key -> (the page
+# they are reached from, its name); the log has none (the button at the navigation's foot opens it)
+NAV_PARENT = {"calc": ("stats", N_("Statistik")), "server": ("settings", N_("Einstellungen"))}
+NAV_HIDDEN = ("calc", "server", "log")
+
+
 def page_head(title: str, page_key: str = "") -> QVBoxLayout:
-    """1.24: a page's title and the line under it (PAGE_SUBTITLES) – close together, apart from the page."""
+    """1.24: a page's title and the line under it (PAGE_SUBTITLES) – close together, apart from the page. 1.57.81:
+    a page reached from another one (NAV_PARENT) has the way back above its title."""
     head = QVBoxLayout()
     head.setContentsMargins(0, 0, 0, 0)
     head.setSpacing(2)
+    parent = NAV_PARENT.get(page_key)
+    if parent:
+        back = QPushButton("‹ " + _(parent[1]))
+        back.setObjectName("pageback")
+        back.setCursor(Qt.PointingHandCursor)
+        back.setToolTip(_("Zurück zu {page}", page=_(parent[1])))
+        back.setSizePolicy(QSizePolicy.Maximum, QSizePolicy.Fixed)
+        back.clicked.connect(lambda _c=False, b=back, k=parent[0]: getattr(b.window(), "show_page", lambda _k: None)(k))
+        head.addWidget(back, 0, Qt.AlignLeft)
     head.addWidget(_label(title, "h1"))
     sub = PAGE_SUBTITLES.get(page_key)
     if sub:

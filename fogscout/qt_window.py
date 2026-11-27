@@ -20,6 +20,7 @@ from . import i18n, qt_icons, qt_theme
 from .status import DOT_STYLE
 from .i18n import N_, _
 from .qt_app import FIRA, application          # 1.14.2: made before the heavy imports (splash)
+from .qt_common import NAV_HIDDEN                # 1.57.81: pages off the navigation
 from .qt_common import (SLIDER_MAX, WheelGuard, guard_wheel, pixmap_from_pil, rezoom, set_glyph, _label, _tip, _card, _set,
                         _scroll_page)
 from .qt_views import (FactBox, CHECKS, _check, Table, LogView, HotkeyButton, Chart, HEAT_RAMP,
@@ -387,7 +388,8 @@ SPECS = {
                                                      ("stretch",))),                                  # 1.26.1
                                             ("hint", "st.more.cl_status"),
                                             ("fold", N_("Erklärung"), (("hint", "st.more.cl_text"),))))))),
-         "list"),          # 1.57.78 (user picked draft B "Liste links"): the tabs as a list beside the open one
+         "list",           # 1.57.78 (user picked draft B "Liste links"): the tabs as a list beside the open one
+         (("server", N_("Server")),)),     # 1.57.81: under the list – pages reached from here (NAV_PARENT)
     ),
 }
 
@@ -792,12 +794,14 @@ class MainWindow(QMainWindow):
         self.setup = SetupPage(post)
         self.stack.addWidget(self.setup)
         self._setup_on = False
+        self._nav_hide()
         self.nav.setCurrentRow(0)
         self.nav.currentRowChanged.connect(self._page_changed)
         # 1.7.6 (user: "move the windows on the left as I like"): the rows can be dragged into another order
         self.nav.setDragDropMode(QAbstractItemView.InternalMove)
         self.nav.setDefaultDropAction(Qt.MoveAction)
-        self.nav.model().rowsMoved.connect(lambda *_a: self._post("nav_order", self.nav_keys()))
+        self.nav.model().rowsMoved.connect(lambda *_a: (self._nav_hide(), self._nav_texts(),
+                                                        self._post("nav_order", self.nav_keys())))
         # search over the settings of all pages (1.60): a field above the navigation, Ctrl+F
         side = QWidget()
         side.setObjectName("navside")
@@ -955,12 +959,24 @@ class MainWindow(QMainWindow):
         """The page keys in the order the navigation shows them (1.7.6: the user's order)."""
         return [self.nav.item(i).data(Qt.UserRole) for i in range(self.nav.count())]
 
+    def _nav_hide(self):
+        """1.57.81: the pages off the navigation (NAV_HIDDEN) keep their row – hidden; a hidden row is a row of the
+        view, so this runs again after the rows were put into another order."""
+        for row in range(self.nav.count()):
+            self.nav.setRowHidden(row, self.nav.item(row).data(Qt.UserRole) in NAV_HIDDEN)
+
+    def nav_shown(self) -> list:
+        """The page keys the navigation shows, in its order."""
+        return [k for k in self.nav_keys() if k not in NAV_HIDDEN]
+
     def nav_jump(self, row: int):
-        """1.17: Ctrl+<n> – the page in row ``row`` of the navigation (leaves the setup assistant like a click)."""
-        if 0 <= row < self.nav.count():
+        """1.17: Ctrl+<n> – the page in the n-th shown row of the navigation (leaves the setup assistant like a
+        click)."""
+        shown = self.nav_shown()
+        if 0 <= row < len(shown):
             if self._setup_on:
                 self.show_setup(False)
-            self.nav.setCurrentRow(row)
+            self.nav.setCurrentRow(self._nav_row(shown[row]))
 
     def _nav_row(self, key) -> int:
         keys = self.nav_keys()
@@ -982,6 +998,7 @@ class MainWindow(QMainWindow):
                 items[item.data(Qt.UserRole)] = item
             for k in want:
                 self.nav.addItem(items[k])
+            self._nav_hide()
             row = self._nav_row(current)
             self.nav.setCurrentRow(row if row >= 0 else -1)
         finally:
@@ -1586,9 +1603,11 @@ class MainWindow(QMainWindow):
         """Names in the rows (or as hover text while the navigation is narrow), whatever their order."""
         labels = dict(PAGES)
         on = self._nav_compact
+        shown = self.nav_shown()
         for row in range(self.nav.count()):
             item = self.nav.item(row)
             label = labels.get(item.data(Qt.UserRole), "")
             item.setText("" if on else _(label))
-            key = _("Strg+{n}", n=row + 1) if row < NAV_KEYS else ""          # 1.17: Ctrl+1 … Ctrl+9
+            n = shown.index(item.data(Qt.UserRole)) if item.data(Qt.UserRole) in shown else NAV_KEYS
+            key = _("Strg+{n}", n=n + 1) if n < NAV_KEYS else ""          # 1.17: Ctrl+1 … Ctrl+9
             item.setToolTip((_(label) + " · " + key if key else _(label)) if on else key)

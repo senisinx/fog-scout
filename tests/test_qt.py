@@ -3156,25 +3156,66 @@ def test_a_disabled_primary_button_does_not_look_active_and_shows_the_focus(qapp
 
 def test_ctrl_and_a_number_opens_the_page_in_that_row_of_the_navigation(qapp):
     """1.17: Ctrl+1 … Ctrl+9 = the n-th row of the navigation – its own order, also out of the setup assistant;
-    the rows say their key on hover."""
+    the rows say their key on hover. 1.57.81: the n-th row it shows (calculator, server and log have none)."""
     from fogscout import qt_window
     win = qt_window.MainWindow(lambda a, arg=None: None)
     try:
-        keys = win.nav_keys()
+        keys = win.nav_shown()
         win.nav_jump(3)
         assert win.current_key() == keys[3]
-        win.set_nav_order(["log"] + [k for k in keys if k != "log"])
+        win.set_nav_order(["log", "settings"] + [k for k in win.nav_keys() if k not in ("log", "settings")])
         win.nav_jump(0)
-        assert win.current_key() == "log"
-        assert "Strg+1" in win.nav.item(0).toolTip()
+        assert win.current_key() == "settings"                  # the log's row is hidden: not counted
+        assert "Strg+1" in win.nav.item(1).toolTip() and win.nav.item(0).toolTip() == ""
         win.show_setup(True)
         win.nav_jump(1)
-        assert not win._setup_on and win.current_key() == win.nav_keys()[1]
+        assert not win._setup_on and win.current_key() == win.nav_shown()[1]
         win.nav_jump(99)                                        # no such row: nothing happens
-        assert win.current_key() == win.nav_keys()[1]
+        win.nav_jump(len(win.nav_shown()))                      # one past the shown rows: nothing either
+        assert win.current_key() == win.nav_shown()[1]
     finally:
         win.allow_close = True
         win.close()
+
+
+def test_the_navigation_shows_six_pages_and_the_others_are_reached_from_their_place(qapp, keep):
+    """1.57.81 (user: "sechs Seiten"): calculator, server and log have no row in the navigation – they stay pages:
+    the server opens from the settings' list, the calculator from the statistics, the log from the foot; server and
+    calculator have the way back above their title. The rows stay hidden in another order and after a drag."""
+    from PySide6.QtWidgets import QPushButton
+    from fogscout import qt_window
+    win = keep(qt_window.MainWindow(lambda a, arg=None: None))
+    win.resize(1280, 800)
+    win.show()
+    hidden = lambda: [win.nav.item(r).data(0x0100) for r in range(win.nav.count()) if win.nav.isRowHidden(r)]  # noqa: E731
+    assert win.nav_shown() == ["overview", "maps", "overlay", "stats", "recordings", "settings"]
+    assert sorted(hidden()) == ["calc", "log", "server"] and len(win.nav_keys()) == 9
+    win.set_nav_order(["server", "settings", "calc"])
+    assert sorted(hidden()) == ["calc", "log", "server"] and win.nav_shown()[0] == "settings"
+    win.show_page("settings")
+    link = win.forms["settings"].tab_links["server"]
+    assert link.text().startswith("Server") and link.isVisible()
+    link.click()
+    assert win.current_key() == "server"
+    from PySide6.QtWidgets import QWidget
+    from fogscout import qt_common
+
+    def head(title, key):                                   # a page's head as its page builds it, inside the window
+        box = QWidget(win)
+        box.setLayout(qt_common.page_head(title, key))
+        return [b for b in box.findChildren(QPushButton) if b.objectName() == "pageback"]
+    back = head("Server", "server")
+    assert len(back) == 1 and back[0].text() == "‹ Einstellungen"
+    back[0].click()
+    assert win.current_key() == "settings"
+    calc = head("Rechner", "calc")
+    assert calc[0].text() == "‹ Statistik"
+    calc[0].click()
+    assert win.current_key() == "stats"
+    win.nav_foot.log_btn.click()
+    assert win.current_key() == "log"
+    assert not head("Log", "log") and not head("Maps", "maps")
+    assert qt_window.NAV_HIDDEN == ("calc", "server", "log")
 
 
 def test_the_name_column_is_never_squeezed_below_its_contents(qapp, keep):

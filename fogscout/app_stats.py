@@ -135,6 +135,9 @@ class StatsTab:
         self.stats_reset_btn = ui.Button(fr, text=_("Filter zurücksetzen"), command=self._stats_filters_reset)
         ui.glyph(ui.Button(fr, text=_("Stats-Seite öffnen"),            # 1.24: opens the browser – says so
                            command=lambda: self._official_open(False)), "external").pack(side="right")
+        # 1.57.81 (user picked "sechs Seiten"): the calculator is no row of the navigation any more – from here
+        ui.Button(fr, text=_("Rechner"), command=lambda: self.qt is not None and self.qt.show_page("calc")).pack(
+            side="right", padx=(0, 6))
         self._stats_regions = [(None, _("Alle Regionen"))]
         self.stats_region_var = ui.StringVar(value=self._stats_regions[0][1])
         self.stats_region_cb = ui.Combobox(more, textvariable=self.stats_region_var, state="readonly", width=20,

@@ -6376,4 +6376,10 @@ T = {
         '展开导航',
     'Navigation einklappen (nur Symbole)':
         '折叠导航（仅图标）',
+    'Zurück zu {page}':
+        '返回{page}',
+    'Öffnet die Seite {page}.':
+        '打开“{page}”页面。',
+    'Öffnet den Rechner: Reparatur-, Heil- und andere Zeiten aus Perks, Items und Add-ons.':
+        '打开计算器：根据技能、物品和配件计算修理、治疗等时间。',
 }
