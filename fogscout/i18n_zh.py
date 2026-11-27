@@ -6315,4 +6315,39 @@ T = {
         '两行（紧凑）',
     'gedrosselt':
         '已降频',
+    # 1.57.76: the overview follows the game, columns "Betrieb"
+    'Aufnahmen öffnen':
+        '打开录像',
+    'Custom Game – Lobby':
+        '自定义游戏 – 大厅',
+    'Dead by Daylight läuft nicht':
+        'Dead by Daylight 未运行',
+    'Fenster':
+        '窗口',
+    'Heute, Woche und letzte Runden':
+        '今天、本周和最近对局',
+    'Map erkannt':
+        '已识别地图',
+    'PC und Verbindung':
+        '电脑与连接',
+    'Platz':
+        '空间',
+    'Runde beendet':
+        '对局结束',
+    'Spielsprachen':
+        '游戏语言',
+    'Suche läuft':
+        '正在匹配',
+    'Wartet auf das Map-Banner':
+        '等待地图横幅',
+    'heiss':
+        '过热',
+    'im grünen Bereich':
+        '一切正常',
+    'keine Werte ohne Spiel':
+        '游戏未运行时无数值',
+    'warm':
+        '偏热',
+    'Öffnet die Seite Aufnahmen mit deinen Runden, Clips und Screenshots.':
+        '打开“录像”页面，查看你的对局、剪辑和截图。',
 }

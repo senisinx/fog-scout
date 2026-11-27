@@ -268,3 +268,47 @@ def test_the_app_draws_the_system_values_as_the_view_picked(tmp_path):
         assert app.hud.shown and app.hud.size != sysview.size("compact", int(1440 * sysview.WIDTH))
     finally:
         app.quit()
+
+
+# ------------------------------------------------------------------ 1.57.76: the overview follows the game
+def _ov_app(**kw):
+    from fogscout import sysinfo
+    base = dict(game=None, simulate="", _queue={"state": "idle"}, hidden_after_match=False,
+                settings={"auto_detect": True, "languages": ["en", "de"], "rec_on": False},
+                overlay=SimpleNamespace(has_map=lambda: False),
+                sysmon=SimpleNamespace(snapshot=sysinfo.Snapshot(), active=False),
+                recorder=SimpleNamespace(recording=False))
+    base.update(kw)
+    return SimpleNamespace(**base)
+
+
+def test_the_overviews_big_line_follows_the_game():
+    from fogscout import overview
+    assert overview.headline(_ov_app(), "Coal Tower") == "Coal Tower"
+    assert overview.headline(_ov_app(), "") == "Dead by Daylight läuft nicht"
+    game = SimpleNamespace(width=3440, height=1440)
+    assert overview.headline(_ov_app(game=game), "") == "Wartet auf das Map-Banner"
+    assert overview.headline(_ov_app(game=game, _queue={"state": "search"}), "") == "Suche läuft"
+    assert overview.headline(_ov_app(game=game, _queue={"state": "lobby"}), "") == "In der Lobby"
+    assert overview.headline(_ov_app(game=game, hidden_after_match=True), "") == "Runde beendet"
+
+
+def test_the_three_columns_say_how_detection_recording_and_the_pc_are():
+    from fogscout import overview, sysinfo
+    facts = [overview.Fact("Rundenzeit"), overview.Fact("Server", "Frankfurt"), overview.Fact("Ping", "28 ms"),
+             overview.Fact("Rolle")]
+    det, rec, pc = overview.ops(_ov_app(), 100.0, True, facts)
+    assert (det.title, det.state, det.level) == ("Erkennung", "wartet auf DBD", "") and not det.action
+    assert det.rows == (("Fenster", "–"), ("Spielsprachen", "EN, DE"))
+    assert (rec.state, rec.level, rec.action) == ("aus", "off", "rec_setup")
+    assert pc.state == "keine Werte ohne Spiel" and pc.rows[-1] == ("Server", "Frankfurt · 28 ms")
+    hot = sysinfo.Snapshot(t=100.0, fps=96.0, gpu_temp=float(sysinfo.GPU_HOT), cpu_temp=60.0)
+    game = SimpleNamespace(width=3440, height=1440)
+    app = _ov_app(game=game, sysmon=SimpleNamespace(snapshot=hot, active=True),
+                  overlay=SimpleNamespace(has_map=lambda: True))
+    det, rec, pc = overview.ops(app, 101.0, True, facts)
+    assert (det.state, det.level, det.rows[0]) == ("Map erkannt", "ok", ("Fenster", "3440 × 1440"))
+    assert (pc.state, pc.level) == ("heiss", "err") and pc.rows[0] == ("FPS", "96")
+    assert overview.ops(app, 101.0, False, facts)[2].state == "keine Werte ohne Spiel"      # not on Windows
+    app.settings["auto_detect"] = False
+    assert overview.ops(app, 101.0, True, facts)[0].level == "off"

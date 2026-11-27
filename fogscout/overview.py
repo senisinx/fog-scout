@@ -9,7 +9,7 @@ import time
 from collections import namedtuple
 from dataclasses import dataclass, field
 
-from . import dashboard, history, obsrec, official, records, sysinfo, theme
+from . import dashboard, history, obsrec, official, records, sysinfo, sysview, theme
 from .catalog import shown
 from .connwatch import UNKNOWN, region_name
 from .i18n import N_, _
@@ -50,12 +50,27 @@ class Switch:
 
 
 @dataclass
+class Op:
+    """1.57.76: one column of "Betrieb" – detection, recording, PC and connection: a word on how it is (``level`` ok |
+    warn | err | off | "" colours it), up to three name/value rows and one button (``action`` posted to the App)."""
+    title: str
+    state: str = ""
+    level: str = ""
+    rows: tuple = ()
+    action: str = ""
+    action_label: str = ""
+    arg: str = ""
+
+
+@dataclass
 class Overview:
     status_kind: str = "idle"                 # DOT style: ok | warn | err | info | idle
     status_text: str = ""
     map_label: str = ""                       # "" = no map yet
     map_line: str = ""                        # realm · how it was found
     queue: str = ""                           # search / lobby / custom game
+    headline: str = ""                        # 1.57.76: the big line – the map, or what the game does now
+    ops: list = field(default_factory=list)   # 1.57.76: the three columns of "Betrieb" (Op)
     thumb_rev: int = 0
     facts: list = field(default_factory=list)          # round time, server, ping, role
     actions: dict = field(default_factory=dict)        # name -> (enabled, label) / None = not shown
@@ -75,6 +90,70 @@ class Overview:
     news_since: str = ""                      # the card's title
     days: dict = field(default_factory=dict)  # 1.11.14: chart data (trendchart panel "killer") – {} = no round in DAYS
     dark: bool = True
+
+
+def headline(app, label: str) -> str:
+    """1.57.76 (user picked the drafts B and C): the overview's big line follows the game – the map on display, else
+    the lobby / the search, the end of a round, or that DBD does not run."""
+    if label:
+        return label
+    if app.game is None and not app.simulate:
+        return _("Dead by Daylight läuft nicht")
+    state = (app._queue or {}).get("state")
+    if state == "search":
+        return _("Suche läuft")
+    if state == "lobby":
+        return _("In der Lobby")
+    if state == "custom":
+        return _("Custom Game – Lobby")
+    if app.hidden_after_match:
+        return _("Runde beendet")
+    return _("Wartet auf das Map-Banner")
+
+
+def ops(app, now: float, is_win: bool, facts=None) -> list:
+    """1.57.76: detection, recording, PC and connection – each as one word, a few values and one button."""
+    g = app.game
+    if not app.settings.get("auto_detect", True):
+        det = (_("aus"), "off")
+    elif g is None and not app.simulate:
+        det = (_("wartet auf DBD"), "")
+    elif app.overlay.has_map():
+        det = (_("Map erkannt"), "ok")
+    else:
+        det = (_("bereit"), "ok")
+    langs = ", ".join(str(c).upper() for c in (app.settings.get("languages") or ())[:4]) or "–"
+    window = f"{g.width} × {g.height}" if g is not None and getattr(g, "width", 0) else "–"
+    out = [Op(_("Erkennung"), det[0], det[1], ((_("Fenster"), window), (_("Spielsprachen"), langs)))]   # "Scannen"
+    #                                                                       stands in the card above already
+    rec = recordings(app)
+    if rec is None:
+        out.append(Op(_("Aufnahme"), _("aus"), "off", (), "rec_setup", _("Aufnahmen einrichten …")))
+    else:
+        level, words = switch_state(app, "rec", True, is_win)
+        if getattr(app.recorder, "recording", False):
+            level, words = "err", _("nimmt auf")
+        out.append(Op(_("Aufnahme"), words or _("bereit"), level or "ok",
+                      ((_("Platz"), rec.value), (_("Aufnahmen"), rec.sub.split(" · ")[0] if rec.sub else "–")),
+                      rec.action or "tile_open", rec.action_label or _("Aufnahmen öffnen"),
+                      "" if rec.action else "page:recordings"))
+    s = app.sysmon.snapshot
+    fresh = is_win and app.sysmon.active and now - s.t <= 3
+    facts = facts if facts is not None else map_facts(app, now)
+    server, ping = facts[1], facts[2]
+    if fresh:
+        worst = max(sysview.level("gpu", s.gpu_temp), sysview.level("cpu", s.cpu_temp), sysview.level("spot", s.gpu_hot),
+                    2 if (s.throttle or s.cpu_throttle) else 0)
+        pc = ((_("im grünen Bereich"), "ok"), (_("warm"), "warn"), (_("heiss"), "err"))[worst]
+        temps = " / ".join(f"{t:.0f} °C" if t is not None else "–" for t in (s.gpu_temp, s.cpu_temp))
+        rows = (("FPS", f"{s.fps:.0f}" if s.fps is not None else "–"), ("GPU / CPU", temps))
+    else:
+        pc = (_("keine Werte ohne Spiel"), "")
+        rows = (("FPS", "–"), ("GPU / CPU", "–"))
+    ping_text = f" · {ping.value}" if ping.value != "–" else ""
+    out.append(Op(_("PC und Verbindung"), pc[0], pc[1], rows + ((_("Server"), server.value + ping_text),),
+                  "server_page", _("Server-Tab öffnen")))
+    return out
 
 
 def _num(v: float, digits: int = 1) -> str:
@@ -565,6 +644,8 @@ def overview_model(app, now: float, is_win: bool) -> Overview:
     o.queue = app._queue_text(now)
     o.thumb_rev = getattr(app, "_thumb_rev", 0)
     o.facts = map_facts(app, now)
+    o.headline = headline(app, label)
+    o.ops = ops(app, now, is_win, o.facts)
     o.actions = actions(app)
     o.primary = primary_action(app, o.actions)
     o.switches = switches(app, is_win)

@@ -6315,4 +6315,39 @@ T = {
         'Две строки (компактно)',
     'gedrosselt':
         'троттлинг',
+    # 1.57.76: the overview follows the game, columns "Betrieb"
+    'Aufnahmen öffnen':
+        'Открыть записи',
+    'Custom Game – Lobby':
+        'Своя игра – лобби',
+    'Dead by Daylight läuft nicht':
+        'Dead by Daylight не запущена',
+    'Fenster':
+        'Окно',
+    'Heute, Woche und letzte Runden':
+        'Сегодня, неделя и последние раунды',
+    'Map erkannt':
+        'Карта распознана',
+    'PC und Verbindung':
+        'ПК и соединение',
+    'Platz':
+        'Место',
+    'Runde beendet':
+        'Раунд окончен',
+    'Spielsprachen':
+        'Языки игры',
+    'Suche läuft':
+        'Идёт поиск',
+    'Wartet auf das Map-Banner':
+        'Ожидание баннера карты',
+    'heiss':
+        'горячо',
+    'im grünen Bereich':
+        'всё в норме',
+    'keine Werte ohne Spiel':
+        'нет значений без игры',
+    'warm':
+        'тепло',
+    'Öffnet die Seite Aufnahmen mit deinen Runden, Clips und Screenshots.':
+        'Открывает страницу «Записи» с твоими раундами, клипами и снимками.',
 }

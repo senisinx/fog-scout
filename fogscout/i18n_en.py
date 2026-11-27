@@ -4792,4 +4792,39 @@ EN = {
         'Two lines (compact)',
     'gedrosselt':
         'throttled',
+    # 1.57.76: the overview follows the game, columns "Betrieb"
+    'Aufnahmen öffnen':
+        'Open recordings',
+    'Custom Game – Lobby':
+        'Custom game – lobby',
+    'Dead by Daylight läuft nicht':
+        'Dead by Daylight is not running',
+    'Fenster':
+        'Window',
+    'Heute, Woche und letzte Runden':
+        'Today, the week and the last rounds',
+    'Map erkannt':
+        'Map detected',
+    'PC und Verbindung':
+        'PC and connection',
+    'Platz':
+        'Space',
+    'Runde beendet':
+        'Round over',
+    'Spielsprachen':
+        'Game languages',
+    'Suche läuft':
+        'Searching',
+    'Wartet auf das Map-Banner':
+        'Waiting for the map banner',
+    'heiss':
+        'hot',
+    'im grünen Bereich':
+        'all fine',
+    'keine Werte ohne Spiel':
+        'no readings without the game',
+    'warm':
+        'warm',
+    'Öffnet die Seite Aufnahmen mit deinen Runden, Clips und Screenshots.':
+        'Opens the page Recordings with your rounds, clips and screenshots.',
 }

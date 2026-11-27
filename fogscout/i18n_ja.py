@@ -6315,4 +6315,39 @@ T = {
         '2 行（コンパクト）',
     'gedrosselt':
         'スロットル中',
+    # 1.57.76: the overview follows the game, columns "Betrieb"
+    'Aufnahmen öffnen':
+        '録画を開く',
+    'Custom Game – Lobby':
+        'カスタムゲーム – ロビー',
+    'Dead by Daylight läuft nicht':
+        'Dead by Daylight は起動していません',
+    'Fenster':
+        'ウィンドウ',
+    'Heute, Woche und letzte Runden':
+        '今日・今週・最近のラウンド',
+    'Map erkannt':
+        'マップを認識',
+    'PC und Verbindung':
+        'PC と接続',
+    'Platz':
+        '空き容量',
+    'Runde beendet':
+        'ラウンド終了',
+    'Spielsprachen':
+        'ゲームの言語',
+    'Suche läuft':
+        '検索中',
+    'Wartet auf das Map-Banner':
+        'マップバナーを待機中',
+    'heiss':
+        '高温',
+    'im grünen Bereich':
+        '問題なし',
+    'keine Werte ohne Spiel':
+        'ゲームなしでは値なし',
+    'warm':
+        'やや高温',
+    'Öffnet die Seite Aufnahmen mit deinen Runden, Clips und Screenshots.':
+        'ラウンド、クリップ、スクリーンショットのある「録画」ページを開きます。',
 }

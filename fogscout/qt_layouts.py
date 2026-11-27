@@ -222,12 +222,13 @@ class WrapCheck(QWidget):
 
     clicked = Signal(bool)
 
-    def __init__(self):
+    def __init__(self, box=None):
+        """``box`` (1.57.76): another checkable button in the tick box's place – the overview's on / off switches."""
         super().__init__()
         lay = QHBoxLayout(self)
         lay.setContentsMargins(0, 0, 0, 0)
         lay.setSpacing(6)
-        self.box = QCheckBox()
+        self.box = box if box is not None else QCheckBox()
         self.label = _ClickLabel(self.box)
         self.label.setWordWrap(True)
         self.label.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)

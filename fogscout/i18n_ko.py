@@ -6315,4 +6315,39 @@ T = {
         '두 줄(컴팩트)',
     'gedrosselt':
         '스로틀링',
+    # 1.57.76: the overview follows the game, columns "Betrieb"
+    'Aufnahmen öffnen':
+        '녹화 열기',
+    'Custom Game – Lobby':
+        '커스텀 게임 – 로비',
+    'Dead by Daylight läuft nicht':
+        'Dead by Daylight가 실행 중이 아닙니다',
+    'Fenster':
+        '창',
+    'Heute, Woche und letzte Runden':
+        '오늘, 이번 주, 최근 라운드',
+    'Map erkannt':
+        '맵 인식됨',
+    'PC und Verbindung':
+        'PC 및 연결',
+    'Platz':
+        '공간',
+    'Runde beendet':
+        '라운드 종료',
+    'Spielsprachen':
+        '게임 언어',
+    'Suche läuft':
+        '매칭 중',
+    'Wartet auf das Map-Banner':
+        '맵 배너 대기 중',
+    'heiss':
+        '과열',
+    'im grünen Bereich':
+        '정상',
+    'keine Werte ohne Spiel':
+        '게임 없이는 값 없음',
+    'warm':
+        '따뜻함',
+    'Öffnet die Seite Aufnahmen mit deinen Runden, Clips und Screenshots.':
+        '라운드, 클립, 스크린샷이 있는 녹화 페이지를 엽니다.',
 }
