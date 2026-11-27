@@ -967,6 +967,24 @@ def test_the_first_statistics_page_shows_the_trend_and_when_you_play():
     assert dashboard.build(late, [], unit="hour").trend_title == "Verlauf – Runden pro Stunde"
 
 
+def test_a_round_without_a_local_time_does_not_break_the_first_page(monkeypatch):
+    """Windows CI: datetime.timestamp() of the first day of 1970 raises OSError (a round with t = 100) – such a
+    round is left out of the trend and the times of play, the page is drawn."""
+    from fogscout import dashboard, official
+    real = official.bucket_start
+
+    def start(t, unit):
+        if t < 86400:
+            raise OSError(22, "Invalid argument")
+        return real(t, unit)
+    monkeypatch.setattr(official, "bucket_start", start)
+    old = history.Round(t=100.0, seconds=600, map_id="m", map="Coal Tower", role="killer")
+    new = history.Round(t=1_800_000_000.0, seconds=600, map_id="m", map="Coal Tower", role="killer")
+    assert dashboard.play_trend([old], "day") == []
+    assert [n for n, _l, _t in dashboard.play_trend([old, new], "day")] == [1]
+    assert dashboard.build([old], []).trend == [] and dashboard.build([old, new], []).tiles
+
+
 def test_every_block_of_the_dashboard_has_details(qapp, keep):
     """1.57.77: "Details" of a block posts ("open", part) – App._dash_clicked opens that part of the statistics;
     the trend hides with a single column, the times of play without rounds."""

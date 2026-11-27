@@ -274,7 +274,10 @@ def play_trend(rounds, unit: str) -> list:
     import time
     counts = {}
     for r in rounds:
-        b = official.bucket_start(r.t, unit)
+        try:
+            b = official.bucket_start(r.t, unit)
+        except (OSError, OverflowError, ValueError):   # Windows: no local time for a stamp at the start of 1970
+            continue
         counts[b] = counts.get(b, 0) + 1
     if not counts:
         return []
@@ -300,7 +303,10 @@ def play_grid(rounds):
     import datetime
     counts = {}
     for r in rounds:
-        d = datetime.datetime.fromtimestamp(r.t)
+        try:
+            d = datetime.datetime.fromtimestamp(r.t)
+        except (OSError, OverflowError, ValueError):   # a time stamp the platform has no local time for
+            continue
         cell = (d.weekday(), d.hour // history.HOUR_BLOCK * history.HOUR_BLOCK)
         counts[cell] = counts.get(cell, 0) + 1
     day = {w: _(WEEKDAY_NAMES[w]) for w in sorted({c[0] for c in counts})}
