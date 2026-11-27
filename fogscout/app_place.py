@@ -58,15 +58,17 @@ class OverlayPlacement:
         self._fade_hide("map", bool(o.get("fade", True)))
         self._fade_hide("today", bool(o.get("fade", True)))
         self._fade_hide("music", bool(o.get("media_fade", True)))
+        self._fade_hide("charts", bool(o.get("fade", True)))      # 1.57.73
         self._info_hide(bool(o.get("fade", True)))
         self._inputs_hide(stop_reading=True)        # 1.39: no card, and the keys are not looked at
         self._loadouts_hide()                       # 1.57
         self._loadouts_want()
-        self.worker.overlay_rect = self.worker.today_rect = self.worker.media_rect = None
+        self.worker.overlay_rect = self.worker.today_rect = self.worker.media_rect = self.worker.charts_rect = None
         self._vis_state = "aus"                     # set_overlay_on logged it already
         self._guides_place()
 
-    TIMED_STEPS = {"hud": "_hud_place", "today": "_today_card", "music": "_media_card", "info": "_info_card",
+    TIMED_STEPS = {"hud": "_hud_place", "today": "_today_card", "music": "_media_card", "charts": "_charts_card",
+                   "info": "_info_card",
                    "inputs": "_inputs_place", "loadouts": "_loadouts_place", "resolve": "_el_resolve", "guides": "_guides_place"}
 
     def _tick_times(self):
@@ -195,11 +197,14 @@ class OverlayPlacement:
                     fixed.append(self.worker.today_rect)
                 if o.get("media_pos", "below") != "custom":
                     fixed.append(self.worker.media_rect)
+                if o.get("charts_pos", "under_music") != "custom":        # 1.57.73
+                    fixed.append(self.worker.charts_rect)
             drop, lift = layout.bar_room(fixed, span[0], span[1], gy, gh, margin, layout.stack_gap(o, gh), band)
             if band and self._hud_pending == "above" and self.hud is not None:     # values + cards above the map
                 drop += layout.follow_reserve(self.hud.size[1], getattr(self, "_card_sizes", None) or {},
                                               {"today": o.get("today_pos", "below"),
-                                               "music": o.get("media_pos", "below")}, layout.stack_gap(o, gh))
+                                               "music": o.get("media_pos", "below"),
+                                               "charts": o.get("charts_pos", "under_music")}, layout.stack_gap(o, gh))
         drop, lift = drop + idrop, lift + ilift
         height = max(40, min(height, gh - drop - lift - 2 * margin))
         self.overlay.info_beside = bool(vb)

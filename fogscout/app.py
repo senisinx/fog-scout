@@ -46,6 +46,7 @@ from .app_youtube import YouTubeUpload
 from .app_palette import PaletteMixin
 from .app_inputs import InputsCard
 from .app_loadouts import SAMPLE as LOADOUT_SAMPLE, LoadoutsCard, placed as loadouts_placed
+from .app_charts import ChartsCard, picture as charts_picture, samples as charts_samples
 from .app_calc import CalcTab
 
 LANGS = [("en", "EN"), ("de", "DE"), ("fr", "FR"), ("es", "ES"), ("es-MX", "ES-MX"), ("it", "IT"),
@@ -82,7 +83,7 @@ log = logging.getLogger("fogscout")
 
 class App(ServerTab, StatsTab, ExportDialog, RecordingsTab, DiscordPresence, SpotifyUpNext, YouTubeUpload, LobbyInfo,
           Hotkeys, SettingsTab, PaletteMixin, CalcTab,
-          SysInfo, InputsCard, LoadoutsCard, OverlayPlacement, LayoutMemory, OverlayTab, QtShell):
+          SysInfo, InputsCard, LoadoutsCard, ChartsCard, OverlayPlacement, LayoutMemory, OverlayTab, QtShell):
     def __init__(self, root_dir: str, simulate: str | None = None, start_in_tray: bool = False, progress=None,
                  data_dir: str | None = None, start_clock=None):
         self.root_dir = root_dir
@@ -179,6 +180,7 @@ class App(ServerTab, StatsTab, ExportDialog, RecordingsTab, DiscordPresence, Spo
         self._hud_init()                 # system values at the top of a black bar (CPU/GPU temperature …)
         self._inputs_init()              # 1.39: the input card (keys / mouse / gamepad held right now)
         self._loadouts_init()            # 1.57: the other survivors' loadouts from the pause menu
+        self._charts_init()              # 1.57.73: the charts the user picked
         self._start_step("Overlay")
 
         self._progress(0.5, _("Baue Oberfläche …"))
@@ -1532,6 +1534,9 @@ class App(ServerTab, StatsTab, ExportDialog, RecordingsTab, DiscordPresence, Spo
             if o.get("show_inputs", False) else None       # 1.39: the input card with made-up keys
         layout_lo = ((lambda oo, game: loadouts_placed(oo, game, LOADOUT_SAMPLE, bool(self.overlay.editing), True))
                      if o.get("show_loadouts", False) else None)    # 1.57: the loadouts with a made-up board
+        chart_items = charts_samples(o) if o.get("show_charts", False) else []       # 1.57.73: made-up values
+        layout_ch = ((lambda gh, avail: charts_picture(o, chart_items, gh, avail, accent, bool(self.overlay.editing)))
+                     if chart_items else None)
         key = (gw, gh, repr(sorted((k, v) for k, v in o.items() if not isinstance(v, dict))), hud_side,
                bool(self.overlay.editing), accent,
                repr(rows), repr(today_rows), repr(self.settings.get("sysinfo_pos")), id(pic), caption, repr(info),
@@ -1544,7 +1549,7 @@ class App(ServerTab, StatsTab, ExportDialog, RecordingsTab, DiscordPresence, Spo
             layers, rect = preview.layers(round(gw * f), round(gh * f), o, hud_side, rows,
                                           self.settings.get("sysinfo_pos"), pic, caption, info, self._map_height(),
                                           music, today_rows, bool(self.overlay.editing), accent, upnext, fits,
-                                          inputs=layout_in, loadouts=layout_lo)
+                                          inputs=layout_in, loadouts=layout_lo, charts=layout_ch)
             self._preview_cache = cached = (key, layers, tuple(round(v / f) for v in rect), f, fits)
         _key, layers, (x, y, w, h), f, fits = cached
         boxes = [(name, (round(lx / f), round(ly / f), round(img.width / f), round(img.height / f)))
@@ -1644,7 +1649,7 @@ class App(ServerTab, StatsTab, ExportDialog, RecordingsTab, DiscordPresence, Spo
         self._select(name)
         reg = self.__dict__.get("_qt_reg", {})
         dark = reg.get({"map": "ov.map_backdrop", "text": "ov.map_backdrop", "hud": "ov.hud_backdrop",
-                        "today": "ov.today_backdrop",
+                        "today": "ov.today_backdrop", "charts": "ov.charts_backdrop",
                         "music": "ov.media_backdrop"}.get(name, ""))
         locked = self._el_locked(name)
         items = [("place", _("Position zurücksetzen"), not locked),     # 1.44.2: like a right click in the game
@@ -1694,7 +1699,7 @@ class App(ServerTab, StatsTab, ExportDialog, RecordingsTab, DiscordPresence, Spo
                 extra, shift = layout.own_block(dict(self.settings["overlay"], anchor="custom"), lines,
                                                 layout.stack_gap(self.settings["overlay"], gh))
                 fy = round(min(1.0, max(0.0, (y - shift) / max(1, gh - size[1] - extra))), 4)
-            if name in ("music", "today", "text", "inputs", "loadouts"):
+            if name in ("music", "today", "text", "inputs", "loadouts", "charts"):
                 fx, fy = layout.media_own(gw, gh, size, x, y)       # by its centre (1.2.5)
             if name == "hud":
                 self._hud_own_place(fx, fy)
@@ -1708,6 +1713,8 @@ class App(ServerTab, StatsTab, ExportDialog, RecordingsTab, DiscordPresence, Spo
                 self._inputs_own_place(fx, fy)
             elif name == "loadouts":                                 # 1.57
                 self._loadouts_own_place(fx, fy)
+            elif name == "charts":                                   # 1.57.73
+                self._charts_own_place(fx, fy)
             elif name == "map":
                 self._map_own_place(fx, fy)
             return
@@ -2046,7 +2053,8 @@ class App(ServerTab, StatsTab, ExportDialog, RecordingsTab, DiscordPresence, Spo
         try:
             # 1.8.38: every step on its own – one that raises must not skip saving or the other stops
             wins = [w for w in (self.media_win, getattr(self, "today_win", None), getattr(self, "info_win", None),
-                                getattr(self, "inputs_win", None), getattr(self, "loadouts_win", None))
+                                getattr(self, "inputs_win", None), getattr(self, "loadouts_win", None),
+                                getattr(self, "charts_win", None))
                     if w is not None]
             # first the clip saves still running: stopped, or done ones into the clips list while the recorder runs
             steps = [self._clip_saves_stop, self._hist_quit,     # 1.38.24: an open round is noted as lost

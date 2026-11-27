@@ -8,7 +8,7 @@ import time
 from collections import deque
 
 KEPT = 120
-STEPS = (("hud", "Systemwerte"), ("today", "Heute"), ("music", "Musik"), ("info", "Infos"),
+STEPS = (("hud", "Systemwerte"), ("today", "Heute"), ("music", "Musik"), ("charts", "Diagramme"), ("info", "Infos"),
          ("resolve", "Ausweichen"), ("guides", "Hilfslinien"))
 
 

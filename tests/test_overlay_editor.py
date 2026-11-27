@@ -61,7 +61,7 @@ def test_the_list_picks_shows_hides_and_locks_through_the_known_switches(app_roo
         for key in ("ov.master", "ov.small_off", "ov.per_size_hint"):       # were registered but never shown
             assert ui_shown(app._qt_reg[key]), key
         data = app._elements_data()
-        assert data["order"] == ["map", "text", "hud", "today", "music", "inputs", "loadouts"]      # 1.57
+        assert data["order"] == ["map", "text", "hud", "today", "music", "inputs", "loadouts", "charts"]   # 1.57.73
         assert data["rows"]["map"]["shown"] and not data["rows"]["inputs"]["shown"]
         assert data["rows"]["text"]["shown"] and data["rows"]["map"]["place"] == "automatisch"
         app._elements_act(("select", "music"))

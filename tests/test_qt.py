@@ -172,6 +172,7 @@ def _registered_keys():
     import glob
     import os
     from fogscout.app import LANGS
+    from fogscout.charts import IDS as CHART_IDS
     from fogscout.app_hotkeys import HOTKEY_LABELS
     pkg = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "fogscout")
     keys = set()
@@ -193,7 +194,7 @@ def _registered_keys():
                                                               "show_map", "focus", "caption", "timer", "server",
                                                               "waiting", "floors", "record", "notes", "transparent",
                                                               "last_round", "score"] + \
-                        [code for code, _l in LANGS]
+                        [code for code, _l in LANGS] + ["chart_" + c for c in CHART_IDS]    # 1.57.73: ov.chart_<id>
                     keys.update(pattern.format(k) for k in names)
     return keys
 
@@ -230,9 +231,9 @@ def test_form_page_shows_states_and_posts_clicks(qapp, keep):
     assert page.controls["ov.map_size_reset"][1].isHidden() and page.controls["ov.pos_hint"][1].isHidden()
     kind, tabs, body = page.controls["ov.pos"]                 # 1.66.4: the cards of the page are tabs
     index = tabs.indexOf(body)                                 # 1.7.6: addressed by widget – tabs can be moved
-    assert kind == "tab" and tabs.tabText(index) == "Allgemein" and tabs.count() == 8   # 1.2.12: one per element
-    assert [tabs.tabText(i) for i in range(8)] == ["Karte", "Infos", "Systemwerte", "Heute", "Musik", "Eingaben", "Loadouts",
-                                                   "Allgemein"]                                     # 1.57
+    assert kind == "tab" and tabs.tabText(index) == "Allgemein" and tabs.count() == 9   # 1.2.12: one per element (1.57.73 Diagramme)
+    assert [tabs.tabText(i) for i in range(9)] == ["Karte", "Infos", "Systemwerte", "Heute", "Musik", "Eingaben", "Loadouts",
+                                                   "Diagramme", "Allgemein"]                        # 1.57.73
     page.show_states({"ov.sys": {"text": "Systemwerte", "visible": False}})
     assert not tabs.isTabVisible(tabs.indexOf(page.controls["ov.sys"][2])) and tabs.isTabVisible(index)
     assert posted.empty()                                   # showing a state never sends anything back
@@ -1910,7 +1911,7 @@ def test_the_navigation_and_the_overlay_tabs_can_be_reordered_and_remembered(qap
     assert tabs_id == frames[0] and tabs.tabBar().isMovable()
     form.apply_tab_order({tabs_id: list(reversed(frames))})
     assert form._tab_ids(tabs, ids) == list(reversed(frames))
-    assert [tabs.tabText(i) for i in range(tabs.count())] == ["Allgemein", "Loadouts", "Eingaben", "Musik", "Heute",
+    assert [tabs.tabText(i) for i in range(tabs.count())] == ["Allgemein", "Diagramme", "Loadouts", "Eingaben", "Musik", "Heute",
                                                               "Systemwerte", "Infos", "Karte"]
     win.open_tab("overlay", frames[0])
     assert tabs.currentWidget() is form.controls[frames[0]][2]
@@ -2039,7 +2040,7 @@ def test_the_overlay_editor_has_a_tool_bar_list_canvas_and_inspector_in_three_wi
     assert ed.canvas is page.controls["ov.preview"][1] and ed.canvas_box.isAncestorOf(ed.canvas)
     assert ed.inspector.isAncestorOf(page.controls["ov.anchors"][1])
     assert ed.inspector.isAncestorOf(page.controls["ov.sel_size"][1]) and ed.inspector.isAncestorOf(ed.tabs)
-    assert ed.tabs.tabBar().isHidden() and ed.tabs.count() == 8         # the list picks the tab, not a tab row
+    assert ed.tabs.tabBar().isHidden() and ed.tabs.count() == 9         # the list picks the tab, not a tab row
     assert not ed.canvas.hasHeightForWidth()                           # fills its place – no 380-px cap
     for width, mode in ((1600, "wide"), (900, "medium"), (600, "narrow")):
         ed.arrange(width)

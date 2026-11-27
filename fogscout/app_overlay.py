@@ -400,7 +400,43 @@ class OverlayTab:
                                                  style="Dim.TLabel", wraplength=420)).pack(anchor="w")
         self._inputs_box_ui(f, o)
         self._loadouts_box_ui(f, o)
+        self._charts_box_ui(f, o)                           # 1.57.73
         return outer
+
+    def _charts_box_ui(self, f, o):
+        """1.57.73: the tab "Diagramme" – where the card stands, the dark area and which charts it shows."""
+        from . import charts
+        from .appconst import CHART_SPOTS
+        cf = self._reg("ov.charts_f", ui.LabelFrame(f, text=_("Diagramme"), padding=8))
+        cf.pack(fill="x", pady=(8, 0))
+        self.charts_on_var = ui.BooleanVar(value=bool(o.get("show_charts", False)))   # switched in the list
+        pr = ui.Frame(cf)
+        pr.pack(fill="x", pady=(4, 0))
+        self._reg("ov.charts_pos.label", ui.Label(pr, text=_("Position"), width=12)).pack(side="left")
+        spots = dict(CHART_SPOTS)
+        self.charts_pos_var = ui.StringVar(value=_(spots.get(o.get("charts_pos", "under_music"), spots["under_music"])))
+        pcb = self._reg("ov.charts_pos", ui.Combobox(pr, textvariable=self.charts_pos_var, state="readonly", width=38,
+                                                      values=[_(t) for _k, t in CHART_SPOTS]))
+        pcb.pack(side="left", padx=6)
+        pcb.bind("<<ComboboxSelected>>", lambda e: self._charts_spot_changed())
+        self.charts_backdrop_var = ui.BooleanVar(value=bool(o.get("charts_backdrop", True)))
+        self._reg("ov.charts_backdrop", ui.Checkbutton(cf, text=_("Dunkle Fläche hinter den Diagrammen"),
+                                                       variable=self.charts_backdrop_var,
+                                                       command=self._charts_backdrop_changed)).pack(anchor="w",
+                                                                                                    pady=(2, 0))
+        on = set(charts.picked(o))
+        self.chart_vars = {}
+        for cid, _title, name in charts.CATALOGUE:
+            var = self.chart_vars[cid] = ui.BooleanVar(value=cid in on)
+            self._reg(f"ov.chart_{cid}", ui.Checkbutton(cf, text=_(name), variable=var,
+                                                        command=lambda c=cid: self._charts_pick_changed(c))
+                      ).pack(anchor="w", pady=(2, 0))
+        self._reg("ov.charts_hint", ui.Label(cf, text=_("Höchstens {n} auf einmal. Die Werte kommen aus dem, was Fog "
+                                                         "Scout ohnehin misst (Ping, Systemwerte, deine Runden und "
+                                                         "Match-Daten, Punkte, Bloodpoints) – nichts Neues aus dem "
+                                                         "Spiel, nichts wird gesendet. Zu sehen, solange die Karte "
+                                                         "zu sehen ist; FPS nur mit HWiNFO.", n=charts.MAX_PICKED),
+                                             style="Dim.TLabel", wraplength=420)).pack(anchor="w")
 
     def _inputs_box_ui(self, f, o):
         """1.39: the tab "Eingaben" – the input card (keys / mouse / gamepad held right now)."""

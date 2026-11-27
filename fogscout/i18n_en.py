@@ -4661,4 +4661,111 @@ EN = {
         'Settings saved before the reset: {name}',
     'Mit OBS nimmt Fog Scout jede Runde von selbst auf und benennt sie nach Map und Rolle. F8 speichert einen Clip, der Editor schneidet ihn.':
         'With OBS, Fog Scout records every round by itself and names it after the map and your role. F8 saves a clip, the editor cuts it.',
+    # 1.57.73: the overlay element "Diagramme" (charts.py, app_charts.py)
+    'Altruismus':
+        'Altruism',
+    'BLOODPOINTS':
+        'BLOODPOINTS',
+    'Bilanz auf dieser Map':
+        'Record on this map',
+    'Bloodpoints bis zur Obergrenze':
+        'Bloodpoints up to the cap',
+    'Brutalität':
+        'Brutality',
+    'CPU':
+        'CPU',
+    'CPU-Last':
+        'CPU load',
+    'DIAGRAMME':
+        'CHARTS',
+    'DIESE MAP':
+        'THIS MAP',
+    'Deine Runden auf der Map dieser Runde in derselben Rolle: als Killer wie oft 0 bis 4 Kills, als Survivor tot oder entkommen.':
+        "Your rounds on this round's map in the same role: as the killer how often 0 to 4 kills, as a survivor dead or escaped.",
+    'Der Ping zur Region des Spielservers während der Runde – braucht die Anzeige des Spielservers.':
+        "The ping to the game server's region during the round – needs the game server display.",
+    'Der zuletzt in der Lobby gelesene Bloodpoint-Stand als Balken bis zur Obergrenze von 5 Millionen.':
+        'The bloodpoint balance read last in the lobby as a bar up to the cap of 5 million.',
+    'Diagramme':
+        'Charts',
+    'Die Auslastung des Prozessors in den letzten zehn Minuten.':
+        'The processor load over the last ten minutes.',
+    'Die FPS der letzten zehn Minuten – nur, wenn HWiNFO läuft (wie bei den Systemwerten).':
+        'The FPS of the last ten minutes – only while HWiNFO runs (as with the system values).',
+    'Die Kills jeder Killer-Runde von heute, die neueste hell – aus den Match-Daten der Stats-Seite.':
+        "The kills of every killer round today, the newest light – from the stats page's match data.",
+    'Die Temperatur der Grafikkarte in den letzten zehn Minuten (NVIDIA).':
+        "The graphics card's temperature over the last ten minutes (NVIDIA).",
+    'Die oben rechts gezählten Punkte je Kategorie deiner Rolle, voll bei 10 000 – braucht das Zählen der Punkte (Einstellungen → Erkennung).':
+        'The points counted top right per category of your role, full at 10,000 – needs point counting (Settings → Detection).',
+    'Dunkle Fläche hinter den Diagrammen':
+        'Dark area behind the charts',
+    'Eine halb durchsichtige dunkle Fläche mit runden Ecken hinter den Diagrammen.':
+        'A half-transparent dark area with round corners behind the charts.',
+    'FORM':
+        'FORM',
+    'FPS':
+        'FPS',
+    'FPS-Verlauf (HWiNFO)':
+        'FPS over time (HWiNFO)',
+    'Form der letzten 10 Runden':
+        'Form of the last 10 rounds',
+    'GPU':
+        'GPU',
+    'Grün: als Killer 3 Kills oder mehr bzw. als Survivor entkommen, grau: 2 Kills, rot: weniger bzw. gestorben, leerer Ring: noch ohne Match-Daten.':
+        'Green: 3 kills or more as the killer, escaped as a survivor; grey: 2 kills; red: fewer, or died; empty ring: no match data yet.',
+    'Hinterlist':
+        'Deviousness',
+    'Höchstens {n} Diagramme auf einmal – mehr passt nicht in den Balken.':
+        'At most {n} charts at once – more do not fit in the bar.',
+    'Höchstens {n} auf einmal. Die Werte kommen aus dem, was Fog Scout ohnehin misst (Ping, Systemwerte, deine Runden und Match-Daten, Punkte, Bloodpoints) – nichts Neues aus dem Spiel, nichts wird gesendet. Zu sehen, solange die Karte zu sehen ist; FPS nur mit HWiNFO.':
+        'At most {n} at once. The values come from what Fog Scout measures anyway (ping, system values, your rounds and match data, points, bloodpoints) – nothing new from the game, nothing is sent. Shown while the map is; FPS only with HWiNFO.',
+    'Jäger':
+        'Hunter',
+    'KILLS HEUTE':
+        'KILLS TODAY',
+    'Kills heute je Runde (Killer)':
+        'Kills today per round (killer)',
+    'Kühnheit':
+        'Boldness',
+    'Opferung':
+        'Sacrifice',
+    'PING':
+        'PING',
+    'PUNKTE':
+        'POINTS',
+    'Ping, Punkte, Kills …':
+        'Ping, points, kills …',
+    'Ping-Verlauf der Runde':
+        'Ping over the round',
+    'Punkte dieser Runde je Kategorie':
+        'Points of this round per category',
+    'RUNDENZEIT':
+        'ROUND TIME',
+    'Rundenzeit gegen den Schnitt der Map':
+        "Round time against the map's average",
+    'SUCHE HEUTE':
+        'SEARCH TODAY',
+    'Schnitt':
+        'Average',
+    'Suchzeit heute je Runde':
+        'Search time today per round',
+    'Welche Diagramme':
+        'Which charts',
+    'Wie lange die Runde schon läuft, neben der durchschnittlichen Dauer deiner Runden auf dieser Map.':
+        'How long the round has run, next to the average length of your rounds on this map.',
+    'Wie lange die Suche in der Lobby vor jeder Runde heute gedauert hat.':
+        'How long the search in the lobby took before each round today.',
+    'Ziel':
+        'Objective',
+    'entk.':
+        'esc.',
+    'jetzt':
+        'now',
+    '{w} von {n}':
+        '{w} of {n}',
+    'Ø {n}':
+        'avg. {n}',
+    'Ø {t}':
+        'avg. {t}',
 }

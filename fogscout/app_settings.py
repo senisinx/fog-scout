@@ -1202,7 +1202,8 @@ class SettingsTab:
 
     # 1.8.89: the elements that go into the picture OBS shows, with the worker's rect of each (None = hidden)
     OVERLAY_FEED = (("map", "overlay", "overlay_rect"), ("text", "info_win", "info_rect"), ("hud", "hud", "hud_rect"),
-                    ("today", "today_win", "today_rect"), ("music", "media_win", "media_rect"))
+                    ("today", "today_win", "today_rect"), ("music", "media_win", "media_rect"),
+                    ("charts", "charts_win", "charts_rect"))                                    # 1.57.73
 
     def _overlay_feed(self):
         """1.8.89 (user: "nur das DBD-Fenster aufnehmen und das Overlay im Spiel"): the visible elements – their

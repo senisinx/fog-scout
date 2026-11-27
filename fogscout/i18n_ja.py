@@ -6184,4 +6184,111 @@ T = {
         'リセット前に設定を保存しました: {name}',
     'Mit OBS nimmt Fog Scout jede Runde von selbst auf und benennt sie nach Map und Rolle. F8 speichert einen Clip, der Editor schneidet ihn.':
         'OBS と組み合わせると、Fog Scout は各ラウンドを自動で録画し、マップとロールで名前を付けます。F8 でクリップを保存し、エディターで編集します。',
+    # 1.57.73: the overlay element "Diagramme" (charts.py, app_charts.py)
+    'Altruismus':
+        '利他',
+    'BLOODPOINTS':
+        'ブラッドポイント',
+    'Bilanz auf dieser Map':
+        'このマップの成績',
+    'Bloodpoints bis zur Obergrenze':
+        '上限までのブラッドポイント',
+    'Brutalität':
+        '残虐',
+    'CPU':
+        'CPU',
+    'CPU-Last':
+        'CPU 負荷',
+    'DIAGRAMME':
+        'グラフ',
+    'DIESE MAP':
+        'このマップ',
+    'Deine Runden auf der Map dieser Runde in derselben Rolle: als Killer wie oft 0 bis 4 Kills, als Survivor tot oder entkommen.':
+        'このラウンドのマップで同じ役割の自分のラウンド：キラーなら 0〜4 キルの回数、サバイバーなら死亡か脱出。',
+    'Der Ping zur Region des Spielservers während der Runde – braucht die Anzeige des Spielservers.':
+        'ラウンド中のゲームサーバー地域への Ping – ゲームサーバー表示が必要です。',
+    'Der zuletzt in der Lobby gelesene Bloodpoint-Stand als Balken bis zur Obergrenze von 5 Millionen.':
+        'ロビーで最後に読み取ったブラッドポイント残高を、上限 500 万までのバーで表示。',
+    'Diagramme':
+        'グラフ',
+    'Die Auslastung des Prozessors in den letzten zehn Minuten.':
+        '直近 10 分間のプロセッサー負荷。',
+    'Die FPS der letzten zehn Minuten – nur, wenn HWiNFO läuft (wie bei den Systemwerten).':
+        '直近 10 分間の FPS – HWiNFO が動いているときのみ（システム値と同じ）。',
+    'Die Kills jeder Killer-Runde von heute, die neueste hell – aus den Match-Daten der Stats-Seite.':
+        '今日のキラー各ラウンドのキル数、最新は明るい色 – 統計ページのマッチデータから。',
+    'Die Temperatur der Grafikkarte in den letzten zehn Minuten (NVIDIA).':
+        '直近 10 分間のグラフィックカード温度（NVIDIA）。',
+    'Die oben rechts gezählten Punkte je Kategorie deiner Rolle, voll bei 10 000 – braucht das Zählen der Punkte (Einstellungen → Erkennung).':
+        '右上で数えた役割別カテゴリーのポイント、10,000 で満タン – ポイント集計が必要（設定 → 認識）。',
+    'Dunkle Fläche hinter den Diagrammen':
+        'グラフの後ろに暗い面',
+    'Eine halb durchsichtige dunkle Fläche mit runden Ecken hinter den Diagrammen.':
+        'グラフの後ろに角の丸い半透明の暗い面。',
+    'FORM':
+        '調子',
+    'FPS':
+        'FPS',
+    'FPS-Verlauf (HWiNFO)':
+        'FPS の推移（HWiNFO）',
+    'Form der letzten 10 Runden':
+        '直近 10 ラウンドの調子',
+    'GPU':
+        'GPU',
+    'Grün: als Killer 3 Kills oder mehr bzw. als Survivor entkommen, grau: 2 Kills, rot: weniger bzw. gestorben, leerer Ring: noch ohne Match-Daten.':
+        '緑：キラーで 3 キル以上／サバイバーで脱出、灰：2 キル、赤：それ未満／死亡、空の輪：マッチデータなし。',
+    'Hinterlist':
+        '狡猾',
+    'Höchstens {n} Diagramme auf einmal – mehr passt nicht in den Balken.':
+        '一度に最大 {n} 個のグラフ – それ以上は黒帯に収まりません。',
+    'Höchstens {n} auf einmal. Die Werte kommen aus dem, was Fog Scout ohnehin misst (Ping, Systemwerte, deine Runden und Match-Daten, Punkte, Bloodpoints) – nichts Neues aus dem Spiel, nichts wird gesendet. Zu sehen, solange die Karte zu sehen ist; FPS nur mit HWiNFO.':
+        '一度に最大 {n} 個。値は Fog Scout がもともと測っているもの（Ping、システム値、自分のラウンドとマッチデータ、ポイント、ブラッドポイント）から – ゲームから新しく読むものはなく、何も送信しません。マップが表示されている間に表示。FPS は HWiNFO がある場合のみ。',
+    'Jäger':
+        'ハンター',
+    'KILLS HEUTE':
+        '今日のキル',
+    'Kills heute je Runde (Killer)':
+        '今日のラウンド別キル（キラー）',
+    'Kühnheit':
+        '大胆',
+    'Opferung':
+        '生贄',
+    'PING':
+        'PING',
+    'PUNKTE':
+        'ポイント',
+    'Ping, Punkte, Kills …':
+        'Ping、ポイント、キル…',
+    'Ping-Verlauf der Runde':
+        'ラウンド中の Ping の推移',
+    'Punkte dieser Runde je Kategorie':
+        'このラウンドのカテゴリー別ポイント',
+    'RUNDENZEIT':
+        'ラウンド時間',
+    'Rundenzeit gegen den Schnitt der Map':
+        'ラウンド時間とマップ平均の比較',
+    'SUCHE HEUTE':
+        '今日の検索',
+    'Schnitt':
+        '平均',
+    'Suchzeit heute je Runde':
+        '今日のラウンド別検索時間',
+    'Welche Diagramme':
+        '表示するグラフ',
+    'Wie lange die Runde schon läuft, neben der durchschnittlichen Dauer deiner Runden auf dieser Map.':
+        'ラウンドの経過時間と、このマップでの自分のラウンドの平均時間。',
+    'Wie lange die Suche in der Lobby vor jeder Runde heute gedauert hat.':
+        '今日の各ラウンド前にロビーで検索にかかった時間。',
+    'Ziel':
+        '目標',
+    'entk.':
+        '脱出',
+    'jetzt':
+        '現在',
+    '{w} von {n}':
+        '{n} 中 {w}',
+    'Ø {n}':
+        '平均 {n}',
+    'Ø {t}':
+        '平均 {t}',
 }
