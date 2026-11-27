@@ -522,7 +522,7 @@ def test_marking_a_recording_shows_the_compact_editor_beside_the_table(four_trac
     obsrec.save_index(str(folder), [obsrec.Recording(t=t1, file="one.mkv", label="Ormond", end=t1 + 6, size=1,
                                                      marks=[2.0])])
     (tmp_path / "settings.json").write_text(json.dumps({"rec_on": True, "rec_folder": str(folder),
-                                                       "welcome_seen": True,
+                                                       "welcome_seen": True, "clips_view": "list",   # 1.57.83
                                                        "clip_mix_on": {"discord": False}}), encoding="utf-8")
     app = App(str(tmp_path), simulate=str(tmp_path / "sim"))
     import threading
@@ -731,7 +731,7 @@ def test_marking_a_clip_shows_the_compact_editor_beside_the_clips_table(four_tra
                                               role="killer", killer="The Nurse", seconds=6.0),
                                   obsrec.Clip(file="still.png", t=t1 + 200, kind="still", source=t1, label="Ormond")])
     (tmp_path / "settings.json").write_text(json.dumps({"rec_on": True, "rec_folder": str(folder),
-                                                       "welcome_seen": True,
+                                                       "welcome_seen": True, "clips_view": "list",   # 1.57.83
                                                        "clip_mix_on": {"discord": False}}), encoding="utf-8")
     app = App(str(tmp_path), simulate=str(tmp_path / "sim"))
     try:

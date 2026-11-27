@@ -151,6 +151,7 @@ DEFAULTS = {
     "card_order": {},
     "tab_order": {},                    # 1.7.6: {page: {tabs id: [tab ids]}} – the user's order of the tab rows
     "nav_order": [],                    # 1.7.6: page keys in the user's order of the navigation
+    "clips_view": "tiles",              # 1.57.83: recordings › Clips as tiles with a picture, or "list" (the table)
     "nav_collapsed": False,             # 1.57.80: the navigation folded to its icons by the user (the arrow at its foot)
     "hidden_columns": {},             # 1.3.6: {"col|col|…" of a table: [column ids]} hidden by a right-click
     "layout_per_size": True,            # overlay: place and size of every element per DBD window size (1.65)

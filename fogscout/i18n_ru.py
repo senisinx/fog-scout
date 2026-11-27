@@ -6382,4 +6382,12 @@ T = {
         'Открывает страницу «{page}».',
     'Öffnet den Rechner: Reparatur-, Heil- und andere Zeiten aus Perks, Items und Add-ons.':
         'Открывает калькулятор: время ремонта, лечения и другое по навыкам, предметам и улучшениям.',
+    'Schliesst die gewählte Map (Esc).':
+        'Закрывает выбранную карту (Esc).',
+    'Kacheln':
+        'Плитки',
+    'Liste':
+        'Список',
+    'Ansicht':
+        'Вид',
 }

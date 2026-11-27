@@ -40,7 +40,7 @@ SCENARIOS = ("startup", "pages", "overview", "stats", "recordings", "idle", "lat
 # ---------------------------------------------------------------- the child: one scenario on a fresh root
 def _root(rounds: int = 0, recordings: int = 0) -> str:
     tmp = tempfile.mkdtemp(prefix="fogscout-bench-")
-    for name in ("maps", "models", "maps.json"):
+    for name in ("maps", "maps_dark", "models", "maps.json"):
         os.symlink(os.path.join(ROOT, name), os.path.join(tmp, name))
     os.makedirs(os.path.join(tmp, "sim"))
     os.environ["DBDMS_DATA_DIR"] = os.path.join(tmp, "data")

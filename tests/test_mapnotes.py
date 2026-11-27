@@ -145,7 +145,7 @@ def test_the_context_menu_opens_the_note(page):
     page.show_maps([("MacMillan", "Coal Tower", "coal", 1)], None)
     assert [a for a, _l, _e in page.menu_entries(("coal", 1))][-1] == "note"
     page.edit_note(("coal", 1))
-    assert page.stack.currentIndex() == 1
+    assert page.detail_open()
     assert ("map_preview", ("coal", 1)) in _posts(page)
 
 

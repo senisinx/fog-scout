@@ -6382,4 +6382,12 @@ T = {
         '「{page}」ページを開きます。',
     'Öffnet den Rechner: Reparatur-, Heil- und andere Zeiten aus Perks, Items und Add-ons.':
         '計算機を開きます：パーク、アイテム、アドオンから修理・治療などの時間を計算。',
+    'Schliesst die gewählte Map (Esc).':
+        '選択したマップを閉じます（Esc）。',
+    'Kacheln':
+        'タイル',
+    'Liste':
+        'リスト',
+    'Ansicht':
+        '表示',
 }
