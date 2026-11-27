@@ -2031,7 +2031,6 @@ EN = {
     'Spielbild': 'Game picture',
     'Map-Name': 'Map name',
     # 1.62: colour themes
-    'Farbthema': 'Colour theme',
     'Gold (Standard)': 'Gold (default)',
     'Blutrot': 'Blood red',
     'Eisblau': 'Ice blue',
@@ -4867,4 +4866,10 @@ EN = {
         'List',
     'Ansicht':
         'View',
+    'Hell':
+        'Light',
+    'Über':
+        'About',
+    'Über Fog Scout':
+        'About Fog Scout',
 }

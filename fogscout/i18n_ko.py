@@ -2557,8 +2557,6 @@ T = {
         '게임 화면',
     'Map-Name':
         '맵 이름',
-    'Farbthema':
-        '색상 테마',
     'Gold (Standard)':
         '골드(기본)',
     'Blutrot':
@@ -6390,4 +6388,10 @@ T = {
         '목록',
     'Ansicht':
         '보기',
+    'Hell':
+        '밝게',
+    'Über':
+        '정보',
+    'Über Fog Scout':
+        'Fog Scout 정보',
 }

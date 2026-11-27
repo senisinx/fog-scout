@@ -2557,8 +2557,6 @@ T = {
         'ゲーム画面',
     'Map-Name':
         'マップ名',
-    'Farbthema':
-        'カラーテーマ',
     'Gold (Standard)':
         'ゴールド（既定）',
     'Blutrot':
@@ -6390,4 +6388,10 @@ T = {
         'リスト',
     'Ansicht':
         '表示',
+    'Hell':
+        'ライト',
+    'Über':
+        'このアプリについて',
+    'Über Fog Scout':
+        'Fog Scout について',
 }

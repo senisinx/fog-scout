@@ -947,6 +947,49 @@ def test_the_dashboard_has_no_tile_that_would_only_say_nothing():
     assert "Filter zurücksetzen" in dashboard.build([], []).empty
 
 
+def test_the_look_is_one_choice_and_the_colour_only_squares():
+    """1.57.85 (draft B): light / dark / OLED black is one choice, the colour is picked on the squares only – the
+    first square is the standard look itself, any other the own accent; "Über" holds the version and the check."""
+    from fogscout import app_settings, config, qt_theme, qt_window
+    keys = qt_window.page_keys("settings")
+    assert {"st.dark", "st.dark.label", "st.swatches", "st.about", "st.version", "st.more.selftest"} <= keys
+    assert not {"st.oled", "st.theme", "st.theme.label"} & keys
+    assert [k for k, _l in app_settings.APPEARANCES] == ["light", "dark", "oled"]
+
+    class Var:
+        def __init__(self, v):
+            self.v = v
+
+        def get(self):
+            return self.v
+
+        def set(self, v):
+            self.v = v
+    calls = []
+    s = SimpleNamespace(settings=config.Settings.__new__(config.Settings), dark_var=Var(True), oled_var=Var(False),
+                        appearance_var=Var("OLED-Schwarz"), theme_var=Var("Gold (Standard)"),
+                        swatches=SimpleNamespace(current=None),
+                        _appearances=[("light", "Hell"), ("dark", "Dunkel"), ("oled", "OLED-Schwarz")],
+                        _themes=[("gold", "Gold (Standard)"), ("red", "Blutrot"), ("custom", "Eigene Farbe")],
+                        _dark_changed=lambda: calls.append("dark"), _save_soon=lambda: None,
+                        _apply_theme=lambda: calls.append("theme"))
+    s.settings.data = {"dark_mode": True, "oled_black": False, "color_theme": "red"}
+    for name in ("_appearance", "_appearance_changed", "_theme_changed", "_swatch_picked", "_swatch_mark"):
+        setattr(s, name, getattr(app_settings.SettingsTab, name).__get__(s))
+    assert s._appearance() == "dark"
+    s._appearance_changed()
+    assert s.dark_var.get() and s.oled_var.get() and s.settings.get("oled_black") and calls == ["dark"]
+    s.appearance_var.set("Hell")
+    s._appearance_changed()
+    assert not s.dark_var.get() and not s.oled_var.get() and not s.settings.get("oled_black")
+    s._swatch_mark()
+    assert s.swatches.current is None                           # a named theme set before: no ring
+    s._swatch_picked(qt_theme.SWATCHES[3])
+    assert s.settings.get("color_theme") == "custom" and s.swatches.current == qt_theme.norm_hex(qt_theme.SWATCHES[3])
+    s._swatch_picked(qt_theme.SWATCHES[0])                      # the first square: the standard look itself
+    assert s.settings.get("color_theme") == "gold" and s.swatches.current == qt_theme.norm_hex(qt_theme.SWATCHES[0])
+
+
 def test_the_settings_areas_are_a_list_beside_the_open_one(qapp, keep):
     """1.57.78 (draft B "Liste links"): the tabs of the settings as a list – a row per shown tab, a click opens it,
     dragging a row moves the tab (the hidden tab bar stays the truth, so order and search work as before)."""
@@ -2128,7 +2171,7 @@ def test_the_settings_page_is_split_into_tabs_with_its_cards(qapp, keep):
     tabs = {k: c for k, c in page.controls.items() if c[0] == "tab"}
     tw = next(iter(tabs.values()))[1]
     assert [tw.tabText(i) for i in range(tw.count())] == ["Allgemein", "Erkennung", "Hotkeys", "Match-Daten",
-                                                          "Aufnahmen", "Verbindungen"]
+                                                          "Aufnahmen", "Verbindungen", "Über"]   # 1.57.85
     where = {}
     for key, (kind, head, _x) in page.controls.items():
         if kind == "title":
@@ -2141,12 +2184,13 @@ def test_the_settings_page_is_split_into_tabs_with_its_cards(qapp, keep):
                      "st.hotkeys": "Hotkeys", "st.more.official": "Match-Daten", "st.more.farming": "Match-Daten",
                      **{k: "Aufnahmen" for k in recs},
                      "st.more.obs": "Verbindungen", "st.more.discord": "Verbindungen", "st.more.spotify": "Verbindungen",
-                     "st.more.youtube": "Verbindungen", "st.more.claude": "Verbindungen"}                                                  # 1.10
+                     "st.more.youtube": "Verbindungen", "st.more.claude": "Verbindungen",                                                 # 1.10
+                     "st.about": "Über"}                                                                                                  # 1.57.85
     assert [col.ids() for col in page.columns] == [
         ["st.look", "st.start", "st.updates", "st.more.backup"],
         ["st.detect", "st.det_tech", "st.langs", "st.more.own", "st.notify"], ["st.hotkeys"],
         ["st.more.official", "st.more.farming"], recs,
-        ["st.more.obs", "st.more.discord", "st.more.spotify", "st.more.youtube", "st.more.claude"]]
+        ["st.more.obs", "st.more.discord", "st.more.spotify", "st.more.youtube", "st.more.claude"], ["st.about"]]
     # 1.29.1 (user: "unübersichtlich, was gehört zu was"): six OBS cards instead of one with five sub-headings;
     # an option that only counts with the one above sits indented under it
     from PySide6.QtWidgets import QLabel, QWidget

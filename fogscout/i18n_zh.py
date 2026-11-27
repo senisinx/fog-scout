@@ -2557,8 +2557,6 @@ T = {
         '游戏画面',
     'Map-Name':
         '地图名称',
-    'Farbthema':
-        '颜色主题',
     'Gold (Standard)':
         '金色（默认）',
     'Blutrot':
@@ -6390,4 +6388,10 @@ T = {
         '列表',
     'Ansicht':
         '视图',
+    'Hell':
+        '浅色',
+    'Über':
+        '关于',
+    'Über Fog Scout':
+        '关于 Fog Scout',
 }

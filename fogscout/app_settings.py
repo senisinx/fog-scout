@@ -54,6 +54,9 @@ def rec_status_level(text: str, ok: bool, err: bool = False) -> str:
         return "err"
     return "warn"
 
+APPEARANCES = (("light", N_("Hell")), ("dark", N_("Dunkel")), ("oled", N_("OLED-Schwarz")))   # 1.57.85: one choice
+
+
 class SettingsTab:
     # --------------------------------------------------------- tab: settings
     def _tab_settings(self):
@@ -134,28 +137,29 @@ class SettingsTab:
         self.ui_lang_note = ui.StringVar(value="")
         self._reg("st.lang_note", ui.Label(look, textvariable=self.ui_lang_note, style="Dim.TLabel",
                                             wraplength=400)).pack(anchor="w")
+        # 1.57.85 (user picked draft B for the settings): light / dark / OLED black as one choice (two tick boxes
+        # before – "OLED-Schwarz" meant nothing in the light look), and the colour only as the squares below (the
+        # list of five named themes said the same as five of the squares; a named theme set before stays until a
+        # square is picked)
         self.dark_var = ui.BooleanVar(value=self.settings.get("dark_mode", True))
-        self._reg("st.dark", ui.Checkbutton(look, text=_("Dark Mode"), variable=self.dark_var,
-                                             command=self._dark_changed)).pack(anchor="w", pady=(4, 0))
-        tr = ui.Frame(look)
-        tr.pack(fill="x", pady=(6, 0))
-        self._reg("st.theme.label", ui.Label(tr, text=_("Farbthema"))).pack(side="left")
+        self.oled_var = ui.BooleanVar(value=bool(self.settings.get("oled_black", False)))
+        dr = ui.Frame(look)
+        dr.pack(fill="x", pady=(6, 0))
+        self._reg("st.dark.label", ui.Label(dr, text=_("Darstellung"))).pack(side="left")
+        self._appearances = [(k, _(label)) for k, label in APPEARANCES]
+        self.appearance_var = ui.StringVar(value=dict(self._appearances)[self._appearance()])
+        acb = self._reg("st.dark", ui.Combobox(dr, textvariable=self.appearance_var, state="readonly", width=18,
+                                                values=[lbl for _k, lbl in self._appearances]))
+        acb.pack(side="left", padx=8)
+        acb.bind("<<ComboboxSelected>>", lambda e: self._appearance_changed())
         self._themes = [(k, _(label)) for k, (label, _c) in qt_theme.THEMES.items()]
         self.theme_var = ui.StringVar(value=dict(self._themes).get(self.settings.get("color_theme", "gold"),
                                                                    self._themes[0][1]))
-        tcb = self._reg("st.theme", ui.Combobox(tr, textvariable=self.theme_var, state="readonly", width=18,
-                                                 values=[lbl for _k, lbl in self._themes]))
-        tcb.pack(side="left", padx=8)
-        tcb.bind("<<ComboboxSelected>>", lambda e: self._theme_changed())
         self.swatches = self._reg("st.swatches", ui.Swatches(look, command=self._swatch_picked,
                                                              values=[(c, c) for c in qt_theme.SWATCHES]))
         self.swatches.pack(anchor="w", pady=(4, 0))
         self.swatches.dark = bool(self.settings.get("dark_mode", True))
         self._swatch_mark()
-        self.oled_var = ui.BooleanVar(value=bool(self.settings.get("oled_black", False)))
-        self._reg("st.oled", ui.Checkbutton(look, text=_("OLED-Schwarz"),
-                                            variable=self.oled_var, command=self._theme_changed)
-                  ).pack(anchor="w", pady=(4, 0))
         zr = ui.Frame(look)
         zr.pack(fill="x", pady=(6, 0))
         self._reg("st.zoom.label", ui.Label(zr, text=_("Schriftgrösse"))).pack(side="left")
@@ -209,6 +213,8 @@ class SettingsTab:
         self._reg("st.tab.data", ui.Frame(f)).pack()
         self._reg("st.tab.rec", ui.Frame(f)).pack()
         self._reg("st.tab.links", ui.Frame(f)).pack()
+        self._reg("st.tab.about", ui.Frame(f)).pack()               # 1.57.85: version, credits, "Installation prüfen"
+        self._reg("st.about", ui.LabelFrame(f, text=_("Über Fog Scout"), padding=8)).pack()
         own = self._reg("st.more.own", ui.LabelFrame(more, text=_("Eigene Map-Zuordnungen"), padding=8))
         own.pack(fill="x")
         self.alias_var = ui.StringVar(value="")
@@ -765,6 +771,19 @@ class SettingsTab:
         else:
             self._inform(_("Einstellungen importieren"), _("Bitte das Programm jetzt neu starten."))
 
+    def _appearance(self) -> str:
+        """"light" / "dark" / "oled" from the two settings (OLED black is a dark look)."""
+        if not self.settings.get("dark_mode", True):
+            return "light"
+        return "oled" if self.settings.get("oled_black", False) else "dark"
+
+    def _appearance_changed(self):
+        key = next((k for k, lbl in self._appearances if lbl == self.appearance_var.get()), "dark")
+        self.dark_var.set(key != "light")
+        self.oled_var.set(key == "oled")
+        self.settings.set("oled_black", key == "oled")
+        self._dark_changed()
+
     def _theme_changed(self):
         key = next((k for k, lbl in self._themes if lbl == self.theme_var.get()), "gold")
         self.settings.set("color_theme", key)
@@ -778,14 +797,19 @@ class SettingsTab:
         colour = qt_theme.norm_hex(colour)
         if colour is None:
             return
-        self.settings.set("accent_custom", colour)
-        self.theme_var.set(dict(self._themes)["custom"])
+        if colour == qt_theme.norm_hex(qt_theme.SWATCHES[0]):       # 1.57.85: the first square is the standard look
+            self.theme_var.set(dict(self._themes)["gold"])           # itself (its own hover and select colours)
+        else:
+            self.settings.set("accent_custom", colour)
+            self.theme_var.set(dict(self._themes)["custom"])
         self._theme_changed()
 
     def _swatch_mark(self):
-        """The ring on the palette: the own colour while the theme is "custom", else none."""
-        on = self.settings.get("color_theme", "gold") == "custom"
-        self.swatches.current = qt_theme.norm_hex(self.settings.get("accent_custom")) if on else None
+        """The ring on the palette: the own colour while the theme is "custom", the first square for the standard
+        look, none for a named theme set before 1.57.85."""
+        theme = self.settings.get("color_theme", "gold")
+        self.swatches.current = (qt_theme.norm_hex(self.settings.get("accent_custom")) if theme == "custom" else
+                                 qt_theme.norm_hex(qt_theme.SWATCHES[0]) if theme == "gold" else None)
 
     def _card_order_reset(self):
         """The cards of all pages, the tab rows and the navigation back in their built-in order."""

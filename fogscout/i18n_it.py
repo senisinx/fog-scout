@@ -2557,8 +2557,6 @@ T = {
         'Immagine di gioco',
     'Map-Name':
         'Nome mappa',
-    'Farbthema':
-        'Tema colori',
     'Gold (Standard)':
         'Oro (predefinito)',
     'Blutrot':
@@ -6390,4 +6388,10 @@ T = {
         'Elenco',
     'Ansicht':
         'Vista',
+    'Hell':
+        'Chiaro',
+    'Über':
+        'Informazioni',
+    'Über Fog Scout':
+        'Informazioni su Fog Scout',
 }

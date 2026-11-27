@@ -167,6 +167,8 @@ Since 1.8.8 choice boxes and tick boxes have their own style like buttons and fi
 
 **How the system values look** (since 1.57.75): Overlay → System values → **Display**: "Rows (as before)", **Curves** (FPS, GPU temperature and CPU load of the last ten minutes, with VRAM, RAM and ping below), **Meter bars** (every value as a bar with a green, yellow and red range and a pointer) or **Two lines** (a big FPS figure with GPU, CPU, memory and ping beside it). The same readings as before; figures turn yellow or red at the same temperatures as in the rows, FPS below 110 / 70, memory from 85 % / 93 %, ping from 45 / 80 ms. Every view has a fixed size; a missing value (without HWiNFO: FPS, CPU temperature, hot spot) shows as "–". The "Row …" tick boxes apply to the rows only.
 
+**Settings: appearance and "About"** (since 1.57.85): **light, dark and OLED black** are one choice ("Appearance") instead of two tick boxes. The colour is picked on the **colour squares** only (the first one is the standard gold); the list "Colour theme" is gone. Version, notes and "Check installation" are in the new area **About**.
+
 **Rounds as tiles** (since 1.57.84): under Recordings › Rounds the recordings are tiles with a picture too (map, date, role, result; ★ = kept, ⚑ = marks). "View" on the top right switches back to the list.
 
 **Clips as tiles** (since 1.57.83): under Recordings › Clips the clips are **tiles with a picture** (map, date, length, kind). A click picks the clip for the buttons above, a double click plays it, a right click opens the menu. ffmpeg makes each picture once – never while a round is running. "View" on the top right switches back to the **list** (several clips can still be marked there for a montage).
