@@ -6184,4 +6184,111 @@ T = {
         'Настройки сохранены перед сбросом: {name}',
     'Mit OBS nimmt Fog Scout jede Runde von selbst auf und benennt sie nach Map und Rolle. F8 speichert einen Clip, der Editor schneidet ihn.':
         'С OBS Fog Scout сам записывает каждый раунд и называет его по карте и роли. F8 сохраняет клип, редактор его обрезает.',
+    # 1.57.73: the overlay element "Diagramme" (charts.py, app_charts.py)
+    'Altruismus':
+        'Альтруизм',
+    'BLOODPOINTS':
+        'ОЧКИ КРОВИ',
+    'Bilanz auf dieser Map':
+        'Итоги на этой карте',
+    'Bloodpoints bis zur Obergrenze':
+        'Очки крови до предела',
+    'Brutalität':
+        'Жестокость',
+    'CPU':
+        'ЦП',
+    'CPU-Last':
+        'Загрузка ЦП',
+    'DIAGRAMME':
+        'ГРАФИКИ',
+    'DIESE MAP':
+        'ЭТА КАРТА',
+    'Deine Runden auf der Map dieser Runde in derselben Rolle: als Killer wie oft 0 bis 4 Kills, als Survivor tot oder entkommen.':
+        'Твои раунды на карте этого раунда в той же роли: за убийцу – сколько раз 0–4 убийства, за выжившего – погиб или сбежал.',
+    'Der Ping zur Region des Spielservers während der Runde – braucht die Anzeige des Spielservers.':
+        'Пинг до региона игрового сервера во время раунда – нужна индикация игрового сервера.',
+    'Der zuletzt in der Lobby gelesene Bloodpoint-Stand als Balken bis zur Obergrenze von 5 Millionen.':
+        'Последний считанный в лобби запас очков крови – полосой до предела в 5 миллионов.',
+    'Diagramme':
+        'Графики',
+    'Die Auslastung des Prozessors in den letzten zehn Minuten.':
+        'Загрузка процессора за последние десять минут.',
+    'Die FPS der letzten zehn Minuten – nur, wenn HWiNFO läuft (wie bei den Systemwerten).':
+        'FPS за последние десять минут – только при запущенном HWiNFO (как у системных значений).',
+    'Die Kills jeder Killer-Runde von heute, die neueste hell – aus den Match-Daten der Stats-Seite.':
+        'Убийства в каждом раунде за убийцу сегодня, последний – светлым; из данных матчей страницы статистики.',
+    'Die Temperatur der Grafikkarte in den letzten zehn Minuten (NVIDIA).':
+        'Температура видеокарты за последние десять минут (NVIDIA).',
+    'Die oben rechts gezählten Punkte je Kategorie deiner Rolle, voll bei 10 000 – braucht das Zählen der Punkte (Einstellungen → Erkennung).':
+        'Очки, подсчитанные справа вверху, по категориям твоей роли, полные при 10 000 – нужен подсчёт очков (Настройки → Распознавание).',
+    'Dunkle Fläche hinter den Diagrammen':
+        'Тёмная область за графиками',
+    'Eine halb durchsichtige dunkle Fläche mit runden Ecken hinter den Diagrammen.':
+        'Полупрозрачная тёмная область со скруглёнными углами за графиками.',
+    'FORM':
+        'ФОРМА',
+    'FPS':
+        'FPS',
+    'FPS-Verlauf (HWiNFO)':
+        'FPS по времени (HWiNFO)',
+    'Form der letzten 10 Runden':
+        'Форма за последние 10 раундов',
+    'GPU':
+        'ГП',
+    'Grün: als Killer 3 Kills oder mehr bzw. als Survivor entkommen, grau: 2 Kills, rot: weniger bzw. gestorben, leerer Ring: noch ohne Match-Daten.':
+        'Зелёный: за убийцу 3 убийства и больше, за выжившего – сбежал; серый: 2 убийства; красный: меньше или погиб; пустой круг: данных матча ещё нет.',
+    'Hinterlist':
+        'Коварство',
+    'Höchstens {n} Diagramme auf einmal – mehr passt nicht in den Balken.':
+        'Не больше {n} графиков сразу – больше не поместится в полосу.',
+    'Höchstens {n} auf einmal. Die Werte kommen aus dem, was Fog Scout ohnehin misst (Ping, Systemwerte, deine Runden und Match-Daten, Punkte, Bloodpoints) – nichts Neues aus dem Spiel, nichts wird gesendet. Zu sehen, solange die Karte zu sehen ist; FPS nur mit HWiNFO.':
+        'Не больше {n} сразу. Значения берутся из того, что Fog Scout и так измеряет (пинг, системные значения, твои раунды и данные матчей, очки, очки крови) – ничего нового из игры, ничего не отправляется. Видны, пока видна карта; FPS только с HWiNFO.',
+    'Jäger':
+        'Охотник',
+    'KILLS HEUTE':
+        'УБИЙСТВА СЕГОДНЯ',
+    'Kills heute je Runde (Killer)':
+        'Убийства сегодня по раундам (убийца)',
+    'Kühnheit':
+        'Смелость',
+    'Opferung':
+        'Жертвоприношение',
+    'PING':
+        'ПИНГ',
+    'PUNKTE':
+        'ОЧКИ',
+    'Ping, Punkte, Kills …':
+        'Пинг, очки, убийства …',
+    'Ping-Verlauf der Runde':
+        'Пинг за раунд',
+    'Punkte dieser Runde je Kategorie':
+        'Очки этого раунда по категориям',
+    'RUNDENZEIT':
+        'ВРЕМЯ РАУНДА',
+    'Rundenzeit gegen den Schnitt der Map':
+        'Время раунда против среднего на карте',
+    'SUCHE HEUTE':
+        'ПОИСК СЕГОДНЯ',
+    'Schnitt':
+        'Среднее',
+    'Suchzeit heute je Runde':
+        'Время поиска сегодня по раундам',
+    'Welche Diagramme':
+        'Какие графики',
+    'Wie lange die Runde schon läuft, neben der durchschnittlichen Dauer deiner Runden auf dieser Map.':
+        'Сколько уже идёт раунд, рядом со средней длительностью твоих раундов на этой карте.',
+    'Wie lange die Suche in der Lobby vor jeder Runde heute gedauert hat.':
+        'Сколько длился поиск в лобби перед каждым раундом сегодня.',
+    'Ziel':
+        'Цель',
+    'entk.':
+        'сбеж.',
+    'jetzt':
+        'сейчас',
+    '{w} von {n}':
+        '{w} из {n}',
+    'Ø {n}':
+        'ср. {n}',
+    'Ø {t}':
+        'ср. {t}',
 }

@@ -221,7 +221,8 @@ SAME_AS_ENGLISH = {
     "CPU, GPU, RAM", "CPU (x264/x265)", "FPS low", "Short (9:16)", "Short / TikTok (9:16)",
     "Short 1080×1920, {fps} fps",
     "Ctrl", "Ctrl+0", "Ctrl+E", "Ctrl+F", "Ctrl+S", "Ctrl+W", "Ctrl+Z / Ctrl+Y", "Ctrl+{n}", "Ctrl+← / →  ·  , / .",
-    "Shift+← / →", "Home"}
+    "Shift+← / →", "Home",
+    "FPS", "CPU", "GPU", "PING"}    # 1.57.73: the charts' titles – the same in every Latin-script UI
 KEY_CAPS = {"Ctrl+Enter", "Enter", "Del", "End", "Home / End", "Insert", "PgDn", "PgUp", "Scroll Lock"}
 SAME_IN = {
     "it": {"1 round", "Add-on", "Asia", "BP/H ", "BP/h", "Build A", "CPU max", "Clip", "Clip: {what}",

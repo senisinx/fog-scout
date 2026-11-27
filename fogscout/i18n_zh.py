@@ -6184,4 +6184,111 @@ T = {
         '重置前已保存设置：{name}',
     'Mit OBS nimmt Fog Scout jede Runde von selbst auf und benennt sie nach Map und Rolle. F8 speichert einen Clip, der Editor schneidet ihn.':
         '配合 OBS，Fog Scout 会自动录制每个对局，并按地图和角色命名。F8 保存片段，编辑器负责剪辑。',
+    # 1.57.73: the overlay element "Diagramme" (charts.py, app_charts.py)
+    'Altruismus':
+        '利他',
+    'BLOODPOINTS':
+        '血点',
+    'Bilanz auf dieser Map':
+        '此地图战绩',
+    'Bloodpoints bis zur Obergrenze':
+        '血点距上限',
+    'Brutalität':
+        '残暴',
+    'CPU':
+        'CPU',
+    'CPU-Last':
+        'CPU 负载',
+    'DIAGRAMME':
+        '图表',
+    'DIESE MAP':
+        '此地图',
+    'Deine Runden auf der Map dieser Runde in derselben Rolle: als Killer wie oft 0 bis 4 Kills, als Survivor tot oder entkommen.':
+        '你在本局地图上同一角色的对局：作为杀手时 0 到 4 杀各几次，作为幸存者时死亡或逃脱。',
+    'Der Ping zur Region des Spielservers während der Runde – braucht die Anzeige des Spielservers.':
+        '本局中到游戏服务器所在区域的延迟——需要开启游戏服务器显示。',
+    'Der zuletzt in der Lobby gelesene Bloodpoint-Stand als Balken bis zur Obergrenze von 5 Millionen.':
+        '上次在大厅读取的血点余额，以进度条显示，上限 500 万。',
+    'Diagramme':
+        '图表',
+    'Die Auslastung des Prozessors in den letzten zehn Minuten.':
+        '最近十分钟的处理器负载。',
+    'Die FPS der letzten zehn Minuten – nur, wenn HWiNFO läuft (wie bei den Systemwerten).':
+        '最近十分钟的 FPS——仅在 HWiNFO 运行时（与系统数值相同）。',
+    'Die Kills jeder Killer-Runde von heute, die neueste hell – aus den Match-Daten der Stats-Seite.':
+        '今天每局杀手对局的击杀数，最新一局为浅色——来自统计页面的比赛数据。',
+    'Die Temperatur der Grafikkarte in den letzten zehn Minuten (NVIDIA).':
+        '最近十分钟的显卡温度（NVIDIA）。',
+    'Die oben rechts gezählten Punkte je Kategorie deiner Rolle, voll bei 10 000 – braucht das Zählen der Punkte (Einstellungen → Erkennung).':
+        '右上角按你角色的类别统计的分数，满分 10,000——需要开启分数统计（设置 → 识别）。',
+    'Dunkle Fläche hinter den Diagrammen':
+        '图表后的深色背景',
+    'Eine halb durchsichtige dunkle Fläche mit runden Ecken hinter den Diagrammen.':
+        '图表后方带圆角的半透明深色背景。',
+    'FORM':
+        '状态',
+    'FPS':
+        'FPS',
+    'FPS-Verlauf (HWiNFO)':
+        'FPS 变化（HWiNFO）',
+    'Form der letzten 10 Runden':
+        '最近 10 局状态',
+    'GPU':
+        'GPU',
+    'Grün: als Killer 3 Kills oder mehr bzw. als Survivor entkommen, grau: 2 Kills, rot: weniger bzw. gestorben, leerer Ring: noch ohne Match-Daten.':
+        '绿色：杀手 3 杀及以上 / 幸存者逃脱；灰色：2 杀；红色：更少 / 死亡；空心圆：暂无比赛数据。',
+    'Hinterlist':
+        '狡诈',
+    'Höchstens {n} Diagramme auf einmal – mehr passt nicht in den Balken.':
+        '最多同时 {n} 个图表——更多放不进黑边。',
+    'Höchstens {n} auf einmal. Die Werte kommen aus dem, was Fog Scout ohnehin misst (Ping, Systemwerte, deine Runden und Match-Daten, Punkte, Bloodpoints) – nichts Neues aus dem Spiel, nichts wird gesendet. Zu sehen, solange die Karte zu sehen ist; FPS nur mit HWiNFO.':
+        '最多同时 {n} 个。数值来自 Fog Scout 本来就会测量的内容（延迟、系统数值、你的对局与比赛数据、分数、血点）——不从游戏读取新内容，也不发送任何东西。地图显示时可见；FPS 仅在有 HWiNFO 时。',
+    'Jäger':
+        '猎手',
+    'KILLS HEUTE':
+        '今日击杀',
+    'Kills heute je Runde (Killer)':
+        '今日每局击杀（杀手）',
+    'Kühnheit':
+        '胆量',
+    'Opferung':
+        '献祭',
+    'PING':
+        '延迟',
+    'PUNKTE':
+        '分数',
+    'Ping, Punkte, Kills …':
+        '延迟、分数、击杀……',
+    'Ping-Verlauf der Runde':
+        '本局延迟变化',
+    'Punkte dieser Runde je Kategorie':
+        '本局各类别分数',
+    'RUNDENZEIT':
+        '对局时长',
+    'Rundenzeit gegen den Schnitt der Map':
+        '对局时长与该地图平均对比',
+    'SUCHE HEUTE':
+        '今日匹配',
+    'Schnitt':
+        '平均',
+    'Suchzeit heute je Runde':
+        '今日每局匹配时间',
+    'Welche Diagramme':
+        '显示哪些图表',
+    'Wie lange die Runde schon läuft, neben der durchschnittlichen Dauer deiner Runden auf dieser Map.':
+        '本局已进行的时长，旁边是你在此地图上对局的平均时长。',
+    'Wie lange die Suche in der Lobby vor jeder Runde heute gedauert hat.':
+        '今天每局开始前在大厅匹配所用的时间。',
+    'Ziel':
+        '目标',
+    'entk.':
+        '逃脱',
+    'jetzt':
+        '当前',
+    '{w} von {n}':
+        '{n} 中 {w}',
+    'Ø {n}':
+        '平均 {n}',
+    'Ø {t}':
+        '平均 {t}',
 }

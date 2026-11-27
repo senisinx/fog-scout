@@ -535,7 +535,7 @@ def own_places(o: dict, sysinfo: str) -> set:
     """1.45: the elements standing at a place the user put them (position setting "custom") – kept exactly there;
     only the others make way (resolve ``keep``)."""
     spots = {"hud": sysinfo, "today": o.get("today_pos"), "music": o.get("media_pos"), "text": o.get("info_pos"),
-             "inputs": o.get("inputs_pos"), "loadouts": o.get("loadouts_pos")}
+             "inputs": o.get("inputs_pos"), "loadouts": o.get("loadouts_pos"), "charts": o.get("charts_pos")}
     return {name for name, spot in spots.items() if spot == "custom"}
 
 

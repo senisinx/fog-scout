@@ -6184,4 +6184,111 @@ T = {
         '초기화 전에 설정을 저장했습니다: {name}',
     'Mit OBS nimmt Fog Scout jede Runde von selbst auf und benennt sie nach Map und Rolle. F8 speichert einen Clip, der Editor schneidet ihn.':
         'OBS와 함께 쓰면 Fog Scout가 라운드마다 자동으로 녹화하고 맵과 역할로 이름을 붙입니다. F8로 클립을 저장하고 편집기에서 자릅니다.',
+    # 1.57.73: the overlay element "Diagramme" (charts.py, app_charts.py)
+    'Altruismus':
+        '이타심',
+    'BLOODPOINTS':
+        '블러드포인트',
+    'Bilanz auf dieser Map':
+        '이 맵의 전적',
+    'Bloodpoints bis zur Obergrenze':
+        '상한까지의 블러드포인트',
+    'Brutalität':
+        '잔혹함',
+    'CPU':
+        'CPU',
+    'CPU-Last':
+        'CPU 사용률',
+    'DIAGRAMME':
+        '차트',
+    'DIESE MAP':
+        '이 맵',
+    'Deine Runden auf der Map dieser Runde in derselben Rolle: als Killer wie oft 0 bis 4 Kills, als Survivor tot oder entkommen.':
+        '이번 라운드 맵에서 같은 역할로 한 내 라운드: 킬러는 0~4킬 횟수, 생존자는 사망 또는 탈출.',
+    'Der Ping zur Region des Spielservers während der Runde – braucht die Anzeige des Spielservers.':
+        '라운드 중 게임 서버 지역까지의 핑 – 게임 서버 표시가 필요합니다.',
+    'Der zuletzt in der Lobby gelesene Bloodpoint-Stand als Balken bis zur Obergrenze von 5 Millionen.':
+        '로비에서 마지막으로 읽은 블러드포인트 잔액을 상한 500만까지 막대로 표시.',
+    'Diagramme':
+        '차트',
+    'Die Auslastung des Prozessors in den letzten zehn Minuten.':
+        '최근 10분 동안의 프로세서 사용률.',
+    'Die FPS der letzten zehn Minuten – nur, wenn HWiNFO läuft (wie bei den Systemwerten).':
+        '최근 10분의 FPS – HWiNFO 실행 중일 때만(시스템 값과 동일).',
+    'Die Kills jeder Killer-Runde von heute, die neueste hell – aus den Match-Daten der Stats-Seite.':
+        '오늘 킬러 라운드별 킬 수, 최신은 밝게 – 통계 페이지의 매치 데이터에서.',
+    'Die Temperatur der Grafikkarte in den letzten zehn Minuten (NVIDIA).':
+        '최근 10분 동안의 그래픽 카드 온도(NVIDIA).',
+    'Die oben rechts gezählten Punkte je Kategorie deiner Rolle, voll bei 10 000 – braucht das Zählen der Punkte (Einstellungen → Erkennung).':
+        '오른쪽 위에서 센 역할별 카테고리 점수, 10,000에서 가득 – 점수 집계가 필요합니다(설정 → 인식).',
+    'Dunkle Fläche hinter den Diagrammen':
+        '차트 뒤 어두운 영역',
+    'Eine halb durchsichtige dunkle Fläche mit runden Ecken hinter den Diagrammen.':
+        '차트 뒤에 모서리가 둥근 반투명 어두운 영역.',
+    'FORM':
+        '폼',
+    'FPS':
+        'FPS',
+    'FPS-Verlauf (HWiNFO)':
+        'FPS 추이(HWiNFO)',
+    'Form der letzten 10 Runden':
+        '최근 10라운드 폼',
+    'GPU':
+        'GPU',
+    'Grün: als Killer 3 Kills oder mehr bzw. als Survivor entkommen, grau: 2 Kills, rot: weniger bzw. gestorben, leerer Ring: noch ohne Match-Daten.':
+        '초록: 킬러 3킬 이상 / 생존자 탈출, 회색: 2킬, 빨강: 그보다 적음 / 사망, 빈 원: 아직 매치 데이터 없음.',
+    'Hinterlist':
+        '교활함',
+    'Höchstens {n} Diagramme auf einmal – mehr passt nicht in den Balken.':
+        '한 번에 최대 {n}개의 차트 – 더는 검은 띠에 들어가지 않습니다.',
+    'Höchstens {n} auf einmal. Die Werte kommen aus dem, was Fog Scout ohnehin misst (Ping, Systemwerte, deine Runden und Match-Daten, Punkte, Bloodpoints) – nichts Neues aus dem Spiel, nichts wird gesendet. Zu sehen, solange die Karte zu sehen ist; FPS nur mit HWiNFO.':
+        '한 번에 최대 {n}개. 값은 Fog Scout가 원래 측정하는 것(핑, 시스템 값, 내 라운드와 매치 데이터, 점수, 블러드포인트)에서 옵니다 – 게임에서 새로 읽는 것은 없고 아무것도 보내지 않습니다. 맵이 보이는 동안 표시되며, FPS는 HWiNFO가 있을 때만.',
+    'Jäger':
+        '사냥꾼',
+    'KILLS HEUTE':
+        '오늘 킬',
+    'Kills heute je Runde (Killer)':
+        '오늘 라운드별 킬(킬러)',
+    'Kühnheit':
+        '대담함',
+    'Opferung':
+        '희생',
+    'PING':
+        '핑',
+    'PUNKTE':
+        '점수',
+    'Ping, Punkte, Kills …':
+        '핑, 점수, 킬 …',
+    'Ping-Verlauf der Runde':
+        '라운드 중 핑 추이',
+    'Punkte dieser Runde je Kategorie':
+        '이번 라운드 카테고리별 점수',
+    'RUNDENZEIT':
+        '라운드 시간',
+    'Rundenzeit gegen den Schnitt der Map':
+        '라운드 시간과 맵 평균 비교',
+    'SUCHE HEUTE':
+        '오늘 매칭',
+    'Schnitt':
+        '평균',
+    'Suchzeit heute je Runde':
+        '오늘 라운드별 매칭 시간',
+    'Welche Diagramme':
+        '표시할 차트',
+    'Wie lange die Runde schon läuft, neben der durchschnittlichen Dauer deiner Runden auf dieser Map.':
+        '라운드가 진행된 시간과 이 맵에서의 내 라운드 평균 시간.',
+    'Wie lange die Suche in der Lobby vor jeder Runde heute gedauert hat.':
+        '오늘 각 라운드 전에 로비에서 매칭에 걸린 시간.',
+    'Ziel':
+        '목표',
+    'entk.':
+        '탈출',
+    'jetzt':
+        '현재',
+    '{w} von {n}':
+        '{n} 중 {w}',
+    'Ø {n}':
+        '평균 {n}',
+    'Ø {t}':
+        '평균 {t}',
 }

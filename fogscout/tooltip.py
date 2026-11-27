@@ -114,6 +114,34 @@ TIPS = {
         "Die Opfergabe (eine verdeckte als „?“), das Item und seine zwei Add-ons als kleine Felder neben den Perks.",
     "Dunkle Fläche hinter den Eingaben":
         "Eine halb durchsichtige dunkle Fläche mit runden Ecken hinter den Tasten.",
+    # 1.57.73: the element "Diagramme" – the dark area and every chart of the catalogue (charts.CATALOGUE)
+    "Dunkle Fläche hinter den Diagrammen":
+        "Eine halb durchsichtige dunkle Fläche mit runden Ecken hinter den Diagrammen.",
+    "Ping-Verlauf der Runde":
+        "Der Ping zur Region des Spielservers während der Runde – braucht die Anzeige des Spielservers.",
+    "Punkte dieser Runde je Kategorie":
+        "Die oben rechts gezählten Punkte je Kategorie deiner Rolle, voll bei 10 000 – braucht das Zählen der Punkte "
+        "(Einstellungen → Erkennung).",
+    "Rundenzeit gegen den Schnitt der Map":
+        "Wie lange die Runde schon läuft, neben der durchschnittlichen Dauer deiner Runden auf dieser Map.",
+    "Kills heute je Runde (Killer)":
+        "Die Kills jeder Killer-Runde von heute, die neueste hell – aus den Match-Daten der Stats-Seite.",
+    "Form der letzten 10 Runden":
+        "Grün: als Killer 3 Kills oder mehr bzw. als Survivor entkommen, grau: 2 Kills, rot: weniger bzw. gestorben, "
+        "leerer Ring: noch ohne Match-Daten.",
+    "Bilanz auf dieser Map":
+        "Deine Runden auf der Map dieser Runde in derselben Rolle: als Killer wie oft 0 bis 4 Kills, als Survivor "
+        "tot oder entkommen.",
+    "Suchzeit heute je Runde":
+        "Wie lange die Suche in der Lobby vor jeder Runde heute gedauert hat.",
+    "Bloodpoints bis zur Obergrenze":
+        "Der zuletzt in der Lobby gelesene Bloodpoint-Stand als Balken bis zur Obergrenze von 5 Millionen.",
+    "FPS-Verlauf (HWiNFO)":
+        "Die FPS der letzten zehn Minuten – nur, wenn HWiNFO läuft (wie bei den Systemwerten).",
+    "GPU-Temperatur":
+        "Die Temperatur der Grafikkarte in den letzten zehn Minuten (NVIDIA).",
+    "CPU-Last":
+        "Die Auslastung des Prozessors in den letzten zehn Minuten.",
     "„Läuft gerade“: Titel, Interpret und Cover":
         "Liest Titel und Interpret aus der Windows-Mediensteuerung (dieselbe Liste wie beim Lautstärkeregler von "
         "Windows) – nur Anzeige, das Programm steuert nichts und speichert nichts.",

@@ -151,12 +151,13 @@ def music_rows(now: media.NowPlaying, wall: float):
 
 def layers(gw: int, gh: int, o: dict, hud_side: str, hud_rows: list, hud_own, map_pic, caption: str,
            info: dict, height_frac: float, music=None, today=None, editing: bool = False, accent=None,
-           upnext=None, fits=None, inputs=None, loadouts=None):
+           upnext=None, fits=None, inputs=None, loadouts=None, charts=None):
     """[(name, picture, x, y)] in screen pixels, bottom to top, + the map's (x, y, w, h) for clicks.
     ``o`` = settings["overlay"], ``hud_side`` = settings["sysinfo"] ("" for none), ``info`` = timer/server/ping/
     record lines, ``music`` = (rows, cover) or None, ``today`` = rows of "today" (its own card, 1.2.6) or None,
     ``inputs`` = the layout of the input card (1.39: "keyboard" / "gamepad", drawn with made-up keys) or None,
     ``loadouts`` = ``placed(o, game)`` of the loadouts – (picture, x, y) or None (1.57: app_loadouts, sample) or None,
+    ``charts`` = ``f(game height, room)`` -> the charts' card (1.57.73, app_charts.picture with made-up values) or None,
     ``upnext`` = (label, items) of the Spotify queue on the music card (1.8) or None, ``fits`` (1.8.24): a dict
     that gets {element: shown size / asked size} – "map", "text", "hud", "today", "music"."""
     fits = {} if fits is None else fits
@@ -170,6 +171,7 @@ def layers(gw: int, gh: int, o: dict, hud_side: str, hud_rows: list, hud_own, ma
         hud_side = hud_side if hud_side == "custom" else ""   # (in the move mode everything shows, to drag it)
         today = today if o.get("today_pos", "below") == "custom" else None
         music = music if o.get("media_pos", "below") == "custom" else None
+        charts = charts if o.get("charts_pos", "under_music") == "custom" else None
     style = o.get("style", "classic") if o.get("style", "classic") in skin.STYLES else "classic"   # 1.3
     modern = style != "classic"
     game = (0, 0, gw, gh)
@@ -226,6 +228,9 @@ def layers(gw: int, gh: int, o: dict, hud_side: str, hud_rows: list, hud_own, ma
                                       repr(upnext), npos, mins.get("music", 0), o.get("media_cover", True)), fits),
                               spot, o.get("media_xy"))
             fits["music"] = fits.get("music", 1.0) * fit_h / max(1, asked_h)   # the slider's mark: of the asked size
+        if charts is not None:                              # 1.57.73: like App._charts_card
+            cspot = o.get("charts_pos", "under_music")
+            cards["charts"] = (charts(gh, avail if cspot != "custom" else gw / 3), cspot, o.get("charts_xy"))
         return hud, cards
 
     def place_all(hud, cards):
@@ -372,7 +377,7 @@ def layers(gw: int, gh: int, o: dict, hud_side: str, hud_rows: list, hud_own, ma
             out.append(("loadouts",) + tuple(at))
     # 1.8.25: like App._el_resolve – nothing on the map, on another element or on a keep-out area (Discord)
     names = {n: i for i, (n, *_r) in enumerate(out)}
-    order = [n for n in ("hud", "text", "today", "music", "inputs", "loadouts") if n in names]
+    order = [n for n in ("hud", "text", "today", "music", "charts", "inputs", "loadouts") if n in names]
     boxes = [(n, (out[names[n]][2], out[names[n]][3], out[names[n]][1].width, out[names[n]][1].height))
              for n in order]
     own = layout.own_places(o, hud_side)                    # 1.45: put there by hand – they stay

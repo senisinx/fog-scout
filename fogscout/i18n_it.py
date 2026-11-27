@@ -6184,4 +6184,111 @@ T = {
         'Impostazioni salvate prima del ripristino: {name}',
     'Mit OBS nimmt Fog Scout jede Runde von selbst auf und benennt sie nach Map und Rolle. F8 speichert einen Clip, der Editor schneidet ihn.':
         "Con OBS, Fog Scout registra da solo ogni round e lo nomina con mappa e ruolo. F8 salva una clip, l'editor la taglia.",
+    # 1.57.73: the overlay element "Diagramme" (charts.py, app_charts.py)
+    'Altruismus':
+        'Altruismo',
+    'BLOODPOINTS':
+        'PUNTI SANGUE',
+    'Bilanz auf dieser Map':
+        'Bilancio su questa mappa',
+    'Bloodpoints bis zur Obergrenze':
+        'Punti sangue fino al limite',
+    'Brutalität':
+        'Brutalità',
+    'CPU':
+        'CPU',
+    'CPU-Last':
+        'Carico CPU',
+    'DIAGRAMME':
+        'GRAFICI',
+    'DIESE MAP':
+        'QUESTA MAPPA',
+    'Deine Runden auf der Map dieser Runde in derselben Rolle: als Killer wie oft 0 bis 4 Kills, als Survivor tot oder entkommen.':
+        'I tuoi round sulla mappa di questo round nello stesso ruolo: da killer quante volte 0–4 uccisioni, da sopravvissuto morto o fuggito.',
+    'Der Ping zur Region des Spielservers während der Runde – braucht die Anzeige des Spielservers.':
+        'Il ping verso la regione del server di gioco durante il round – richiede la visualizzazione del server.',
+    'Der zuletzt in der Lobby gelesene Bloodpoint-Stand als Balken bis zur Obergrenze von 5 Millionen.':
+        'Il saldo di punti sangue letto per ultimo nella lobby come barra fino al limite di 5 milioni.',
+    'Diagramme':
+        'Grafici',
+    'Die Auslastung des Prozessors in den letzten zehn Minuten.':
+        'Il carico del processore negli ultimi dieci minuti.',
+    'Die FPS der letzten zehn Minuten – nur, wenn HWiNFO läuft (wie bei den Systemwerten).':
+        'Gli FPS degli ultimi dieci minuti – solo se HWiNFO è in esecuzione (come per i valori di sistema).',
+    'Die Kills jeder Killer-Runde von heute, die neueste hell – aus den Match-Daten der Stats-Seite.':
+        'Le uccisioni di ogni round da killer di oggi, il più recente chiaro – dai dati delle partite della pagina statistiche.',
+    'Die Temperatur der Grafikkarte in den letzten zehn Minuten (NVIDIA).':
+        'La temperatura della scheda video negli ultimi dieci minuti (NVIDIA).',
+    'Die oben rechts gezählten Punkte je Kategorie deiner Rolle, voll bei 10 000 – braucht das Zählen der Punkte (Einstellungen → Erkennung).':
+        'I punti contati in alto a destra per categoria del tuo ruolo, pieni a 10.000 – richiede il conteggio dei punti (Impostazioni → Riconoscimento).',
+    'Dunkle Fläche hinter den Diagrammen':
+        'Area scura dietro i grafici',
+    'Eine halb durchsichtige dunkle Fläche mit runden Ecken hinter den Diagrammen.':
+        "Un'area scura semitrasparente con angoli arrotondati dietro i grafici.",
+    'FORM':
+        'FORMA',
+    'FPS':
+        'FPS',
+    'FPS-Verlauf (HWiNFO)':
+        'Andamento FPS (HWiNFO)',
+    'Form der letzten 10 Runden':
+        'Forma degli ultimi 10 round',
+    'GPU':
+        'GPU',
+    'Grün: als Killer 3 Kills oder mehr bzw. als Survivor entkommen, grau: 2 Kills, rot: weniger bzw. gestorben, leerer Ring: noch ohne Match-Daten.':
+        'Verde: da killer 3 uccisioni o più, da sopravvissuto fuggito; grigio: 2 uccisioni; rosso: meno, o morto; cerchio vuoto: ancora senza dati della partita.',
+    'Hinterlist':
+        'Astuzia',
+    'Höchstens {n} Diagramme auf einmal – mehr passt nicht in den Balken.':
+        'Al massimo {n} grafici alla volta – di più non entrano nella barra.',
+    'Höchstens {n} auf einmal. Die Werte kommen aus dem, was Fog Scout ohnehin misst (Ping, Systemwerte, deine Runden und Match-Daten, Punkte, Bloodpoints) – nichts Neues aus dem Spiel, nichts wird gesendet. Zu sehen, solange die Karte zu sehen ist; FPS nur mit HWiNFO.':
+        'Al massimo {n} alla volta. I valori vengono da ciò che Fog Scout misura comunque (ping, valori di sistema, i tuoi round e i dati delle partite, punti, punti sangue) – niente di nuovo dal gioco, nulla viene inviato. Visibili finché è visibile la mappa; FPS solo con HWiNFO.',
+    'Jäger':
+        'Cacciatore',
+    'KILLS HEUTE':
+        'UCCISIONI OGGI',
+    'Kills heute je Runde (Killer)':
+        'Uccisioni oggi per round (killer)',
+    'Kühnheit':
+        'Audacia',
+    'Opferung':
+        'Sacrificio',
+    'PING':
+        'PING',
+    'PUNKTE':
+        'PUNTI',
+    'Ping, Punkte, Kills …':
+        'Ping, punti, uccisioni …',
+    'Ping-Verlauf der Runde':
+        'Andamento del ping nel round',
+    'Punkte dieser Runde je Kategorie':
+        'Punti di questo round per categoria',
+    'RUNDENZEIT':
+        'DURATA ROUND',
+    'Rundenzeit gegen den Schnitt der Map':
+        'Durata del round rispetto alla media della mappa',
+    'SUCHE HEUTE':
+        'RICERCA OGGI',
+    'Schnitt':
+        'Media',
+    'Suchzeit heute je Runde':
+        'Tempo di ricerca oggi per round',
+    'Welche Diagramme':
+        'Quali grafici',
+    'Wie lange die Runde schon läuft, neben der durchschnittlichen Dauer deiner Runden auf dieser Map.':
+        'Da quanto dura il round, accanto alla durata media dei tuoi round su questa mappa.',
+    'Wie lange die Suche in der Lobby vor jeder Runde heute gedauert hat.':
+        'Quanto è durata la ricerca nella lobby prima di ogni round di oggi.',
+    'Ziel':
+        'Obiettivo',
+    'entk.':
+        'fugg.',
+    'jetzt':
+        'ora',
+    '{w} von {n}':
+        '{w} su {n}',
+    'Ø {n}':
+        'media {n}',
+    'Ø {t}':
+        'media {t}',
 }

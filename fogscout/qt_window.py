@@ -214,6 +214,14 @@ SPECS = {
                   ("row", (("label", "ov.loadouts_style.label"), ("combo", "ov.loadouts_style"), ("stretch",))),   # 1.57.3
                   ("row", (("label", "ov.loadouts_look.label"), ("combo", "ov.loadouts_look"), ("stretch",))),     # 1.57.25
                   ("check", "ov.loadouts_items"), ("hint", "ov.loadouts_hint"))),
+              ("ov.charts_f", N_("Diagramme"), (                                                   # 1.57.73
+                  ("row", (("label", "ov.charts_pos.label"), ("combo", "ov.charts_pos"), ("stretch",))),
+                  ("check", "ov.charts_backdrop"),
+                  ("sub", N_("Welche Diagramme")),
+                  ("check", "ov.chart_ping"), ("check", "ov.chart_score"), ("check", "ov.chart_time"),
+                  ("check", "ov.chart_kills"), ("check", "ov.chart_form"), ("check", "ov.chart_map"),
+                  ("check", "ov.chart_wait"), ("check", "ov.chart_bp"), ("check", "ov.chart_fps"),
+                  ("check", "ov.chart_gpu"), ("check", "ov.chart_cpu"), ("hint", "ov.charts_hint"))),
               ("ov.pos", N_("Allgemein"), (
                   ("check", "ov.master"),                                                          # 1.8.18
                   ("check", "ov.small_off"),                                                       # 1.8.62

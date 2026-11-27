@@ -21,9 +21,9 @@ BAR_OPTIONS = (("ov.keep_bar", "normal"), ("ov.grow", "normal"), ("ov.fill_bar",
 # 1.44.1: right click on an element in edit mode puts it back – the overlay keys of its usual place (config.DEFAULTS)
 RESET_KEYS = {"map": ("anchor",), "today": ("today_pos", "today_xy"), "music": ("media_pos", "media_xy"),
               "text": ("info_pos", "info_xy"), "inputs": ("inputs_pos", "inputs_xy"),
-              "loadouts": ("loadouts_pos", "loadouts_xy")}
+              "loadouts": ("loadouts_pos", "loadouts_xy"), "charts": ("charts_pos", "charts_xy")}
 RESET_NAMES = {"map": N_("Karte"), "hud": N_("Systemwerte"), "today": N_("Heute"), "music": N_("Musik"),
-               "text": N_("Infos"), "inputs": N_("Eingaben"), "loadouts": N_("Loadouts")}
+               "text": N_("Infos"), "inputs": N_("Eingaben"), "loadouts": N_("Loadouts"), "charts": N_("Diagramme")}
 # 1.46: the overlay editor – the map's corners of the quick places are its preset anchors (they follow the bar)
 MAP_CORNERS = {(0, 0): "top-left", (2, 0): "top-right", (0, 2): "bottom-left", (2, 2): "bottom-right"}
 CELL_TOL = 0.006             # share of the game height: an element this close to a quick place is "there"
@@ -67,6 +67,9 @@ class LayoutMemory:
         if name == "loadouts" and hasattr(self, "loadouts_pos_var"):
             from .appconst import LOADOUT_SPOTS
             self.loadouts_pos_var.set(_(dict(LOADOUT_SPOTS).get(o["loadouts_pos"], "")))
+        if name == "charts" and hasattr(self, "charts_pos_var"):                 # 1.57.73
+            from .appconst import CHART_SPOTS
+            self.charts_pos_var.set(_(dict(CHART_SPOTS).get(o["charts_pos"], "")))
         self._layout_apply(layoutmem.snapshot(data))      # every control that shows it, saved, one tick
         self._log(_("{name} wieder an seinem üblichen Platz.", name=_(RESET_NAMES[name])), "Overlay")
 
@@ -268,7 +271,8 @@ class LayoutMemory:
         if name == "hud":
             return self.settings.get("sysinfo", "off") in HUD_SHOWN
         return bool(o.get({"today": "show_today", "music": "show_media", "inputs": "show_inputs",
-                           "loadouts": "show_loadouts"}[name], name not in ("inputs", "loadouts")))
+                           "loadouts": "show_loadouts", "charts": "show_charts"}[name],
+                          name not in ("inputs", "loadouts", "charts")))
 
     def _el_place_text(self, name) -> str:
         o = self.settings["overlay"]
@@ -343,6 +347,9 @@ class LayoutMemory:
         elif name == "loadouts":                                     # 1.57
             self.loadouts_on_var.set(on)
             self._loadouts_on_changed()
+        elif name == "charts":                                       # 1.57.73
+            self.charts_on_var.set(on)
+            self._charts_on_changed()
 
     def _cell_box(self, name, col, row, data=None):
         """(x, y) in game pixels of ``name`` at the quick place (col, row) – corners and edges keep the margin.

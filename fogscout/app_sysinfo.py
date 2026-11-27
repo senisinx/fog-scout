@@ -80,7 +80,7 @@ INPUT_SCALE = layout.INPUT_SCALE            # size of the input card, percent (1
 TEXT_BASE = 0.36                            # … of the text at the standard map size (share of the game height)
 # 1.2.12: the tab of the overlay page (qt_window.SPECS frame keys) that holds each element's settings
 ELEMENT_TABS = {"map": "ov.look", "text": "ov.info_f", "hud": "ov.sys", "today": "ov.today_f", "music": "ov.music_f",
-                "inputs": "ov.inputs_f", "loadouts": "ov.loadouts_f"}
+                "inputs": "ov.inputs_f", "loadouts": "ov.loadouts_f", "charts": "ov.charts_f"}
 
 
 def text_scale(o: dict) -> float:
@@ -209,7 +209,9 @@ class SysInfo:
         sys_on = side in HUD_SHOWN
         self._media_ctx = (gx, gy, gw, gh, show)            # "today" and the music card are placed after the map
         on = sys_on and self.hud is not None
-        self.sysmon.active = sys_on and self.hud is not None and self.game is not None
+        from .charts import needs_system                   # 1.57.73: a chart of the system values needs them too
+        self.sysmon.active = self.game is not None and (sys_on and self.hud is not None or (
+            needs_system(self.settings["overlay"]) and getattr(self, "charts_win", None) is not None))
         bar = layout.bar_width(gw, gh)
         snap = self.sysmon.snapshot
         self._hwinfo_check(time.time(), snap)
@@ -292,7 +294,8 @@ class SysInfo:
     def _cards_measure(self) -> dict:
         """Render "today" and the music card for this tick (hidden when they have nothing to show) and remember
         their sizes – {name: (w, h) or None}; placed afterwards by _cards_place (1.2.11)."""
-        self._card_sizes = {"today": self._today_card(), "music": self._media_card()}
+        self._card_sizes = {"today": self._today_card(), "music": self._media_card(),
+                            "charts": self._charts_card()}                  # 1.57.73
         return self._card_sizes
 
     def _cards_place(self, free_only: bool = False):
@@ -301,7 +304,8 @@ class SysInfo:
         ``free_only``: only the cards that do not hang on the system values (those follow the map later)."""
         o = self.settings["overlay"]
         sizes = dict(self._cards_measure())
-        spots = {"today": o.get("today_pos", "below"), "music": o.get("media_pos", "below")}
+        spots = {"today": o.get("today_pos", "below"), "music": o.get("media_pos", "below"),
+                 "charts": o.get("charts_pos", "under_music")}
         if free_only:
             for name in sizes:
                 if layout.hangs_on_hud(name, spots):
@@ -313,7 +317,8 @@ class SysInfo:
         if hud and box and box[:2] == hud[:2]:
             hud = box                                       # by its widest width: no wobble when values change
         cards = {"today": (sizes["today"], o.get("today_pos", "below"), o.get("today_xy")),
-                 "music": (sizes["music"], o.get("media_pos", "below"), o.get("media_xy"))}
+                 "music": (sizes["music"], o.get("media_pos", "below"), o.get("media_xy")),
+                 "charts": (sizes["charts"], o.get("charts_pos", "under_music"), o.get("charts_xy"))}   # 1.57.73
         placed = layout.place_cards((gx, gy, gw, gh), cards, hud, int(gh * o["margin"]),
                                     o.get("bar_align", "centre"), layout.stack_gap(o, gh),
                                     up=self.settings.get("sysinfo") == "above" and hud is not None
@@ -334,6 +339,10 @@ class SysInfo:
             self.worker.media_rect = self._media_box = self._el_show("music", self.media_win, x, y, (w, h))
         else:
             self._media_box = None
+        if "charts" in placed:                                                    # 1.57.73
+            self._fade_show("charts", bool(o.get("fade", True)) and not self.overlay.editing)
+            x, y, w, h = placed["charts"]
+            self.worker.charts_rect = self._charts_box = self._el_show("charts", self.charts_win, x, y, (w, h))
 
     def _today_card(self):
         """"Today" (1.2.6, user: "unter dem GPU/CPU-Zähler macht keinen Sinn"): a card of its own like the music.
@@ -752,13 +761,13 @@ class SysInfo:
     # ---- fading (1.2.4 the music card, 1.2.9 map, system values and "today" too): media.Fader per window
     def _fade_win(self, name):
         attr = {"map": "overlay", "hud": "hud", "today": "today_win", "music": "media_win", "info": "info_win",
-                "inputs": "inputs_win", "loadouts": "loadouts_win"}[name]
+                "inputs": "inputs_win", "loadouts": "loadouts_win", "charts": "charts_win"}[name]
         return getattr(self, attr, None)
 
     # 1.55.6 (audit B6): the worker's rectangle of each window – the App clears it the moment a window should go, but
     # a fading window stays on the screen for Fader.OUT_S; until _fade_tick hides it, it is blacked out from here
     FADE_RECTS = {"map": "overlay_rect", "hud": "hud_rect", "today": "today_rect", "music": "media_rect",
-                  "info": "info_rect", "inputs": "inputs_rect", "loadouts": "loadouts_rect"}
+                  "info": "info_rect", "inputs": "inputs_rect", "loadouts": "loadouts_rect", "charts": "charts_rect"}
 
     def _fade_mask(self, name, rect=None):
         """Keep ``rect`` blacked out while ``name`` fades out (None: no longer – hidden or shown again)."""
@@ -848,7 +857,8 @@ class SysInfo:
     ELEMENT_WINDOWS = (("hud", "hud", "hud_rect"), ("text", "info_win", "info_rect"),
                        ("today", "today_win", "today_rect"), ("music", "media_win", "media_rect"),
                        ("inputs", "inputs_win", "inputs_rect"),                                  # 1.39
-                       ("loadouts", "loadouts_win", "loadouts_rect"))                            # 1.57
+                       ("loadouts", "loadouts_win", "loadouts_rect"),                            # 1.57
+                       ("charts", "charts_win", "charts_rect"))                                  # 1.57.73
 
     def _el_show(self, name, win, x, y, size):
         """Show an element where its placement put it, moved by what the last check gave it (no back and forth
@@ -912,11 +922,14 @@ class SysInfo:
                         self._media_box = box
                     elif name == "today":
                         self._today_box = box
+                    elif name == "charts":
+                        self._charts_box = box
         self._el_orig = {}
 
     # 1.45.1: comfort while dragging in the game – the same snap lines as the preview, Ctrl+Z, arrow keys
     SNAP_RECTS = (("map", "overlay_rect"), ("hud", "hud_rect"), ("text", "info_rect"), ("today", "today_rect"),
-                  ("music", "media_rect"), ("inputs", "inputs_rect"), ("loadouts", "loadouts_rect"))
+                  ("music", "media_rect"), ("inputs", "inputs_rect"), ("loadouts", "loadouts_rect"),
+                  ("charts", "charts_rect"))
 
     def _edit_comfort(self, name, win):
         """Hook an overlay window up: it snaps while dragged (asked at once, inside Windows' move loop), Ctrl+Z
@@ -964,7 +977,8 @@ class SysInfo:
 
     def _el_any_dragged(self):
         return any(getattr(getattr(self, attr, None), "dragging", False)
-                   for attr in ("overlay", "hud", "info_win", "today_win", "media_win", "inputs_win", "loadouts_win"))
+                   for attr in ("overlay", "hud", "info_win", "today_win", "media_win", "inputs_win", "loadouts_win",
+                                "charts_win"))
 
     def _guides_place(self):
         """Centre cross over the DBD window while moving (1.64.5): two thin click-through windows, hidden
@@ -1063,6 +1077,9 @@ class SysInfo:
             return INPUT_SCALE + (min(INPUT_SCALE[1], max(INPUT_SCALE[0], o.get("inputs_scale", 1.0) * 100)),)
         if name == "loadouts":                                     # 1.57
             return layout.LOADOUT_SCALE + (layout.loadout_scale(o) * 100,)
+        if name == "charts":                                       # 1.57.73
+            from .charts import CHART_SCALE, chart_scale
+            return CHART_SCALE + (chart_scale(o) * 100,)
         return MAP_SCALE + (self._map_height() * 100,)
 
     def _select(self, name):
@@ -1135,6 +1152,8 @@ class SysInfo:
             o["inputs_scale"] = round(percent / 100, 2)
         elif name == "loadouts":                                   # 1.57
             o["loadouts_scale"] = round(percent / 100, 2)
+        elif name == "charts":                                     # 1.57.73
+            o["charts_scale"] = round(percent / 100, 2)
         else:
             value = round(percent / 100, 3)
             mid = self._own_size_map()

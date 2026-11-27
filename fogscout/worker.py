@@ -227,6 +227,7 @@ def _prune_debug(d, names, keep):
 class DetectionWorker(threading.Thread):
     inputs_rect = None               # 1.39: the input card on screen (set by the UI; a default for bare instances)
     loadouts_rect = None             # 1.57: the survivors' loadouts on screen (the same)
+    charts_rect = None               # 1.57.73: the charts on screen (the same)
     menu_open = False                # 1.57.2 (the same)
     fade_rects = ()                  # 1.55.6: windows still fading out (their *_rect is cleared already)
 
@@ -256,6 +257,7 @@ class DetectionWorker(threading.Thread):
         self.info_rect = None            # … and of the map's lines when they are their own element (1.8.24)
         self.inputs_rect = None          # … and of the input card (1.39)
         self.loadouts_rect = None        # … and of the survivors' loadouts (1.57)
+        self.charts_rect = None          # … and of the charts (1.57.73)
         self.loadouts_wanted = False     # set by the UI: the loadouts are shown (1.57; 1.57.36 as the killer too)
         self.loadout_info = "–"          # 1.57: last look at the pause menu's loadouts (diagnosis)
         self.loadout_menu_info = "–"     # 1.57.11: … the last one at the menu itself (not the HUD / result)
@@ -1189,7 +1191,7 @@ class DetectionWorker(threading.Thread):
     def _own_windows(self) -> bool:
         """Any of our own windows up (the UI sets their screen rectangles): a screen picture needs them blacked out."""
         return bool(self.overlay_rect or self.hud_rect or self.media_rect or self.today_rect or self.info_rect
-                    or self.inputs_rect or self.loadouts_rect or self.guide_rects or self.toast_rect or self.fade_rects)
+                    or self.inputs_rect or self.loadouts_rect or self.charts_rect or self.guide_rects or self.toast_rect or self.fade_rects)
 
     def _note_full_width(self, img, screen: bool, origin, tick):
         """1.57.61 (user's recordings: the waiting card lay on the lobby's menu column and on the scoreboard): does
@@ -1207,7 +1209,8 @@ class DetectionWorker(threading.Thread):
         h, w = shape[:2]
         out = []
         for r in (self.overlay_rect, self.info_rect, self.hud_rect, self.media_rect, self.today_rect,
-                  self.inputs_rect, self.loadouts_rect, self.toast_rect, *self.guide_rects, *self.fade_rects):
+                  self.inputs_rect, self.loadouts_rect, self.charts_rect, self.toast_rect, *self.guide_rects,
+                  *self.fade_rects):
             if r:
                 x0, y0 = max(0, int(r[0] - left)), max(0, int(r[1] - top))
                 x1, y1 = min(w, int(r[0] - left + r[2])), min(h, int(r[1] - top + r[3]))
@@ -1238,8 +1241,8 @@ class DetectionWorker(threading.Thread):
     def _mask_overlay(self, img, left, top):
         """Black out our own overlay in a screenshot (it is always on top and would
         otherwise be read as part of the game picture)."""
-        for r in (self.hud_rect, self.media_rect, self.today_rect, self.inputs_rect, self.loadouts_rect, self.toast_rect,
-                  *self.guide_rects, *self.fade_rects):
+        for r in (self.hud_rect, self.media_rect, self.today_rect, self.inputs_rect, self.loadouts_rect, self.charts_rect,
+                  self.toast_rect, *self.guide_rects, *self.fade_rects):
             if r:
                 self._black_out(img, r, left, top)
         lines = self._black_out(img, self.info_rect, left, top)      # 1.8.24: the map's lines apart – they

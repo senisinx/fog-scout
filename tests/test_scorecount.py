@@ -255,7 +255,8 @@ def test_the_worker_lists_every_own_window_clipped_to_the_picture():
     import types
     from fogscout import worker
     w = types.SimpleNamespace(overlay_rect=(100, 200, 300, 400), info_rect=None, hud_rect=(3300, 100, 300, 300),
-                              media_rect=None, today_rect=None, inputs_rect=None, loadouts_rect=None, toast_rect=None,
+                              media_rect=None, today_rect=None, inputs_rect=None, loadouts_rect=None, charts_rect=None,
+                              toast_rect=None,
                               guide_rects=[], fade_rects=[(-50, -50, 100, 100)])
     boxes = worker.DetectionWorker._own_boxes(w, (1440, 3440, 3), 0, 0)
     assert boxes == [(100, 200, 400, 600), (3300, 100, 3440, 400), (0, 0, 50, 50)]

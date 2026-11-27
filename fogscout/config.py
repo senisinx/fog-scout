@@ -111,6 +111,13 @@ DEFAULTS = {
         "loadouts_xy": [0.05, 0.6],     #   custom: centre as a share of the window
         "loadouts_scale": 1.0,          #   size (slider 50–200 %): DBD's HUD scale can be set
         "loadouts_opacity": 0.9,
+        "show_charts": False,           # 1.57.73: the element "Diagramme" (charts.CATALOGUE)
+        "charts": ["ping", "score", "kills"],   # the charts switched on (ids, at most charts.MAX_PICKED)
+        "charts_pos": "under_music",    #   stacked like "today" (layout.place_cards) / bottom corners / custom
+        "charts_xy": [0.94, 0.75],      #   custom: centre of the card as a share of the window
+        "charts_scale": 1.0,            #   size (slider 60–200 %)
+        "charts_opacity": 0.9,
+        "charts_backdrop": True,        #   dark area behind the charts
         "locked": [],                   # 1.46: elements locked in place ("map", "hud", "today", …) – not dragged
     },
     "hotkeys": {
