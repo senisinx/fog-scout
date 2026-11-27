@@ -1134,7 +1134,7 @@ class MainWindow(QMainWindow):
         self._setup_button()
         if on:
             if not resume:
-                self.setup.go(0)
+                self.setup.restart()
             self._style_page(self.setup)
             self.stack.setCurrentWidget(self.setup)
             self.nav.blockSignals(True)                # 1.2.19: no page is highlighted behind the assistant

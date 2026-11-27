@@ -2457,6 +2457,12 @@ T = {
         'Claude: non sembra una chiave API (inizia con sk-ant-).',
     'Claude: Key eingetragen.':
         'Claude: chiave inserita.',
+    'Einrichtung':
+        'Configurazione',
+    'Optional':
+        'Facoltativo',
+    '{n} von {total} angesehen':
+        '{n} di {total} visti',
     'Schritt {n} von {total}':
         'Passo {n} di {total}',
     'Sprache':

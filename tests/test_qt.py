@@ -4307,3 +4307,32 @@ def test_the_setup_assistant_put_aside_can_be_continued(qapp, keep):
     assert win.setup_btn.isHidden()
     win.show_setup(True)                                       # "Einrichtung starten" again: from the first step
     assert win.setup.steps.currentIndex() == 0
+
+
+def test_the_setup_assistant_lists_its_steps_and_ticks_the_seen_ones(qapp, keep):
+    """1.57.98 (user chose "B"): beside the steps a list of all of them – a click jumps there, a step once seen gets a
+    tick (also when left by a jump), the optional ones stand below "Optional"; a resume keeps the ticks, a new run
+    of the assistant starts without."""
+    from fogscout import qt_pages, qt_window
+    win = keep(qt_window.MainWindow(lambda a, arg=None: None))
+    win.resize(1280, 800)
+    win.show()
+    win.show_setup(True)
+    page = win.setup
+    assert [r.text() for r in page.rows] == [t for t, _items in qt_pages.SETUP]
+    assert [r.optional for r in page.rows] == [t in qt_pages.SETUP_OPTIONAL for t, _items in qt_pages.SETUP]
+    assert all(t in [s for s, _i in qt_pages.SETUP] for t in qt_pages.SETUP_OPTIONAL)
+    assert page.rows[0].isChecked() and page.rows[0].done and not page.rows[1].done
+    assert page.bar.value() == 1 and page.seen_label.text() == "1 von 8 angesehen"
+    page.rows[5].click()                                       # jump straight to OBS
+    assert page.steps.currentIndex() == 5 and page.rows[5].isChecked() and not page.rows[0].isChecked()
+    assert [r.done for r in page.rows] == [True, False, False, False, False, True, False, False]
+    page.next.click()
+    assert page.steps.currentIndex() == 6 and page.bar.value() == 3
+    win.show_page("maps")
+    win.setup_btn.click()                                      # resumed: the ticks stay
+    assert page.steps.currentIndex() == 6 and page.bar.value() == 3
+    win.show_setup(False, done=True)
+    win.show_setup(True)                                       # a new run: only the first step seen
+    assert page.steps.currentIndex() == 0 and page.bar.value() == 1
+    assert [r.done for r in page.rows] == [True] + [False] * 7

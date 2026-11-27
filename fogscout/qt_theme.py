@@ -382,6 +382,12 @@ QWidget#navside {{ background: {c['nav']}; }}
 QPushButton#navsetup {{ margin: 6px 10px 2px 10px; padding: 6px 8px; background: {c['accent']}; color: {c['on_accent']};
     border: none; border-radius: {RADIUS['m']}px; font-weight: 600; font-size: {px(TYPE['small'])}; }}  /* 1.57.96 */
 QPushButton#navsetup:focus {{ border: 1px solid {c['fg']}; }}
+QFrame#setupside {{ background: {c['card']}; border: none; border-right: 1px solid {c['border']}; border-radius: 0; }}  /* 1.57.98 */
+QPushButton#setupstep {{ background: transparent; border: 1px solid transparent; border-radius: 0; }}
+QPushButton#setupstep[optional="true"] {{ font-size: {px(TYPE['small'])}; }}
+QPushButton#setupstep:focus {{ border: 1px solid {c['accent']}; }}
+QProgressBar#setupbar {{ background: {c['field']}; border: none; border-radius: 2px; }}
+QProgressBar#setupbar::chunk {{ background: {c['accent']}; border-radius: 2px; }}
 QPushButton#navsearch {{ margin: 12px 10px 2px 10px; background: {c['field']}; border: 1px solid {c['border']};
     border-radius: {RADIUS['m']}px; padding: 5px 8px; text-align: left; color: {c['dim']}; }}  /* 1.38.55: a search button */
 QPushButton#navsearch:hover {{ background: {c['hover']}; color: {c['fg']}; }}

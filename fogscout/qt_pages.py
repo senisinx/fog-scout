@@ -4,7 +4,7 @@ a tab's structure (AutoPage), dialogs and the setup assistant.
 from __future__ import annotations
 
 from PIL import Image, ImageDraw
-from PySide6.QtCore import QEvent, QRectF, QSize, Qt, QTimer
+from PySide6.QtCore import QEvent, QPointF, QRectF, QSize, Qt, QTimer
 from PySide6.QtGui import QColor, QFont, QGuiApplication, QIcon, QPainter, QPen
 from PySide6.QtWidgets import (QAbstractItemView, QBoxLayout, QComboBox, QDialog, QFrame, QGridLayout, QHBoxLayout, QLabel, QLineEdit, QListWidget, QListWidgetItem, QProgressBar,
                                QPushButton, QRadioButton, QScrollArea, QSizePolicy, QSlider, QStackedWidget,
@@ -2558,9 +2558,72 @@ class MessageBox(QDialog):
         super().done(r)
 
 
+SETUP_OPTIONAL = ("Match-Daten", "Aufnahmen mit OBS", "Verbindungen", "Server")   # steps one can leave out
+SETUP_SIDE_W = 190                # px (logical) of the step list beside the assistant
+
+
+class StepRow(QPushButton):
+    """1.57.98 (user chose "B"): one step in the list beside the assistant – a ring (open), an accent ring (here)
+    or a green dot with a tick (seen), then the step's name; optional steps a little smaller and dimmer."""
+
+    def __init__(self, text: str, optional: bool):
+        super().__init__(text)
+        self.setObjectName("setupstep")
+        self.setCheckable(True)
+        self.setCursor(Qt.PointingHandCursor)
+        self.optional = optional
+        self.done = False
+        self.setProperty("optional", "true" if optional else "false")
+
+    def set_done(self, done: bool):
+        if done != self.done:
+            self.done = done
+            self.update()
+
+    def sizeHint(self):
+        fm = self.fontMetrics()
+        return QSize(fm.horizontalAdvance(self.text()) + 40, max(28, fm.height() + 12))
+
+    def paintEvent(self, _event):
+        c = qt_theme.colours(qt_theme.current_dark())
+        p = QPainter(self)
+        p.setRenderHint(QPainter.Antialiasing)
+        r = self.rect()
+        if self.isChecked():
+            p.fillRect(r, QColor(c["hover"]))
+            p.fillRect(QRectF(0, 0, 3, r.height()), QColor(c["accent"]))
+        elif self.underMouse():
+            p.fillRect(r, QColor(c["hover"]))
+        d = 12.0
+        box = QRectF(12, (r.height() - d) / 2, d, d)
+        if self.done and not self.isChecked():
+            p.setPen(Qt.NoPen)
+            p.setBrush(QColor(c["ok"]))
+            p.drawEllipse(box)
+            pen = QPen(QColor(c["bg"]), 1.6)
+            pen.setCapStyle(Qt.RoundCap)
+            p.setPen(pen)
+            x, y = box.left(), box.top()
+            p.drawPolyline([QPointF(x + 3.2, y + 6.3), QPointF(x + 5.3, y + 8.4), QPointF(x + 9, y + 4)])
+        else:
+            p.setBrush(Qt.NoBrush)
+            p.setPen(QPen(QColor(c["accent"] if self.isChecked() else c["dim"]), 2 if self.isChecked() else 1.2))
+            p.drawEllipse(box.adjusted(1, 1, -1, -1))
+        f = QFont(self.font())
+        if self.isChecked():
+            f.setBold(True)
+        p.setFont(f)
+        p.setPen(QColor(c["fg"] if self.isChecked() or not self.optional else c["dim"]))
+        p.drawText(QRectF(32, 0, r.width() - 36, r.height()), Qt.AlignVCenter | Qt.AlignLeft | Qt.TextSingleLine,
+                   self.fontMetrics().elidedText(self.text(), Qt.ElideRight, r.width() - 36))
+        p.end()
+
+
 class SetupPage(QWidget):
     """The setup assistant (first start, or "Einrichtung starten" in the settings): SETUP's steps one at a time,
-    "Zurück" / "Weiter" / "Fertig" and "Überspringen". Done or skipped: post("setup_done")."""
+    "Zurück" / "Weiter" / "Fertig" and "Überspringen". Done or skipped: post("setup_done"). 1.57.98 (user chose
+    "B"): beside the steps a list of all of them – a click jumps there, a step once seen gets a tick, the optional
+    ones stand a little smaller below "Optional", and a bar above shows how many were seen."""
 
     def __init__(self, post):
         super().__init__()
@@ -2569,12 +2632,52 @@ class SetupPage(QWidget):
         lay = QVBoxLayout(self)
         lay.setContentsMargins(0, 0, 0, 0)
         lay.setSpacing(0)
+        body = QHBoxLayout()
+        body.setContentsMargins(0, 0, 0, 0)
+        body.setSpacing(0)
+        side = QFrame()
+        side.setObjectName("setupside")
+        side.setFixedWidth(SETUP_SIDE_W)
+        col = QVBoxLayout(side)
+        col.setContentsMargins(0, 18, 0, 12)
+        col.setSpacing(2)
+        head = _label(_("Einrichtung").upper(), cls="navlab")
+        head.setContentsMargins(14, 0, 14, 0)
+        col.addWidget(head)
+        self.bar = QProgressBar()
+        self.bar.setObjectName("setupbar")
+        self.bar.setTextVisible(False)
+        self.bar.setFixedHeight(4)
+        self.bar.setRange(0, len(SETUP))
+        bar_box = QHBoxLayout()
+        bar_box.setContentsMargins(14, 6, 14, 2)
+        bar_box.addWidget(self.bar)
+        col.addLayout(bar_box)
+        self.seen_label = _label(cls="dim")
+        self.seen_label.setContentsMargins(14, 0, 14, 8)
+        col.addWidget(self.seen_label)
+        self.rows = []
+        opt_shown = False
+        for i, (title, _items) in enumerate(SETUP):
+            optional = title in SETUP_OPTIONAL
+            if optional and not opt_shown:
+                opt_shown = True
+                lab = _label(_("Optional").upper(), cls="navlab")
+                lab.setContentsMargins(14, 10, 14, 2)
+                col.addWidget(lab)
+            row = StepRow(_(title), optional)
+            row.clicked.connect(lambda _c=False, i=i: self.go(i))
+            self.rows.append(row)
+            col.addWidget(row)
+        col.addStretch(1)
+        body.addWidget(side)
         self.steps = QStackedWidget()
         self.pages = [FormPage(post, _("Einrichtung: {step}", step=_(title)), items) for title, items in SETUP]
         for page in self.pages:
             page.setMaximumWidth(SETUP_W)               # a wide window: the keys stay next to their names
             self.steps.addWidget(page)
-        lay.addWidget(self.steps, 1)
+        body.addWidget(self.steps, 1)
+        lay.addLayout(body, 1)
         foot = QHBoxLayout()
         foot.setContentsMargins(22, 10, 22, 16)
         self.skip = QPushButton(_("Überspringen"))
@@ -2593,14 +2696,26 @@ class SetupPage(QWidget):
         foot.addSpacing(8)                                # 1.8.8: the two did touch
         foot.addWidget(self.next)
         lay.addLayout(foot)
+        self.seen = set()
+        self.go(0)
+
+    def restart(self):
+        """A new run of the assistant (not a resume): no step seen yet, back at the first."""
+        self.seen = set()
         self.go(0)
 
     def go(self, i: int):
         i = max(0, min(len(self.pages) - 1, i))
+        self.seen.add(i)
         self.steps.setCurrentIndex(i)
         _set(self.where, _("Schritt {n} von {total}", n=i + 1, total=len(self.pages)))
         self.back.setEnabled(i > 0)
         _set(self.next, _("Fertig") if i == len(self.pages) - 1 else _("Weiter"))
+        for k, row in enumerate(self.rows):
+            row.setChecked(k == i)
+            row.set_done(k in self.seen)
+        self.bar.setValue(len(self.seen))
+        _set(self.seen_label, _("{n} von {total} angesehen", n=len(self.seen), total=len(self.pages)))
 
     def _next(self):
         if self.steps.currentIndex() == len(self.pages) - 1:

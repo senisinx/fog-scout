@@ -2457,6 +2457,12 @@ T = {
         'Claude：API キーのようには見えません（sk-ant- で始まります）。',
     'Claude: Key eingetragen.':
         'Claude：キーを入力しました。',
+    'Einrichtung':
+        'セットアップ',
+    'Optional':
+        '任意',
+    '{n} von {total} angesehen':
+        '{total} 件中 {n} 件確認済み',
     'Schritt {n} von {total}':
         'ステップ {n} / {total}',
     'Sprache':

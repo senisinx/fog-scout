@@ -185,6 +185,8 @@ Seit 1.8.8 haben Auswahllisten und Häkchen einen eigenen Stil wie Knöpfe und F
 
 **Scharfe Vorschaubilder** (seit 1.57.97): Die Kacheln der Runden und Clips unter Aufnahmen zeigen ihr Bild jetzt in der Grösse der Kachel – vorher war es ein kleines Bild (144 × 80 Pixel), das auf die Kachel hochgezogen wurde und deshalb unscharf war. Die Bilder werden beim ersten Anzeigen einmal neu erzeugt.
 
+**Einrichtung mit Schrittliste** (seit 1.57.98): Neben dem Einrichtungs-Assistenten stehen alle acht Schritte als Liste – ein Klick springt hin, angesehene Schritte bekommen einen grünen Haken, die vier freiwilligen (Match-Daten, OBS, Verbindungen, Server) stehen unter „Optional“, und ein Balken zeigt, wie viele schon angesehen sind. Beim „Einrichtung fortsetzen“ bleiben die Haken.
+
 **Schalter in den Einstellungen** (seit 1.57.88): Die Häkchen der Einstellungen sind Ein/Aus-Schalter – wie auf der Übersicht und in der Liste der Overlay-Elemente.
 
 **Overlay-Seite als „Bühne“** (seit 1.57.87): Die **Vorschau** steht oben über die ganze Breite der Seite, darunter die **Zeile aller Elemente** mit Schloss und Ein/Aus-Schalter, darunter die **Einstellungen des gewählten Elements** – links Schnellposition, Grösse und Deckkraft, rechts seine eigenen Einstellungen. In einem schmalen Fenster steht alles untereinander.
