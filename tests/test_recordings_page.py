@@ -1292,3 +1292,28 @@ def test_show_all_resets_the_filters_and_the_player_steps_and_closes(app_root, t
         app._hist = None
     finally:
         app.quit()
+
+
+def test_the_tiles_of_videos_get_pictures_in_tile_size(tmp_path):
+    """1.57.97 (user: "die Vorschaubilder sind sehr unscharf"): the tiles of rounds and clips ask their loader for
+    pictures as large as a tile gets – before, they showed the 144 × 80 px pictures of the editor's library rows
+    stretched to ~390 px. The library keeps its small ones, and a small picture kept in memory is no answer for
+    a tile."""
+    pytest.importorskip("PySide6.QtWidgets", exc_type=ImportError)
+    from PySide6.QtWidgets import QApplication
+    from fogscout import qt_gallery, qt_library
+    QApplication.instance() or QApplication([])
+    g = qt_gallery.ClipGallery(str(tmp_path / "cache"), None)
+    try:
+        ratio = g._ratio
+        assert g._video.box == (int(528 * ratio), int(297 * ratio)) and not g._video._small
+        least = qt_gallery.TILE_W + 2 * qt_gallery.PAD + qt_gallery.GAP
+        widest = 2 * least - 1 - qt_gallery.GAP - 2 * qt_gallery.PAD          # two tiles per row: under twice the least
+        assert qt_gallery.VIDEO_THUMB[0] >= widest                            # sharp at the widest tile
+        assert g.pix_kept == qt_gallery.VIDEO_PIX_KEPT < qt_gallery.PIX_KEPT
+        small = qt_library.ThumbLoader(str(tmp_path / "cache2"), None)
+        assert small.box == (qt_library.THUMB_W * 2, qt_library.THUMB_H * 2) and small._small
+        assert small._file(("a", 1, 2)) != g._video._file(("a", 1, 2)) or ratio != 1.0   # other size, other cache file
+    finally:
+        g.stop()
+        g.close()

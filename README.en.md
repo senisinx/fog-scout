@@ -183,6 +183,8 @@ Since 1.8.8 choice boxes and tick boxes have their own style like buttons and fi
 
 **Handling: search in the perk choice, continue the setup, a player with next/previous** (since 1.57.96): a click on a perk place in the calculator opens the list with a **search field** (type, Enter takes the first hit). Leaving the **setup assistant** through the navigation, **“Continue the setup”** above the navigation brings you back to the same step. Under Recordings **“Show all”** resets the filters, the player above the tiles has **‹ › and ×**, a tile without a picture says why, and the clip tiles fill the whole width. At the foot of the side bar a click on **OBS** leads to the OBS connection and on **Server** to the server page; on the calculator, the server and the log the page it belongs to is marked. On the Maps page **“Rotate” and “Replace the map picture …”** are in the detail of the chosen map, and the charts of the overview have **“Details”** to the statistics.
 
+**Sharp preview pictures** (since 1.57.97): the tiles of rounds and clips under Recordings now show their picture in the size of the tile – before, it was a small picture (144 × 80 pixels) stretched onto the tile and therefore blurred. The pictures are made anew once when first shown.
+
 **Switches in the settings** (since 1.57.88): the tick boxes of the settings are on/off switches – as on the overview and in the list of overlay elements.
 
 **Overlay page as a "stage"** (since 1.57.87): the **preview** is on top across the page, below it the **row of all elements** with lock and on/off switch, below that the **settings of the element picked** – quick place, size and opacity on the left, its own settings on the right. In a narrow window everything is below each other.
