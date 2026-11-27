@@ -712,6 +712,8 @@ class QtShell:
                             self._qt_marks(items), self.settings["overlay"].get("map_style", "classic"), found)
         reg = self.__dict__.get("_qt_reg", {})
         keys = self._qt_mod.page_keys(page)
+        if page == "settings" and hasattr(self, "link_vars"):
+            self._links_summary()                    # 1.57.89: how each connection is now
         if keys:
             q.show_states(page, {k: ui_state(reg[k]) for k in keys if k in reg})
         elif page in self._qt_mod.AUTO_PAGES:

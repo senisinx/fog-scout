@@ -167,6 +167,8 @@ Since 1.8.8 choice boxes and tick boxes have their own style like buttons and fi
 
 **How the system values look** (since 1.57.75): Overlay → System values → **Display**: "Rows (as before)", **Curves** (FPS, GPU temperature and CPU load of the last ten minutes, with VRAM, RAM and ping below), **Meter bars** (every value as a bar with a green, yellow and red range and a pointer) or **Two lines** (a big FPS figure with GPU, CPU, memory and ping beside it). The same readings as before; figures turn yellow or red at the same temperatures as in the rows, FPS below 110 / 70, memory from 85 % / 93 %, ping from 45 / 80 ms. Every view has a fixed size; a missing value (without HWiNFO: FPS, CPU temperature, hot spot) shows as "–". The "Row …" tick boxes apply to the rows only.
 
+**Settings as rows, state of the connections** (since 1.57.89): in the settings the **name is on the left, the switch or the choice on the right** of its row; the cards are at most 760 px wide so both stay within one glance. **Connections** starts with one line per connection (OBS, Discord, Spotify, YouTube, Claude) saying how it is: off, not set up, connected, sign-in needed …
+
 **Switches in the settings** (since 1.57.88): the tick boxes of the settings are on/off switches – as on the overview and in the list of overlay elements.
 
 **Overlay page as a "stage"** (since 1.57.87): the **preview** is on top across the page, below it the **row of all elements** with lock and on/off switch, below that the **settings of the element picked** – quick place, size and opacity on the left, its own settings on the right. In a narrow window everything is below each other.

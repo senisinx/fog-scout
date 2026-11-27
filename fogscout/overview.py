@@ -336,6 +336,34 @@ def switch_state(app, key: str, on: bool, is_win: bool = True) -> tuple[str, str
     return "", ""
 
 
+LINKS = (("obs", "OBS"), ("discord", "Discord"), ("spotify", "Spotify"), ("youtube", "YouTube"), ("claude", "Claude"))
+
+
+def connections(app, is_win: bool = True) -> list:
+    """1.57.89 (draft B of the settings): one line per connection – [(key, name, words, level)]: off, not set up
+    (no id), or what switch_state says of it now. Only values the program holds anyway."""
+    st = app.settings
+    out = []
+    for key, name in LINKS:
+        if key == "obs":
+            on, ready, state = bool(st.get("rec_on", False)), True, "rec"
+        elif key == "claude":
+            on = any(st.get(k, False) for k in ("claude_on", "claude_editor", "claude_image", "claude_frame",
+                                                "claude_stats"))
+            ready, state = True, ""
+        else:
+            on, ready, state = bool(st.get(f"{key}_on", False)), bool(st.get(f"{key}_client_id")), key
+        if not on:
+            words, level = _("aus"), "off"
+        elif not ready:
+            words, level = _("nicht eingerichtet"), "warn"
+        else:
+            level, words = switch_state(app, state, True, is_win) if state else ("ok", "")
+            words, level = words or _("an"), level or "ok"
+        out.append((key, name, words, level))
+    return out
+
+
 def switches(app, is_win: bool = True) -> list:
     """1.14 (user: "in der Übersicht Knöpfe … wo man schnell Sachen ausschalten kann (OBS-Aufnahmen etc.)"): the
     card "Schnell ein/aus". Every entry is the same setting as its box on the settings/overlay/server page

@@ -8,7 +8,7 @@ import os
 import sys
 import threading
 import time
-from . import __version__, backups, fsops, i18n, obsoverlay, obsrec, qt_theme, regions, spotify, status, whatsnew
+from . import __version__, backups, fsops, i18n, obsoverlay, obsrec, overview, qt_theme, regions, spotify, status, whatsnew
 from . import uimodel as ui
 from .capture import IS_WIN, foreground_root, is_game_window
 from . import autostart
@@ -218,6 +218,20 @@ class SettingsTab:
         self._reg("st.tab.data", ui.Frame(f)).pack()
         self._reg("st.tab.rec", ui.Frame(f)).pack()
         self._reg("st.tab.links", ui.Frame(f)).pack()
+        # 1.57.89 (draft B): one line per connection on top of "Verbindungen" – its name and how it is now
+        ls = self._reg("st.links", ui.LabelFrame(f, text=_("Stand der Verbindungen"), padding=8))
+        ls.pack()
+        self.link_vars, self.link_labels = {}, {}
+        for key, _name in overview.LINKS:
+            self.link_vars[key] = ui.StringVar(value="")
+        # one line each, registered by its literal key (tests read the keys from the source)
+        self.link_labels["obs"] = self._reg("st.link.obs", ui.Label(ls, textvariable=self.link_vars["obs"]))
+        self.link_labels["discord"] = self._reg("st.link.discord", ui.Label(ls, textvariable=self.link_vars["discord"]))
+        self.link_labels["spotify"] = self._reg("st.link.spotify", ui.Label(ls, textvariable=self.link_vars["spotify"]))
+        self.link_labels["youtube"] = self._reg("st.link.youtube", ui.Label(ls, textvariable=self.link_vars["youtube"]))
+        self.link_labels["claude"] = self._reg("st.link.claude", ui.Label(ls, textvariable=self.link_vars["claude"]))
+        for lbl in self.link_labels.values():
+            ui.level(lbl).pack(anchor="w")
         self._reg("st.tab.about", ui.Frame(f)).pack()               # 1.57.85: version, credits, "Installation prüfen"
         self._reg("st.about", ui.LabelFrame(f, text=_("Über Fog Scout"), padding=8)).pack()
         own = self._reg("st.more.own", ui.LabelFrame(more, text=_("Eigene Map-Zuordnungen"), padding=8))
@@ -775,6 +789,12 @@ class SettingsTab:
             self.quit()
         else:
             self._inform(_("Einstellungen importieren"), _("Bitte das Programm jetzt neu starten."))
+
+    def _links_summary(self):
+        """The lines of "Stand der Verbindungen" (settings › Verbindungen), set while that page is on display."""
+        for key, name, words, level in overview.connections(self, IS_WIN):
+            self.link_vars[key].set(f"{name} – {words}")
+            ui.level(self.link_labels[key], level if level in ("ok", "warn", "err") else "off")
 
     def _appearance(self) -> str:
         """"light" / "dark" / "oled" from the two settings (OLED black is a dark look)."""
