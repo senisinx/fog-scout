@@ -252,7 +252,7 @@ SPECS = {
                 ("card", "st.look", (
                     ("row", (("label", "st.lang.label"), ("combo", "st.lang"), ("stretch",))), ("hint", "st.lang_note"),
                     ("row", (("label", "st.dark.label"), ("combo", "st.dark"), ("stretch",))),   # 1.57.85: one choice
-                    ("swatches", "st.swatches"),
+                    ("swatches", "st.swatches"), ("check", "st.table"),          # 1.57.86: the look „Kartentisch“
                     ("row", (("label", "st.zoom.label"), ("combo", "st.zoom"), ("stretch",))),
                     ("row", (("button", "st.card_reset"), ("hint", "st.card_hint"))))),
                 ("card", "st.start", (("check", "st.tray"), ("check", "st.autostart"), ("hint", "st.autostart_info"),

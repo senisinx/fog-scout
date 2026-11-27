@@ -167,6 +167,8 @@ Since 1.8.8 choice boxes and tick boxes have their own style like buttons and fi
 
 **How the system values look** (since 1.57.75): Overlay → System values → **Display**: "Rows (as before)", **Curves** (FPS, GPU temperature and CPU load of the last ten minutes, with VRAM, RAM and ping below), **Meter bars** (every value as a bar with a green, yellow and red range and a pointer) or **Two lines** (a big FPS figure with GPU, CPU, memory and ping beside it). The same readings as before; figures turn yellow or red at the same temperatures as in the rows, FPS below 110 / 70, memory from 85 % / 93 %, ping from 45 / 80 ms. Every view has a fixed size; a missing value (without HWiNFO: FPS, CPU temperature, hot spot) shows as "–". The "Row …" tick boxes apply to the rows only.
 
+**Fewer boxes, colour theme "Map table"** (since 1.57.86): in the dark look the cards of the pages have **no outline** any more – just a quiet area (light and OLED black keep it, the fill hardly differs from the page there). Settings → General has the colour theme **"Map table"**: dark green surfaces, paper-coloured text, amber accent (in light too); a colour square brings back the normal look.
+
 **Settings: appearance and "About"** (since 1.57.85): **light, dark and OLED black** are one choice ("Appearance") instead of two tick boxes. The colour is picked on the **colour squares** only (the first one is the standard gold); the list "Colour theme" is gone. Version, notes and "Check installation" are in the new area **About**.
 
 **Rounds as tiles** (since 1.57.84): under Recordings › Rounds the recordings are tiles with a picture too (map, date, role, result; ★ = kept, ⚑ = marks). "View" on the top right switches back to the list.

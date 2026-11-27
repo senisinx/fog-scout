@@ -160,6 +160,11 @@ class SettingsTab:
         self.swatches.pack(anchor="w", pady=(4, 0))
         self.swatches.dark = bool(self.settings.get("dark_mode", True))
         self._swatch_mark()
+        # 1.57.86 (user: "Gold bleibt, Kartentisch dazu"): a look of its own (surfaces and text too) – a tick box;
+        # picking a square leaves it
+        self.table_var = ui.BooleanVar(value=self.settings.get("color_theme", "gold") == "table")
+        self._reg("st.table", ui.Checkbutton(look, text=_("Farbthema „Kartentisch“"), variable=self.table_var,
+                                              command=self._table_changed)).pack(anchor="w", pady=(4, 0))
         zr = ui.Frame(look)
         zr.pack(fill="x", pady=(6, 0))
         self._reg("st.zoom.label", ui.Label(zr, text=_("Schriftgrösse"))).pack(side="left")
@@ -784,8 +789,15 @@ class SettingsTab:
         self.settings.set("oled_black", key == "oled")
         self._dark_changed()
 
+    def _table_changed(self):
+        """„Kartentisch“ on: that theme; off: the standard look again."""
+        self.theme_var.set(dict(self._themes)["table" if self.table_var.get() else "gold"])
+        self._theme_changed()
+
     def _theme_changed(self):
         key = next((k for k, lbl in self._themes if lbl == self.theme_var.get()), "gold")
+        if hasattr(self, "table_var"):
+            self.table_var.set(key == "table")
         self.settings.set("color_theme", key)
         self.settings.set("oled_black", bool(self.oled_var.get()))
         self._save_soon()

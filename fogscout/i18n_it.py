@@ -6394,4 +6394,8 @@ T = {
         'Informazioni',
     'Über Fog Scout':
         'Informazioni su Fog Scout',
+    'Farbthema „Kartentisch“':
+        'Tema «Tavolo delle mappe»',
+    'Ein eigener Look: dunkelgrüne Flächen, papierfarbene Schrift, bernsteinfarbener Akzent. Ein Farbfeld oben wählt wieder den normalen Look mit dieser Farbe.':
+        "Un aspetto a sé: superfici verde scuro, testo color carta, accento ambra. Un riquadro di colore qui sopra riporta l'aspetto normale con quel colore.",
 }

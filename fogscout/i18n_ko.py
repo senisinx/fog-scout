@@ -6394,4 +6394,8 @@ T = {
         '정보',
     'Über Fog Scout':
         'Fog Scout 정보',
+    'Farbthema „Kartentisch“':
+        '색상 테마 ‘지도 테이블’',
+    'Ein eigener Look: dunkelgrüne Flächen, papierfarbene Schrift, bernsteinfarbener Akzent. Ein Farbfeld oben wählt wieder den normalen Look mit dieser Farbe.':
+        '독자적인 모습: 짙은 녹색 면, 종이색 글자, 호박색 강조. 위의 색상 칸을 고르면 그 색의 일반 모습으로 돌아갑니다.',
 }

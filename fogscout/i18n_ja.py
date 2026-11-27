@@ -6394,4 +6394,8 @@ T = {
         'このアプリについて',
     'Über Fog Scout':
         'Fog Scout について',
+    'Farbthema „Kartentisch“':
+        'カラーテーマ「マップテーブル」',
+    'Ein eigener Look: dunkelgrüne Flächen, papierfarbene Schrift, bernsteinfarbener Akzent. Ein Farbfeld oben wählt wieder den normalen Look mit dieser Farbe.':
+        '独自の外観：濃い緑の面、紙色の文字、琥珀色のアクセント。上の色の四角を選ぶと、その色の通常の外観に戻ります。',
 }

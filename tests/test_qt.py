@@ -947,6 +947,33 @@ def test_the_dashboard_has_no_tile_that_would_only_say_nothing():
     assert "Filter zurücksetzen" in dashboard.build([], []).empty
 
 
+def test_the_look_kartentisch_and_cards_without_an_outline():
+    """1.57.86 ("Gold bleibt, Kartentisch dazu", "weniger Kästen"): the theme "table" changes surfaces and text too
+    (with OLED black only text and accent); a card has an outline only where its fill hardly differs from the
+    page; the settings' open area stands on the page, not in a second box."""
+    import re
+    try:
+        qt_theme.set_theme("table")
+        dark, light = qt_theme.colours(True), qt_theme.colours(False)
+        assert dark["bg"] == "#141b1b" and dark["accent"] == "#d99a3c" and light["bg"] == "#ece6d6"
+        assert qt_theme.contrast(dark["fg"], dark["card"]) >= 7 and qt_theme.contrast(light["fg"], light["card"]) >= 7
+        qt_theme.set_theme("table", oled=True)
+        oled = qt_theme.colours(True)
+        assert oled["bg"] == "#000000" and oled["card"] == qt_theme.OLED["card"] and oled["accent"] == "#d99a3c"
+
+        def edge(css):
+            return re.search(r'QFrame\[class="card"\] \{ background: [^;]+; border: 1px solid ([^;]+);', css).group(1)
+        assert edge(qt_theme.stylesheet(True)) == oled["border"]              # OLED: the fill is nearly the page's
+        qt_theme.set_theme("gold")
+        assert edge(qt_theme.stylesheet(True)) == "transparent"
+        assert edge(qt_theme.stylesheet(False)) == qt_theme.colours(False)["border"]     # light: white on near white
+        assert 'QTabWidget#formtabs[list="true"]::pane { background: transparent' in qt_theme.stylesheet(True)
+    finally:
+        qt_theme.set_theme("gold")
+    from fogscout import qt_window
+    assert "st.table" in qt_window.page_keys("settings")
+
+
 def test_the_look_is_one_choice_and_the_colour_only_squares():
     """1.57.85 (draft B): light / dark / OLED black is one choice, the colour is picked on the squares only – the
     first square is the standard look itself, any other the own accent; "Über" holds the version and the check."""
@@ -970,7 +997,8 @@ def test_the_look_is_one_choice_and_the_colour_only_squares():
                         appearance_var=Var("OLED-Schwarz"), theme_var=Var("Gold (Standard)"),
                         swatches=SimpleNamespace(current=None),
                         _appearances=[("light", "Hell"), ("dark", "Dunkel"), ("oled", "OLED-Schwarz")],
-                        _themes=[("gold", "Gold (Standard)"), ("red", "Blutrot"), ("custom", "Eigene Farbe")],
+                        _themes=[("gold", "Gold (Standard)"), ("red", "Blutrot"), ("table", "Kartentisch"),
+                                 ("custom", "Eigene Farbe")], table_var=Var(False),
                         _dark_changed=lambda: calls.append("dark"), _save_soon=lambda: None,
                         _apply_theme=lambda: calls.append("theme"))
     s.settings.data = {"dark_mode": True, "oled_black": False, "color_theme": "red"}
@@ -988,6 +1016,12 @@ def test_the_look_is_one_choice_and_the_colour_only_squares():
     assert s.settings.get("color_theme") == "custom" and s.swatches.current == qt_theme.norm_hex(qt_theme.SWATCHES[3])
     s._swatch_picked(qt_theme.SWATCHES[0])                      # the first square: the standard look itself
     assert s.settings.get("color_theme") == "gold" and s.swatches.current == qt_theme.norm_hex(qt_theme.SWATCHES[0])
+    s._table_changed = app_settings.SettingsTab._table_changed.__get__(s)      # 1.57.86: the look "Kartentisch"
+    s.table_var.set(True)
+    s._table_changed()
+    assert s.settings.get("color_theme") == "table" and s.swatches.current is None
+    s._swatch_picked(qt_theme.SWATCHES[2])                      # a square leaves it
+    assert s.settings.get("color_theme") == "custom" and not s.table_var.get()
 
 
 def test_the_settings_areas_are_a_list_beside_the_open_one(qapp, keep):
