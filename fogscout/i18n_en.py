@@ -4702,14 +4702,14 @@ EN = {
         'Dark area behind the charts',
     'Eine halb durchsichtige dunkle Fläche mit runden Ecken hinter den Diagrammen.':
         'A half-transparent dark area with round corners behind the charts.',
-    'FORM':
-        'FORM',
+    'LETZTE 10':
+        'LAST 10',
     'FPS':
         'FPS',
     'FPS-Verlauf (HWiNFO)':
         'FPS over time (HWiNFO)',
-    'Form der letzten 10 Runden':
-        'Form of the last 10 rounds',
+    'Letzte 10 Runden (gut, mittel, schlecht)':
+        'Last 10 rounds (good, middling, bad)',
     'GPU':
         'GPU',
     'Grün: als Killer 3 Kills oder mehr bzw. als Survivor entkommen, grau: 2 Kills, rot: weniger bzw. gestorben, leerer Ring: noch ohne Match-Daten.':
@@ -4768,4 +4768,17 @@ EN = {
         'avg. {n}',
     'Ø {t}':
         'avg. {t}',
+    # 1.57.74: looks and density of the charts
+    'Dichte':
+        'Density',
+    'Kartentisch':
+        'Map table',
+    'Glas':
+        'Glass',
+    'Kompakt (eine Zeile je Diagramm)':
+        'Compact (one row per chart)',
+    'Normal (Diagramm unter dem Titel)':
+        'Normal (chart below the title)',
+    'Aussehen':
+        'Look',
 }

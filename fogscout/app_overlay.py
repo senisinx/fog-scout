@@ -419,6 +419,25 @@ class OverlayTab:
                                                       values=[_(t) for _k, t in CHART_SPOTS]))
         pcb.pack(side="left", padx=6)
         pcb.bind("<<ComboboxSelected>>", lambda e: self._charts_spot_changed())
+        from .appconst import CHART_DENSITIES, CHART_LOOKS                       # 1.57.74: look and density
+        lr = ui.Frame(cf)
+        lr.pack(fill="x", pady=(4, 0))
+        self._reg("ov.charts_look.label", ui.Label(lr, text=_("Aussehen"), width=12)).pack(side="left")
+        looks = dict(CHART_LOOKS)
+        self.charts_look_var = ui.StringVar(value=_(looks.get(o.get("charts_look", "classic"), looks["classic"])))
+        lcb = self._reg("ov.charts_look", ui.Combobox(lr, textvariable=self.charts_look_var, state="readonly", width=38,
+                                                       values=[_(t) for _k, t in CHART_LOOKS]))
+        lcb.pack(side="left", padx=6)
+        lcb.bind("<<ComboboxSelected>>", lambda e: self._charts_look_changed())
+        dr = ui.Frame(cf)
+        dr.pack(fill="x", pady=(4, 0))
+        self._reg("ov.charts_dense.label", ui.Label(dr, text=_("Dichte"), width=12)).pack(side="left")
+        dens = dict(CHART_DENSITIES)
+        self.charts_dense_var = ui.StringVar(value=_(dens["dense" if o.get("charts_dense", False) else "normal"]))
+        dcb = self._reg("ov.charts_dense", ui.Combobox(dr, textvariable=self.charts_dense_var, state="readonly",
+                                                        width=38, values=[_(t) for _k, t in CHART_DENSITIES]))
+        dcb.pack(side="left", padx=6)
+        dcb.bind("<<ComboboxSelected>>", lambda e: self._charts_look_changed())
         self.charts_backdrop_var = ui.BooleanVar(value=bool(o.get("charts_backdrop", True)))
         self._reg("ov.charts_backdrop", ui.Checkbutton(cf, text=_("Dunkle Fläche hinter den Diagrammen"),
                                                        variable=self.charts_backdrop_var,

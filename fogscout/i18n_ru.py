@@ -6225,14 +6225,14 @@ T = {
         'Тёмная область за графиками',
     'Eine halb durchsichtige dunkle Fläche mit runden Ecken hinter den Diagrammen.':
         'Полупрозрачная тёмная область со скруглёнными углами за графиками.',
-    'FORM':
-        'ФОРМА',
+    'LETZTE 10':
+        'ПОСЛЕДНИЕ 10',
     'FPS':
         'FPS',
     'FPS-Verlauf (HWiNFO)':
         'FPS по времени (HWiNFO)',
-    'Form der letzten 10 Runden':
-        'Форма за последние 10 раундов',
+    'Letzte 10 Runden (gut, mittel, schlecht)':
+        'Последние 10 раундов (хорошо, средне, плохо)',
     'GPU':
         'ГП',
     'Grün: als Killer 3 Kills oder mehr bzw. als Survivor entkommen, grau: 2 Kills, rot: weniger bzw. gestorben, leerer Ring: noch ohne Match-Daten.':
@@ -6291,4 +6291,17 @@ T = {
         'ср. {n}',
     'Ø {t}':
         'ср. {t}',
+    # 1.57.74: looks and density of the charts
+    'Dichte':
+        'Плотность',
+    'Kartentisch':
+        'Картографический стол',
+    'Glas':
+        'Стекло',
+    'Kompakt (eine Zeile je Diagramm)':
+        'Компактно (одна строка на график)',
+    'Normal (Diagramm unter dem Titel)':
+        'Обычно (график под заголовком)',
+    'Aussehen':
+        'Вид',
 }

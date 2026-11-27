@@ -126,7 +126,7 @@ TIPS = {
         "Wie lange die Runde schon läuft, neben der durchschnittlichen Dauer deiner Runden auf dieser Map.",
     "Kills heute je Runde (Killer)":
         "Die Kills jeder Killer-Runde von heute, die neueste hell – aus den Match-Daten der Stats-Seite.",
-    "Form der letzten 10 Runden":
+    "Letzte 10 Runden (gut, mittel, schlecht)":
         "Grün: als Killer 3 Kills oder mehr bzw. als Survivor entkommen, grau: 2 Kills, rot: weniger bzw. gestorben, "
         "leerer Ring: noch ohne Match-Daten.",
     "Bilanz auf dieser Map":

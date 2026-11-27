@@ -31,9 +31,15 @@ def picture(o: dict, items, gh: int, avail: float, accent, editing: bool = False
     """The card of ``items`` (charts.Chart) for a game ``gh`` px tall in ``avail`` px of room (App and preview)."""
     from .overlay_render import add_border
     from .skin import accent_rgba
-    pic = charts.draw(items, card_width(o, gh, avail),
-                      charts.Look(accent_rgba(accent), bool(o.get("charts_backdrop", True))))
+    pic = charts.draw(items, card_width(o, gh, avail), look_of(o, accent_rgba(accent)))
     return add_border(pic, _("DIAGRAMME")) if editing else pic
+
+
+def look_of(o: dict, accent) -> charts.Look:
+    """The look the settings ask for (overlay.charts_look / charts_dense / charts_backdrop)."""
+    style = o.get("charts_look", "classic")
+    return charts.Look(accent, bool(o.get("charts_backdrop", True)), style if style in charts.LOOKS else "classic",
+                       bool(o.get("charts_dense", False)))
 
 
 def samples(o: dict) -> list:
@@ -152,7 +158,7 @@ class ChartsCard:
         margin = int(gh * o["margin"])
         avail = layout.max_width(bar, margin) if bar >= layout.MIN_BAR and spot != "custom" else gw / 3
         accent = self._skin_accent()
-        key = (tuple(items), card_width(o, gh, avail), accent, bool(o.get("charts_backdrop", True)), win.editing)
+        key = (tuple(items), card_width(o, gh, avail), look_of(o, accent), win.editing)
         if key != getattr(win, "_key", None):
             win.set_picture(picture(o, items, gh, avail, accent, win.editing), key)
         win.opacity = o.get("charts_opacity", o["opacity"])
@@ -198,6 +204,16 @@ class ChartsCard:
                         n=charts.MAX_PICKED), "Overlay")
         self.settings["overlay"]["charts"] = want
         self._charts_cache = None
+        self._save_soon()
+        self._tick_overlay(reschedule=False)
+
+    def _charts_look_changed(self) -> None:
+        """1.57.74: the look (classic / map table / glass / line) and the density (normal / one row per chart)."""
+        from .appconst import CHART_DENSITIES, CHART_LOOKS
+        o = self.settings["overlay"]
+        o["charts_look"] = dict((_(label), k) for k, label in CHART_LOOKS).get(self.charts_look_var.get(), "classic")
+        o["charts_dense"] = dict((_(label), k) for k, label in CHART_DENSITIES).get(self.charts_dense_var.get(),
+                                                                                    "normal") == "dense"
         self._save_soon()
         self._tick_overlay(reschedule=False)
 

@@ -216,6 +216,8 @@ SPECS = {
                   ("check", "ov.loadouts_items"), ("hint", "ov.loadouts_hint"))),
               ("ov.charts_f", N_("Diagramme"), (                                                   # 1.57.73
                   ("row", (("label", "ov.charts_pos.label"), ("combo", "ov.charts_pos"), ("stretch",))),
+                  ("row", (("label", "ov.charts_look.label"), ("combo", "ov.charts_look"), ("stretch",))),   # 1.57.74
+                  ("row", (("label", "ov.charts_dense.label"), ("combo", "ov.charts_dense"), ("stretch",))),
                   ("check", "ov.charts_backdrop"),
                   ("sub", N_("Welche Diagramme")),
                   ("check", "ov.chart_ping"), ("check", "ov.chart_score"), ("check", "ov.chart_time"),

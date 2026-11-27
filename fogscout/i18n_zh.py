@@ -6225,14 +6225,14 @@ T = {
         '图表后的深色背景',
     'Eine halb durchsichtige dunkle Fläche mit runden Ecken hinter den Diagrammen.':
         '图表后方带圆角的半透明深色背景。',
-    'FORM':
-        '状态',
+    'LETZTE 10':
+        '最近 10 局',
     'FPS':
         'FPS',
     'FPS-Verlauf (HWiNFO)':
         'FPS 变化（HWiNFO）',
-    'Form der letzten 10 Runden':
-        '最近 10 局状态',
+    'Letzte 10 Runden (gut, mittel, schlecht)':
+        '最近 10 局（好、中、差）',
     'GPU':
         'GPU',
     'Grün: als Killer 3 Kills oder mehr bzw. als Survivor entkommen, grau: 2 Kills, rot: weniger bzw. gestorben, leerer Ring: noch ohne Match-Daten.':
@@ -6291,4 +6291,17 @@ T = {
         '平均 {n}',
     'Ø {t}':
         '平均 {t}',
+    # 1.57.74: looks and density of the charts
+    'Dichte':
+        '密度',
+    'Kartentisch':
+        '地图桌',
+    'Glas':
+        '玻璃',
+    'Kompakt (eine Zeile je Diagramm)':
+        '紧凑（每个图表一行）',
+    'Normal (Diagramm unter dem Titel)':
+        '普通（图表在标题下方）',
+    'Aussehen':
+        '外观',
 }

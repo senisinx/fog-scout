@@ -26,7 +26,7 @@ CATALOGUE = (("ping", N_("PING"), N_("Ping-Verlauf der Runde")),
              ("score", N_("PUNKTE"), N_("Punkte dieser Runde je Kategorie")),
              ("time", N_("RUNDENZEIT"), N_("Rundenzeit gegen den Schnitt der Map")),
              ("kills", N_("KILLS HEUTE"), N_("Kills heute je Runde (Killer)")),
-             ("form", N_("FORM"), N_("Form der letzten 10 Runden")),
+             ("form", N_("LETZTE 10"), N_("Letzte 10 Runden (gut, mittel, schlecht)")),
              ("map", N_("DIESE MAP"), N_("Bilanz auf dieser Map")),
              ("wait", N_("SUCHE HEUTE"), N_("Suchzeit heute je Runde")),
              ("bp", N_("BLOODPOINTS"), N_("Bloodpoints bis zur Obergrenze")),
@@ -217,10 +217,33 @@ def bp_chart(balance) -> Chart:
 
 
 # ------------------------------------------------------------------ drawing
+LOOKS = ("classic", "map", "glass", "line")      # setting overlay.charts_look (1.57.74, the user picked "alles wählbar")
+
+
 @dataclass(frozen=True)
 class Look:
+    """How the card is drawn: ``accent`` (the window theme's colour), ``backdrop`` (the dark area – classic only),
+    ``style`` one of LOOKS, ``dense`` = one row per chart (title, a small plot, the figure)."""
     accent: tuple = (201, 162, 39, 255)
     backdrop: bool = True
+    style: str = "classic"
+    dense: bool = False
+
+
+@dataclass(frozen=True)
+class Palette:
+    fg: tuple
+    dim: tuple
+    grid: tuple
+    accent: tuple
+    good: tuple
+    bad: tuple
+    back: tuple | None          # the area behind the card (None: nothing)
+    edge: tuple | None          # its outline
+    radius: float               # … corner, share of the padding
+    area: float                 # share of the accent in the area under a line (0: none)
+    rules: bool                 # a hairline between the charts
+    hollow: bool                # bars and dots as outlines (the newest bar / a good round filled)
 
 
 FG = (232, 233, 235, 255)
@@ -230,11 +253,32 @@ BACK = (16, 17, 19, 214)
 GOOD = (111, 207, 138, 255)
 BAD = (224, 103, 95, 255)
 
+
+def palette(look: Look) -> Palette:
+    """The colours of a look. "map": bone on nothing with ochre marks and hairlines (the window's Kartentisch
+    theme); "glass": a light translucent area with a thin edge (the overlay style of that name); "line": strokes and
+    figures only, one colour."""
+    if look.style == "map":
+        return Palette((221, 214, 195, 255), (143, 148, 138, 255), (58, 74, 71, 255), (201, 138, 46, 255),
+                       (143, 183, 132, 255), (196, 102, 77, 255), None, None, 0.0, 0.0, True, False)
+    if look.style == "glass":
+        return Palette((242, 243, 245, 255), (176, 182, 191, 255), (96, 100, 108, 255), look.accent,
+                       (127, 214, 154, 255), (238, 128, 121, 255), (44, 46, 52, 170), (120, 124, 132, 255), 1.6,
+                       0.18, False, False)
+    if look.style == "line":
+        return Palette((215, 217, 220, 255), (125, 131, 140, 255), (48, 51, 58, 255), (215, 217, 220, 255),
+                       (215, 217, 220, 255), (107, 112, 120, 255), None, None, 0.0, 0.0, False, True)
+    return Palette(FG, DIM, GRID, look.accent, GOOD, BAD, BACK if look.backdrop else None, None, 1.0, 0.22, False,
+                   False)
+
+
 # heights as shares of the card's width (the width follows the bar, never the values)
 TITLE_H = 0.085
 GAP_H = 0.035
 PLOT_H = {"line": 0.30, "bars": 0.30, "hbars": 0.36, "dots": 0.09, "progress": 0.07, "pair": 0.17}
 PAD = 0.045
+ROW_H = 0.105               # dense: one row per chart
+DENSE_NAME, DENSE_VALUE = 0.42, 0.35     # … its name and figure columns (the small plot takes the rest)
 
 
 @lru_cache(maxsize=32)
@@ -249,37 +293,85 @@ def _font(size: int, bold: bool = False):
     return ImageFont.load_default()
 
 
-def card_size(kinds, width: int) -> tuple:
+def card_size(kinds, width: int, dense: bool = False) -> tuple:
     """(w, h) of a card with charts of these ``kinds`` at ``width`` – the same for any values."""
     w = max(60, int(width))
     pad = max(3, int(w * PAD))
+    if dense:
+        return w, 2 * pad + int(w * ROW_H) * len(kinds)
     parts = [int(w * TITLE_H) + int(w * PLOT_H.get(k, 0.3)) for k in kinds]
     return w, 2 * pad + sum(parts) + int(w * GAP_H) * max(0, len(parts) - 1)
 
 
 def draw(charts, width: int, look: Look = Look()) -> Image.Image:
-    """The card: each chart a title row (name left, figure right) and its plot below, ``width`` px wide."""
-    w, h = card_size([c.kind for c in charts], width)
+    """The card, ``width`` px wide: each chart a title row (name left, figure right) and its plot below – or,
+    ``look.dense``, one row per chart with a small plot between name and figure."""
+    w, h = card_size([c.kind for c in charts], width, look.dense)
     pic = Image.new("RGBA", (w, h), (0, 0, 0, 0))
     d = ImageDraw.Draw(pic)
+    p = palette(look)
     pad = max(3, int(w * PAD))
-    if look.backdrop:
-        d.rounded_rectangle((0, 0, w - 1, h - 1), radius=max(3, pad), fill=BACK)
+    if p.back is not None:
+        d.rounded_rectangle((0, 0, w - 1, h - 1), radius=max(3, int(pad * p.radius)), fill=p.back, outline=p.edge)
+    back = p.back or (0, 0, 0, 0)
     title_f = _font(int(w * TITLE_H * 0.72), True)
     small = _font(int(w * 0.05))
     y = pad
-    for c in charts:
+    if look.dense:
+        rh = int(w * ROW_H)
+        # three fixed columns: name, small plot, figure (the widest figures – "18 Runden", "812 340" – fit theirs)
+        mid = (pad + int(w * DENSE_NAME), w - pad - int(w * DENSE_VALUE))
+        row_f = _font(int(w * 0.047), True)
+        value_f = _font(int(w * 0.054), True)
+        for i, c in enumerate(charts):
+            if p.rules and i:
+                d.line((pad, y, w - pad, y), fill=p.grid, width=1)
+            d.text((pad, y + rh / 2), c.title, font=row_f, fill=p.dim, anchor="lm")
+            d.text((w - pad, y + rh / 2), c.value, font=value_f, fill=p.fg, anchor="rm")
+            _mini(d, c, (mid[0], y + rh * 0.22, mid[1], y + rh * 0.78), p, back)
+            y += rh
+        return pic
+    for i, c in enumerate(charts):
+        if p.rules and i:
+            d.line((pad, y - int(w * GAP_H) // 2, w - pad, y - int(w * GAP_H) // 2), fill=p.grid, width=1)
         th = int(w * TITLE_H)
-        d.text((pad, y + th / 2), c.title, font=title_f, fill=DIM, anchor="lm")
-        d.text((w - pad, y + th / 2), c.value, font=title_f, fill=FG, anchor="rm")
+        d.text((pad, y + th / 2), c.title, font=title_f, fill=p.dim, anchor="lm")
+        d.text((w - pad, y + th / 2), c.value, font=title_f, fill=p.fg, anchor="rm")
         y += th
         ph = int(w * PLOT_H.get(c.kind, 0.3))
-        _plot(d, c, (pad, y, w - pad, y + ph), small, look.accent)
+        _plot(d, c, (pad, y, w - pad, y + ph), small, p, back)
         y += ph + int(w * GAP_H)
     return pic
 
 
-def _plot(d, c: Chart, box, font, accent) -> None:
+def _bar(d, box, colour, p: Palette, solid: bool = False) -> None:
+    if p.hollow and not solid:
+        d.rectangle(box, outline=colour, width=1)
+    else:
+        d.rectangle(box, fill=colour)
+
+
+def _dot(d, box, o, p: Palette) -> None:
+    """One round of the form: None = no round, "?" = no match data, else W / D / L."""
+    if o is None:
+        d.ellipse(box, outline=p.grid, width=1)
+    elif o == "?":
+        d.ellipse(box, outline=p.dim, width=1)
+    elif p.hollow and o != "W":
+        d.ellipse(box, outline={"D": p.dim, "L": p.bad}[o], width=1)
+    else:
+        d.ellipse(box, fill={"W": p.good, "D": p.dim, "L": p.bad}[o])
+
+
+def _under(p: Palette, back) -> tuple | None:
+    """The colour of the area under a line: the accent mixed into what is behind it (ImageDraw replaces pixels, it
+    does not blend)."""
+    if not p.area:
+        return None
+    return tuple(int(a * p.area + b * (1 - p.area)) for a, b in zip(p.accent[:3], back[:3])) + (max(back[3], 90),)
+
+
+def _plot(d, c: Chart, box, font, p: Palette, back) -> None:
     x0, y0, x1, y1 = box
     if c.kind in ("line", "bars"):
         left = x0 + int((x1 - x0) * 0.13)
@@ -289,30 +381,29 @@ def _plot(d, c: Chart, box, font, accent) -> None:
         def yv(v):
             return bottom - (min(max(v, c.lo), c.hi) - c.lo) / span * (bottom - y0 - 2) - 1
         for t in c.ticks:
-            d.line((left, yv(t), x1, yv(t)), fill=GRID, width=1)
-            d.text((left - 3, yv(t)), _tick(t), font=font, fill=DIM, anchor="rm")
+            d.line((left, yv(t), x1, yv(t)), fill=p.grid, width=1)
+            d.text((left - 3, yv(t)), _tick(t), font=font, fill=p.dim, anchor="rm")
         if not c.data:
             return
         n = len(c.data)
         if c.kind == "line":
             xs = [left + i * (x1 - left) / max(1, n - 1) for i in range(n)]
             pts = [(x, yv(v)) for x, v in zip(xs, c.data)]
-            # the area under the line: mixed with the backdrop here (ImageDraw replaces pixels, it does not blend)
-            fill = tuple(int(a * 0.22 + b * 0.78) for a, b in zip(accent[:3], BACK[:3])) + (BACK[3],)
-            d.polygon([(left, yv(c.lo))] + pts + [(xs[-1], yv(c.lo))], fill=fill)
-            d.line(pts, fill=accent, width=max(1, int((x1 - x0) / 110)), joint="curve")
+            fill = _under(p, back)
+            if fill:
+                d.polygon([(left, yv(c.lo))] + pts + [(xs[-1], yv(c.lo))], fill=fill)
+            d.line(pts, fill=p.accent, width=max(1, int((x1 - x0) / 110)), joint="curve")
             r = max(2, int((x1 - x0) / 80))
-            d.ellipse((pts[-1][0] - r, pts[-1][1] - r, pts[-1][0] + r, pts[-1][1] + r), fill=FG)
+            d.ellipse((pts[-1][0] - r, pts[-1][1] - r, pts[-1][0] + r, pts[-1][1] + r), fill=p.fg)
         else:
             bw = (x1 - left) / n
             for i, v in enumerate(c.data):
                 bx = left + i * bw + bw * 0.18
-                top = yv(v)
+                last = i == n - 1 and not c.labels
                 if v > c.lo:
-                    d.rectangle((bx, top, bx + bw * 0.64, yv(c.lo)), fill=FG if i == n - 1 and not c.labels
-                                else accent)
+                    _bar(d, (bx, yv(v), bx + bw * 0.64, yv(c.lo)), p.fg if last else p.accent, p, solid=last)
                 if c.labels and i < len(c.labels):
-                    d.text((bx + bw * 0.32, y1), c.labels[i], font=font, fill=DIM, anchor="md")
+                    d.text((bx + bw * 0.32, y1), c.labels[i], font=font, fill=p.dim, anchor="md")
     elif c.kind == "hbars":
         rows = len(c.labels) or 1
         rh = (y1 - y0) / rows
@@ -320,49 +411,98 @@ def _plot(d, c: Chart, box, font, accent) -> None:
         num_w = int((x1 - x0) * 0.16)
         for i, name in enumerate(c.labels):
             cy = y0 + rh * (i + 0.5)
-            d.text((x0, cy), name, font=font, fill=FG, anchor="lm")
+            d.text((x0, cy), name, font=font, fill=p.fg, anchor="lm")
             bx0, bx1 = x0 + label_w, x1 - num_w
             bh = max(2, rh * 0.45)
-            d.rectangle((bx0, cy - bh / 2, bx1, cy + bh / 2), fill=GRID)
+            d.rectangle((bx0, cy - bh / 2, bx1, cy + bh / 2), fill=p.grid)
             v = c.data[i] if i < len(c.data) else 0
             if v:
                 d.rectangle((bx0, cy - bh / 2, bx0 + (bx1 - bx0) * min(1.0, v / (c.hi or 1)), cy + bh / 2),
-                            fill=accent)
+                            fill=p.accent)
             text = "MAX" if v >= c.hi else (f"{v / 1000:.1f}k" if v else "–")
-            d.text((x1, cy), text, font=font, fill=FG, anchor="rm")
+            d.text((x1, cy), text, font=font, fill=p.fg, anchor="rm")
     elif c.kind == "dots":
-        n = FORM_N
-        step = (x1 - x0) / n
-        r = max(2, min(step * 0.36, (y1 - y0) / 2))
-        cy = (y0 + y1) / 2
-        for i in range(n):
-            cx = x0 + step * (i + 0.5)
-            o = c.data[i] if i < len(c.data) else None
-            box = (cx - r, cy - r, cx + r, cy + r)
-            if o is None:
-                d.ellipse(box, outline=GRID, width=1)
-            elif o == "?":
-                d.ellipse(box, outline=DIM, width=1)
-            else:
-                d.ellipse(box, fill={"W": GOOD, "D": DIM, "L": BAD}[o])
+        _dots(d, c, box, p)
     elif c.kind == "progress":
-        d.rounded_rectangle((x0, y0, x1, y1), radius=(y1 - y0) // 2, fill=GRID)
-        if c.data:
-            share = min(1.0, max(0.0, c.data[0] / (c.hi or 1)))
-            if share > 0:
-                d.rounded_rectangle((x0, y0, x0 + max(y1 - y0, (x1 - x0) * share), y1), radius=(y1 - y0) // 2,
-                                    fill=accent)
+        _progress(d, c, box, p)
     elif c.kind == "pair":
         label_w = int((x1 - x0) * 0.26)
         rh = (y1 - y0) / 2
-        for i, (name, col) in enumerate(((_("jetzt"), accent), (_("Schnitt"), DIM))):
+        for i, (name, col) in enumerate(((_("jetzt"), p.accent), (_("Schnitt"), p.dim))):
             cy = y0 + rh * (i + 0.5)
-            d.text((x0, cy), name, font=font, fill=DIM, anchor="lm")
+            d.text((x0, cy), name, font=font, fill=p.dim, anchor="lm")
             v = c.data[i] if i < len(c.data) else 0
             bh = max(2, rh * 0.5)
             if v:
                 d.rectangle((x0 + label_w, cy - bh / 2, x0 + label_w + (x1 - x0 - label_w) * min(1.0, v / c.hi),
                              cy + bh / 2), fill=col)
+
+
+def _dots(d, c: Chart, box, p: Palette) -> None:
+    x0, y0, x1, y1 = box
+    step = (x1 - x0) / FORM_N
+    r = max(2, min(step * 0.36, (y1 - y0) / 2))
+    cy = (y0 + y1) / 2
+    for i in range(FORM_N):
+        cx = x0 + step * (i + 0.5)
+        _dot(d, (cx - r, cy - r, cx + r, cy + r), c.data[i] if i < len(c.data) else None, p)
+
+
+def _progress(d, c: Chart, box, p: Palette) -> None:
+    x0, y0, x1, y1 = box
+    r = int(y1 - y0) // 2
+    d.rounded_rectangle((x0, y0, x1, y1), radius=r, fill=p.grid)
+    if c.data:
+        share = min(1.0, max(0.0, c.data[0] / (c.hi or 1)))
+        if share > 0:
+            d.rounded_rectangle((x0, y0, x0 + max(y1 - y0, (x1 - x0) * share), y1), radius=r, fill=p.accent)
+
+
+def _mini(d, c: Chart, box, p: Palette, back) -> None:
+    """The small plot of a dense row: a line without axis, small bars, four short bars (points), the dots, a thin
+    bar (progress; pair: now against the average as a mark)."""
+    x0, y0, x1, y1 = box
+    h = y1 - y0
+    if c.kind == "line":
+        if len(c.data) < 2:
+            d.line((x0, y1, x1, y1), fill=p.grid, width=1)
+            return
+        span = (c.hi - c.lo) or 1.0
+        pts = [(x0 + i * (x1 - x0) / (len(c.data) - 1), y1 - (min(max(v, c.lo), c.hi) - c.lo) / span * h)
+               for i, v in enumerate(c.data)]
+        d.line(pts, fill=p.accent, width=max(1, int((x1 - x0) / 70)), joint="curve")
+        r = max(1.5, h / 9)
+        d.ellipse((pts[-1][0] - r, pts[-1][1] - r, pts[-1][0] + r, pts[-1][1] + r), fill=p.fg)
+    elif c.kind == "bars":
+        d.line((x0, y1, x1, y1), fill=p.grid, width=1)
+        n = len(c.data)
+        for i, v in enumerate(c.data):
+            bw = (x1 - x0) / n
+            last = i == n - 1 and not c.labels
+            if v > c.lo:
+                _bar(d, (x0 + i * bw + 1, y1 - (v - c.lo) / ((c.hi - c.lo) or 1) * h, x0 + (i + 1) * bw - 1, y1),
+                     p.fg if last else p.accent, p, solid=last)
+    elif c.kind == "hbars":
+        n = len(c.labels) or 1
+        gap = max(2, (x1 - x0) * 0.03)
+        bw = (x1 - x0 - gap * (n - 1)) / n
+        for i in range(n):
+            bx = x0 + i * (bw + gap)
+            d.rectangle((bx, y0 + h * 0.3, bx + bw, y1 - h * 0.3), fill=p.grid)
+            v = c.data[i] if i < len(c.data) else 0
+            if v:
+                d.rectangle((bx, y0 + h * 0.3, bx + bw * min(1.0, v / (c.hi or 1)), y1 - h * 0.3), fill=p.accent)
+    elif c.kind == "dots":
+        _dots(d, c, (x0, y0 + h * 0.1, x1, y1 - h * 0.1), p)
+    elif c.kind == "progress":
+        _progress(d, c, (x0, y0 + h * 0.3, x1, y1 - h * 0.3), p)
+    elif c.kind == "pair":
+        d.rectangle((x0, y0 + h * 0.3, x1, y1 - h * 0.3), fill=p.grid)
+        if c.data and c.hi:
+            d.rectangle((x0, y0 + h * 0.3, x0 + (x1 - x0) * min(1.0, c.data[0] / c.hi), y1 - h * 0.3), fill=p.accent)
+            if len(c.data) > 1 and c.data[1]:
+                mx = x0 + (x1 - x0) * min(1.0, c.data[1] / c.hi)
+                d.line((mx, y0, mx, y1), fill=p.fg, width=max(1, int(h / 8)))
 
 
 def _tick(v: float) -> str:

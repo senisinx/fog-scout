@@ -117,7 +117,9 @@ DEFAULTS = {
         "charts_xy": [0.94, 0.75],      #   custom: centre of the card as a share of the window
         "charts_scale": 1.0,            #   size (slider 60–200 %)
         "charts_opacity": 0.9,
-        "charts_backdrop": True,        #   dark area behind the charts
+        "charts_backdrop": True,        #   dark area behind the charts (look "classic")
+        "charts_look": "classic",       #   1.57.74: classic / map / glass / line (charts.LOOKS)
+        "charts_dense": False,          #   1.57.74: one row per chart
         "locked": [],                   # 1.46: elements locked in place ("map", "hud", "today", …) – not dragged
     },
     "hotkeys": {

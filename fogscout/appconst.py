@@ -65,6 +65,9 @@ CHART_SPOTS = [("under_music", N_("Unter der Musik")), ("under_today", N_("Unter
                ("below", N_("Unter den Systemwerten")),
                ("bottom_right", N_("Rechts unten im Balken")), ("bottom_left", N_("Links unten im Balken")),
                ("custom", N_("Eigene Position (mit der Maus verschieben)"))]
+CHART_LOOKS = [("classic", N_("Klassisch")), ("map", N_("Kartentisch")), ("glass", N_("Glas")),   # 1.57.74
+               ("line", N_("Linie"))]
+CHART_DENSITIES = [("normal", N_("Normal (Diagramm unter dem Titel)")), ("dense", N_("Kompakt (eine Zeile je Diagramm)"))]
 # from app_loadouts (1.57): the loadouts' place
 LOADOUT_SPOTS = [("hud", N_("Neben der Survivor-Liste")), ("name", N_("Unter dem Namen")),
                  ("custom", N_("Eigene Position (mit der Maus verschieben)"))]

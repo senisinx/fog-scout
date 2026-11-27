@@ -169,3 +169,31 @@ def test_the_app_shows_the_charts_in_a_bar_and_hides_them_with_the_switch(tmp_pa
         assert not win.shown and app.worker.charts_rect is None
     finally:
         app.quit()
+
+
+def test_every_look_and_density_keeps_one_size_and_the_dense_columns_hold_their_texts():
+    """1.57.74: four looks, two densities – a look never changes the size, a density has its own (one row per
+    chart); in a dense row the name and the figure of every chart fit their columns (German, the longest texts)."""
+    cs = [charts.sample(c) for c in charts.IDS]
+    kinds = [c.kind for c in cs]
+    for dense in (False, True):
+        sizes = {charts.draw(cs, 245, charts.Look(style=s, dense=dense)).size for s in charts.LOOKS}
+        assert sizes == {charts.card_size(kinds, 245, dense)}
+    assert charts.card_size(kinds, 245, True)[1] < charts.card_size(kinds, 245)[1] / 2
+    w = 245
+    pad = max(3, int(w * charts.PAD))
+    name_f, value_f = charts._font(int(w * 0.047), True), charts._font(int(w * 0.054), True)
+    for c in cs:
+        assert name_f.getlength(c.title) <= int(w * charts.DENSE_NAME), c.id
+        assert value_f.getlength(c.value) <= int(w * charts.DENSE_VALUE), c.id
+    assert w - 2 * pad - int(w * charts.DENSE_NAME) - int(w * charts.DENSE_VALUE) >= 30      # room for the small plot
+
+
+def test_the_look_comes_from_the_settings_and_a_broken_one_is_classic():
+    from fogscout import app_charts
+    acc = (1, 2, 3, 255)
+    assert app_charts.look_of({}, acc) == charts.Look(acc, True, "classic", False)
+    assert app_charts.look_of({"charts_look": "glass", "charts_dense": True}, acc) == charts.Look(acc, True, "glass", True)
+    assert app_charts.look_of({"charts_look": "nonsense"}, acc).style == "classic"
+    assert charts.palette(charts.Look(style="map")).back is None and charts.palette(charts.Look(style="line")).hollow
+    assert charts.palette(charts.Look(backdrop=False)).back is None

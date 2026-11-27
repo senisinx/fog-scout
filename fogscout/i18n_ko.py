@@ -6225,14 +6225,14 @@ T = {
         '차트 뒤 어두운 영역',
     'Eine halb durchsichtige dunkle Fläche mit runden Ecken hinter den Diagrammen.':
         '차트 뒤에 모서리가 둥근 반투명 어두운 영역.',
-    'FORM':
-        '폼',
+    'LETZTE 10':
+        '최근 10',
     'FPS':
         'FPS',
     'FPS-Verlauf (HWiNFO)':
         'FPS 추이(HWiNFO)',
-    'Form der letzten 10 Runden':
-        '최근 10라운드 폼',
+    'Letzte 10 Runden (gut, mittel, schlecht)':
+        '최근 10라운드(좋음, 보통, 나쁨)',
     'GPU':
         'GPU',
     'Grün: als Killer 3 Kills oder mehr bzw. als Survivor entkommen, grau: 2 Kills, rot: weniger bzw. gestorben, leerer Ring: noch ohne Match-Daten.':
@@ -6291,4 +6291,17 @@ T = {
         '평균 {n}',
     'Ø {t}':
         '평균 {t}',
+    # 1.57.74: looks and density of the charts
+    'Dichte':
+        '밀도',
+    'Kartentisch':
+        '지도 테이블',
+    'Glas':
+        '유리',
+    'Kompakt (eine Zeile je Diagramm)':
+        '컴팩트(차트당 한 줄)',
+    'Normal (Diagramm unter dem Titel)':
+        '보통(제목 아래 차트)',
+    'Aussehen':
+        '모양',
 }
