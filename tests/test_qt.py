@@ -947,6 +947,26 @@ def test_the_dashboard_has_no_tile_that_would_only_say_nothing():
     assert "Filter zurücksetzen" in dashboard.build([], []).empty
 
 
+def test_the_tick_boxes_of_the_settings_are_switches(qapp, keep):
+    """1.57.88 (draft B of the settings): on the settings page a tick box is the on / off switch of the overview
+    and the overlay's list – the same state and clicks; other hand-made pages keep their tick boxes."""
+    from PySide6.QtWidgets import QCheckBox
+    from fogscout import qt_overlay, qt_pages, qt_window
+    posted = []
+    page = keep(qt_window.FormPage(lambda a, arg=None: posted.append((a, arg)), "Einstellungen",
+                                   qt_window.SPECS["settings"], "settings"))
+    checks = {k: w for k, (kind, w, _x) in page.controls.items() if kind == "check"}
+    assert len(checks) > 20 and all(isinstance(w.box, qt_overlay.SwitchButton) for w in checks.values())
+    w = checks["st.tray"]
+    page.show_states({"st.tray": {"text": "Beim Minimieren in den Infobereich", "value": True, "visible": True}})
+    assert w.isChecked() and w.text() == "Beim Minimieren in den Infobereich"
+    w.click()
+    assert posted[-1] == ("act", ("st.tray", False))
+    assert qt_pages.SWITCH_PAGES == ("settings",)
+    plain, _x = qt_pages.make_control("check", "x", lambda *a: None)
+    assert isinstance(keep(plain).box, QCheckBox)
+
+
 def test_the_look_kartentisch_and_cards_without_an_outline():
     """1.57.86 ("Gold bleibt, Kartentisch dazu", "weniger Kästen"): the theme "table" changes surfaces and text too
     (with OLED black only text and accent); a card has an outline only where its fill hardly differs from the

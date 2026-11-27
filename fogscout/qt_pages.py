@@ -766,10 +766,18 @@ class CapSlider(QSlider):
         p.end()
 
 
-def make_control(kind, key, post):
-    """(widget, extra) of one control of the UI model; clicks go out as post("act", (key, value))."""
+SWITCH_PAGES = ("settings",)     # 1.57.88 (draft B of the settings): on these pages a tick box is an on / off switch
+
+
+def make_control(kind, key, post, switch=False):
+    """(widget, extra) of one control of the UI model; clicks go out as post("act", (key, value)). ``switch``: a
+    tick box as the on / off switch of the overlay's list and the overview (the same state, another look)."""
     extra = None
-    if kind == "check":
+    if kind == "check" and switch:
+        from .qt_overlay import SwitchButton
+        w = WrapCheck(SwitchButton())
+        w.clicked.connect(lambda checked: post("act", (key, checked)))
+    elif kind == "check":
         w = WrapCheck()                           # its text wraps in a narrow window (QCheckBox's does not)
         w.clicked.connect(lambda checked: post("act", (key, checked)))
     elif kind == "button":
@@ -1746,7 +1754,7 @@ class FormPage(QWidget, _Arranged):
             lay.addWidget(_label(_(item[1]), wrap=True))
             self._note = _(item[1])
             return
-        w, extra = make_control(kind, item[1], self._post)
+        w, extra = make_control(kind, item[1], self._post, switch=self._page_key in SWITCH_PAGES)
         if isinstance(lay, FlowRow):
             lay.addWidget(w)
         else:
