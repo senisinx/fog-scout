@@ -13,6 +13,7 @@ from PySide6.QtGui import QColor, QFont, QImage, QPainter, QPainterPath, QPen, Q
 from PySide6.QtWidgets import QAbstractItemView, QListView, QListWidget, QListWidgetItem, QStyle, QStyledItemDelegate
 
 from . import qt_theme, thumbs
+from .i18n import _
 from .qt_common import steady_scroll
 
 TILE_W, TILE_H = 248, 140          # px (logical) of the picture inside a tile (16:9) at the least
@@ -71,6 +72,12 @@ class _TileDelegate(QStyledItemDelegate):
             dw, dh = w * s, h * s
             p.drawPixmap(QRectF(pic.center().x() - dw / 2, pic.center().y() - dh / 2, dw, dh), pm, QRectF(pm.rect()))
         p.setClipping(False)
+        if pm is None or pm.isNull():                          # 1.57.96: say why the tile is black
+            note = self.view.placeholder(pm is not None)
+            if note:
+                p.setFont(_smaller(option.font))
+                p.setPen(QColor("#9ba1a9"))                    # on black in every theme
+                p.drawText(pic.adjusted(8, 8, -8, -8), Qt.AlignCenter | Qt.TextWordWrap, note)
         caption, sub, badge = index.data(INFO_ROLE) or ("", "", "")
         f = QFont(option.font)
         f.setWeight(QFont.DemiBold)
@@ -141,6 +148,10 @@ class ShotGallery(QListWidget):
 
     def tile_size(self) -> QSize:
         return self._tile
+
+    def placeholder(self, failed: bool) -> str:
+        """What a tile without a picture says: ``failed`` – none could be made; else it is still to come."""
+        return _("Kein Vorschaubild") if failed else _("Bild wird erstellt …")
 
     def _fit_tiles(self):
         """As many tiles per row as fit at their least width, widened so that the row ends at the edge. 1.57.94:
@@ -318,6 +329,11 @@ class ClipGallery(ShotGallery):
     def _picked(self):
         if self.on_pick:
             self.on_pick(self.selected_paths())                # a list, as the tables hold several rows
+
+    def placeholder(self, failed: bool) -> str:
+        if not failed and self._busy():                        # no ffmpeg beside a running round
+            return _("Vorschaubild folgt nach der Runde")
+        return super().placeholder(failed)
 
     def _ask_visible(self):
         from types import SimpleNamespace

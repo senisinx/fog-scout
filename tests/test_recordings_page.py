@@ -478,7 +478,7 @@ def test_the_clips_are_tiles_and_a_chosen_tile_marks_the_clip_for_the_buttons(ap
         assert app._clip_selected().file == "clip.mp4" and app.clip_play_btn.cget("state") == "normal"
         assert app._clip_preview_key == "clip.mp4"                # 1.57.93: a clicked tile plays – draft B: above
         assert app._clip_preview_place()[0] is app.clip_top_host  # the tiles, as wide as the page
-        assert app.clip_top_host.master is app._clip_row.master
+        assert app.clip_top_host.master is app.clip_tiles_host.master
         app._clip_tile_picked(None)
         assert app._clip_selected() is None and app.clip_play_btn.cget("state") == "disabled"
         # 1.57.90: several tiles (Ctrl/Shift) mark several rows – "Als Montage öffnen" works from the tiles
@@ -1256,3 +1256,39 @@ def test_two_or_more_tiles_per_row_fill_the_row(tmp_path):
         assert g.tile_size().width() <= int(least * qt_gallery.GROW)
     finally:
         g.close()
+
+
+def test_show_all_resets_the_filters_and_the_player_steps_and_closes(app_root, tmp_path, monkeypatch):
+    """1.57.96: "Alle zeigen" puts every filter of the clips back to its first entry (order and view stay); the
+    player's ‹ › mark the tile before/after the one playing, its × marks none (the player goes); a tile without a
+    picture says why."""
+    from fogscout import qt_gallery
+    app = _clips_app(app_root, tmp_path, monkeypatch)
+    try:
+        app.qt.show_page("recordings")
+        app._rec_render(force=True)
+        app._qt_refresh(force=True)
+        app.clip_kind_var.set(dict(app._clip_kinds)["still"])
+        app.clip_sort_var.set(dict(app._rec_sorts)["old"])
+        app._sort_changed("clips_sort", app.clip_sort_var)
+        assert [os.path.basename(t[0]) for t in app._clip_tiles] == ["still.png"]
+        app.clip_reset_btn.invoke()
+        assert app.clip_kind_var.get() == app._clip_kinds[0][1] and len(app._clip_tiles) == 3
+        assert app.settings.get("clips_sort") == "old"                       # the order is no filter
+        paths = [t[0] for t in app._clip_tiles]
+        app._clip_tile_picked([paths[0]])
+        app._tile_step("clip", 1)
+        assert app._clip_path(app._clip_selected()) == paths[1]
+        app._tile_step("clip", -1)
+        app._tile_step("clip", -1)                                           # at the first one: stays
+        assert app._clip_path(app._clip_selected()) == paths[0]
+        app._tile_close("clip")
+        assert app._clip_selected() is None and app._clip_preview_key is None
+        gallery = app.qt.host(str(app.clip_tiles_host)).content
+        assert isinstance(gallery, qt_gallery.ClipGallery)
+        assert gallery.placeholder(False) == "Bild wird erstellt …" and gallery.placeholder(True) == "Kein Vorschaubild"
+        app._hist = {"t": 1.0}                                               # a round is running: no ffmpeg now
+        assert gallery.placeholder(False) == "Vorschaubild folgt nach der Runde"
+        app._hist = None
+    finally:
+        app.quit()

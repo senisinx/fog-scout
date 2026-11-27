@@ -283,6 +283,9 @@ class RecordingsTab:
         cb._dbdms_name = _("Art")
         cb.pack(side="left", padx=(8, 0))
         cb.bind("<<ComboboxSelected>>", lambda e: self._rec_render(force=True))
+        # 1.57.96: all filters of this row back to "all" at once (the statistics have had it since 1.11.14)
+        self.rec_reset_btn = ui.Button(fr, text=_("Alle zeigen"), command=lambda: self._rec_filters_reset("rec"))
+        self.rec_reset_btn.pack(side="left", padx=(8, 0))
         # 1.57.84 (draft B "Kacheln"): the rounds as tiles with a picture too, or the table as before
         self._clip_views = [(k, _(label)) for k, label in CLIP_VIEWS]
         self.rec_view_var = ui.StringVar(value=dict(self._clip_views).get(self.settings.get("rounds_view", "tiles"),
@@ -430,6 +433,8 @@ class RecordingsTab:
         cb._dbdms_name = _("Art")
         cb.pack(side="left", padx=(8, 0))
         cb.bind("<<ComboboxSelected>>", lambda e: self._clips_render())
+        self.clip_reset_btn = ui.Button(fr, text=_("Alle zeigen"), command=lambda: self._rec_filters_reset("clip"))
+        self.clip_reset_btn.pack(side="left", padx=(8, 0))
         # 1.57.83 (user picked draft B "Kacheln"): the clips as tiles with a picture, or the table as before
         self._clip_views = [(k, _(label)) for k, label in CLIP_VIEWS]
         view = self.settings.get("clips_view", "tiles")
@@ -477,12 +482,10 @@ class RecordingsTab:
         # draft B "Gross oben"): a clicked tile plays in ``clip_top_host`` – above the tiles, as wide as the page;
         # the table keeps its preview beside it (``clip_host``)
         self.clip_top_host = ui.Host(f)
-        row = self._clip_row = ui.Frame(f)
-        row.pack(fill="both", expand=True)
-        self.clip_tiles_host = ui.Host(row)      # 1.57.83: the tiles (qt_gallery.ClipGallery), put in by _clip_tiles_sync
+        self.clip_tiles_host = ui.Host(f)        # 1.57.83: the tiles (qt_gallery.ClipGallery), put in by _clip_tiles_sync
         self._clip_tiles = []
-        tf = self.clip_table_frame = ui.Frame(row)
-        tf.pack(side="left", fill="both", expand=True)
+        tf = self.clip_table_frame = ui.Frame(f)   # 1.57.96: the tiles stand alone again – in one row with the table
+        tf.pack(fill="both", expand=True)          # and its preview they got only part of the width
         cols = (("when", _("Wann"), 100, "w"), ("map", _("Map"), 130, "w"), ("role", _("Rolle/Killer"), 110, "w"),
                 ("kind", _("Art"), 85, "w"), ("dur", _("Länge"), 55, "e"), ("size", _("Grösse"), 65, "e"),
                 ("status", _("Status"), 60, "w"), ("file", _("Datei"), 140, "w"))
@@ -496,7 +499,7 @@ class RecordingsTab:
         self.clip_table.pack(side="left", fill="both", expand=True)
         self.clip_table.bind("<<TreeviewSelect>>", lambda e: self._clip_buttons())
         self.clip_table._dbdms_open = lambda iid: self._clip_play()        # 1.23: double-click / Enter
-        self.clip_host = ui.Host(row)            # 1.11.4 (user: "Clips soll ebenfalls eine Vorschau erhalten")
+        self.clip_host = ui.Host(tf)             # 1.11.4 (user: "Clips soll ebenfalls eine Vorschau erhalten")
         self._clip_preview_key = None
         self._table_menu(self.clip_table, self._clip_menu_items, self._clip_menu_act)
         ui.Label(f, text=_("Clips aus dem Editor, Sofort-Clips (F8) und Standbilder, mit ihrer Runde · ▶ auf "
@@ -1202,6 +1205,39 @@ class RecordingsTab:
         for g in self.__dict__.get("_tile_galleries", ()):
             g.stop()
 
+    def _rec_filters_reset(self, tab: str):
+        """"Alle zeigen": every filter of the rounds ("rec") or the clips ("clip") back to its first entry – the
+        order and the view stay, they hide nothing. "Farming ausblenden" is one setting with the statistics: kept."""
+        if tab == "rec":
+            for var, values in ((self.rec_period_var, self._rec_periods), (self.rec_map_var, self._rec_maps),
+                                (self.rec_role_var, self._rec_roles), (self.rec_killer_var, self._rec_killers),
+                                (self.rec_only_var, self._rec_onlys)):
+                var.set(values[0][1])
+        else:
+            for var, values in ((self.clip_period_var, self._rec_periods), (self.clip_role_var, self._rec_roles),
+                                (self.clip_killer_var, self._clip_killers), (self.clip_map_var, self._clip_maps),
+                                (self.clip_kind_var, self._clip_kinds)):
+                var.set(values[0][1])
+        self._rec_render(force=True)
+
+    def _tile_step(self, tab: str, step: int):
+        """The player's ‹ / ›: the tile before or after the one playing (in the order shown); at an end, nothing."""
+        tiles = self._clip_tiles if tab == "clip" else self._rec_tiles
+        paths = [t[0] for t in tiles]
+        now = self._clip_path(self._clip_selected()) if tab == "clip" else next(
+            (p for p, iid in self._rec_tile_iid.items() if iid in self.rec_table.selection()), None)
+        if now not in paths:
+            return
+        i = paths.index(now) + step
+        if 0 <= i < len(paths):
+            (self._clip_tile_picked if tab == "clip" else self._rec_tile_picked)([paths[i]])
+            (self._clip_tiles_sync if tab == "clip" else self._rec_tiles_sync)()
+
+    def _tile_close(self, tab: str):
+        """The player's ×: no tile marked any more – the player goes."""
+        (self._clip_tile_picked if tab == "clip" else self._rec_tile_picked)([])
+        (self._clip_tiles_sync if tab == "clip" else self._rec_tiles_sync)()
+
     def _sort_key(self, var) -> str:
         return next((k for k, lbl in self._rec_sorts if lbl == var.get()), "new")
 
@@ -1283,7 +1319,7 @@ class RecordingsTab:
     def _clip_preview_place(self):
         """(model, how it is packed) of the clips' preview now: above the tiles, or beside the table."""
         if self._clips_as_tiles():
-            return self.clip_top_host, {"fill": "x", "before": self._clip_row}
+            return self.clip_top_host, {"fill": "x", "before": self.clip_tiles_host}
         return self.clip_host, {"side": "left", "fill": "both"}
 
     def _clip_tiles_sync(self):
@@ -1292,8 +1328,7 @@ class RecordingsTab:
         chosen = [self._clip_path(self._clip_rows[f]) for f in self.clip_table.selection() if f in self._clip_rows]
         self._tiles_show(self.clip_tiles_host, self.clip_table_frame, self._clips_as_tiles(), self._clip_tiles,
                          chosen, self._clip_tile_picked,
-                         lambda _p: self._clip_play(), (self._clip_menu_items, self._clip_menu_act),
-                         beside=self.clip_host)
+                         lambda _p: self._clip_play(), (self._clip_menu_items, self._clip_menu_act))
 
     def _clip_tile_picked(self, paths):
         """Tiles were chosen (1.57.90: several with Ctrl/Shift, for a montage): the table marks the same clips
@@ -1451,7 +1486,8 @@ class RecordingsTab:
         win = self._clip_window(clip_round(c, obsrec.load_index(self.recorder.folder())), path, compact=True,
                                 parent=host, on_expand=lambda s, e, p: self._clip_edit(at=(s, e, p)), info=info,
                                 autoplay=self._clips_as_tiles() and not self._hist,   # never beside a running round
-                                player_only=self._clips_as_tiles())
+                                player_only=self._clips_as_tiles(), on_step=lambda d: self._tile_step("clip", d),
+                                on_close=lambda: self._tile_close("clip"))
         model, how = self._clip_preview_place()
         if self.qt.host(str(model)) is not host:               # the view changed while the file was read
             return
@@ -2151,7 +2187,8 @@ class RecordingsTab:
         tiles = self._recs_as_tiles()
         win = self._clip_window(r, path, compact=True, parent=host,
                                 on_expand=lambda s, e, p: self._rec_clip(at=(s, e, p)), info=info,
-                                autoplay=tiles and not self._hist, player_only=tiles)
+                                autoplay=tiles and not self._hist, player_only=tiles,
+                                on_step=lambda d: self._tile_step("rec", d), on_close=lambda: self._tile_close("rec"))
         host.set_content(win)
         model.pack(**how)
 

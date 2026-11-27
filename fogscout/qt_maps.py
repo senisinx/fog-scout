@@ -303,6 +303,18 @@ class MapsPage(QWidget):
         cl.addWidget(self.p_realm)
         cl.addWidget(self.p_info)
         cl.addWidget(self.p_pic, 1)
+        # 1.57.96: what was only in the right-click menu – turn the map, put an own picture in its place
+        acts = QHBoxLayout()
+        self.p_rotate = QPushButton(_("Drehen"))
+        self.p_rotate.setToolTip(_("Dreht diese Karte um 90° im Uhrzeigersinn (für die Map gemerkt)."))
+        self.p_rotate.clicked.connect(lambda: self._detail_act("rotate"))
+        self.p_picture = QPushButton(_("Kartenbild ersetzen …"))
+        self.p_picture.setToolTip(_("Ein eigenes Bild für diese Map wählen – das mitgelieferte bleibt erhalten."))
+        self.p_picture.clicked.connect(lambda: self._detail_act("picture"))
+        acts.addWidget(self.p_rotate)
+        acts.addWidget(self.p_picture)
+        acts.addStretch()
+        cl.addLayout(acts)
         # 1.8.54 (user: "Notizen für die Map"): the own note, saved while typing, shown in the game with the map
         cl.addWidget(_label(_("Eigene Notiz (im Spiel unter dem Timer)"), "dim"))
         self.p_note = QPlainTextEdit()
@@ -747,6 +759,11 @@ class MapsPage(QWidget):
             self.close_big()
             return
         super().keyPressEvent(e)
+
+    def _detail_act(self, action: str):
+        """A button of the detail pane: the same as that line of the tile's right-click menu."""
+        if self._preview_key:
+            self._post("map_action", (action, tuple(self._preview_key)))
 
     def _show_selected(self):
         if self._preview_key:

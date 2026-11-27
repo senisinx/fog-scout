@@ -6452,4 +6452,30 @@ T = {
         '用一个常见情形填满计算器（四名逃生者修发电机，对抗一名杀手）——用于试用。当前的选择会丢失。',
     'Übernimmt den Build von Survivor 1 – Perks, Item, Add-ons – für alle Survivor des Teams.':
         '把逃生者 1 的配置——技能、道具、配件——用于队伍中的所有逃生者。',
+    'Dreht diese Karte um 90° im Uhrzeigersinn (für die Map gemerkt).':
+        '将这张地图顺时针旋转 90°（按地图记住）。',
+    'Ein eigenes Bild für diese Map wählen – das mitgelieferte bleibt erhalten.':
+        '为这张地图选择自己的图片——自带的图片会保留。',
+    'Öffnet die Statistik.':
+        '打开统计。',
+    'Alle zeigen':
+        '显示全部',
+    'Setzt alle Filter dieser Zeile zurück – alle Aufnahmen bzw. Clips sind wieder zu sehen. Sortierung und Ansicht bleiben.':
+        '重置这一行的所有筛选——再次显示全部录像或片段。排序和视图保持不变。',
+    'Die Kachel davor abspielen.':
+        '播放上一个。',
+    'Die nächste Kachel abspielen.':
+        '播放下一个。',
+    'Schliesst den Spieler.':
+        '关闭播放器。',
+    'Kein Vorschaubild':
+        '没有预览图',
+    'Bild wird erstellt …':
+        '正在生成图片 …',
+    'Vorschaubild folgt nach der Runde':
+        '预览图将在本局结束后生成',
+    'Einrichtung fortsetzen':
+        '继续设置',
+    'Zurück zum Einrichtungs-Assistenten, an die Stelle, an der du ihn verlassen hast.':
+        '回到设置向导，停在你离开的那一步。',
 }

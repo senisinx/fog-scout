@@ -6,7 +6,7 @@ from __future__ import annotations
 from PIL import Image, ImageDraw
 from PySide6.QtCore import QEvent, QRectF, QSize, Qt, QTimer
 from PySide6.QtGui import QColor, QFont, QGuiApplication, QIcon, QPainter, QPen
-from PySide6.QtWidgets import (QAbstractItemView, QBoxLayout, QComboBox, QDialog, QFrame, QGridLayout, QHBoxLayout, QLabel, QLineEdit, QListWidget, QProgressBar,
+from PySide6.QtWidgets import (QAbstractItemView, QBoxLayout, QComboBox, QDialog, QFrame, QGridLayout, QHBoxLayout, QLabel, QLineEdit, QListWidget, QListWidgetItem, QProgressBar,
                                QPushButton, QRadioButton, QScrollArea, QSizePolicy, QSlider, QStackedWidget,
                                QStyle, QStyleOptionSlider, QTabWidget, QVBoxLayout, QWidget)
 
@@ -344,7 +344,17 @@ class OverviewPage(QWidget):
         cl = QVBoxLayout(card)
         cl.setContentsMargins(*qt_theme.PAD_CARD)
         cl.setSpacing(8)
-        cl.addWidget(_label(title.upper(), "h2"))
+        head = QHBoxLayout()
+        head.setContentsMargins(0, 0, 0, 0)
+        head.addWidget(_label(title.upper(), "h2"), 1)
+        b = QPushButton(_("Details"))                        # 1.57.96: to the statistics, where the full view is
+        b.setSizePolicy(QSizePolicy.Maximum, QSizePolicy.Fixed)
+        b.setCursor(Qt.PointingHandCursor)
+        b.setToolTip(_("Öffnet die Statistik."))
+        b.clicked.connect(lambda _c=False: self._post("tile_open", "page:stats"))
+        head.addWidget(b)
+        self.chart_details = getattr(self, "chart_details", []) + [b]
+        cl.addLayout(head)
         cl.addWidget(widget)
         cl.addStretch()
         card.setVisible(False)
@@ -843,6 +853,24 @@ class SlotCombo(QComboBox):
     def empty(self) -> bool:
         return self.currentIndex() <= 0
 
+    def showPopup(self):
+        """1.57.96: the list with a search field on top – up to 87 perks were only to be scrolled through."""
+        self.picker = SlotPicker(self)
+        self.picker.open_below()
+
+    def hidePopup(self):
+        picker = self.__dict__.get("picker")
+        if picker is not None:
+            picker.close()
+        super().hidePopup()
+
+    def pick(self, index: int):
+        """An entry was chosen in the picker: as if picked in the plain list (``activated`` tells the page)."""
+        if 0 <= index < self.count():
+            self.setCurrentIndex(index)
+            self.activated.emit(index)
+            self.update()
+
     def paintEvent(self, _e):
         c = qt_theme.colours(qt_theme.current_dark())
         zoom = qt_theme.current_zoom()
@@ -891,6 +919,87 @@ class SlotCombo(QComboBox):
     def leaveEvent(self, e):
         super().leaveEvent(e)
         self.update()
+
+
+class SlotPicker(QFrame):
+    """The choice of a place (SlotCombo) as a popup: a search field, below it the entries with their pictures.
+    Typing narrows the list (any part of the name, upper or lower case), Enter takes the first one shown, the
+    arrow keys walk the list, Esc or a click elsewhere closes. Not modal, no second event loop."""
+
+    ROWS = 11
+
+    def __init__(self, combo):
+        super().__init__(combo, Qt.Popup)
+        self.setObjectName("slotpicker")
+        self.setAttribute(Qt.WA_DeleteOnClose)
+        self.combo = combo
+        lay = QVBoxLayout(self)
+        lay.setContentsMargins(6, 6, 6, 6)
+        lay.setSpacing(6)
+        self.search = QLineEdit()
+        self.search.setPlaceholderText(_("Suchen …"))
+        self.search.setClearButtonEnabled(True)
+        self.list = QListWidget()
+        self.list.setIconSize(combo.iconSize())
+        self.list.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        for i in range(combo.count()):
+            item = QListWidgetItem(combo.itemIcon(i), combo.itemText(i))
+            item.setData(Qt.UserRole, i)
+            self.list.addItem(item)
+        self.list.setCurrentRow(max(0, combo.currentIndex()))
+        lay.addWidget(self.search)
+        lay.addWidget(self.list, 1)
+        self.search.textChanged.connect(self.narrow)
+        self.search.returnPressed.connect(self.take)
+        self.list.itemClicked.connect(lambda item: self.take(item))
+        self.list.itemActivated.connect(lambda item: self.take(item))
+        self.search.installEventFilter(self)
+
+    def open_below(self):
+        zoom = qt_theme.current_zoom()
+        w = max(self.combo.width(), round(280 * zoom))
+        row = max(20, self.list.sizeHintForRow(0))
+        h = self.search.sizeHint().height() + row * min(self.ROWS, max(1, self.list.count())) + 26
+        self.resize(w, h)
+        self.move(self.combo.mapToGlobal(self.combo.rect().bottomLeft()))
+        self.show()
+        self.search.setFocus()
+
+    def shown(self) -> list:
+        """The entries on display now, top to bottom."""
+        return [self.list.item(r).text() for r in range(self.list.count()) if not self.list.item(r).isHidden()]
+
+    def narrow(self, text: str):
+        want = text.casefold().split()
+        first = None
+        for r in range(self.list.count()):
+            item = self.list.item(r)
+            name = item.text().casefold()
+            hide = bool(want) and not all(word in name for word in want)
+            item.setHidden(hide)
+            if not hide and first is None and (not want or item.data(Qt.UserRole) > 0):
+                first = item                                   # typed: the first perk, not "—"
+        if first is not None:
+            self.list.setCurrentItem(first)
+
+    def take(self, item=None):
+        item = item or self.list.currentItem()
+        if item is None or item.isHidden():
+            return
+        index = item.data(Qt.UserRole)
+        self.close()
+        self.combo.pick(index)
+
+    def eventFilter(self, obj, e):
+        if obj is self.search and e.type() == QEvent.KeyPress and e.key() in (Qt.Key_Down, Qt.Key_Up):
+            rows = [r for r in range(self.list.count()) if not self.list.item(r).isHidden()]
+            if rows:
+                now = self.list.currentRow()
+                at = rows.index(now) if now in rows else -1
+                at = min(len(rows) - 1, at + 1) if e.key() == Qt.Key_Down else max(0, at - 1)
+                self.list.setCurrentRow(rows[at])
+            return True
+        return super().eventFilter(obj, e)
 
 
 def _two_lines(fm, text: str, width: int) -> str:

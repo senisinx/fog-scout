@@ -6452,4 +6452,30 @@ T = {
         '흔한 경우(생존자 4명이 발전기를 수리, 살인마 1명)로 계산기를 채웁니다. 시험용이며 현재 선택은 사라집니다.',
     'Übernimmt den Build von Survivor 1 – Perks, Item, Add-ons – für alle Survivor des Teams.':
         '생존자 1의 빌드(기술, 아이템, 애드온)를 팀의 모든 생존자에게 적용합니다.',
+    'Dreht diese Karte um 90° im Uhrzeigersinn (für die Map gemerkt).':
+        '이 맵을 시계 방향으로 90° 돌립니다(맵별로 기억).',
+    'Ein eigenes Bild für diese Map wählen – das mitgelieferte bleibt erhalten.':
+        '이 맵에 쓸 내 그림을 고릅니다. 기본 그림은 그대로 남습니다.',
+    'Öffnet die Statistik.':
+        '통계를 엽니다.',
+    'Alle zeigen':
+        '모두 보기',
+    'Setzt alle Filter dieser Zeile zurück – alle Aufnahmen bzw. Clips sind wieder zu sehen. Sortierung und Ansicht bleiben.':
+        '이 줄의 필터를 모두 되돌립니다. 모든 녹화 또는 클립이 다시 보입니다. 정렬과 보기는 그대로입니다.',
+    'Die Kachel davor abspielen.':
+        '이전 타일을 재생합니다.',
+    'Die nächste Kachel abspielen.':
+        '다음 타일을 재생합니다.',
+    'Schliesst den Spieler.':
+        '플레이어를 닫습니다.',
+    'Kein Vorschaubild':
+        '미리보기 그림 없음',
+    'Bild wird erstellt …':
+        '그림을 만드는 중 …',
+    'Vorschaubild folgt nach der Runde':
+        '미리보기 그림은 라운드 후에 만들어집니다',
+    'Einrichtung fortsetzen':
+        '설정 계속하기',
+    'Zurück zum Einrichtungs-Assistenten, an die Stelle, an der du ihn verlassen hast.':
+        '설정 도우미로 돌아가 떠났던 단계부터 계속합니다.',
 }

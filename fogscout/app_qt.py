@@ -550,7 +550,7 @@ class QtShell:
         elif action == "setup_done":                 # assistant finished or skipped: not again on the next start
             self.settings.set("welcome_seen", True)
             self._save_soon()
-            self.qt.show_setup(False)
+            self.qt.show_setup(False, done=True)
             self._qt_refresh(force=True)
         elif action == "table_cols":                 # 1.3.6: columns hidden by a right-click on a table's heading
             key, cols = arg
@@ -641,6 +641,8 @@ class QtShell:
             self._show_round_recording(arg)
         elif action == "rec_setup":                  # 1.4.2: tile "Aufnahmen" without a folder/drive
             self._reveal_rec()
+        elif action == "rec_setup_obs":              # 1.57.96: "OBS" at the foot of the navigation
+            self._reveal_rec("st.more.obs")
         elif action == "switch":                     # 1.14: a tick box of the card "Schnell ein/aus"
             key, on = arg
             self.quick_switch(key, on)
