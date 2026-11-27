@@ -2457,6 +2457,12 @@ T = {
         'Claude: API 키처럼 보이지 않습니다(sk-ant-로 시작해야 함).',
     'Claude: Key eingetragen.':
         'Claude: 키가 입력되었습니다.',
+    'Einrichtung':
+        '설정',
+    'Optional':
+        '선택 사항',
+    '{n} von {total} angesehen':
+        '{total}개 중 {n}개 확인',
     'Schritt {n} von {total}':
         '{n}/{total}단계',
     'Sprache':

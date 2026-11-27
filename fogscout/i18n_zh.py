@@ -2457,6 +2457,12 @@ T = {
         'Claude：这看起来不像 API 密钥（它以 sk-ant- 开头）。',
     'Claude: Key eingetragen.':
         'Claude：已输入密钥。',
+    'Einrichtung':
+        '设置',
+    'Optional':
+        '可选',
+    '{n} von {total} angesehen':
+        '已查看 {n}/{total}',
     'Schritt {n} von {total}':
         '第 {n} 步，共 {total} 步',
     'Sprache':

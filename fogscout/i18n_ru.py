@@ -2457,6 +2457,12 @@ T = {
         'Claude: это не похоже на ключ API (он начинается с sk-ant-).',
     'Claude: Key eingetragen.':
         'Claude: ключ введён.',
+    'Einrichtung':
+        'Настройка',
+    'Optional':
+        'Необязательно',
+    '{n} von {total} angesehen':
+        'Просмотрено {n} из {total}',
     'Schritt {n} von {total}':
         'Шаг {n} из {total}',
     'Sprache':

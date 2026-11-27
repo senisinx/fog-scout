@@ -1962,6 +1962,9 @@ EN = {
     'Claude: Das sieht nicht wie ein API-Key aus (beginnt mit sk-ant-).':
         'Claude: that does not look like an API key (it starts with sk-ant-).',
     'Claude: Key eingetragen.': 'Claude: key entered.',
+    'Einrichtung': 'Setup',
+    'Optional': 'Optional',
+    '{n} von {total} angesehen': '{n} of {total} seen',
     'Schritt {n} von {total}': 'Step {n} of {total}',
     'Sprache': 'Language',
     'Sprache dieses Programms:': 'Language of this program:',
