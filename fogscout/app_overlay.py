@@ -22,7 +22,8 @@ ANCHORS = [("auto", N_("automatisch")), ("top-left", N_("oben links")), ("top-ri
 # 1.8.24 (user: "zwischen runden und eckigen Bildern"): the shape of the music card's cover
 COVER_SHAPES = [("style", N_("Wie der Stil")), ("round", N_("Rund")), ("square", N_("Eckig"))]
 STYLE_DEFER_MS = 30                     # 1.3.4: the window repaints before the slow part of a map style change
-MAP_STYLES = [("classic", N_("Original")), ("dark", N_("Dunkel")),            # 1.66, mapstyle.py
+MAP_STYLES = [("classic", N_("Original")), ("hens", N_("Dunkel (Hens)")),     # 1.57.79: shipped, mapstyle.OFFICIAL
+              ("dark", N_("Dunkel")),                                           # 1.66, mapstyle.py
               ("grey", N_("Grau")), ("grey_edge", N_("Grau mit Rand")),         # 1.8.16: with a floor
               ("lilac", N_("Lila dunkel")), ("lilac_glass", N_("Lila transparent"))]
 

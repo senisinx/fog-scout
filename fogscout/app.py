@@ -962,6 +962,11 @@ class App(ServerTab, StatsTab, ExportDialog, RecordingsTab, DiscordPresence, Spo
         one that is not of the community maps' kind stays as it is (``mapstyle.restyle``)."""
         path, shown = self.catalog.image_path(map_id, variant)
         style = self.settings["overlay"].get("map_style", "classic")
+        if path and style == mapstyle.OFFICIAL:           # 1.57.79: Hens' dark picture as shipped, else "dark"
+            dark = mapstyle.official_path(path, self.root_dir)
+            if dark:
+                return dark, shown
+            style = "dark"
         if path and style in mapstyle.STYLES:                                                  # 1.8.16: + floors
             styled = mapstyle.styled_path(path, os.path.join(self.data_dir, STYLE_CACHE), False, style)
             if styled == path and request:
