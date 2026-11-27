@@ -6370,4 +6370,16 @@ T = {
         'Тёмный (Hens)',
     'Die dunklen Karten von hens333.com (Lethia), wie sie dort stehen – gilt auch im Spiel. Eigene Bilder und Maps ohne dunkle Karte nehmen „Dunkel“.':
         'Тёмные карты с hens333.com (Lethia) в том виде, как они там – действует и в игре. Свои изображения и карты без тёмной версии берут «Тёмный».',
+    'Öffnet das Log.':
+        'Открывает журнал.',
+    'Navigation ausklappen':
+        'Развернуть навигацию',
+    'Navigation einklappen (nur Symbole)':
+        'Свернуть навигацию (только значки)',
+    'Zurück zu {page}':
+        'Назад: {page}',
+    'Öffnet die Seite {page}.':
+        'Открывает страницу «{page}».',
+    'Öffnet den Rechner: Reparatur-, Heil- und andere Zeiten aus Perks, Items und Add-ons.':
+        'Открывает калькулятор: время ремонта, лечения и другое по навыкам, предметам и улучшениям.',
 }

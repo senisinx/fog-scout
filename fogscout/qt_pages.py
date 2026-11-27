@@ -1564,7 +1564,22 @@ class FormPage(QWidget, _Arranged):
                     row.setContentsMargins(0, 0, 0, 0)
                     row.setSpacing(12)
                     self.tab_list = TabList(tabs)
-                    row.addWidget(self.tab_list, 0, Qt.AlignTop)
+                    left = QVBoxLayout()
+                    left.setContentsMargins(0, 0, 0, 0)
+                    left.setSpacing(2)
+                    left.addWidget(self.tab_list)
+                    self.tab_links = {}
+                    for key, label in (item[3] if len(item) > 3 else ()):     # 1.57.81: pages reached from here
+                        b = QPushButton(_(label) + "  ›")
+                        b.setObjectName("tablistlink")
+                        b.setCursor(Qt.PointingHandCursor)
+                        b.setToolTip(_("Öffnet die Seite {page}.", page=_(label)))
+                        b.clicked.connect(lambda _c=False, b=b, k=key:
+                                          getattr(b.window(), "show_page", lambda _k: None)(k))
+                        left.addWidget(b)
+                        self.tab_links[key] = b
+                    left.addStretch(1)
+                    row.addLayout(left)
                     row.addWidget(tabs, 1)
                     lay.addLayout(row)
                 else:

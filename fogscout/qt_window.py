@@ -20,6 +20,7 @@ from . import i18n, qt_icons, qt_theme
 from .status import DOT_STYLE
 from .i18n import N_, _
 from .qt_app import FIRA, application          # 1.14.2: made before the heavy imports (splash)
+from .qt_common import NAV_HIDDEN                # 1.57.81: pages off the navigation
 from .qt_common import (SLIDER_MAX, WheelGuard, guard_wheel, pixmap_from_pil, rezoom, set_glyph, _label, _tip, _card, _set,
                         _scroll_page)
 from .qt_views import (FactBox, CHECKS, _check, Table, LogView, HotkeyButton, Chart, HEAT_RAMP,
@@ -387,7 +388,8 @@ SPECS = {
                                                      ("stretch",))),                                  # 1.26.1
                                             ("hint", "st.more.cl_status"),
                                             ("fold", N_("Erklärung"), (("hint", "st.more.cl_text"),))))))),
-         "list"),          # 1.57.78 (user picked draft B "Liste links"): the tabs as a list beside the open one
+         "list",           # 1.57.78 (user picked draft B "Liste links"): the tabs as a list beside the open one
+         (("server", N_("Server")),)),     # 1.57.81: under the list – pages reached from here (NAV_PARENT)
     ),
 }
 
@@ -657,6 +659,84 @@ class NavStatus(QFrame):
         super().keyPressEvent(e)
 
 
+class NavFoot(QFrame):
+    """1.57.80 (user picked draft D "Einklappbar"): under the state – a row each for OBS and the server (a dot in
+    the level's colour, the name, the state in words), then "Log" and the arrow that folds the navigation to its
+    icons or opens it again. Folded: only the dots (the words as hover text) and the arrow."""
+
+    def __init__(self, on_log, on_fold):
+        super().__init__()
+        self.setObjectName("navfoot")
+        v = QVBoxLayout(self)
+        v.setSpacing(4)
+        self._lay = v
+        self.rows = []
+        for _i in range(2):
+            row = QWidget()
+            h = QHBoxLayout(row)
+            h.setContentsMargins(0, 0, 0, 0)
+            h.setSpacing(8)
+            dot, name, words = QLabel(), _label("", "dim"), QLabel()
+            words.setTextFormat(Qt.PlainText)
+            words.setObjectName("navstatustext")
+            h.addWidget(dot)
+            h.addWidget(name)
+            h.addWidget(words, 1)
+            v.addWidget(row)
+            self.rows.append((row, dot, name, words))
+        foot = QWidget()
+        self._foot = QHBoxLayout(foot)
+        self._foot.setContentsMargins(0, 2, 0, 0)
+        self._foot.setSpacing(4)
+        self.log_btn = QPushButton(_("Log"))
+        self.log_btn.setObjectName("navfootbtn")
+        self.log_btn.setToolTip(_("Öffnet das Log."))
+        self.log_btn.setFocusPolicy(Qt.TabFocus)
+        self.log_btn.clicked.connect(on_log)
+        self.fold_btn = QPushButton()
+        self.fold_btn.setObjectName("navfootbtn")
+        self.fold_btn.setFocusPolicy(Qt.TabFocus)
+        self.fold_btn.clicked.connect(on_fold)
+        self._foot.addWidget(self.log_btn)
+        self._foot.addStretch(1)
+        self._foot.addWidget(self.fold_btn)
+        v.addWidget(foot)
+        self._data, self._shown = [], None
+        self.rezoom()
+
+    def rezoom(self):
+        side = qt_theme.icon_px(qt_theme.ICON["s"])
+        self._lay.setContentsMargins(nav_sign_x() - side // 2, 6, 8, 8)
+        for _row, dot, _name, _words in self.rows:
+            dot.setFixedWidth(side)
+        self._shown = None
+
+    def show_rows(self, rows, compact: bool, folded: bool, dark: bool, ratio: float = 1.0):
+        """``rows``: [(title, words, level)]; ``compact``: only icons now; ``folded``: the user folded it."""
+        key = (tuple(rows), compact, folded, dark, ratio)
+        if key == self._shown:
+            return
+        self._shown, self._data = key, list(rows)
+        side = qt_theme.icon_px(qt_theme.ICON["s"])
+        for (row, dot, name, words), data in zip(self.rows, list(rows) + [None] * len(self.rows)):
+            row.setVisible(data is not None)
+            if data is None:
+                continue
+            title, text, level = data
+            style = level if level in ("ok", "warn", "err") else "idle"
+            dot.setPixmap(qt_icons.pixmap("record", qt_theme.dot_colour(style, dark), side, ratio))
+            _set(name, title)
+            _set(words, text)
+            name.setVisible(not compact)
+            words.setVisible(not compact)
+            row.setToolTip(f"{title}: {text}")
+            row.setAccessibleName(f"{title}: {text}")
+        self.log_btn.setVisible(not compact)
+        _set(self.fold_btn, "»" if compact else "«")
+        self.fold_btn.setToolTip(_("Navigation ausklappen") if folded else _("Navigation einklappen (nur Symbole)"))
+        self.fold_btn.setAccessibleName(self.fold_btn.toolTip())
+
+
 class _NavList(QListWidget):
     """The navigation. Qt's list view makes the first row current as soon as it gets the keyboard focus while no
     row is current – on the first start that threw the user out of the setup assistant about a second after it
@@ -714,12 +794,14 @@ class MainWindow(QMainWindow):
         self.setup = SetupPage(post)
         self.stack.addWidget(self.setup)
         self._setup_on = False
+        self._nav_hide()
         self.nav.setCurrentRow(0)
         self.nav.currentRowChanged.connect(self._page_changed)
         # 1.7.6 (user: "move the windows on the left as I like"): the rows can be dragged into another order
         self.nav.setDragDropMode(QAbstractItemView.InternalMove)
         self.nav.setDefaultDropAction(Qt.MoveAction)
-        self.nav.model().rowsMoved.connect(lambda *_a: self._post("nav_order", self.nav_keys()))
+        self.nav.model().rowsMoved.connect(lambda *_a: (self._nav_hide(), self._nav_texts(),
+                                                        self._post("nav_order", self.nav_keys())))
         # search over the settings of all pages (1.60): a field above the navigation, Ctrl+F
         side = QWidget()
         side.setObjectName("navside")
@@ -756,6 +838,11 @@ class MainWindow(QMainWindow):
         self.status_btn.setFixedWidth(nav_w())
         self._status = None                       # (kind, text) shown – status.user_state
         sl.addWidget(self.status_btn)
+        self._nav_user = False                    # 1.57.80: folded by the user (setting nav_collapsed)
+        self._status_rows = []
+        self.nav_foot = NavFoot(lambda: self.show_page("log"), self._fold_clicked)
+        self.nav_foot.setFixedWidth(nav_w())
+        sl.addWidget(self.nav_foot)
         self._found = {}                  # search entry text -> (page key, widget, folded)
         self._found_hay = {}              # 1.26: … -> what it is matched against (both languages, SEARCH_ALSO)
         self._found_static = {}           # 1.28: … -> a fixed program text of an allowed kind (may go to Claude)
@@ -872,12 +959,24 @@ class MainWindow(QMainWindow):
         """The page keys in the order the navigation shows them (1.7.6: the user's order)."""
         return [self.nav.item(i).data(Qt.UserRole) for i in range(self.nav.count())]
 
+    def _nav_hide(self):
+        """1.57.81: the pages off the navigation (NAV_HIDDEN) keep their row – hidden; a hidden row is a row of the
+        view, so this runs again after the rows were put into another order."""
+        for row in range(self.nav.count()):
+            self.nav.setRowHidden(row, self.nav.item(row).data(Qt.UserRole) in NAV_HIDDEN)
+
+    def nav_shown(self) -> list:
+        """The page keys the navigation shows, in its order."""
+        return [k for k in self.nav_keys() if k not in NAV_HIDDEN]
+
     def nav_jump(self, row: int):
-        """1.17: Ctrl+<n> – the page in row ``row`` of the navigation (leaves the setup assistant like a click)."""
-        if 0 <= row < self.nav.count():
+        """1.17: Ctrl+<n> – the page in the n-th shown row of the navigation (leaves the setup assistant like a
+        click)."""
+        shown = self.nav_shown()
+        if 0 <= row < len(shown):
             if self._setup_on:
                 self.show_setup(False)
-            self.nav.setCurrentRow(row)
+            self.nav.setCurrentRow(self._nav_row(shown[row]))
 
     def _nav_row(self, key) -> int:
         keys = self.nav_keys()
@@ -899,6 +998,7 @@ class MainWindow(QMainWindow):
                 items[item.data(Qt.UserRole)] = item
             for k in want:
                 self.nav.addItem(items[k])
+            self._nav_hide()
             row = self._nav_row(current)
             self.nav.setCurrentRow(row if row >= 0 else -1)
         finally:
@@ -1033,7 +1133,7 @@ class MainWindow(QMainWindow):
             w.click()                                  # 1.23: a closed fold opens (Log → Erweitert)
         if self._nav_kept:
             self._nav_kept = False
-            self._compact_nav(self._focus_nav or self.width() < NAV_COMPACT_BELOW)
+            self._compact_nav(self._want_compact())
         self._reveal_widget(w, delay=150 if folded else 0)
 
     def reveal(self, page: str, key: str):
@@ -1386,13 +1486,35 @@ class MainWindow(QMainWindow):
     def resizeEvent(self, e):
         self.geometry_changed = True
         super().resizeEvent(e)
-        self._compact_nav(self._focus_nav or self.width() < NAV_COMPACT_BELOW)
+        self._compact_nav(self._want_compact())
+
+    def _want_compact(self) -> bool:
+        return self._focus_nav or self._nav_user or self.width() < NAV_COMPACT_BELOW
+
+    def set_nav_collapsed(self, on: bool):
+        """1.57.80: the user's choice (the arrow at the navigation's foot) – only icons until opened again."""
+        self._nav_user = bool(on)
+        self._compact_nav(self._want_compact())
+        self._status_paint()
+
+    def _fold_clicked(self):
+        """The arrow: fold, or open again. In a window too narrow for the names (or the editor's focus view) the
+        navigation stays narrow whatever the choice – the click then only clears a fold."""
+        self.set_nav_collapsed(not self._nav_user if not self._nav_compact or self._nav_user else False)
+        self._post("nav_collapse", self._nav_user)
+
+    def show_status_rows(self, rows):
+        """1.57.80: OBS and the server under the state (overview.status_rows) – set on every refresh."""
+        rows = list(rows)
+        if rows != self._status_rows:
+            self._status_rows = rows
+            self._status_paint()
 
     def set_focus_nav(self, on: bool):
         """1.46: the overlay editor's "Fokus" – the navigation shows only its icons while it is on (not the search's
         latch ``keep``: a search must not end the focus view)."""
         self._focus_nav = bool(on)
-        self._compact_nav(self._focus_nav or self.width() < NAV_COMPACT_BELOW)
+        self._compact_nav(self._want_compact())
 
     def _brand_row(self) -> QWidget:
         """1.24 (phase 2, prompt_phase2.md): the compass of the program's icon and its name above the search – the
@@ -1427,12 +1549,18 @@ class MainWindow(QMainWindow):
 
     def _status_paint(self):
         if self._status is None:
+            self._foot_paint()
             return
         kind, text = self._status
         colour = qt_theme.dot_colour(DOT_STYLE.get(kind, "idle"), self._dark)
         self.status_btn.show_state(colour, text, self._nav_compact, self.devicePixelRatioF() or 1.0,
                                    "warning" if kind == "err" else "record")
         self.status_btn.setToolTip(text + " · " + _("Übersicht öffnen"))
+        self._foot_paint()
+
+    def _foot_paint(self):
+        self.nav_foot.show_rows(self._status_rows, self._nav_compact, self._nav_user, self._dark,
+                                self.devicePixelRatioF() or 1.0)
 
     def _compact_nav(self, on: bool, keep: bool = False):
         """A narrow window: the navigation shows only its icons (names as hover text) – the page gets the room.
@@ -1461,10 +1589,12 @@ class MainWindow(QMainWindow):
         self.search.setFixedWidth(nav_w())
         self.search_btn.setFixedWidth(nav_compact_w())
         self.status_btn.setFixedWidth(nav_compact_w() if on else nav_w())
+        self.nav_foot.setFixedWidth(nav_compact_w() if on else nav_w())
         side = nav_icon_px()                       # 1.55.7: the icons and the signs on their column grow too
         if self.nav.iconSize().width() != side:
             self.nav.setIconSize(QSize(side, side))
             self.status_btn.rezoom()
+            self.nav_foot.rezoom()
             m = self._brand_lay.contentsMargins()
             self._brand_lay.setContentsMargins(nav_sign_x() - qt_theme.icon_px(qt_theme.ICON["l"]) // 2, m.top(),
                                                m.right(), m.bottom())
@@ -1473,9 +1603,11 @@ class MainWindow(QMainWindow):
         """Names in the rows (or as hover text while the navigation is narrow), whatever their order."""
         labels = dict(PAGES)
         on = self._nav_compact
+        shown = self.nav_shown()
         for row in range(self.nav.count()):
             item = self.nav.item(row)
             label = labels.get(item.data(Qt.UserRole), "")
             item.setText("" if on else _(label))
-            key = _("Strg+{n}", n=row + 1) if row < NAV_KEYS else ""          # 1.17: Ctrl+1 … Ctrl+9
+            n = shown.index(item.data(Qt.UserRole)) if item.data(Qt.UserRole) in shown else NAV_KEYS
+            key = _("Strg+{n}", n=n + 1) if n < NAV_KEYS else ""          # 1.17: Ctrl+1 … Ctrl+9
             item.setToolTip((_(label) + " · " + key if key else _(label)) if on else key)

@@ -3156,25 +3156,66 @@ def test_a_disabled_primary_button_does_not_look_active_and_shows_the_focus(qapp
 
 def test_ctrl_and_a_number_opens_the_page_in_that_row_of_the_navigation(qapp):
     """1.17: Ctrl+1 … Ctrl+9 = the n-th row of the navigation – its own order, also out of the setup assistant;
-    the rows say their key on hover."""
+    the rows say their key on hover. 1.57.81: the n-th row it shows (calculator, server and log have none)."""
     from fogscout import qt_window
     win = qt_window.MainWindow(lambda a, arg=None: None)
     try:
-        keys = win.nav_keys()
+        keys = win.nav_shown()
         win.nav_jump(3)
         assert win.current_key() == keys[3]
-        win.set_nav_order(["log"] + [k for k in keys if k != "log"])
+        win.set_nav_order(["log", "settings"] + [k for k in win.nav_keys() if k not in ("log", "settings")])
         win.nav_jump(0)
-        assert win.current_key() == "log"
-        assert "Strg+1" in win.nav.item(0).toolTip()
+        assert win.current_key() == "settings"                  # the log's row is hidden: not counted
+        assert "Strg+1" in win.nav.item(1).toolTip() and win.nav.item(0).toolTip() == ""
         win.show_setup(True)
         win.nav_jump(1)
-        assert not win._setup_on and win.current_key() == win.nav_keys()[1]
+        assert not win._setup_on and win.current_key() == win.nav_shown()[1]
         win.nav_jump(99)                                        # no such row: nothing happens
-        assert win.current_key() == win.nav_keys()[1]
+        win.nav_jump(len(win.nav_shown()))                      # one past the shown rows: nothing either
+        assert win.current_key() == win.nav_shown()[1]
     finally:
         win.allow_close = True
         win.close()
+
+
+def test_the_navigation_shows_six_pages_and_the_others_are_reached_from_their_place(qapp, keep):
+    """1.57.81 (user: "sechs Seiten"): calculator, server and log have no row in the navigation – they stay pages:
+    the server opens from the settings' list, the calculator from the statistics, the log from the foot; server and
+    calculator have the way back above their title. The rows stay hidden in another order and after a drag."""
+    from PySide6.QtWidgets import QPushButton
+    from fogscout import qt_window
+    win = keep(qt_window.MainWindow(lambda a, arg=None: None))
+    win.resize(1280, 800)
+    win.show()
+    hidden = lambda: [win.nav.item(r).data(0x0100) for r in range(win.nav.count()) if win.nav.isRowHidden(r)]  # noqa: E731
+    assert win.nav_shown() == ["overview", "maps", "overlay", "stats", "recordings", "settings"]
+    assert sorted(hidden()) == ["calc", "log", "server"] and len(win.nav_keys()) == 9
+    win.set_nav_order(["server", "settings", "calc"])
+    assert sorted(hidden()) == ["calc", "log", "server"] and win.nav_shown()[0] == "settings"
+    win.show_page("settings")
+    link = win.forms["settings"].tab_links["server"]
+    assert link.text().startswith("Server") and link.isVisible()
+    link.click()
+    assert win.current_key() == "server"
+    from PySide6.QtWidgets import QWidget
+    from fogscout import qt_common
+
+    def head(title, key):                                   # a page's head as its page builds it, inside the window
+        box = QWidget(win)
+        box.setLayout(qt_common.page_head(title, key))
+        return [b for b in box.findChildren(QPushButton) if b.objectName() == "pageback"]
+    back = head("Server", "server")
+    assert len(back) == 1 and back[0].text() == "‹ Einstellungen"
+    back[0].click()
+    assert win.current_key() == "settings"
+    calc = head("Rechner", "calc")
+    assert calc[0].text() == "‹ Statistik"
+    calc[0].click()
+    assert win.current_key() == "stats"
+    win.nav_foot.log_btn.click()
+    assert win.current_key() == "log"
+    assert not head("Log", "log") and not head("Maps", "maps")
+    assert qt_window.NAV_HIDDEN == ("calc", "server", "log")
 
 
 def test_the_name_column_is_never_squeezed_below_its_contents(qapp, keep):
@@ -3328,6 +3369,63 @@ def test_page_keys_never_get_in_the_way_of_typing(qapp, keep):
     assert win.current_key() == win.nav_keys()[2]
     win.allow_close = True
     win.close()
+
+
+def test_the_navigation_folds_to_its_icons_on_the_arrow_and_shows_obs_and_the_server(qapp, keep):
+    """1.57.80 (draft D "Einklappbar"): under the state a row each for OBS and the server, "Log" and an arrow – it
+    folds the navigation to its icons (remembered: posts nav_collapse) and opens it again; folded, the rows are
+    dots with the words as hover text."""
+    from fogscout import qt_window
+    posted = []
+    win = keep(qt_window.MainWindow(lambda a, arg=None: posted.append((a, arg))))
+    win.resize(1280, 800)
+    win.show()
+    win.show_status("wait", "Wartet auf das nächste Match")
+    win.show_status_rows([("OBS", "nimmt auf", "err"), ("Server", "Frankfurt · 28 ms", "ok")])
+    foot = win.nav_foot
+    shown = [(n.text(), w.text()) for _r, _d, n, w in foot.rows]
+    assert shown == [("OBS", "nimmt auf"), ("Server", "Frankfurt · 28 ms")]
+    assert all(r.isVisible() and n.isVisible() and not d.pixmap().isNull() for r, d, n, _w in foot.rows)
+    assert foot.rows[0][1].pixmap().toImage() != foot.rows[1][1].pixmap().toImage()      # red and green
+    assert foot.fold_btn.text() == "«" and foot.log_btn.isVisible() and not win._nav_compact
+    foot.log_btn.click()
+    assert win.current_key() == "log"
+    foot.fold_btn.click()
+    assert win._nav_compact and win._nav_user and posted[-1] == ("nav_collapse", True)
+    assert foot.width() == win.nav.width() == qt_window.nav_compact_w() and foot.fold_btn.text() == "»"
+    assert foot.log_btn.isHidden() and all(n.isHidden() and w.isHidden() for _r, _d, n, w in foot.rows)
+    assert foot.rows[1][0].toolTip() == "Server: Frankfurt · 28 ms"
+    win.resize(1500, 800)                                   # a wide window does not open it again
+    qapp.processEvents()
+    assert win._nav_compact
+    foot.fold_btn.click()
+    assert not win._nav_compact and posted[-1] == ("nav_collapse", False) and foot.width() == qt_window.nav_w()
+    win.set_nav_collapsed(True)                             # the setting at the start
+    assert win._nav_compact and ("nav_collapse", True) != posted[-1]
+    win.set_nav_collapsed(False)
+    win.resize(900, 700)                                    # too narrow for the names: narrow whatever the choice
+    qapp.processEvents()
+    assert win._nav_compact and not win._nav_user
+    foot.fold_btn.click()
+    assert win._nav_compact and posted[-1] == ("nav_collapse", False)
+    win.show_status_rows([("OBS", "aus", "off")])           # one row: the other is hidden
+    assert foot.rows[0][0].isVisible() and foot.rows[1][0].isHidden()
+
+
+def test_the_rows_of_obs_and_the_server_say_what_is_on():
+    """1.57.80: overview.status_rows – off, recording, the region with its ping (level from the ping)."""
+    from fogscout import overview
+    conn = SimpleNamespace(running=False, server=None, ping_ms=None)
+    app = SimpleNamespace(settings={"rec_on": False}, recorder=SimpleNamespace(recording=False), conn=conn)
+    assert overview.status_rows(app, 0.0, True) == [("OBS", "aus", "off"), ("Server", "aus", "off")]
+    app.settings["rec_on"], app.recorder.recording = True, True
+    conn.running = True
+    assert overview.status_rows(app, 0.0, True) == [("OBS", "nimmt auf", "err"), ("Server", "Warte auf Match …", "ok")]
+    conn.server, conn.ping_ms = {"region": "eu-central-1"}, 95.0
+    title, words, level = overview.status_rows(app, 0.0, True)[1]
+    assert words.endswith("· 95 ms") and level == "err"
+    conn.ping_ms = 28.0
+    assert overview.status_rows(app, 0.0, True)[1][2] == "ok"
 
 
 def test_the_navigation_shows_the_name_and_the_state_on_every_page(qapp, keep):
