@@ -6184,4 +6184,9 @@ T = {
         'リセット前に設定を保存しました: {name}',
     'Mit OBS nimmt Fog Scout jede Runde von selbst auf und benennt sie nach Map und Rolle. F8 speichert einen Clip, der Editor schneidet ihn.':
         'OBS と組み合わせると、Fog Scout は各ラウンドを自動で録画し、マップとロールで名前を付けます。F8 でクリップを保存し、エディターで編集します。',
+    '{k} als Killer · {s} als Survivor': 'キラー {k} · サバイバー {s}',
+    '{n} Runden · {four}× 4K': '{n} ラウンド · {four}× 4K',
+    'noch kein Ergebnis': '結果はまだありません',
+    'Killer auf dieser Map': 'このマップでのキラー',
+    'Noch keine Runde auf dieser Map gespielt.': 'このマップではまだプレイしていません。',
 }

@@ -6184,4 +6184,9 @@ T = {
         'Настройки сохранены перед сбросом: {name}',
     'Mit OBS nimmt Fog Scout jede Runde von selbst auf und benennt sie nach Map und Rolle. F8 speichert einen Clip, der Editor schneidet ihn.':
         'С OBS Fog Scout сам записывает каждый раунд и называет его по карте и роли. F8 сохраняет клип, редактор его обрезает.',
+    '{k} als Killer · {s} als Survivor': '{k} за убийцу · {s} за выжившего',
+    '{n} Runden · {four}× 4K': '{n} раундов · {four}× 4K',
+    'noch kein Ergebnis': 'результатов пока нет',
+    'Killer auf dieser Map': 'Убийцы на этой карте',
+    'Noch keine Runde auf dieser Map gespielt.': 'На этой карте ещё не сыграно ни одного раунда.',
 }

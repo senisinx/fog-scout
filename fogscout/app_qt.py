@@ -14,10 +14,11 @@ import traceback
 
 from PIL import Image
 
-from . import __version__, history, mapnotes, official, overview, tooltip
+from . import __version__, history, mapnotes, mapprofile, official, overview, tooltip
 from . import uimodel as ui
 from .capture import IS_WIN, foreground_root, is_game_window
 from .i18n import _
+from .lobby import killer_label
 from .mainloop import MainLoop
 
 log = logging.getLogger("fogscout")
@@ -728,9 +729,10 @@ class QtShell:
         mid, v = sel[0], int(sel[1])
         path, shown = self._map_file(mid, v)              # 1.8.21: never made here – the original until it is there
         note = mapnotes.get(self.settings.get(mapnotes.KEY), mid)          # 1.8.54: never cached – typed meanwhile
+        tail = (note, self._qt_map_profile(mid))
         cached = getattr(self, "_qt_preview_cache", None)
         if cached is not None and cached[0] == (mid, v, id(self.catalog), path):
-            return cached[1] + (note,)
+            return cached[1] + tail
         m = self.catalog.maps[mid]
         pic = None
         if path:
@@ -748,7 +750,16 @@ class QtShell:
         realm = self.catalog.realm_display(m) or _("Eigene Bilder")
         out = (mid, shown, m.shown_label(shown), realm, pic)
         self._qt_preview_cache = ((mid, v, id(self.catalog), path), out)
-        return out + (note,)
+        return out + tail
+
+    def _qt_map_profile(self, mid):
+        """The own record on the map shown big (mapprofile) – built once per map and state of the history."""
+        j = self._joined()
+        cached = getattr(self, "_qt_profile_cache", None)
+        if cached is None or cached[0] is not j or cached[1] != mid:
+            cached = self._qt_profile_cache = (j, mid, mapprofile.build(j.rounds, j.off, mid, killer_label,
+                                                                        self._official_result))
+        return cached[2]
 
     def _qt_thumbs(self, items):
         """{(map_id, variant): picture path} for the tiles – the dark picture only if already made (no waiting)."""

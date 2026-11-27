@@ -6184,4 +6184,9 @@ T = {
         'Impostazioni salvate prima del ripristino: {name}',
     'Mit OBS nimmt Fog Scout jede Runde von selbst auf und benennt sie nach Map und Rolle. F8 speichert einen Clip, der Editor schneidet ihn.':
         "Con OBS, Fog Scout registra da solo ogni round e lo nomina con mappa e ruolo. F8 salva una clip, l'editor la taglia.",
+    '{k} als Killer · {s} als Survivor': '{k} da killer · {s} da sopravvissuto',
+    '{n} Runden · {four}× 4K': '{n} round · {four}× 4K',
+    'noch kein Ergebnis': 'ancora nessun risultato',
+    'Killer auf dieser Map': 'Killer su questa mappa',
+    'Noch keine Runde auf dieser Map gespielt.': 'Ancora nessun round giocato su questa mappa.',
 }

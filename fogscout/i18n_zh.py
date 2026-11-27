@@ -6184,4 +6184,9 @@ T = {
         '重置前已保存设置：{name}',
     'Mit OBS nimmt Fog Scout jede Runde von selbst auf und benennt sie nach Map und Rolle. F8 speichert einen Clip, der Editor schneidet ihn.':
         '配合 OBS，Fog Scout 会自动录制每个对局，并按地图和角色命名。F8 保存片段，编辑器负责剪辑。',
+    '{k} als Killer · {s} als Survivor': '{k} 局杀手 · {s} 局逃生者',
+    '{n} Runden · {four}× 4K': '{n} 局 · {four}× 4K',
+    'noch kein Ergebnis': '暂无结果',
+    'Killer auf dieser Map': '此地图上的杀手',
+    'Noch keine Runde auf dieser Map gespielt.': '尚未在此地图上进行过对局。',
 }

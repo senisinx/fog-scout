@@ -375,6 +375,7 @@ QTabWidget#formtabs::pane {{ background: {c['card']}; border: 1px solid {c['bord
     border-top-left-radius: 0; }}
 QTabWidget#formtabs[found="true"]::pane {{ border: 1px solid {c['accent']}; }}
 QTabWidget#formtabs QWidget#page {{ background: {c['card']}; }}
+QScrollArea#maprecord, QScrollArea#maprecord > QWidget > QWidget {{ background: {c['card']}; }}
 QTabWidget#formtabs > QTabBar::tab {{ font-weight: 600; padding: 8px 16px; }}
 QTabWidget#formtabs > QTabBar[dense="true"]::tab {{ padding: 8px 9px; }}  /* 1.39: a row wider than its page */
 QTabBar::tab {{ background: transparent; color: {c['dim']}; padding: 7px 14px; border: none; }}

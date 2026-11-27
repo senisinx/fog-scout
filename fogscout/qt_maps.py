@@ -8,14 +8,15 @@ from __future__ import annotations
 
 from PySide6.QtCore import QPoint, QSize, Qt, QTimer
 from PySide6.QtGui import QColor, QImage, QPalette, QPixmap
-from PySide6.QtWidgets import (QApplication, QButtonGroup, QFrame, QHBoxLayout, QLabel, QLineEdit, QListWidget, QListWidgetItem, QMenu,
+from PySide6.QtWidgets import (QApplication, QBoxLayout, QButtonGroup, QFrame, QGridLayout, QHBoxLayout, QLabel, QLineEdit, QListWidget, QListWidgetItem, QMenu,
                                QPlainTextEdit, QPushButton, QStyle, QStyledItemDelegate, QStyleOptionViewItem, QScrollArea,
                                QSizePolicy, QStackedWidget, QVBoxLayout, QWidget)
 
-from . import i18n, qt_theme, thumbs
+from . import i18n, mapprofile, qt_theme, thumbs
 from .qt_layouts import FlowRow
 from .i18n import N_, _
 from .mapnotes import MAX_CHARS as NOTE_CHARS
+from .qt_views import FactBox
 from .qt_common import pixmap_from_pil, steady_scroll, _label, _tip, _card, _set, _scroll_page, set_glyph
 
 
@@ -29,6 +30,9 @@ PUMP_TAKE = 8
 
 
 ALL_MAPS, RECENT = "\x00all", "\x00recent"     # the two entries above the realms in the list
+
+PROFILE_W = 300                    # px (logical): the map's own record beside its picture (mapprofile)
+PROFILE_BESIDE = 620               # … from this width of the card on, below the picture in a narrower one
 
 
 class MapTile(QFrame):
@@ -277,7 +281,21 @@ class MapsPage(QWidget):
         self.p_pic.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Ignored)   # scales with the card, not the image
         cl.addWidget(self.p_name)
         cl.addWidget(self.p_realm)
-        cl.addWidget(self.p_pic, 1)
+        # the map's profile (mapprofile): the picture and, beside it (below in a narrow window), the own record there
+        self.p_body = QBoxLayout(QBoxLayout.LeftToRight)
+        self.p_body.setSpacing(16)
+        self.p_body.addWidget(self.p_pic, 1)
+        # in a scroll area: a low window scrolls the record, it never squeezes the tiles or the picture
+        self.p_profile = QScrollArea()
+        self.p_profile.setObjectName("maprecord")
+        self.p_profile.setWidgetResizable(True)
+        self.p_profile.setFrameShape(QFrame.NoFrame)
+        self.p_profile.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        steady_scroll(self.p_profile)
+        self.p_profile.setWidget(self._profile_panel())
+        self.p_body.addWidget(self.p_profile)
+        cl.addLayout(self.p_body, 1)
+        self._big = big
         # 1.8.54 (user: "Notizen für die Map"): the own note, saved while typing, shown in the game with the map
         cl.addWidget(_label(_("Eigene Notiz (im Spiel unter dem Timer)"), "dim"))
         self.p_note = QPlainTextEdit()
@@ -315,6 +333,90 @@ class MapsPage(QWidget):
         self._clicker.setSingleShot(True)
         self._clicker.timeout.connect(self._clicked_once)
         self.show_preview(None)
+
+    # ------------------------------------------------------------------ the map's profile (mapprofile)
+    def _profile_panel(self) -> QWidget:
+        """Four tiles (rounds, Ø kills, escaped, Ø length), the killers played there and the last rounds – a fixed
+        set of labels filled by ``show_profile`` (nothing is built while the page refreshes)."""
+        panel = QWidget()
+        lay = QVBoxLayout(panel)
+        lay.setContentsMargins(0, 0, 8, 0)
+        lay.setSpacing(6)
+        self.p_empty = _label(_("Noch keine Runde auf dieser Map gespielt."), "dim", wrap=True)
+        lay.addWidget(self.p_empty)
+        self.p_stats = QWidget()
+        sl = QVBoxLayout(self.p_stats)
+        sl.setContentsMargins(0, 0, 0, 0)
+        sl.setSpacing(6)
+        tiles = QGridLayout()
+        tiles.setContentsMargins(0, 0, 0, 0)
+        tiles.setHorizontalSpacing(16)
+        tiles.setVerticalSpacing(10)
+        self.p_tiles = [FactBox(bar=True, post=self._post) for _i in range(4)]
+        for i, box in enumerate(self.p_tiles):
+            tiles.addWidget(box, i // 2, i % 2)
+            tiles.setColumnStretch(i % 2, 1)
+        sl.addLayout(tiles)
+
+        def rows(title, count, columns):
+            head = _label(title, "dim")
+            sl.addSpacing(6)
+            sl.addWidget(head)
+            grid = QGridLayout()
+            grid.setContentsMargins(0, 0, 0, 0)
+            grid.setHorizontalSpacing(12)
+            grid.setVerticalSpacing(2)
+            grid.setColumnStretch(columns[0], 1)
+            out = []
+            for r in range(count):
+                line = [_label() for _c in range(columns[1])]
+                for c, w in enumerate(line):
+                    if c != columns[0]:
+                        w.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
+                    grid.addWidget(w, r, c)
+                out.append(line)
+            sl.addLayout(grid)
+            return head, out
+
+        self.p_killers_head, self.p_killers = rows(_("Killer auf dieser Map"), mapprofile.KILLERS_KEPT, (0, 3))
+        self.p_recent_head, self.p_recent = rows(_("Letzte Runden"), mapprofile.RECENT_KEPT, (1, 4))
+        lay.addWidget(self.p_stats)
+        lay.addStretch(1)
+        self._profile = None
+        return panel
+
+    def show_profile(self, profile):
+        """``profile``: mapprofile.Profile of the map shown big (None: no map)."""
+        if profile == self._profile:
+            return
+        self._profile = profile
+        has = bool(profile and profile.rounds)
+        self.p_empty.setVisible(profile is not None and not has)
+        self.p_stats.setVisible(has)
+        if not has:
+            return
+        for box, tile in zip(self.p_tiles, profile.tiles):
+            box.show_fact(tile)
+        for head, labels, data in ((self.p_killers_head, self.p_killers, profile.killers),
+                                   (self.p_recent_head, self.p_recent, profile.recent)):
+            head.setVisible(bool(data))
+            for i, line in enumerate(labels):
+                row = data[i] if i < len(data) else None
+                for w, text in zip(line, row or [""] * len(line)):
+                    _set(w, text)
+                    w.setVisible(row is not None)
+
+    def _arrange_big(self):
+        """The profile beside the picture from PROFILE_BESIDE on (at the text zoom), else below it."""
+        zoom = qt_theme.current_zoom()
+        beside = self._big.width() >= PROFILE_BESIDE * zoom
+        want = QBoxLayout.LeftToRight if beside else QBoxLayout.TopToBottom
+        if self.p_body.direction() != want:
+            self.p_body.setDirection(want)
+        width = round(PROFILE_W * zoom) if beside else 16777215
+        if self.p_profile.maximumWidth() != width:
+            self.p_profile.setMinimumWidth(width if beside else 0)
+            self.p_profile.setMaximumWidth(width)
 
     # ------------------------------------------------------------------ list of realms
     def _searched(self, text):
@@ -699,8 +801,10 @@ class MapsPage(QWidget):
             self._post("show_map", tuple(self._preview_key))
 
     def show_preview(self, p):
-        """p = (map_id, variant, name, realm, PIL picture or None, own note) or None (nothing selected)."""
+        """p = (map_id, variant, name, realm, PIL picture or None, own note, mapprofile.Profile) or None (nothing
+        selected)."""
         self._show_note(p[0] if p else None, p[5] if p and len(p) > 5 else "")
+        self.show_profile(p[6] if p and len(p) > 6 else None)
         key = tuple(p[:2]) if p else None
         if p is not None and key == self._preview_key and p[4] is self._preview_src:
             return
@@ -721,6 +825,7 @@ class MapsPage(QWidget):
 
     def resizeEvent(self, e):
         super().resizeEvent(e)
+        self._arrange_big()
         self._scale_preview()
 
     def _pick_first(self):

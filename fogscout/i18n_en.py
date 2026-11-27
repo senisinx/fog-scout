@@ -4661,4 +4661,9 @@ EN = {
         'Settings saved before the reset: {name}',
     'Mit OBS nimmt Fog Scout jede Runde von selbst auf und benennt sie nach Map und Rolle. F8 speichert einen Clip, der Editor schneidet ihn.':
         'With OBS, Fog Scout records every round by itself and names it after the map and your role. F8 saves a clip, the editor cuts it.',
+    '{k} als Killer · {s} als Survivor': '{k} as killer · {s} as survivor',
+    '{n} Runden · {four}× 4K': '{n} rounds · {four}× 4K',
+    'noch kein Ergebnis': 'no result yet',
+    'Killer auf dieser Map': 'Killers on this map',
+    'Noch keine Runde auf dieser Map gespielt.': 'No round played on this map yet.',
 }
