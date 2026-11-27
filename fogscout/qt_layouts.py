@@ -222,18 +222,23 @@ class WrapCheck(QWidget):
 
     clicked = Signal(bool)
 
-    def __init__(self, box=None):
-        """``box`` (1.57.76): another checkable button in the tick box's place – the overview's on / off switches."""
+    def __init__(self, box=None, right=False):
+        """``box`` (1.57.76): another checkable button in the tick box's place – the overview's on / off switches.
+        ``right`` (1.57.89): the box after the text, at the row's right end (a row of the settings)."""
         super().__init__()
         lay = QHBoxLayout(self)
         lay.setContentsMargins(0, 0, 0, 0)
-        lay.setSpacing(6)
+        lay.setSpacing(12 if right else 6)
         self.box = box if box is not None else QCheckBox()
         self.label = _ClickLabel(self.box)
         self.label.setWordWrap(True)
         self.label.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
-        lay.addWidget(self.box, 0, Qt.AlignTop)
-        lay.addWidget(self.label, 1)
+        if right:
+            lay.addWidget(self.label, 1)
+            lay.addWidget(self.box, 0, Qt.AlignTop)
+        else:
+            lay.addWidget(self.box, 0, Qt.AlignTop)
+            lay.addWidget(self.label, 1)
         self.box.clicked.connect(lambda _c=False: self.clicked.emit(self.box.isChecked()))
 
     def natural_width(self) -> int:

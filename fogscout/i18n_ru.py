@@ -6398,4 +6398,6 @@ T = {
         'Тема «Картографический стол»',
     'Ein eigener Look: dunkelgrüne Flächen, papierfarbene Schrift, bernsteinfarbener Akzent. Ein Farbfeld oben wählt wieder den normalen Look mit dieser Farbe.':
         'Отдельный вид: тёмно-зелёные поверхности, текст цвета бумаги, янтарный акцент. Цветной квадрат выше возвращает обычный вид с этим цветом.',
+    'Stand der Verbindungen':
+        'Состояние подключений',
 }

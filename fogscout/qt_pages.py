@@ -767,6 +767,8 @@ class CapSlider(QSlider):
 
 
 SWITCH_PAGES = ("settings",)     # 1.57.88 (draft B of the settings): on these pages a tick box is an on / off switch
+ROW_COLUMN_W = 760               # 1.57.89: … and the cards are at most this wide (px × zoom): a row's name and its
+                                 # control at the right end stay within one glance
 
 
 def make_control(kind, key, post, switch=False):
@@ -775,7 +777,7 @@ def make_control(kind, key, post, switch=False):
     extra = None
     if kind == "check" and switch:
         from .qt_overlay import SwitchButton
-        w = WrapCheck(SwitchButton())
+        w = WrapCheck(SwitchButton(), right=True)        # 1.57.89: a row – the name left, the switch right
         w.clicked.connect(lambda checked: post("act", (key, checked)))
     elif kind == "check":
         w = WrapCheck()                           # its text wraps in a narrow window (QCheckBox's does not)
@@ -1195,6 +1197,8 @@ class _Arranged:
     def _column(self, page_key):
         n = len(self.columns)
         col = CardColumn(lambda ids, n=n: self._post("card_order", (page_key, n, ids)))
+        if page_key in SWITCH_PAGES:                  # 1.57.89: rows, not a page-wide form
+            col.setMaximumWidth(round(ROW_COLUMN_W * qt_theme.current_zoom()))
         self.columns.append(col)
         return col
 
@@ -1699,6 +1703,13 @@ class FormPage(QWidget, _Arranged):
                 row.setSpacing(8)
                 for c in kids:
                     self._add(c, row)
+            elif (self._page_key in SWITCH_PAGES and len(kids) == 3 and kids[0][0] == "label"
+                  and kids[1][0] == "combo" and kids[2][0] == "stretch"):
+                row = QHBoxLayout()                   # 1.57.89: a row of the settings – name left, choice right
+                row.setSpacing(8)
+                self._add(kids[0], row)
+                row.addStretch(1)
+                self._add(kids[1], row)
             else:                                     # controls only: they wrap when the window is narrow
                 row = FlowRow()
                 cut = next((i for i, c in enumerate(kids) if c[0] == "stretch"), len(kids))

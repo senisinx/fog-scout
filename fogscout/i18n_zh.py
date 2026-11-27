@@ -6398,4 +6398,6 @@ T = {
         '配色“地图桌”',
     'Ein eigener Look: dunkelgrüne Flächen, papierfarbene Schrift, bernsteinfarbener Akzent. Ein Farbfeld oben wählt wieder den normalen Look mit dieser Farbe.':
         '独立外观：深绿色表面、纸色文字、琥珀色强调。上方的色块会恢复使用该颜色的普通外观。',
+    'Stand der Verbindungen':
+        '连接状态',
 }

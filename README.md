@@ -167,6 +167,8 @@ Seit 1.8.8 haben Auswahllisten und Häkchen einen eigenen Stil wie Knöpfe und F
 
 **Darstellung der Systemwerte** (seit 1.57.75): Overlay → Systemwerte → **Darstellung**: „Zeilen (wie bisher)“, **Kurven** (FPS, GPU-Temperatur und CPU-Last der letzten zehn Minuten, darunter VRAM, RAM und Ping), **Messleisten** (jeder Wert als Leiste mit grünem, gelbem und rotem Bereich und einem Zeiger) oder **Zwei Zeilen** (grosse FPS-Zahl, daneben GPU, CPU, Speicher und Ping). Dieselben Messwerte wie bisher; Zahlen werden gelb bzw. rot ab denselben Temperaturen wie in den Zeilen, FPS unter 110 bzw. 70, Speicher ab 85 % bzw. 93 %, Ping ab 45 bzw. 80 ms. Jede Darstellung hat eine feste Grösse; ein fehlender Wert (ohne HWiNFO: FPS, CPU-Temperatur, Hotspot) steht als „–“. Die Häkchen „Zeile …“ gelten nur für die Zeilen.
 
+**Einstellungen als Zeilen, Stand der Verbindungen** (seit 1.57.89): In den Einstellungen steht der **Name links, der Schalter oder die Auswahl rechts** in der Zeile; die Kästen sind höchstens 760 px breit, damit beides in einem Blick bleibt. **Verbindungen** beginnt mit einer Zeile je Verbindung (OBS, Discord, Spotify, YouTube, Claude), die sagt, wie es um sie steht: aus, nicht eingerichtet, verbunden, Anmeldung nötig …
+
 **Schalter in den Einstellungen** (seit 1.57.88): Die Häkchen der Einstellungen sind Ein/Aus-Schalter – wie auf der Übersicht und in der Liste der Overlay-Elemente.
 
 **Overlay-Seite als „Bühne“** (seit 1.57.87): Die **Vorschau** steht oben über die ganze Breite der Seite, darunter die **Zeile aller Elemente** mit Schloss und Ein/Aus-Schalter, darunter die **Einstellungen des gewählten Elements** – links Schnellposition, Grösse und Deckkraft, rechts seine eigenen Einstellungen. In einem schmalen Fenster steht alles untereinander.

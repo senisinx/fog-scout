@@ -947,6 +947,37 @@ def test_the_dashboard_has_no_tile_that_would_only_say_nothing():
     assert "Filter zurücksetzen" in dashboard.build([], []).empty
 
 
+def test_the_settings_are_rows_and_say_how_each_connection_is(qapp, keep):
+    """1.57.89 (draft B of the settings): a switch stands at the right end of its row, a choice too; the cards are
+    at most ROW_COLUMN_W wide; "Verbindungen" starts with one line per connection – off, not set up, or its state."""
+    from fogscout import overview, qt_pages, qt_window
+    page = keep(qt_window.FormPage(lambda a, arg=None: None, "Einstellungen", qt_window.SPECS["settings"], "settings"))
+    page.resize(1400, 900)
+    page.show()
+    page.show_states({"st.tray": {"text": "Beim Minimieren in den Infobereich", "value": True, "visible": True},
+                      "st.dark.label": {"text": "Darstellung", "visible": True},
+                      "st.dark": {"value": "Dunkel", "values": ["Hell", "Dunkel"], "visible": True, "enabled": True}})
+    qapp.processEvents()
+    w = page.controls["st.tray"][1]
+    assert w.box.geometry().left() > w.label.geometry().right() - 2          # the switch after its text
+    label, combo = page.controls["st.dark.label"][1], page.controls["st.dark"][1]
+    assert combo.geometry().left() > label.geometry().right() + 40            # the choice at the row's right end
+    assert all(c.maximumWidth() == qt_pages.ROW_COLUMN_W for c in page.columns)
+    assert {f"st.link.{k}" for k, _n in overview.LINKS} <= qt_window.page_keys("settings")
+
+    def app(**settings):
+        return SimpleNamespace(settings=settings, presence=SimpleNamespace(connected=True),
+                               spotify=SimpleNamespace(state="login_needed"), youtube=SimpleNamespace(state="linked"),
+                               recorder=SimpleNamespace(recording=True, space=None))
+    rows = {k: (words, level) for k, _n, words, level in overview.connections(app())}
+    assert set(rows.values()) == {("aus", "off")} and list(rows) == ["obs", "discord", "spotify", "youtube", "claude"]
+    rows = {k: (words, level) for k, _n, words, level in overview.connections(app(
+        rec_on=True, discord_on=True, spotify_on=True, spotify_client_id="x", youtube_on=True, youtube_client_id="y",
+        claude_stats=True))}
+    assert rows == {"obs": ("nimmt auf", "ok"), "discord": ("nicht eingerichtet", "warn"),
+                    "spotify": ("Anmeldung nötig", "warn"), "youtube": ("verbunden", "ok"), "claude": ("an", "ok")}
+
+
 def test_the_tick_boxes_of_the_settings_are_switches(qapp, keep):
     """1.57.88 (draft B of the settings): on the settings page a tick box is the on / off switch of the overview
     and the overlay's list – the same state and clicks; other hand-made pages keep their tick boxes."""
@@ -2239,12 +2270,13 @@ def test_the_settings_page_is_split_into_tabs_with_its_cards(qapp, keep):
                      **{k: "Aufnahmen" for k in recs},
                      "st.more.obs": "Verbindungen", "st.more.discord": "Verbindungen", "st.more.spotify": "Verbindungen",
                      "st.more.youtube": "Verbindungen", "st.more.claude": "Verbindungen",                                                 # 1.10
-                     "st.about": "Über"}                                                                                                  # 1.57.85
+                     "st.about": "Über", "st.links": "Verbindungen"}                                                                                                  # 1.57.85
     assert [col.ids() for col in page.columns] == [
         ["st.look", "st.start", "st.updates", "st.more.backup"],
         ["st.detect", "st.det_tech", "st.langs", "st.more.own", "st.notify"], ["st.hotkeys"],
         ["st.more.official", "st.more.farming"], recs,
-        ["st.more.obs", "st.more.discord", "st.more.spotify", "st.more.youtube", "st.more.claude"], ["st.about"]]
+        ["st.links", "st.more.obs", "st.more.discord", "st.more.spotify", "st.more.youtube", "st.more.claude"],
+        ["st.about"]]
     # 1.29.1 (user: "unübersichtlich, was gehört zu was"): six OBS cards instead of one with five sub-headings;
     # an option that only counts with the one above sits indented under it
     from PySide6.QtWidgets import QLabel, QWidget
