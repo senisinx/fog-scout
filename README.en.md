@@ -177,6 +177,8 @@ Since 1.8.8 choice boxes and tick boxes have their own style like buttons and fi
 
 **Settings in two columns, a click plays a clip** (since 1.57.93): under Recordings › Clips **a clicked tile plays at once** – the player is on top across the whole width, the tiles below; it shows the picture, the timeline and playback, “Large editor …” opens the clip for cutting. Several marked tiles show no player; during a round it does not start by itself. in a wide window the cards of the settings stand **in two columns side by side** – the first ones on the left, the rest on the right, about equally high. The page is filled, and every row stays as short as before (a card is at most 760 px wide). A narrow window keeps one column. The order is still one list: a card can be dragged by its handle into the other column too.
 
+**Recordings: rounds on a click, full width, no dead buttons** (since 1.57.94): under Recordings › Rounds, too, **a clicked tile plays at once** in a player above the tiles – as for the clips. The tiles **fill the row** (a strip stayed empty on the right before), and without a reachable OBS the card “Recording” shows only “Check the connection …” instead of four greyed-out buttons.
+
 **Switches in the settings** (since 1.57.88): the tick boxes of the settings are on/off switches – as on the overview and in the list of overlay elements.
 
 **Overlay page as a "stage"** (since 1.57.87): the **preview** is on top across the page, below it the **row of all elements** with lock and on/off switch, below that the **settings of the element picked** – quick place, size and opacity on the left, its own settings on the right. In a narrow window everything is below each other.
