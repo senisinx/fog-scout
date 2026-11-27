@@ -342,6 +342,10 @@ QListWidget#nav::item {{ padding: 8px 12px; border-radius: {RADIUS['m']}px; marg
 QListWidget#nav::item:selected {{ background: {c['nav_sel']}; color: {c['accent']}; border-left: 3px solid {c['accent']};
     border-top-left-radius: 0; border-bottom-left-radius: 0; }}  /* 1.25: a straight mark, not a "(" */
 QListWidget#nav::item:hover:!selected {{ background: {c['hover']}; color: {c['fg']}; }}
+QListWidget#tablist {{ background: transparent; border: none; outline: 0; padding: 8px 0 0 0; }}  /* 1.57.78 */
+QListWidget#tablist::item {{ padding: 7px 12px; border-radius: {RADIUS['m']}px; margin: 1px 0; color: {c['dim']}; }}
+QListWidget#tablist::item:selected {{ background: {c['nav_sel']}; color: {c['head']}; font-weight: 600; }}
+QListWidget#tablist::item:hover:!selected {{ background: {c['hover']}; color: {c['fg']}; }}
 QFrame[class="card"] {{ background: {c['card']}; border: 1px solid {c['border']}; border-radius: {RADIUS['xl']}px; }}
 QFrame[class="card"] QLabel {{ background: transparent; }}
 QFrame[class="card"][dragging="true"], QFrame[class="card"][found="true"] {{ border: 1px solid {c['accent']}; }}

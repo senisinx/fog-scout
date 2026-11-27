@@ -6,7 +6,7 @@ from __future__ import annotations
 from PIL import Image, ImageDraw
 from PySide6.QtCore import QEvent, QRectF, QSize, Qt, QTimer
 from PySide6.QtGui import QColor, QGuiApplication, QIcon, QPainter, QPen
-from PySide6.QtWidgets import (QBoxLayout, QComboBox, QDialog, QFrame, QGridLayout, QHBoxLayout, QLabel, QLineEdit, QProgressBar,
+from PySide6.QtWidgets import (QAbstractItemView, QBoxLayout, QComboBox, QDialog, QFrame, QGridLayout, QHBoxLayout, QLabel, QLineEdit, QListWidget, QProgressBar,
                                QPushButton, QRadioButton, QScrollArea, QSizePolicy, QSlider, QStackedWidget,
                                QStyle, QStyleOptionSlider, QTabWidget, QVBoxLayout, QWidget)
 
@@ -1234,6 +1234,65 @@ class _Arranged:
                 self._applying = False
 
 
+class TabList(QListWidget):
+    """The tabs of a QTabWidget as a list beside it (1.57.78, user picked draft B "Liste links" for the settings):
+    one row per tab, the open one selected; hidden tabs have no row. The tab bar itself is hidden and stays the
+    truth – a click sets the tab, dragging a row moves the tab (FormPage._movable posts the order as before)."""
+
+    def __init__(self, tabs):
+        super().__init__()
+        self.setObjectName("tablist")
+        self._tabs, self._syncing = tabs, False
+        tabs.tabBar().hide()
+        self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.setDragDropMode(QAbstractItemView.InternalMove)
+        self.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Preferred)
+        self.currentRowChanged.connect(self._picked)
+        self.model().rowsMoved.connect(self._moved)
+        tabs.currentChanged.connect(lambda _i: self.sync())
+        tabs.tabBar().tabMoved.connect(lambda *_a: self.sync())
+        tabs.installEventFilter(self)
+        self.sync()
+
+    def eventFilter(self, obj, e):
+        if obj is self._tabs and e.type() == QEvent.LayoutRequest:       # a tab shown / hidden / renamed
+            self.sync()
+        return False
+
+    def sync(self):
+        if self._syncing:
+            return
+        self._syncing = True
+        try:
+            bar = self._tabs.tabBar()
+            texts = [bar.tabText(i).replace("&&", "&") for i in range(bar.count())]
+            if texts != [self.item(i).text() for i in range(self.count())]:
+                self.clear()
+                self.addItems(texts)
+                fm = self.fontMetrics()
+                self.setFixedWidth(max(150, max((fm.horizontalAdvance(t) for t in texts), default=0) + 48))
+            for i in range(self.count()):
+                self.item(i).setHidden(not bar.isTabVisible(i))
+            rows = sum(self.sizeHintForRow(i) for i in range(self.count()) if not self.item(i).isHidden())
+            if self.height() != rows + 2 * self.frameWidth() + 12:    # as tall as its rows: the list never scrolls
+                self.setFixedHeight(rows + 2 * self.frameWidth() + 12)
+            if self.currentRow() != self._tabs.currentIndex():
+                self.setCurrentRow(self._tabs.currentIndex())
+        finally:
+            self._syncing = False
+
+    def _picked(self, row):
+        if not self._syncing and 0 <= row < self._tabs.count():
+            self._tabs.setCurrentIndex(row)
+
+    def _moved(self, _parent, start, _end, _dest, row):
+        if self._syncing:
+            return
+        self._tabs.tabBar().moveTab(start, row - 1 if row > start else row)    # tabMoved → sync: the bar's order
+        self._tabs.setCurrentIndex(row - 1 if row > start else row)
+
+
 DENSE_TABS = 11                        # from this many tabs in a row the bar gets less padding (qt_theme)
 
 
@@ -1500,7 +1559,16 @@ class FormPage(QWidget, _Arranged):
                     self.controls[frame] = ("tab", tabs, body)
                     bodies[frame] = body
                 self._movable(item[1][0][0], tabs, bodies, page_key)     # id = the first tab's frame key
-                lay.addWidget(tabs)
+                if len(item) > 2 and item[2] == "list":        # 1.57.78: the tabs as a list on the left (settings)
+                    row = QHBoxLayout()
+                    row.setContentsMargins(0, 0, 0, 0)
+                    row.setSpacing(12)
+                    self.tab_list = TabList(tabs)
+                    row.addWidget(self.tab_list, 0, Qt.AlignTop)
+                    row.addWidget(tabs, 1)
+                    lay.addLayout(row)
+                else:
+                    lay.addWidget(tabs)
             elif kind == "links":
                 row = QHBoxLayout()
                 for c in item[1]:

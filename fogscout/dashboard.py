@@ -45,6 +45,9 @@ class Dashboard:
     columns: list = field(default_factory=list)       # heatmap columns (killers, display names)
     cells: dict = field(default_factory=dict)         # (map, killer) -> (average kills, rounds)
     empty: str = ""                                   # text instead of everything (no rounds)
+    trend: list = field(default_factory=list)         # 1.57.77: [(rounds, label, tip)] per hour / day / week
+    trend_title: str = ""
+    times: object = None                              # 1.57.77: Grid of the rounds by weekday × time of day
 
 
 def _bp(n) -> str:
@@ -263,13 +266,71 @@ def matrix(pairs, label=lambda k: k):
     return rows, cols, cells
 
 
-def build(rounds, pairs, killer_label=lambda k: k) -> Dashboard:
-    """``rounds``: the rounds the filters selected; ``pairs``: [(round, official match)] of those."""
+def play_trend(rounds, unit: str) -> list:
+    """How much was played over time (1.57.77, the statistics' first page): [(rounds, label, tip)] per hour / day /
+    week from the first to the last round of the selection, empty buckets included, the newest official.MAX_BUCKETS.
+    From the rounds alone – it needs no match data."""
+    import datetime
+    import time
+    counts = {}
+    for r in rounds:
+        try:
+            b = official.bucket_start(r.t, unit)
+        except (OSError, OverflowError, ValueError):   # Windows: no local time for a stamp at the start of 1970
+            continue
+        counts[b] = counts.get(b, 0) + 1
+    if not counts:
+        return []
+    out = []
+    for b in official.bucket_span(min(counts), max(counts), unit):
+        if unit == "week":
+            label = _("KW {n}", n=datetime.date.fromtimestamp(b).isocalendar()[1])
+            when = f"{label} ({time.strftime('%d.%m.', time.localtime(b))}–" \
+                   f"{time.strftime('%d.%m.', time.localtime(b + 6 * 86400))})"
+        elif unit == "hour":
+            label, when = time.strftime("%H:00", time.localtime(b)), time.strftime("%d.%m. %H:00", time.localtime(b))
+        else:
+            label = time.strftime("%d.%m.", time.localtime(b))
+            when = _(WEEKDAY_NAMES[time.localtime(b).tm_wday])[:2] + " " + label
+        n = counts.get(b, 0)
+        out.append((n, label, _("{when}: {n} Runden", when=when, n=n)))
+    return out
+
+
+def play_grid(rounds):
+    """When the user plays (1.57.77): a Grid of the number of rounds by weekday × time of day (blocks of
+    history.HOUR_BLOCK hours, local time) – every weekday and every block with a round, a cell without one empty."""
+    import datetime
+    counts = {}
+    for r in rounds:
+        try:
+            d = datetime.datetime.fromtimestamp(r.t)
+        except (OSError, OverflowError, ValueError):   # a time stamp the platform has no local time for
+            continue
+        cell = (d.weekday(), d.hour // history.HOUR_BLOCK * history.HOUR_BLOCK)
+        counts[cell] = counts.get(cell, 0) + 1
+    day = {w: _(WEEKDAY_NAMES[w]) for w in sorted({c[0] for c in counts})}
+    col = {b: f"{b:02d}–{(b + history.HOUR_BLOCK) % 24:02d}" for b in sorted({c[1] for c in counts})}
+    top = max(counts.values(), default=1)
+    return Grid(rows=list(day.values()), columns=list(col.values()),
+                cells={(day[w], col[b]): (float(n), n) for (w, b), n in counts.items()}, top=float(top), count=True,
+                legend=_("{n} Runden", n=top), n=sum(counts.values()))
+
+
+def build(rounds, pairs, killer_label=lambda k: k, unit: str = "week") -> Dashboard:
+    """``rounds``: the rounds the filters selected; ``pairs``: [(round, official match)] of those; ``unit``: the
+    trend's buckets (hour / day / week)."""
     if not rounds:
         return Dashboard(empty=_("Keine Runden in dieser Auswahl – „Filter zurücksetzen“ zeigt wieder alle."))
     d = Dashboard(tiles=tiles(rounds, pairs), maps=map_rows(rounds, pairs))
     d.maps_max = max((n for _m, n, _r in d.maps), default=1)
     d.rows, d.columns, d.cells = matrix(pairs, killer_label)
+    if unit == "week" and max(r.t for r in rounds) - min(r.t for r in rounds) < 28 * 86400:
+        unit = "day"                                   # under four weeks of rounds: weeks would be a column or two
+    d.trend = play_trend(rounds, unit)
+    d.trend_title = {"hour": _("Verlauf – Runden pro Stunde"), "day": _("Verlauf – Runden pro Tag")}.get(
+        unit, _("Verlauf – Runden pro Woche"))
+    d.times = play_grid(rounds)
     return d
 
 
@@ -343,6 +404,7 @@ class Grid:
     cells: dict = field(default_factory=dict)          # (row, column) -> (mean, n)
     top: float = 4.0
     share: bool = False
+    count: bool = False                                # 1.57.77: the value is a number of rounds (play_grid)
     legend: str = ""
     n: int = 0                                         # rounds with a result in all (also those in no cell)
 

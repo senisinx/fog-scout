@@ -8,7 +8,7 @@ import sys
 
 from PySide6.QtCore import QEvent, QSize, Qt
 from PySide6.QtGui import QColor, QContextMenuEvent
-from PySide6.QtWidgets import (QAbstractItemView, QAbstractScrollArea, QPlainTextEdit, QProgressBar, QPushButton, QSizePolicy, QTreeWidget, QTreeWidgetItem,
+from PySide6.QtWidgets import (QAbstractItemView, QAbstractScrollArea, QHBoxLayout, QLabel, QPlainTextEdit, QProgressBar, QPushButton, QSizePolicy, QTreeWidget, QTreeWidgetItem,
                                QVBoxLayout, QWidget, QStyle, QStyledItemDelegate, QStyleOptionViewItem, QToolTip)
 
 from . import qt_theme
@@ -893,6 +893,70 @@ class MapBars(QWidget):
         p.end()
 
 
+class CountBars(QWidget):
+    """Columns of a count over time (1.57.77, the dashboard's "Verlauf"): rows = [(n, label, tip)] oldest first;
+    the first, the last and as many labels between as fit; hover shows the column's tip."""
+    H, FOOT = 120, 20
+
+    def __init__(self):
+        super().__init__()
+        self._rows, self._dark, self._hits = [], True, []
+        self.setMouseTracking(True)
+        self.setMinimumHeight(self.H)
+
+    def set_rows(self, rows, dark):
+        self._rows, self._dark = list(rows), dark
+        self.update()
+
+    def paintEvent(self, _e):
+        from PySide6.QtCore import QRectF
+        from PySide6.QtGui import QPainter
+        self._hits = []
+        rows = self._rows
+        if not rows:
+            return
+        c = qt_theme.colours(self._dark)
+        p = QPainter(self)
+        p.setRenderHint(QPainter.Antialiasing)
+        fm = p.fontMetrics()
+        top = max(1, max(n for n, _l, _t in rows))
+        axis_w = fm.horizontalAdvance(str(top)) + 8
+        plot_h = self.height() - self.FOOT - 6
+        step = (self.width() - axis_w) / len(rows)
+        bar_w = max(2.0, min(28.0, step * 0.7))
+        p.setPen(QColor(c["dim"]))
+        p.drawText(QRectF(0, 0, axis_w - 6, 14), Qt.AlignRight | Qt.AlignVCenter, str(top))
+        p.drawText(QRectF(0, plot_h - 8, axis_w - 6, 14), Qt.AlignRight | Qt.AlignVCenter, "0")
+        p.setPen(QColor(c["hover"]))
+        p.drawLine(axis_w, 6, self.width(), 6)
+        p.drawLine(axis_w, plot_h + 6, self.width(), plot_h + 6)
+        label_w = max(fm.horizontalAdvance(lbl) for _n, lbl, _t in rows) + 12
+        every = max(1, int(-(-label_w // max(1.0, step))))
+        last = len(rows) - 1
+        for i, (n, label, tip) in enumerate(rows):
+            x = axis_w + i * step + (step - bar_w) / 2
+            h = plot_h * n / top
+            if n:
+                p.setPen(Qt.NoPen)
+                p.setBrush(QColor(c["accent"]))
+                p.drawRoundedRect(QRectF(x, 6 + plot_h - max(2.0, h), bar_w, max(2.0, h)), 2, 2)
+            self._hits.append((QRectF(axis_w + i * step, 0, step, self.height()), tip))
+            if (last - i) % every == 0:                # counted from the newest: its label always shows
+                p.setPen(QColor(c["dim"]))
+                mid = axis_w + i * step + step / 2
+                left = min(max(float(axis_w), mid - label_w / 2), self.width() - label_w)
+                p.drawText(QRectF(left, plot_h + 8, label_w, self.FOOT - 2), Qt.AlignCenter, label)
+        p.end()
+
+    def mouseMoveEvent(self, e):
+        from PySide6.QtWidgets import QToolTip
+        hit = next((t for r, t in self._hits if r.contains(e.position())), None)
+        if hit:
+            QToolTip.showText(e.globalPosition().toPoint(), hit, self)
+        else:
+            QToolTip.hideText()
+
+
 class Heatmap(QWidget):
     """Map × killer, average kills: rows = maps, columns = killers, cell colour = Ø kills (0–4) with the value
     written in it; empty cells = too few rounds. Hover: the cell's text with its number of rounds."""
@@ -957,9 +1021,11 @@ class Heatmap(QWidget):
                 p.setBrush(fill)
                 p.drawRoundedRect(rect, 4, 4)
                 p.setPen(ink_on(fill))
-                value = f"{avg:.0%}" if share else f"{avg:.1f}"
+                count = bool(getattr(d, "count", False))
+                value = str(n) if count else f"{avg:.0%}" if share else f"{avg:.1f}"
                 p.drawText(rect, Qt.AlignCenter, value)
-                tip = (_("{row} · {column}: {value} ({n} Runden)", row=m, column=k, value=value, n=n) if grid else
+                tip = (_("{row} · {column}: {n} Runden", row=m, column=k, n=n) if count else
+                       _("{row} · {column}: {value} ({n} Runden)", row=m, column=k, value=value, n=n) if grid else
                        _("{map} · {killer}: Ø {kills} Kills ({n} Runden)", map=shown(m), killer=k, kills=value, n=n))
                 self._hits.append((rect, tip, m, k))
         # legend: the ramp from 0 to 4 kills
@@ -1128,8 +1194,16 @@ class DashboardView(QWidget):
             self.tiles.append((card, box))
         lay.addWidget(self.tiles_box)
         click = self._click if post else None
-        self.maps_card, self.maps = self._chart_card(lay, _("Maps – am häufigsten gespielt"), MapBars(click))
-        self.heat_card, self.heat = self._chart_card(lay, _("Killer × Map – Ø Kills laut Stats-Seite"), Heatmap(click))
+        # 1.57.77 (user picked draft A "Eine Seite"): the trend and the times of play are here too, and every block
+        # has "Details" – it opens the part of the statistics with the full view (App._dash_clicked, "open")
+        self.details = {}
+        self.trend_card, self.trend = self._chart_card(lay, "", CountBars(), "Verlauf")
+        self.trend_title = self.trend_card.findChild(QLabel)
+        self.maps_card, self.maps = self._chart_card(lay, _("Maps – am häufigsten gespielt"), MapBars(click), "Maps")
+        self.times_card, self.times = self._chart_card(lay, _("Wann du spielst – Runden nach Wochentag und Uhrzeit"),
+                                                       Heatmap(None), "Form")
+        self.heat_card, self.heat = self._chart_card(lay, _("Killer × Map – Ø Kills laut Stats-Seite"), Heatmap(click),
+                                                     "Killer")
         self.heat_note = _label(cls="dim", wrap=True)
         self.heat_card.layout().addWidget(self.heat_note)
 
@@ -1137,13 +1211,25 @@ class DashboardView(QWidget):
         if self._post:
             self._post("act", (self._key, value))
 
-    @staticmethod
-    def _chart_card(lay, title, widget):
+    def _chart_card(self, lay, title, widget, part=""):
+        """A card with its title and – with ``part`` (a part of the statistics by its German title) and a way to
+        post – the button "Details" on the right."""
         card = _card()
         cl = QVBoxLayout(card)
         cl.setContentsMargins(*qt_theme.PAD_CARD)
         cl.setSpacing(8)
-        cl.addWidget(_label(title.upper(), "h2"))
+        head = QHBoxLayout()
+        head.setContentsMargins(0, 0, 0, 0)
+        head.addWidget(_label(title.upper(), "h2"), 1)
+        if part and self._post:
+            b = QPushButton(_("Details"))
+            b.setSizePolicy(QSizePolicy.Maximum, QSizePolicy.Fixed)
+            b.setCursor(Qt.PointingHandCursor)
+            b.setToolTip(_("Öffnet die ausführliche Ansicht dazu."))
+            b.clicked.connect(lambda _=False, part=part: self._click(("open", part)))
+            head.addWidget(b)
+            self.details[part] = b
+        cl.addLayout(head)
         cl.addWidget(widget)
         lay.addWidget(card)
         return card, widget
@@ -1156,10 +1242,16 @@ class DashboardView(QWidget):
         has = d is not None and not d.empty
         self.empty.setVisible(d is not None and bool(d.empty))
         _set(self.empty, d.empty if d is not None else "")
-        for w in (self.tiles_box, self.maps_card, self.heat_card):
+        for w in (self.tiles_box, self.trend_card, self.maps_card, self.times_card, self.heat_card):
             w.setVisible(has)
         if not has:
             return
+        times = getattr(d, "times", None)
+        self.trend_card.setVisible(len(d.trend) > 1)             # one column says nothing the tiles do not
+        _set(self.trend_title, d.trend_title.upper())
+        self.trend.set_rows(d.trend, dark)
+        self.times_card.setVisible(times is not None and bool(times.rows))
+        self.times.set_data(times, dark)
         for i, (card, box) in enumerate(self.tiles):
             card.setVisible(i < len(d.tiles))
             if i < len(d.tiles):

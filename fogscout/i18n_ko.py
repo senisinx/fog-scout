@@ -6350,4 +6350,20 @@ T = {
         '따뜻함',
     'Öffnet die Seite Aufnahmen mit deinen Runden, Clips und Screenshots.':
         '라운드, 클립, 스크린샷이 있는 녹화 페이지를 엽니다.',
+    'Details':
+        '자세히',
+    'Verlauf – Runden pro Stunde':
+        '추이 – 시간당 라운드',
+    'Verlauf – Runden pro Tag':
+        '추이 – 일별 라운드',
+    'Verlauf – Runden pro Woche':
+        '추이 – 주별 라운드',
+    'Wann du spielst – Runden nach Wochentag und Uhrzeit':
+        '플레이하는 시간 – 요일과 시간대별 라운드',
+    '{row} · {column}: {n} Runden':
+        '{row} · {column}: {n} 라운드',
+    '{when}: {n} Runden':
+        '{when}: {n} 라운드',
+    'Öffnet die ausführliche Ansicht dazu.':
+        '자세한 보기를 엽니다.',
 }

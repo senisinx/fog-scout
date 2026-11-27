@@ -4827,4 +4827,20 @@ EN = {
         'warm',
     'Öffnet die Seite Aufnahmen mit deinen Runden, Clips und Screenshots.':
         'Opens the page Recordings with your rounds, clips and screenshots.',
+    'Details':
+        'Details',
+    'Verlauf – Runden pro Stunde':
+        'Trend – rounds per hour',
+    'Verlauf – Runden pro Tag':
+        'Trend – rounds per day',
+    'Verlauf – Runden pro Woche':
+        'Trend – rounds per week',
+    'Wann du spielst – Runden nach Wochentag und Uhrzeit':
+        'When you play – rounds by weekday and time of day',
+    '{row} · {column}: {n} Runden':
+        '{row} · {column}: {n} rounds',
+    '{when}: {n} Runden':
+        '{when}: {n} rounds',
+    'Öffnet die ausführliche Ansicht dazu.':
+        'Opens the detailed view of this.',
 }

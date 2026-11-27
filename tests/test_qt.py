@@ -912,6 +912,117 @@ def test_the_dashboard_has_no_tile_that_would_only_say_nothing():
     assert "Filter zurücksetzen" in dashboard.build([], []).empty
 
 
+def test_the_settings_areas_are_a_list_beside_the_open_one(qapp, keep):
+    """1.57.78 (draft B "Liste links"): the tabs of the settings as a list – a row per shown tab, a click opens it,
+    dragging a row moves the tab (the hidden tab bar stays the truth, so order and search work as before)."""
+    from PySide6.QtWidgets import QLabel
+    from fogscout import qt_window
+    from fogscout.qt_pages import FitTabs, TabList
+    assert qt_window.SPECS["settings"][0][0] == "tabs" and qt_window.SPECS["settings"][0][2] == "list"
+    tabs = keep(FitTabs())
+    for name in ("Allgemein", "Hotkeys", "Auf && ab"):
+        tabs.addTab(QLabel(name), name)
+    lst = keep(TabList(tabs))
+    assert tabs.tabBar().isHidden()
+    assert [lst.item(i).text() for i in range(lst.count())] == ["Allgemein", "Hotkeys", "Auf & ab"]
+    assert lst.currentRow() == 0
+    lst.setCurrentRow(2)
+    assert tabs.currentIndex() == 2
+    tabs.setCurrentIndex(1)
+    assert lst.currentRow() == 1
+    tabs.setTabVisible(0, False)
+    lst.sync()
+    assert lst.item(0).isHidden() and not lst.item(1).isHidden()
+    tall = lst.height()
+    tabs.setTabVisible(0, True)
+    lst.sync()
+    assert lst.height() > tall                                   # as tall as its rows
+    moved = []
+    tabs.tabBar().tabMoved.connect(lambda a, b: moved.append((a, b)))
+    lst._moved(None, 0, 0, None, 3)                               # the first row dropped below the last
+    assert moved and [lst.item(i).text() for i in range(lst.count())] == ["Hotkeys", "Auf & ab", "Allgemein"]
+    assert tabs.tabText(2) == "Allgemein" and tabs.currentIndex() == 2 == lst.currentRow()
+
+
+def test_the_first_statistics_page_shows_the_trend_and_when_you_play():
+    """1.57.77 (draft A "Eine Seite"): how much was played over time and by weekday × time of day – from the rounds
+    alone, without match data; every bucket between the first and the last round is there."""
+    import datetime
+    from fogscout import dashboard
+    day = datetime.datetime(2026, 11, 2, 20, 15).timestamp()             # a Monday evening
+    rs = [history.Round(t=day + d * 86400 + i * 900, seconds=600, map_id="m", map="Coal Tower", role="killer")
+          for d, n in ((0, 3), (2, 1)) for i in range(n)]
+    trend = dashboard.play_trend(rs, "day")
+    assert [(n, label) for n, label, _tip in trend] == [(3, "02.11."), (0, "03.11."), (1, "04.11.")]
+    assert trend[0][2] == "Mo 02.11.: 3 Runden"
+    assert [n for n, _l, _t in dashboard.play_trend(rs, "week")] == [4] and dashboard.play_trend([], "day") == []
+    g = dashboard.play_grid(rs)
+    assert g.rows == ["Montag", "Mittwoch"] and g.columns == ["18–21"] and g.count and g.top == 3.0
+    assert g.cells == {("Montag", "18–21"): (3.0, 3), ("Mittwoch", "18–21"): (1.0, 1)} and g.n == 4
+    d = dashboard.build(rs, [])
+    assert len(d.trend) == 3 and d.trend_title == "Verlauf – Runden pro Tag"      # under four weeks: days
+    assert d.times.rows == g.rows
+    late = rs + [history.Round(t=day + 40 * 86400, seconds=600, map_id="m", map="Coal Tower", role="killer")]
+    assert dashboard.build(late, []).trend_title == "Verlauf – Runden pro Woche"
+    assert dashboard.build(late, [], unit="hour").trend_title == "Verlauf – Runden pro Stunde"
+
+
+def test_a_round_without_a_local_time_does_not_break_the_first_page(monkeypatch):
+    """Windows CI: datetime.timestamp() of the first day of 1970 raises OSError (a round with t = 100) – such a
+    round is left out of the trend and the times of play, the page is drawn."""
+    from fogscout import dashboard, official
+    real = official.bucket_start
+
+    def start(t, unit):
+        if t < 86400:
+            raise OSError(22, "Invalid argument")
+        return real(t, unit)
+    monkeypatch.setattr(official, "bucket_start", start)
+    old = history.Round(t=100.0, seconds=600, map_id="m", map="Coal Tower", role="killer")
+    new = history.Round(t=1_800_000_000.0, seconds=600, map_id="m", map="Coal Tower", role="killer")
+    assert dashboard.play_trend([old], "day") == []
+    assert [n for n, _l, _t in dashboard.play_trend([old, new], "day")] == [1]
+    assert dashboard.build([old], []).trend == [] and dashboard.build([old, new], []).tiles
+
+
+def test_every_block_of_the_dashboard_has_details(qapp, keep):
+    """1.57.77: "Details" of a block posts ("open", part) – App._dash_clicked opens that part of the statistics;
+    the trend hides with a single column, the times of play without rounds."""
+    import datetime
+    from fogscout import dashboard, qt_window
+    posted = queue.Queue()
+    v = keep(qt_window.DashboardView("stats.dash", lambda a, arg=None: posted.put((a, arg))))
+    assert sorted(v.details) == ["Form", "Killer", "Maps", "Verlauf"]
+    day = datetime.datetime(2026, 11, 2, 20, 15).timestamp()
+    rs = [history.Round(t=day + d * 86400, seconds=600, map_id="m", map="Coal Tower", role="killer") for d in (0, 2)]
+    v.resize(900, 900)
+    v.show()
+    v.show_state({"data": dashboard.build(rs, []), "dark": True})
+    qapp.processEvents()
+    assert v.trend_card.isVisible() and v.times_card.isVisible() and v.trend_title.text() == "VERLAUF – RUNDEN PRO TAG"
+    v.trend.repaint()
+    v.times.repaint()
+    assert [t for _r, t in v.trend._hits] == ["Mo 02.11.: 1 Runden", "Di 03.11.: 0 Runden", "Mi 04.11.: 1 Runden"]
+    assert sorted(t for _r, t, _m, _k in v.times._hits) == ["Mittwoch · 18–21: 1 Runden", "Montag · 18–21: 1 Runden"]
+    for part in ("Verlauf", "Maps", "Form", "Killer"):
+        v.details[part].click()
+        assert posted.get_nowait() == ("act", ("stats.dash", ("open", part)))
+    v.show_state({"data": dashboard.build(rs[:1], []), "dark": False})
+    assert v.trend_card.isHidden() and v.times_card.isVisible()
+    assert not keep(qt_window.DashboardView()).details                    # nowhere to post: no button
+
+
+def test_details_of_a_block_open_that_part_of_the_statistics():
+    """1.57.77: the parts "Details" names exist under these titles (App._dash_clicked → _stats_select)."""
+    import os
+    import re
+    src = open(os.path.join(os.path.dirname(os.path.dirname(__file__)), "fogscout", "app_stats.py"),
+               encoding="utf-8").read()
+    titles = set(re.findall(r'_stats_page\(_\("([^"]+)"\)', src))
+    assert {"Verlauf", "Maps", "Form", "Killer"} <= titles
+    assert 'value[0] == "open"' in src
+
+
 def test_dashboard_view_draws_tiles_bars_and_heatmap(qapp, keep):
     from fogscout import dashboard, qt_window
     rs, pairs = _dash_data()
