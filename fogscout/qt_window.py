@@ -726,8 +726,16 @@ class NavFoot(QFrame):
             style = level if level in ("ok", "warn", "err") else "idle"
             dot.setPixmap(qt_icons.pixmap("record", qt_theme.dot_colour(style, dark), side, ratio))
             _set(name, title)
-            _set(words, text)
-            name.setVisible(not compact)
+            name.ensurePolished()
+            words.ensurePolished()
+            # 1.57.83: name and state when both fit; a long state ("Frankfurt · 28 ms") stands alone – it says
+            # what it is of; longer still, it ends in "…" (the tooltip has all of it)
+            m = self._lay.contentsMargins()
+            room = nav_w() - m.left() - m.right() - side - 8
+            named = name.fontMetrics().horizontalAdvance(title) + 8
+            alone = words.fontMetrics().horizontalAdvance(text) + named > room
+            _set(words, words.fontMetrics().elidedText(text, Qt.ElideRight, max(20, room - (0 if alone else named))))
+            name.setVisible(not compact and not alone)
             words.setVisible(not compact)
             row.setToolTip(f"{title}: {text}")
             row.setAccessibleName(f"{title}: {text}")

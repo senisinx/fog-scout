@@ -280,3 +280,60 @@ class ShotGallery(QListWidget):
         if self.on_menu:
             gp = self.viewport().mapToGlobal(pos)
             self.on_menu((gp.x(), gp.y()))                     # like the tables: popup_menu takes (x, y)
+
+
+class ClipGallery(ShotGallery):
+    """1.57.83 (user picked draft B "Kacheln" for the recordings): tiles of videos – the picture is a key frame near
+    the start, made by the clip library's loader (qt_library.ThumbLoader: ffmpeg in a thread, kept in its cache).
+    ``busy()`` true (a round is running): no new pictures are made, the tiles stay black until it is over."""
+
+    RETRY_MS = 3000
+
+    def __init__(self, cache_dir, ffmpeg, dark=True, on_pick=None, on_open=None, on_menu=None, busy=None):
+        super().__init__(cache_dir, dark, on_pick, on_open, on_menu)
+        from .qt_library import ThumbLoader
+        self._video = ThumbLoader(cache_dir, ffmpeg, self._ratio)
+        self._busy = busy or (lambda: False)
+        self._retry = QTimer(self)
+        self._retry.setSingleShot(True)
+        self._retry.setInterval(self.RETRY_MS)
+        self._retry.timeout.connect(self._ask_visible)
+        self.destroyed.connect(lambda *_a, v=self._video: v.stop())
+
+    def _ask_visible(self):
+        from types import SimpleNamespace
+        view = self.viewport().rect().adjusted(0, -AHEAD_PX, 0, AHEAD_PX)
+        near, want = set(), []
+        for i in range(self.count()):
+            it = self.item(i)
+            if not self.visualItemRect(it).intersects(view):
+                continue
+            path = it.data(PATH_ROLE)
+            near.add(path)
+            if path in self._pix:
+                self._pix[path] = self._pix.pop(path)
+            else:
+                want.append(path)
+        self._forget_far(near)
+        self._awaited = set(want)
+        if not want:
+            return
+        if self._busy():                                       # never ffmpeg beside a running round
+            self._retry.start()
+            return
+        self._video.request([SimpleNamespace(path=p, seconds=1.0) for p in want])   # the length is not asked for
+        self._pump.start()
+
+    def _take(self):
+        for path, img, _seconds in self._video.take(PUMP_TAKE):
+            if img is None:
+                self._apply(path, 0, 0, None)
+            else:
+                rgba = img.convert("RGBA")
+                self._apply(path, rgba.width, rgba.height, rgba.tobytes())
+        if not self._awaited:
+            self._pump.stop()
+
+    def load_all(self):
+        """Tests: nothing is made here (the loader's thread makes the pictures)."""
+

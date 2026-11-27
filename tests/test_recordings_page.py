@@ -457,6 +457,64 @@ def _clips_app(app_root, tmp_path, monkeypatch):
     return app
 
 
+def test_the_clips_are_tiles_and_a_chosen_tile_marks_the_clip_for_the_buttons(app_root, tmp_path, monkeypatch):
+    """1.57.83 (draft B "Kacheln"): the clips as tiles (setting clips_view, "Liste" = the table as before) – the
+    table stays the truth for what is marked: a chosen tile marks its row, so the buttons and the menu work the
+    same; the table's preview is not built for tiles; while a round runs no picture is made."""
+    from fogscout import qt_gallery
+    app = _clips_app(app_root, tmp_path, monkeypatch)
+    try:
+        app.qt.show_page("recordings")
+        app._rec_render(force=True)
+        app._qt_refresh(force=True)
+        assert app.settings.get("clips_view") == "tiles" and app._clips_as_tiles()
+        assert app.clip_tiles_host.winfo_manager() and not app.clip_table_frame.winfo_manager()
+        assert [os.path.basename(t[0]) for t in app._clip_tiles] == ["clip.mp4", "clip.gif", "still.png"]
+        assert app._clip_tiles[0][1] == "Kohlelager" and app._clip_tiles[0][2].startswith("17.10.26 21:40")
+        gallery = app.qt.host(str(app.clip_tiles_host)).content
+        assert isinstance(gallery, qt_gallery.ClipGallery) and len(gallery.paths()) == 3
+        mp4 = next(p for p in gallery.paths() if p.endswith("clip.mp4"))
+        app._clip_tile_picked(mp4)
+        assert app._clip_selected().file == "clip.mp4" and app.clip_play_btn.cget("state") == "normal"
+        assert app._clip_preview_key is None                      # the compact preview belongs to the table
+        app._clip_tile_picked(None)
+        assert app._clip_selected() is None and app.clip_play_btn.cget("state") == "disabled"
+        app.clip_view_var.set("Liste")
+        app._clip_view_changed()
+        assert app.settings.get("clips_view") == "list" and app.clip_table_frame.winfo_manager()
+        assert not app.clip_tiles_host.winfo_manager()
+    finally:
+        app.quit()
+
+
+def test_no_clip_picture_is_made_while_a_round_runs(tmp_path):
+    """1.57.83: ClipGallery asks its loader for nothing while ``busy()`` (a round) – it tries again later."""
+    pytest.importorskip("PySide6.QtWidgets", exc_type=ImportError)
+    from fogscout import qt_gallery, qt_window
+    qapp = qt_window.application()
+    busy = [True]
+    g = qt_gallery.ClipGallery(str(tmp_path / "cache"), None, busy=lambda: busy[0])
+    try:
+        asked = []
+        g._video.request = lambda items: asked.append([i.path for i in items])
+        g.resize(900, 600)
+        g.show()
+        g.set_items([(str(tmp_path / f"c{i}.mp4"), "Kohleturm", "17.10.26 21:40", "Clip") for i in range(3)])
+        qapp.processEvents()
+        g._ask_visible()
+        assert asked == [] and g._retry.isActive() and len(g._awaited) == 3
+        busy[0] = False
+        g._ask_visible()
+        assert len(asked) == 1 and len(asked[0]) == 3
+        g._video._done.put((asked[0][0], Image.new("RGB", (64, 36), "red"), 2.0))
+        g._video._done.put((asked[0][1], None, 0.0))                 # unreadable: the tile stays black
+        g._take()
+        assert not g.pixmap(asked[0][0]).isNull() and g.pixmap(asked[0][1]).isNull()
+    finally:
+        g._video.stop()
+        g.deleteLater()
+
+
 def test_a_still_opens_in_the_editor_from_the_row_menu_too(app_root, tmp_path, monkeypatch):
     """1.12 sent a still to the picture editor from the button, but the row menu kept "Im Editor öffnen …" grey."""
     app = _clips_app(app_root, tmp_path, monkeypatch)

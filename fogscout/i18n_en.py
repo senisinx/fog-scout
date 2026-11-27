@@ -4861,4 +4861,10 @@ EN = {
         'Opens the calculator: repair, healing and other times from perks, items and add-ons.',
     'Schliesst die gewählte Map (Esc).':
         'Closes the chosen map (Esc).',
+    'Kacheln':
+        'Tiles',
+    'Liste':
+        'List',
+    'Ansicht':
+        'View',
 }

@@ -3420,7 +3420,14 @@ def test_the_navigation_folds_to_its_icons_on_the_arrow_and_shows_obs_and_the_se
     foot = win.nav_foot
     shown = [(n.text(), w.text()) for _r, _d, n, w in foot.rows]
     assert shown == [("OBS", "nimmt auf"), ("Server", "Frankfurt · 28 ms")]
-    assert all(r.isVisible() and n.isVisible() and not d.pixmap().isNull() for r, d, n, _w in foot.rows)
+    assert all(r.isVisible() and w.isVisible() and not d.pixmap().isNull() for r, d, _n, w in foot.rows)
+    assert foot.rows[0][2].isVisible()                       # "OBS nimmt auf" fits: name and state
+    win.show_status_rows([("OBS", "OBS nicht erreichbar – bitte den WebSocket-Server einschalten", "warn"),
+                          ("Server", "Frankfurt · 28 ms", "ok")])
+    long = foot.rows[0]                                      # 1.57.83: too long – alone, and cut with "…"
+    assert long[2].isHidden() and long[3].text().endswith("…") and "WebSocket" in long[0].toolTip()
+    assert long[3].fontMetrics().horizontalAdvance(long[3].text()) <= qt_window.nav_w()
+    win.show_status_rows([("OBS", "nimmt auf", "err"), ("Server", "Frankfurt · 28 ms", "ok")])
     assert foot.rows[0][1].pixmap().toImage() != foot.rows[1][1].pixmap().toImage()      # red and green
     assert foot.fold_btn.text() == "«" and foot.log_btn.isVisible() and not win._nav_compact
     foot.log_btn.click()

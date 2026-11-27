@@ -35,6 +35,8 @@ CLIP_KIND_NAMES = {"clip": N_("Clip"), "instant": N_("Sofort-Clip"), "still": N_
 REC_REFRESH_S = 20            # the table re-reads the index this often while the tab is on display
 PREVIEW_DELAY_MS = 180               # 1.8.11: the clip preview is built once the marking stays
 SHOT_KINDS = [("all", N_("Alle Bilder")), ("taken", N_("Aufgenommen (F12)")), ("edited", N_("Bearbeitet"))]   # 1.12
+CLIP_THUMBS = os.path.join("cache", "clips")   # 1.57.83: the clip tiles' pictures (qt_library.ThumbLoader)
+CLIP_VIEWS = (("tiles", N_("Kacheln")), ("list", N_("Liste")))
 SHOT_THUMBS = os.path.join("cache", "shots")   # 1.12.2: the gallery's thumbnails (thumbs.py), gitignored
 SECURE_POLL_MS = 100                 # 1.18.1: quit phase 1 looks this often whether the editors' states are safe
 SECURE_NOTE_S = 1.0                  # … says so after this long
@@ -387,6 +389,15 @@ class RecordingsTab:
         cb._dbdms_name = _("Art")
         cb.pack(side="left", padx=(8, 0))
         cb.bind("<<ComboboxSelected>>", lambda e: self._clips_render())
+        # 1.57.83 (user picked draft B "Kacheln"): the clips as tiles with a picture, or the table as before
+        self._clip_views = [(k, _(label)) for k, label in CLIP_VIEWS]
+        view = self.settings.get("clips_view", "tiles")
+        self.clip_view_var = ui.StringVar(value=dict(self._clip_views).get(view, self._clip_views[0][1]))
+        cb = ui.Combobox(fr, textvariable=self.clip_view_var, values=[lbl for _k, lbl in self._clip_views],
+                         state="readonly", width=10)
+        cb._dbdms_name = _("Ansicht")
+        cb.pack(side="right")
+        cb.bind("<<ComboboxSelected>>", lambda e: self._clip_view_changed())
 
         row = ui.Frame(f)
         row.pack(fill="x", pady=(0, 6))
@@ -414,7 +425,9 @@ class RecordingsTab:
         self.clip_summary_var = ui.StringVar(value="")
         ui.Label(f, textvariable=self.clip_summary_var, style="Dim.TLabel", wraplength=560).pack(anchor="w",
                                                                                                   pady=(0, 6))
-        tf = ui.Frame(f)
+        self.clip_tiles_host = ui.Host(f)        # 1.57.83: the tiles (qt_gallery.ClipGallery), put in by _clip_tiles_sync
+        self._clip_tiles = []
+        tf = self.clip_table_frame = ui.Frame(f)
         tf.pack(fill="both", expand=True)
         cols = (("when", _("Wann"), 100, "w"), ("map", _("Map"), 130, "w"), ("role", _("Rolle/Killer"), 110, "w"),
                 ("kind", _("Art"), 85, "w"), ("dur", _("Länge"), 55, "e"), ("size", _("Grösse"), 65, "e"),
@@ -1052,7 +1065,66 @@ class RecordingsTab:
                 fmt_bytes(c.size), self._rec_status(False, 0, self._yt_mark(self._clip_rel(c), c.yt)), c.file))
         if keep and t.exists(keep[0]):
             t.selection_set(keep[0])
+        self._clip_tiles = [(self._clip_path(c), map_shown(c.label) if c.label and c.label not in ("Clip", _("Clip"))
+                             else _(CLIP_KIND_NAMES.get(c.kind, "Clip")),
+                             " · ".join(x for x in (time.strftime("%d.%m.%y %H:%M", time.localtime(c.t)),
+                                                    fmt_duration(c.seconds) if c.seconds else "") if x),
+                             _(CLIP_KIND_NAMES.get(c.kind, "Clip"))) for c in shown]
+        self._clip_tiles_sync()
         self._clip_buttons()
+
+    # ------------------------------------------------------------ 1.57.83: the clips as tiles
+    def _clips_as_tiles(self) -> bool:
+        return self.settings.get("clips_view", "tiles") == "tiles"
+
+    def _clip_view_changed(self):
+        key = next((k for k, lbl in self._clip_views if lbl == self.clip_view_var.get()), "tiles")
+        if key != self.settings.get("clips_view", "tiles"):
+            self.settings.set("clips_view", key)
+            self._save_soon()
+        self._clip_tiles_sync()
+        self._clip_buttons()
+        self._qt_refresh()
+
+    def _clip_tiles_sync(self):
+        """Tiles or the table (setting clips_view) – the table stays the truth for what is marked, so every button
+        and the right-click menu work the same in both. The gallery is made once (nothing without the Qt window)."""
+        tiles = self._clips_as_tiles()
+        if tiles and not self.clip_tiles_host.winfo_manager():
+            self.clip_table_frame.pack_forget()
+            self.clip_tiles_host.pack(fill="both", expand=True, before=self.clip_table_frame)
+        elif not tiles and not self.clip_table_frame.winfo_manager():
+            self.clip_tiles_host.pack_forget()
+            self.clip_table_frame.pack(fill="both", expand=True)
+        if not tiles or self.qt is None:
+            return
+        host = self.qt.host(str(self.clip_tiles_host))
+        if host is None:
+            return
+        from .qt_gallery import ClipGallery
+        gallery = host.content if isinstance(host.content, ClipGallery) else None
+        if gallery is None:
+            gallery = ClipGallery(os.path.join(self.data_dir, CLIP_THUMBS), obsrec.ffmpeg_exe(),
+                                  dark=bool(self.settings.get("dark_mode", True)), on_pick=self._clip_tile_picked,
+                                  on_open=lambda _p: self._clip_play(),
+                                  on_menu=lambda pos: self._context_menu(self._clip_menu_items(), pos,
+                                                                         self._clip_menu_act),
+                                  busy=lambda: bool(self._hist))
+            gallery.setMinimumHeight(SHOT_GALLERY_MIN_H)
+            host.set_content(gallery)
+        gallery.dark = bool(self.settings.get("dark_mode", True))
+        c = self._clip_selected()
+        gallery.set_items(self._clip_tiles, self._clip_path(c) if c is not None else None)
+
+    def _clip_tile_picked(self, path):
+        """A tile was chosen: the table marks the same clip (it is what the buttons read)."""
+        file = next((f for f, c in self._clip_rows.items() if self._clip_path(c) == path), None)
+        if file is not None and self.clip_table.exists(file):
+            self.clip_table.selection_set(file)
+        elif path is None:
+            self.clip_table.selection_set()
+        self._clip_buttons()
+        self._qt_refresh()
 
     def _clip_selected(self):
         sel = self.clip_table.selection()
@@ -1071,7 +1143,7 @@ class RecordingsTab:
         self.clip_yt_btn.configure(state="normal" if c is not None and self._clip_uploadable(c) else "disabled")
         self._sel_buttons(self.clip_sel_row, self.clip_sel_hint, c is not None)
         self._montage_button(self.clip_montage_btn, len(self._clips_selected()))
-        self._clip_preview_follow(c)
+        self._clip_preview_follow(None if self._clips_as_tiles() else c)   # 1.57.83: the preview belongs to the table
 
     @staticmethod
     def _clip_rel(c) -> str:

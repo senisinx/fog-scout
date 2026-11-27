@@ -6384,4 +6384,10 @@ T = {
         'Apre il calcolatore: tempi di riparazione, cura e altri da competenze, oggetti e accessori.',
     'Schliesst die gewählte Map (Esc).':
         'Chiude la mappa scelta (Esc).',
+    'Kacheln':
+        'Riquadri',
+    'Liste':
+        'Elenco',
+    'Ansicht':
+        'Vista',
 }
