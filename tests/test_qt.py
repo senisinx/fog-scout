@@ -3551,13 +3551,13 @@ def test_the_navigation_folds_to_its_icons_on_the_arrow_and_shows_obs_and_the_se
     win.show_status_rows([("OBS", "nimmt auf", "err"), ("Server", "Frankfurt · 28 ms", "ok")])
     foot = win.nav_foot
     shown = [(n.text(), w.text()) for _r, _d, n, w in foot.rows]
-    assert shown == [("OBS", "nimmt auf"), ("Server", "Frankfurt · 28 ms")]
+    assert shown == [("OBS", "nimmt auf"), ("SERVER", "Frankfurt · 28 ms")]      # 1.57.92: headings, capitals
     assert all(r.isVisible() and w.isVisible() and not d.pixmap().isNull() for r, d, _n, w in foot.rows)
-    assert foot.rows[0][2].isVisible()                       # "OBS nimmt auf" fits: name and state
+    assert foot.rows[0][2].isVisible()                       # the heading over the state
     win.show_status_rows([("OBS", "OBS nicht erreichbar – bitte den WebSocket-Server einschalten", "warn"),
                           ("Server", "Frankfurt · 28 ms", "ok")])
-    long = foot.rows[0]                                      # 1.57.83: too long – alone, and cut with "…"
-    assert long[2].isHidden() and long[3].text().endswith("…") and "WebSocket" in long[0].toolTip()
+    long = foot.rows[0]                                      # too long – cut with "…"; 1.57.92: the heading stays
+    assert long[2].isVisible() and long[3].text().endswith("…") and "WebSocket" in long[0].toolTip()
     assert long[3].fontMetrics().horizontalAdvance(long[3].text()) <= qt_window.nav_w()
     win.show_status_rows([("OBS", "nimmt auf", "err"), ("Server", "Frankfurt · 28 ms", "ok")])
     assert foot.rows[0][1].pixmap().toImage() != foot.rows[1][1].pixmap().toImage()      # red and green
@@ -4150,23 +4150,28 @@ def test_the_overview_draws_charts_of_the_last_weeks_and_hides_the_ones_without_
     assert page.times_card.isHidden() and page.roles_card.isHidden() and page.kills_card.isHidden()
 
 
-def test_the_foot_of_the_navigation_is_one_card_with_the_name_left_and_the_state_right(qapp):
-    """1.57.92 (user: "gefällt mir bei der Seitenleiste nicht wie unten das angezeigt wird"): the state, OBS and
-    the server are one card – a row's name on the left, its dot and state on the right; a long state stands alone
-    and is cut; folded, only the dots."""
+def test_the_foot_of_the_navigation_is_a_list_of_three_entries_with_a_small_heading(qapp):
+    """1.57.92 (user on the foot of the side bar: "gefällt mir nicht", then picked draft C "Liste mit Beschriftung"):
+    the state, OBS and the server are three entries – the dot on the icons' column, a small heading, the words on a
+    line of their own; a long state is cut (tooltip: all of it); folded, only the dots."""
     from fogscout import qt_window
     foot = qt_window.NavFoot(lambda: None, lambda: None)
-    assert foot.rows_box.objectName() == "navrows"
-    foot.show_rows([("OBS", "bereit", "ok"), ("Server", "Frankfurt am Main · 28 ms · sehr lang", "warn")], False, False,
-                   True)
+    foot.show_rows([("OBS", "bereit", "ok"), ("Server", "Frankfurt · 28 ms", "ok")], False, False, True)
     row, dot, name, words = foot.rows[0]
-    lay = row.layout()
-    assert lay.indexOf(name) < lay.indexOf(dot) < lay.indexOf(words)
-    assert (name.text(), words.text()) == ("OBS", "bereit") and not name.isHidden()
-    long_row = foot.rows[1]                                   # too long for name and state: the state alone, cut
-    assert long_row[2].isHidden() and long_row[3].text().endswith("…")
-    assert long_row[0].toolTip() == "Server: Frankfurt am Main · 28 ms · sehr lang"
+    assert (name.text(), words.text()) == ("OBS", "bereit") and name.property("class") == "navlab"
+    assert not name.isHidden() and not words.isHidden() and not dot.pixmap().isNull()
+    assert foot.rows[1][3].text() == "Frankfurt · 28 ms" and foot.rows[1][2].text() == "SERVER"   # whole: own line
+    foot.show_rows([("OBS", "OBS nicht erreichbar – bitte den WebSocket-Server einschalten", "warn")], False, False,
+                   True)
+    assert words.text().endswith("…") and "WebSocket" in row.toolTip() and not name.isHidden()
+    assert words.fontMetrics().horizontalAdvance(words.text()) <= qt_window.nav_w()
     foot.show_rows([("OBS", "bereit", "ok")], True, True, True)
     assert name.isHidden() and words.isHidden() and foot.log_btn.isHidden() and foot.rows[1][0].isHidden()
     foot.show_rows([], False, False, True)
     assert foot.rows_box.isHidden()
+    st = qt_window.NavStatus(lambda: None)                   # the state: the same form, heading "STATUS"
+    st.show_state("#4fd06a", "Im Match: Coal Tower", False)
+    assert st.label.text() == "STATUS" and not st.label.isHidden() and st.text.text() == "Im Match: Coal Tower"
+    assert st.layout().contentsMargins().left() == foot._lay.contentsMargins().left()      # one column of signs
+    st.show_state("#4fd06a", "Im Match: Coal Tower", True)
+    assert st.label.isHidden() and st.text.isHidden()
