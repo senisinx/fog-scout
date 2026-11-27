@@ -622,7 +622,7 @@ def test_the_page_shows_one_area_and_only_the_builds_of_the_team(app_root):
         assert rows == [("Botany Knowledge", "+50 %", "100 %", "+50 %", ""),
                         ("Ranger Med-Kit", "+50 %", "50 %", "+25 %", ""),
                         ("Coulrophobia", "−30 %", "100 %", "−30 %", "im Terrorradius")]
-        tips = app.calc_tips_var.get()
+        tips = "\n".join(app.calc_tip_lines())                 # 1.57.95: a row with "Einsetzen" per proposal
         assert tips.startswith("Survivor: ") and "Killer: " in tips and "→" in tips
         assert "Self-Care" in app.calc_source_var.get()
         # the picture of a perk goes to the page with the choice's state
@@ -784,14 +784,19 @@ def test_the_result_stands_beside_the_choices_on_a_wide_page(app_root):
         # the choices: a name's width at least, more where the row has room, never past the limit
         box = widget(app.calc_perk_boxes[0][0])
         assert isinstance(box, QComboBox)
-        assert box.minimumWidth() == app_calc.PERK_PX and box.maximumWidth() == app_calc.PERK_MAX == box._grow_to
+        # 1.57.95 (draft B "Build-Karten"): a perk is a place of the build – a tile, wider where the row has room
+        assert isinstance(box, qt_pages.SlotCombo) and box._what == "Perk 1"
+        assert box.minimumWidth() == qt_pages.SLOT_W and box.maximumWidth() == qt_pages.SLOT_MAX == box._grow_to
+        assert box.height() == qt_pages.SLOT_H
+        addon = widget(app.calc_item_addons[0][0][0])                          # an add-on stays a plain choice
+        assert not isinstance(addon, qt_pages.SlotCombo)
+        assert addon.minimumWidth() == app_calc.PERK_PX and addon.maximumWidth() == app_calc.PERK_MAX == addon._grow_to
         sb.arrange(sb.width())
         for _i in range(6):
             QApplication.processEvents()
-        if sb.beside() and left.width() > 1300:                                # the screen of this machine allows it
-            assert box.width() == app_calc.PERK_MAX
-        # every card can still be moved within its column, and the cards are the same eight
-        assert len(page.columns) == 2 and [len(c.cards) for c in page.columns] == [4, 4]
+        # every card can still be moved within its column: a card per Survivor now, the Killer and the assumptions
+        assert [len(c.cards) for c in page.columns] == [1, g.MAX_SURVIVORS, 2, 4]    # area · builds · Killer,
+        #                                                                 assumptions · the result
     finally:
         app.quit()
 
@@ -974,3 +979,46 @@ def test_a_perk_is_in_a_build_only_once(app_root):
     finally:
         app.quit()
 
+
+
+def test_the_build_cards_an_example_the_same_for_all_and_a_proposal_put_in(app_root):
+    """1.57.95 (user picked draft B "Build-Karten"): a card per Survivor with five places, the answer as tiles,
+    "Beispiel laden", "Für alle übernehmen" and "Einsetzen" beside each proposal of "Bester nächster Perk"."""
+    from fogscout import app_qt
+    from fogscout.app import App
+    (app_root / "settings.json").write_text(json.dumps({"welcome_seen": True}), encoding="utf-8")
+    app = App(str(app_root), simulate=str(app_root / "sim"))
+    try:
+        assert [b.cget("text") for b in app.calc_surv_rows] == [f"Survivor {i}" for i in range(1, 5)]   # a card each
+        first = app.calc_perk_boxes[0][0]
+        node = app_qt.ui_layout(first, {})
+        assert first._dbdms_slot == "Perk 1" and node["kind"] == "combo" and node["slot"] == "Perk 1"
+        assert [t.title for t in app.calc_tiles.data][:2] == ["Ein Generator, alle 4", "Fünf Generatoren"]
+        before = app.calc_tiles.data[0].value
+        app._calc_example()
+        perks, tool = app.calc_surv[0]
+        assert perks[0].get() == "Prove Thyself" and tool.get() != app_calc.NONE
+        assert app.calc_kill[0][0].get() == "Corrupt Intervention"
+        assert app.calc_tiles.data[0].value != before                      # the Killer's perk costs time
+        assert [t.title for t in app.calc_tiles.data] == ["Ein Generator, alle 4", "Fünf Generatoren",
+                                                          "Der Killer kostet", "Tempo Survivor 1"]
+        assert app.calc_tiles.data[2].value.startswith("+")
+        # "Für alle übernehmen": the build of Survivor 1 for the team
+        assert app.calc_surv[1][0][0].get() == app_calc.NONE
+        app._calc_same_for_all()
+        assert all(p[0].get() == "Prove Thyself" and t.get() == tool.get() for p, t in app.calc_surv)
+        # "Einsetzen": the first proposal into the first free place of its build
+        rows = [r for r, _tv in app.calc_tip_rows if r.winfo_manager()]
+        assert rows and len(app._calc_tips_now) == len(rows) and len(app.calc_tip_lines()) >= len(rows)
+        side, tip = app._calc_tips_now[0]
+        places = app.calc_surv[tip.who][0] if side == "S" else [v for v, _n, _m in app.calc_kill]
+        assert tip.name not in [v.get() for v in places]
+        app._calc_tip_use(0)
+        assert tip.name in [v.get() for v in places]
+        app._calc_tip_use(99)                                              # no such row: nothing happens
+        # another area: no tiles (they are about Generators)
+        app.calc_area_var.set(app_calc._(app_calc.AREAS["move"]))
+        app._calc_changed()
+        assert app.calc_tiles.data == []
+    finally:
+        app.quit()

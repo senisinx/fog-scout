@@ -1507,8 +1507,6 @@ EN = {
         'Situation',
     'Survivor {n}':
         'Survivor {n}',
-    'Survivor-Builds':
-        'Survivor builds',
     'S{n}: {v} c/s':
         'S{n}: {v} c/s',
     'Ein verfehlter Skill Check kostet (Anteil am Generator): {odds}':
@@ -4900,4 +4898,36 @@ EN = {
         '{when} · {who} · {map}: {n} kills',
     'Öffnet den Clip im grossen Editor – gleicher Bereich, gleiche Stelle.':
         'Opens the clip in the large editor – same range, same position.',
+    'Add-on {n}':
+        'Add-on {n}',
+    'Beispiel laden':
+        'Load an example',
+    'Der Killer kostet':
+        'The Killer costs',
+    'Ein Generator, alle {n}':
+        'One Generator, all {n}',
+    'Ein Generator, allein':
+        'One Generator, alone',
+    'Einsetzen':
+        'Put in',
+    'Fünf Generatoren':
+        'Five Generators',
+    'Für alle übernehmen':
+        'Use for all',
+    'Ladungen pro Sekunde':
+        'charges per second',
+    'Perk {n}':
+        'Perk {n}',
+    'Tempo Survivor 1':
+        'Speed of Survivor 1',
+    'auf fünf Generatoren':
+        'on five Generators',
+    'ohne Killer {t}':
+        'without the Killer {t}',
+    'Setzt diesen Perk in den ersten freien Platz des Builds, für den er vorgeschlagen ist.':
+        'Puts this perk into the first free place of the build it is proposed for.',
+    'Füllt den Rechner mit einem üblichen Fall (vier Survivor an den Generatoren gegen einen Killer) – zum Ausprobieren. Die jetzige Auswahl geht dabei verloren.':
+        'Fills the calculator with a common case (four Survivors on the Generators against a Killer) – to try it out. The present choice is lost.',
+    'Übernimmt den Build von Survivor 1 – Perks, Item, Add-ons – für alle Survivor des Teams.':
+        'Takes the build of Survivor 1 – perks, item, add-ons – for every Survivor of the team.',
 }

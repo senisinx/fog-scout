@@ -12,6 +12,12 @@ from .i18n import _, source
 
 # German label -> German info text (buttons/checkboxes with a fixed label); both translated via i18n
 TIPS = {
+    'Einsetzen':
+        'Setzt diesen Perk in den ersten freien Platz des Builds, für den er vorgeschlagen ist.',                                # 1.57.95
+    'Beispiel laden':
+        'Füllt den Rechner mit einem üblichen Fall (vier Survivor an den Generatoren gegen einen Killer) – zum Ausprobieren. Die jetzige Auswahl geht dabei verloren.',                                # 1.57.95
+    'Für alle übernehmen':
+        'Übernimmt den Build von Survivor 1 – Perks, Item, Add-ons – für alle Survivor des Teams.',                                # 1.57.95
     "Einrichten": "Springt zum Kasten dieser Verbindung weiter unten – dort wird sie ein- oder ausgeschaltet "
                   "und eingerichtet.",                                                              # 1.57.90
     # 1.12: screenshots

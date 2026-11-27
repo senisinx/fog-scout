@@ -16,7 +16,10 @@ PERK_PX = 174                                 # width of a perk choice (four fit
 NAME_PX = 84                                  # width of "Survivor 1" / "Item" before the choices
 PERK_MAX = 280                                # 1.55: a choice grows to this where the window has room – enough
                                               # for "Scourge Hook: Pain Resonance" beside its picture
-BESIDE_FROM = 1480                            # 1.55: page width from which the result stands beside the choices
+EXAMPLE_SURVIVOR = ("Prove Thyself",)          # 1.57.95: "Beispiel laden"
+EXAMPLE_KILLER = ("Corrupt Intervention",)
+TIP_ROWS = 6                                  # 1.57.95: proposals of "Bester nächster Perk" with a button each
+BESIDE_FROM = 1240                            # 1.55: page width from which the result stands beside the choices
                                               # (the builds need 870 px for four perks in one line, the tables 600)
 GREAT_CHOICES = (0, 25, 50, 75, 100)          # % of Skill Checks hit Great
 MISS_CHOICES = (0, 5, 10, 20)                 # % missed
@@ -258,6 +261,14 @@ class CalcTab:
         c.bind("<<ComboboxSelected>>", lambda e: self._calc_changed())
         return c
 
+    def _calc_slot(self, parent, var, values, what: str, icons: str):
+        """1.57.95 (user picked draft B "Build-Karten"): a place of a build – drawn as a tile with the perk's
+        picture and its name; empty, it says what goes there (``what``). A choice like the others underneath."""
+        c = self._calc_choice(parent, var, values, px=0, icons=icons)
+        c._dbdms_slot = what
+        c._dbdms_tip = lambda: "" if var.get() in ("", NONE) else var.get()
+        return c
+
     def _tab_calc(self):
         outer, f = self._scroll_tab()
         d = self._calc_data()
@@ -286,46 +297,48 @@ class CalcTab:
         self.calc_n_var = ui.StringVar(value=str(st["n"]))
         cb = self._calc_choice(row, self.calc_n_var, [str(i) for i in range(1, 5)], width=4, px=0)
         cb.pack(side="left", padx=(8, 0))
+        ui.Button(row, text=_("Beispiel laden"), command=self._calc_example).pack(side="left", padx=(16, 0))
         self.calc_area_var_hint = ui.StringVar(value="")
         ui.Label(top, textvariable=self.calc_area_var_hint, style="Dim.TLabel", wraplength=640).pack(
             anchor="w", pady=(6, 0))
 
-        team = ui.LabelFrame(left, text=_("Survivor-Builds"), padding=8)
+        team = ui.Frame(left)                                # 1.57.95: a card per build, not one card for all
         team.pack(fill="x", pady=(8, 0))
         self.calc_surv, self.calc_surv_rows, self.calc_perk_boxes, self.calc_item_addons = [], [], [], []
         self.calc_tokens = []                                # per build: (its line, the choice, the perks it is for)
         for i in range(gencalc.MAX_SURVIVORS):
             perks, tool, had = self._calc_entry((st["survivors"] + [[[], ""]] * 4)[i])
-            block = ui.Frame(team)                           # one build: shown only for the Survivors of the team
+            block = ui.LabelFrame(team, text=_("Survivor {n}", n=i + 1), padding=8)   # shown only for the team's Survivors
             block.pack(fill="x", pady=(0 if i == 0 else 8, 0))
-            r = ui.Frame(block)
+            r = ui.Frame(block)                              # four perks and the item: five places in a row
             r.pack(fill="x")
-            lab = ui.Label(r, text=_("Survivor {n}", n=i + 1), width=14)
-            lab._dbdms_px = NAME_PX
-            lab.pack(side="left")
             vars_ = []
             for slot in range(SLOTS):
                 v = ui.StringVar(value=perks[slot] if slot < len(perks) and self._calc_known(perks[slot], "S")
                                  else NONE)
-                c = self._calc_choice(r, v, [NONE], icons="perks")
-                c.pack(side="left", padx=(6, 0))
+                c = self._calc_slot(r, v, [NONE], _("Perk {n}", n=slot + 1), "perks")
+                c._dbdms_name = _("Survivor {n}", n=i + 1) + " · " + _("Perk {n}", n=slot + 1)
+                c.pack(side="left", padx=(0 if slot == 0 else 6, 0))
                 self.calc_perk_boxes.append((c, v, "S"))
                 vars_.append(v)
-            r = ui.Frame(block)                              # the item in its own line: four perks fill the first
-            r.pack(fill="x", pady=(4, 0))
-            lab = ui.Label(r, text=_("Item"), width=14)
-            lab._dbdms_px = NAME_PX
-            lab.pack(side="left")
             tv = ui.StringVar(value=tool if tool in item_names else NONE)
-            self._calc_choice(r, tv, item_names, icons="items").pack(side="left", padx=(6, 0))
-            ui.Label(r, text=_("Add-ons")).pack(side="left", padx=(12, 0))
+            c = self._calc_slot(r, tv, item_names, _("Item"), "items")
+            c._dbdms_name = _("Survivor {n}", n=i + 1) + " · " + _("Item")
+            c.pack(side="left", padx=(6, 0))
+            r = ui.Frame(block)                              # the item's add-ons below, and "the same for all"
+            r.pack(fill="x", pady=(6, 0))
+            ui.Label(r, text=_("Add-ons")).pack(side="left")
             slots = []
             for k in range(ADDON_SLOTS):                    # 1.53: the item's add-ons (those of the item in hand)
                 av = ui.StringVar(value=had[k] if k < len(had) and had[k] else NONE)       # _calc_tidy checks it
                 c = self._calc_choice(r, av, [NONE], icons="addon")
+                c._dbdms_name = _("Survivor {n}", n=i + 1) + " · " + _("Add-on {n}", n=k + 1)
                 c.pack(side="left", padx=(6, 0))
                 slots.append((c, av))
             self.calc_item_addons.append(slots)
+            if i == 0:
+                self.calc_same_btn = ui.Button(r, text=_("Für alle übernehmen"), command=self._calc_same_for_all)
+                self.calc_same_btn.pack(side="right")
             # 1.55 (user's yes to "Tokens je Survivor"): how many Tokens this Survivor's perks have – a line of
             # the build, there only while one of its perks counts Tokens (_calc_arrange). Before: one choice for all
             tr = ui.Frame(block)
@@ -373,22 +386,25 @@ class CalcTab:
         self.calc_kill = []
         self.calc_count_boxes = []
         killer, counts = st["killer"], st["counts"] if isinstance(st["counts"], dict) else {}
+        pr = ui.Frame(kf)                                    # 1.57.95: the four perks as places in one row
+        pr.pack(fill="x")
+        self.calc_counts_frame = cl = ui.Frame(kf)           # … and below, a line per perk that counts something
+        cl.pack(fill="x")
         for slot in range(SLOTS):
-            r = ui.Frame(kf)
-            r.pack(fill="x", pady=(0 if slot == 0 else 4, 0))
             name = killer[slot] if slot < len(killer) and self._calc_known(killer[slot], "K") else NONE
             v = ui.StringVar(value=name)
-            c = ui.Combobox(r, textvariable=v, values=[NONE], state="readonly", width=26)
-            c._dbdms_px = PERK_MAX                        # 1.55: this row has the room – the whole name
+            c = ui.Combobox(pr, textvariable=v, values=[NONE], state="readonly", width=26)
+            c._dbdms_slot = _("Perk {n}", n=slot + 1)
             c._dbdms_name = _("Killer-Perk {n}", n=slot + 1)
             c._dbdms_tip = lambda v=v: "" if v.get() in ("", NONE) else v.get()
             if self._calc_icons().any():
                 c._dbdms_icons = self._calc_icons().finder("perks")
-            c.pack(side="left")
+            c.pack(side="left", padx=(0 if slot == 0 else 6, 0))
             c.bind("<<ComboboxSelected>>", lambda e, s=slot: self._calc_killer_picked(s))
             self.calc_perk_boxes.append((c, v, "K"))
-            cf = ui.Frame(r)                                 # 1.55: only for a perk that counts something –
-            cf.pack(side="left")                             # four greyed boxes stood beside empty places
+            cf = ui.Frame(cl)                                # 1.55: only for a perk that counts something
+            pv = ui.StringVar(value="")                      # which perk the line is of
+            ui.Label(cf, textvariable=pv).pack(side="left")
             ui.Label(cf, text=_("Anzahl")).pack(side="left", padx=(10, 0))
             nv = ui.StringVar(value=str(counts.get(name, self._calc_count_default(name))))
             c = self._calc_choice(cf, nv, [str(x) for x in COUNT_CHOICES], width=4, px=0)
@@ -397,10 +413,13 @@ class CalcTab:
             mv = ui.StringVar(value="")
             ui.Label(cf, textvariable=mv, style="Dim.TLabel", wraplength=360).pack(side="left", padx=(10, 0))
             self.calc_kill.append((v, nv, mv))
+            cf._calc_name = pv
 
         af = ui.LabelFrame(left, text=_("Annahmen"), padding=8)
         af.pack(fill="x", pady=(8, 0))
         self.calc_opts, self.calc_opt_rows = {}, {}
+        self.calc_opt_grid = grid = ui.Frame(af)             # 1.57.95: side by side (they wrap), not a list
+        grid.pack(fill="x")
         for key, label, choices, show in (
                 ("great", N_("Great Skill Checks"), GREAT_CHOICES, lambda v: f"{v} %"),
                 ("miss", N_("Verfehlte Skill Checks"), MISS_CHOICES, lambda v: f"{v} %"),
@@ -408,13 +427,15 @@ class CalcTab:
                 ("kick_at", N_("Killer kommt bei"), KICK_AT_CHOICES, lambda v: f"{v} %"),
                 ("away", N_("Weg nach dem Kick"), AWAY_CHOICES, _secs),
                 ("walk", N_("Laufweg zwischen Generatoren"), WALK_CHOICES, _secs)):
-            r = ui.Frame(af)
-            r.pack(fill="x", pady=(0, 4))
-            ui.Label(r, text=_(label), width=26).pack(side="left")
+            r = ui.Frame(grid)
+            r.pack(side="left", padx=(0, 14), pady=(0, 4))
+            ui.Label(r, text=_(label), style="Dim.TLabel").pack(anchor="w")
             labels = [show(c) for c in choices]
             cur = st.get(key, CALC_DEFAULTS[key])
             v = ui.StringVar(value=labels[choices.index(cur)] if cur in choices else labels[0])
-            self._calc_choice(r, v, labels, width=10, px=0).pack(side="left")
+            c = self._calc_choice(r, v, labels, width=10, px=0)
+            c._dbdms_name = _(label)
+            c.pack(anchor="w")
             self.calc_opts[key] = (v, choices, labels)
             self.calc_opt_rows[key] = r
         self.calc_kick_hint = ui.Label(
@@ -427,15 +448,19 @@ class CalcTab:
         self.calc_dr_box.pack(anchor="w", pady=(2, 0))
         ui.Button(af, text=_("Rechner zurücksetzen"), command=self._calc_reset).pack(anchor="w", pady=(6, 0))
 
+        self.calc_tiles = ui.Tiles(right)                    # 1.57.95: the answer in big numbers (Generators)
+        self.calc_tiles.pack(fill="x")
         rf = ui.LabelFrame(right, text=_("Ergebnis"), padding=8)
-        rf.pack(fill="x")
+        rf.pack(fill="x", pady=(8, 0))
         t = ui.Treeview(rf, columns=("a", "b"), show="tree headings", height=6, selectmode="none")
         t.heading("#0", text=_("Situation"), anchor="w")
         t.column("#0", width=300, stretch=False)
         t.pack(fill="x")
         self.calc_tree = t
         self.calc_rates_var = ui.StringVar(value="")
-        ui.Label(rf, textvariable=self.calc_rates_var, style="Big.TLabel", wraplength=640).pack(
+        # 1.57.95: a plain line – the big numbers are the tiles above now (as a bold headline of four lines it
+        # was drawn over the table in a narrow column: a big label's height does not follow its width)
+        ui.Label(rf, textvariable=self.calc_rates_var, style="Dim.TLabel", wraplength=640).pack(
             anchor="w", pady=(6, 0))
         self.calc_note_var = ui.StringVar(value="")
         ui.Label(rf, textvariable=self.calc_note_var, style="Dim.TLabel", wraplength=640).pack(
@@ -451,8 +476,16 @@ class CalcTab:
 
         nf = ui.LabelFrame(right, text=_("Bester nächster Perk"), padding=8)
         nf.pack(fill="x", pady=(8, 0))
-        self.calc_tips_var = ui.StringVar(value="")
-        ui.Label(nf, textvariable=self.calc_tips_var, wraplength=640, justify="left").pack(anchor="w")
+        self.calc_tip_rows, self._calc_tips_now = [], []     # 1.57.95: each proposal with "Einsetzen"
+        for k in range(TIP_ROWS):
+            r = ui.Frame(nf)
+            tv = ui.StringVar(value="")
+            ui.Button(r, text=_("Einsetzen"), command=lambda k=k: self._calc_tip_use(k)).pack(side="right")
+            ui.Label(r, textvariable=tv, wraplength=520, justify="left").pack(side="left")
+            self.calc_tip_rows.append((r, tv))
+        self.calc_tips_var = ui.StringVar(value="")          # what cannot be put in: "kein freier Platz", …
+        self.calc_tips_label = ui.Label(nf, textvariable=self.calc_tips_var, wraplength=640, justify="left")
+        self.calc_tips_label.pack(anchor="w")
 
         bf = ui.LabelFrame(right, text=_("Aufschlüsselung"), padding=8)
         bf.pack(fill="x", pady=(8, 0))
@@ -640,6 +673,56 @@ class CalcTab:
         self._save_soon()
         self._calc_render()
 
+    def calc_tip_lines(self) -> list:
+        """Every line of "Bester nächster Perk" as shown: the proposals (each with "Einsetzen"), then the notes."""
+        rows = [tv.get() for r, tv in self.calc_tip_rows if r.winfo_manager()]
+        return rows + [ln for ln in self.calc_tips_var.get().split("\n") if ln]
+
+    def _calc_tip_use(self, k: int):
+        """"Einsetzen": the proposed perk into the first free place of the build it is for."""
+        if k >= len(self._calc_tips_now):
+            return
+        side, tip = self._calc_tips_now[k]
+        if side == "S":
+            who = min(max(int(getattr(tip, "who", 0) or 0), 0), len(self.calc_surv) - 1)
+            places = self.calc_surv[who][0]
+        else:
+            places = [v for v, _nv, _mv in self.calc_kill]
+        free = next((v for v in places if v.get() == NONE), None)
+        if free is None or any(v.get() == tip.name for v in places):
+            return
+        free.set(tip.name)
+        self._calc_changed()
+
+    def _calc_same_for_all(self):
+        """"Für alle übernehmen": the build of Survivor 1 – perks, item, add-ons – for every Survivor of the team."""
+        vars_, tv = self.calc_surv[0]
+        for (other, otv), slots in list(zip(self.calc_surv, self.calc_item_addons))[1:]:
+            for src, dst in zip(vars_, other):
+                dst.set(src.get())
+            otv.set(tv.get())
+            for (_b, src), (_b2, dst) in zip(self.calc_item_addons[0], slots):
+                dst.set(src.get())
+        self._calc_changed()
+
+    def _calc_example(self):
+        """"Beispiel laden": a common case to see what the page does – four Survivors on the Generators, the first
+        with Prove Thyself and a toolbox, against a Killer with Corrupt Intervention. Only names the data has."""
+        d = self._calc_data()
+        self._calc_reset()
+        self.calc_area_var.set(_(AREAS[gencalc.REPAIR]))
+        self.calc_n_var.set("4")
+        for var, name in zip(self.calc_surv[0][0], EXAMPLE_SURVIVOR):
+            if self._calc_known(name, "S"):
+                var.set(name)
+        tool = next((n for n in gencalc.item_names(d) if gencalc.item_kind(d, n) == "toolbox"), None)
+        if tool:
+            self.calc_surv[0][1].set(tool)
+        for (v, _nv, _mv), name in zip(self.calc_kill, EXAMPLE_KILLER):
+            if self._calc_known(name, "K"):
+                v.set(name)
+        self._calc_changed()
+
     def _calc_keep(self):
         """Keep what is chosen now as Build A; the result then shows it beside every change."""
         st = self._calc_read()
@@ -755,7 +838,9 @@ class CalcTab:
         for key, r in self.calc_opt_rows.items():
             want = repair if key in REPAIR_OPTS else not repair
             if want and not r.winfo_manager():
-                r.pack(fill="x", pady=(0, 4), before=self.calc_kick_hint)
+                later = [o for k, o in self.calc_opt_rows.items()
+                         if o.winfo_manager() and list(self.calc_opt_rows).index(k) > list(self.calc_opt_rows).index(key)]
+                r.pack(side="left", padx=(0, 14), pady=(0, 4), **({"before": later[0]} if later else {}))
             elif not want and r.winfo_manager():
                 r.pack_forget()
         for w, kw in ((self.calc_kick_hint, {"anchor": "w", "before": self.calc_dr_box}),
@@ -851,17 +936,39 @@ class CalcTab:
             what = COUNT_MEANS.get(name) or (TOKENS if gencalc.max_stacks(d, name) else None)
             mv.set(_("Anzahl = {what}", what=_(what)) if what and name != NONE else "")
             want = bool(what) and name != NONE                # no count: nothing to choose, nothing shown
+            box._calc_name.set(name if want else "")
             if want and not box.winfo_manager():
-                box.pack(side="left")
+                box.pack(anchor="w", pady=(6, 0))
             elif not want and box.winfo_manager():
                 box.pack_forget()
+        self.calc_same_btn.state(["!disabled" if n > 1 else "disabled"])
         self.calc_drop_btn.state(["!disabled" if old else "disabled"])
         self.calc_compare_var.set(
             _("Build A ist gemerkt: die Spalten „Build A“ und „Unterschied“ zeigen ihn neben dem, was jetzt gewählt "
               "ist (− = jetzt schneller bzw. kürzer).") if old else
             _("„Als Build A merken“ hält die jetzige Auswahl fest; danach zeigt die Tabelle jede Änderung daneben."))
         tips = gencalc.suggest(d, area, team, killer, scen, slots=SLOTS)
-        self.calc_tips_var.set(self._calc_tip_lines(d, area, tips, team, killer))
+        lines = self._calc_tip_lines(d, area, tips, team, killer).split("\n")
+        usable = [(side, tip) for side in ("S", "K") for tip in tips[side]
+                  if not (all(len(s.perks) >= SLOTS for s in team) if side == "S" else len(killer.perks) >= SLOTS)]
+        texts = [ln for ln in lines if ln]
+        self._calc_tips_now = usable[:TIP_ROWS]
+        notes = []                                          # the lines that are no proposal: said below the rows
+        it = iter(texts)
+        shown = []
+        for side, title in (("S", _("Survivor")), ("K", _("Killer"))):
+            mine = [x for x in usable if x[0] == side]
+            for _x in (mine or [None]):
+                line = next(it, "")
+                (shown if mine else notes).append(line)
+        for k, (r, tv) in enumerate(self.calc_tip_rows):
+            want = k < len(self._calc_tips_now) and k < len(shown)
+            tv.set(shown[k] if want else "")
+            if want and not r.winfo_manager():
+                r.pack(fill="x", pady=(0, 4), before=self.calc_tips_label)
+            elif not want and r.winfo_manager():
+                r.pack_forget()
+        self.calc_tips_var.set("\n".join(shown[TIP_ROWS:] + notes))
         if area == gencalc.REPAIR:
             self._calc_render_repair(d, team, killer, scen, old)
         else:
@@ -894,6 +1001,7 @@ class CalcTab:
             was = fn(d, old[0], old[1], old[2]) if old else None
             t.insert("", "end", iid=iid, text=text,
                      values=cells(fn(d, team, None, calm_scen), fn(d, team, killer, scen), was))
+        self.calc_tiles.data = self._calc_tiles(d, team, killer, scen, calm_scen, sizes)
         last = sizes[-1][2] if sizes else None
         speeds = " · ".join(_("S{n}: {v} c/s", n=i + 1, v=f"{r:.2f}") for i, r in enumerate(last.rates)) \
             if last else ""
@@ -937,7 +1045,30 @@ class CalcTab:
                                    "jedem Patch zu prüfen. Nicht berechnet: {names}.",
                                    date=d.retrieved, names=", ".join(d.not_modelled)))
 
+    def _calc_tiles(self, d, team, killer, scen, calm_scen, sizes) -> list:
+        """1.57.95: the answer in big numbers above the table – one Generator with the whole team, all five, what
+        the Killer costs, the first Survivor's speed."""
+        from .dashboard import Tile
+        if not sizes:
+            return []
+        k, calm, hard = sizes[-1]
+        who = _("Ein Generator, alle {n}", n=k) if k > 1 else _("Ein Generator, allein")
+        five_calm = gencalc.five_together(d, team, None, calm_scen)
+        five_hard = gencalc.five_together(d, team, killer, scen)
+        out = [Tile(who, gencalc.fmt(hard.seconds), _("ohne Killer {t}", t=gencalc.fmt(calm.seconds))),
+               Tile(_("Fünf Generatoren"), gencalc.fmt(five_hard), _("ohne Killer {t}", t=gencalc.fmt(five_calm)))]
+        if five_calm is not None and five_hard is not None:
+            cost = five_hard - five_calm
+            out.append(Tile(_("Der Killer kostet"), ("+" if cost >= 0 else "−") + gencalc.fmt(abs(cost)),
+                            _("auf fünf Generatoren"), colour="#f07a74" if cost > 0.5 else None))
+        if hard.rates:
+            rate = hard.rates[0]
+            out.append(Tile(_("Tempo Survivor 1"), f"{rate:.2f}", _("Ladungen pro Sekunde"),
+                            colour="#4fd06a" if rate > 1.0 else None))
+        return out
+
     def _calc_render_area(self, d, area, team, killer, scen, old):
+        self.calc_tiles.data = []                            # the tiles are for Generators
         kind = d.areas[area]["kind"]
         self.calc_area_var_hint.set(
             _("Geschwindigkeit in m/s. Für Haste zusammen mit Hindered nennt das Wiki keine eigene Formel – "

@@ -1991,8 +1991,6 @@ T = {
         '情况',
     'Survivor {n}':
         '逃生者 {n}',
-    'Survivor-Builds':
-        '逃生者配置',
     'S{n}: {v} c/s':
         'S{n}: {v} c/s',
     'Ein verfehlter Skill Check kostet (Anteil am Generator): {odds}':
@@ -6422,4 +6420,36 @@ T = {
         '{when} · {who} · {map}：{n} 次击杀',
     'Öffnet den Clip im grossen Editor – gleicher Bereich, gleiche Stelle.':
         '在大编辑器中打开该片段——相同的范围，相同的位置。',
+    'Add-on {n}':
+        '配件 {n}',
+    'Beispiel laden':
+        '载入示例',
+    'Der Killer kostet':
+        '杀手的代价',
+    'Ein Generator, alle {n}':
+        '一台发电机，{n} 人一起',
+    'Ein Generator, allein':
+        '一台发电机，单人',
+    'Einsetzen':
+        '放入',
+    'Fünf Generatoren':
+        '五台发电机',
+    'Für alle übernehmen':
+        '应用到全部',
+    'Ladungen pro Sekunde':
+        '每秒充能',
+    'Perk {n}':
+        '技能 {n}',
+    'Tempo Survivor 1':
+        '逃生者 1 的速度',
+    'auf fünf Generatoren':
+        '五台发电机合计',
+    'ohne Killer {t}':
+        '无杀手 {t}',
+    'Setzt diesen Perk in den ersten freien Platz des Builds, für den er vorgeschlagen ist.':
+        '把这个技能放进为其推荐的配置中第一个空位。',
+    'Füllt den Rechner mit einem üblichen Fall (vier Survivor an den Generatoren gegen einen Killer) – zum Ausprobieren. Die jetzige Auswahl geht dabei verloren.':
+        '用一个常见情形填满计算器（四名逃生者修发电机，对抗一名杀手）——用于试用。当前的选择会丢失。',
+    'Übernimmt den Build von Survivor 1 – Perks, Item, Add-ons – für alle Survivor des Teams.':
+        '把逃生者 1 的配置——技能、道具、配件——用于队伍中的所有逃生者。',
 }

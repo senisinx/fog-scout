@@ -87,6 +87,8 @@ def ui_layout(w, reg: dict):
             node["px"] = int(w._dbdms_px)
         if getattr(w, "_dbdms_px_max", None):        # 1.55: … that grows to this width where its row has room
             node["px_max"] = int(w._dbdms_px_max)
+        if getattr(w, "_dbdms_slot", None):          # 1.57.95: drawn as a place of a build (the calculator)
+            node["slot"] = str(w._dbdms_slot)
         if getattr(w, "_dbdms_name", None):          # 1.55.7: the accessible name of a choice without a label
             node["name"] = str(w._dbdms_name)
         if getattr(w, "_dbdms_fold", None):          # 1.38.13: shut behind a fold (qt_pages.make_fold)
