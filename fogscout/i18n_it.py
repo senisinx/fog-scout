@@ -6420,4 +6420,6 @@ T = {
         'senza ruolo',
     '{when} · {who} · {map}: {n} Kills':
         '{when} · {who} · {map}: {n} uccisioni',
+    'Öffnet den Clip im grossen Editor – gleicher Bereich, gleiche Stelle.':
+        "Apre la clip nell'editor grande: stesso intervallo, stessa posizione.",
 }

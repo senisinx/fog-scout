@@ -6420,4 +6420,6 @@ T = {
         '役割なし',
     '{when} · {who} · {map}: {n} Kills':
         '{when} · {who} · {map}: {n} キル',
+    'Öffnet den Clip im grossen Editor – gleicher Bereich, gleiche Stelle.':
+        'クリップを大きいエディターで開きます。範囲と位置はそのままです。',
 }

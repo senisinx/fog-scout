@@ -6420,4 +6420,6 @@ T = {
         'без роли',
     '{when} · {who} · {map}: {n} Kills':
         '{when} · {who} · {map}: убийств: {n}',
+    'Öffnet den Clip im grossen Editor – gleicher Bereich, gleiche Stelle.':
+        'Открывает клип в большом редакторе – тот же отрезок, та же позиция.',
 }

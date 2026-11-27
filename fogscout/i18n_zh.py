@@ -6420,4 +6420,6 @@ T = {
         '无角色',
     '{when} · {who} · {map}: {n} Kills':
         '{when} · {who} · {map}：{n} 次击杀',
+    'Öffnet den Clip im grossen Editor – gleicher Bereich, gleiche Stelle.':
+        '在大编辑器中打开该片段——相同的范围，相同的位置。',
 }

@@ -1794,7 +1794,7 @@ def test_i_and_o_trim_the_edges_a_backwards_clip_shows():
         qt_editor.sequence.trim = real
 
 
-def test_the_preview_beside_the_clip_tiles_plays_at_once(clip, tmp_path):
+def test_the_player_above_the_clip_tiles_plays_at_once(clip, tmp_path):
     """1.57.93 (user: "bei den Clips wenn ich auf eins klicke soll es direkt abspielen im fenster"): a compact
     editor made with ``autoplay`` plays as soon as the file is read; without it, it waits for the button."""
     pytest.importorskip("PySide6.QtWidgets", exc_type=ImportError)
@@ -1803,10 +1803,16 @@ def test_the_preview_beside_the_clip_tiles_plays_at_once(clip, tmp_path):
     QApplication.instance() or QApplication([])
     clips = str(tmp_path / "Clips")
     plain = qt_clip.ClipWindow(clip, [], clips, sound=False, compact=True)
-    auto = qt_clip.ClipWindow(clip, [], clips, sound=False, compact=True, autoplay=True)
+    auto = qt_clip.ClipWindow(clip, [], clips, sound=False, compact=True, autoplay=True, player_only=True)
     try:
         assert plain.info.ok and not plain.playing
         assert auto.info.ok and auto.playing
+        # draft B "Gross oben": only a player – the cards for cutting and saving are away, "Grosser Editor …" in
+        # the row of the playback; the editor beside the table keeps its cards
+        assert auto.mode_box.isHidden() or not auto.mode_box.isVisibleTo(auto)
+        assert auto.player_expand.text() == "Grosser Editor …" and not hasattr(plain, "player_expand")
+        assert plain.mode_box.isVisibleTo(plain)
+        assert auto.preview.maximumHeight() == qt_clip.PLAYER_PREVIEW_H
         auto.stop()
         assert not auto.playing
     finally:

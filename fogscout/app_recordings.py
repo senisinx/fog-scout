@@ -33,7 +33,6 @@ CLIP_KINDS = [("all", N_("Alle Arten")), ("clip", N_("Clips")), ("instant", N_("
               ("still", N_("Standbilder"))]
 CLIP_KIND_NAMES = {"clip": N_("Clip"), "instant": N_("Sofort-Clip"), "still": N_("Standbild")}
 REC_REFRESH_S = 20            # the table re-reads the index this often while the tab is on display
-TILE_PREVIEW_W = 560                 # 1.57.93: px the preview beside the clip tiles is wide
 PREVIEW_DELAY_MS = 180               # 1.8.11: the clip preview is built once the marking stays
 SHOT_KINDS = [("all", N_("Alle Bilder")), ("taken", N_("Aufgenommen (F12)")), ("edited", N_("Bearbeitet"))]   # 1.12
 CLIP_THUMBS = os.path.join("cache", "clips")   # 1.57.83: the clip tiles' pictures (qt_library.ThumbLoader)
@@ -469,9 +468,11 @@ class RecordingsTab:
         self.clip_summary_var = ui.StringVar(value="")
         ui.Label(f, textvariable=self.clip_summary_var, style="Dim.TLabel", wraplength=560).pack(anchor="w",
                                                                                                   pady=(0, 6))
-        # 1.57.93 (user: "bei den Clips wenn ich auf eins klicke soll es direkt abspielen im fenster"): tiles or
-        # table on the left, the preview on the right of either – one row
-        row = ui.Frame(f)
+        # 1.57.93 (user: "bei den Clips wenn ich auf eins klicke soll es direkt abspielen im fenster", then picked
+        # draft B "Gross oben"): a clicked tile plays in ``clip_top_host`` – above the tiles, as wide as the page;
+        # the table keeps its preview beside it (``clip_host``)
+        self.clip_top_host = ui.Host(f)
+        row = self._clip_row = ui.Frame(f)
         row.pack(fill="both", expand=True)
         self.clip_tiles_host = ui.Host(row)      # 1.57.83: the tiles (qt_gallery.ClipGallery), put in by _clip_tiles_sync
         self._clip_tiles = []
@@ -1237,9 +1238,26 @@ class RecordingsTab:
         if key != self.settings.get("clips_view", "tiles"):
             self.settings.set("clips_view", key)
             self._save_soon()
+        self._clip_preview_clear()                  # the other view shows the clip elsewhere: build it anew
         self._clip_tiles_sync()
         self._clip_buttons()
         self._qt_refresh()
+
+    def _clip_preview_clear(self):
+        """Both places of the clips' preview empty and hidden."""
+        self._clip_preview_key = None
+        for model in (self.clip_host, self.clip_top_host):
+            host = self.qt.host(str(model)) if self.qt is not None else None
+            if host is not None and host.content is not None:
+                host.content.stop()
+                host.set_content(None)
+            model.pack_forget()
+
+    def _clip_preview_place(self):
+        """(model, how it is packed) of the clips' preview now: above the tiles, or beside the table."""
+        if self._clips_as_tiles():
+            return self.clip_top_host, {"fill": "x", "before": self._clip_row}
+        return self.clip_host, {"side": "left", "fill": "both"}
 
     def _clip_tiles_sync(self):
         """Tiles or the table (setting clips_view) – the table stays the truth for what is marked, so every button
@@ -1375,7 +1393,8 @@ class RecordingsTab:
         for a still, a missing file or without ffmpeg."""
         if self.qt is None:
             return
-        host = self.qt.host(str(self.clip_host))
+        model, _how = self._clip_preview_place()
+        host = self.qt.host(str(model))
         if host is None:
             return
         key = c.file if c is not None else None
@@ -1389,7 +1408,7 @@ class RecordingsTab:
         path = self._clip_editable(c, quiet=True)
         if path is None:
             host.set_content(None)
-            self.clip_host.pack_forget()
+            model.pack_forget()
             return
         self._clip_preview_job = self.root.after(PREVIEW_DELAY_MS, lambda: self._clip_preview_build(host, c, path))
 
@@ -1404,13 +1423,13 @@ class RecordingsTab:
             return
         win = self._clip_window(clip_round(c, obsrec.load_index(self.recorder.folder())), path, compact=True,
                                 parent=host, on_expand=lambda s, e, p: self._clip_edit(at=(s, e, p)), info=info,
-                                autoplay=self._clips_as_tiles() and not self._hist)   # never beside a running round
-        # beside the tiles the preview keeps to a column – the tiles stay a grid, not one tile per row
-        tiles = self._clips_as_tiles()
-        host.setMinimumWidth(TILE_PREVIEW_W if tiles else 0)
-        host.setMaximumWidth(TILE_PREVIEW_W if tiles else 16777215)
+                                autoplay=self._clips_as_tiles() and not self._hist,   # never beside a running round
+                                player_only=self._clips_as_tiles())
+        model, how = self._clip_preview_place()
+        if self.qt.host(str(model)) is not host:               # the view changed while the file was read
+            return
         host.set_content(win)
-        self.clip_host.pack(side="left", fill="both")
+        model.pack(**how)
 
     def _copy_file(self, path, name):
         """1.8.60: the file onto the clipboard – Ctrl+V in Discord or Explorer pastes it."""
@@ -2114,7 +2133,8 @@ class RecordingsTab:
 
     def _rec_preview_stop(self):
         """1.8.8: the recordings tab was left – the preview stops playing (1.11.4: the clips' preview too)."""
-        for model in (getattr(self, "rec_host", None), getattr(self, "clip_host", None)):
+        for model in (getattr(self, "rec_host", None), getattr(self, "clip_host", None),
+                      getattr(self, "clip_top_host", None)):
             host = self.qt.host(str(model)) if self.qt is not None and model is not None else None
             if host is not None and host.content is not None:
                 host.content.stop()
