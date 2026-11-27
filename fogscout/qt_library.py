@@ -42,9 +42,14 @@ class ThumbLoader:
     """Pictures of videos in a thread: ``request(items)`` sets what to do (newest first), ``take()`` in the window
     thread gives (path, PIL image or None, seconds) – ``seconds`` probed for items that did not know their length."""
 
-    def __init__(self, cache_dir: str | None, ffmpeg: str | None, ratio: float = 1.0):
+    def __init__(self, cache_dir: str | None, ffmpeg: str | None, ratio: float = 1.0, size=None):
+        """``size``: (width, height) in logical px the pictures are made for – the library's rows by default; the
+        tiles of the recordings page ask for their own (1.57.97: they showed these 144 × 80 px pictures stretched
+        to 390 px – blurred)."""
         self.cache_dir, self.ffmpeg = cache_dir, ffmpeg
-        self.box = (int(THUMB_W * ratio) * 2, int(THUMB_H * ratio) * 2)
+        w, h = size or (THUMB_W * 2, THUMB_H * 2)
+        self.box = (int(w * ratio), int(h * ratio)) if size else (int(THUMB_W * ratio) * 2, int(THUMB_H * ratio) * 2)
+        self._small = size is None           # only the small pictures are kept in memory for every loader (_MEM)
         self._done: queue.Queue = queue.Queue()
         self._lock = threading.Condition()
         self._todo = []
@@ -129,7 +134,7 @@ class ThumbLoader:
                 return
             key = _cache_key(path)
             with _MEM_LOCK:
-                img = _MEM.get(key)
+                img = _MEM.get(key) if self._small else None       # a small picture is no answer for a tile
             if img is None:
                 target = self._file(key)
                 if target and os.path.isfile(target):
@@ -151,7 +156,7 @@ class ThumbLoader:
                                 target = self._file(key)
                                 if target:
                                     self._store(img, target)
-                if img is not None:
+                if img is not None and self._small:
                     with _MEM_LOCK:
                         _MEM[key] = img
                         if len(_MEM) > 400:

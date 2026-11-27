@@ -6452,4 +6452,30 @@ T = {
         'Riempie il calcolatore con un caso comune (quattro Sopravvissuti ai generatori contro un Killer), per provare. La scelta attuale va persa.',
     'Übernimmt den Build von Survivor 1 – Perks, Item, Add-ons – für alle Survivor des Teams.':
         'Usa la build del Sopravvissuto 1 – competenze, oggetto, accessori – per tutti i Sopravvissuti della squadra.',
+    'Dreht diese Karte um 90° im Uhrzeigersinn (für die Map gemerkt).':
+        'Ruota questa mappa di 90° in senso orario (ricordato per la mappa).',
+    'Ein eigenes Bild für diese Map wählen – das mitgelieferte bleibt erhalten.':
+        "Scegli un'immagine tua per questa mappa: quella fornita resta.",
+    'Öffnet die Statistik.':
+        'Apre le statistiche.',
+    'Alle zeigen':
+        'Mostra tutto',
+    'Setzt alle Filter dieser Zeile zurück – alle Aufnahmen bzw. Clips sind wieder zu sehen. Sortierung und Ansicht bleiben.':
+        'Azzera tutti i filtri di questa riga: si vedono di nuovo tutte le registrazioni o le clip. Ordinamento e vista restano.',
+    'Die Kachel davor abspielen.':
+        'Riproduce il riquadro precedente.',
+    'Die nächste Kachel abspielen.':
+        'Riproduce il riquadro successivo.',
+    'Schliesst den Spieler.':
+        'Chiude il lettore.',
+    'Kein Vorschaubild':
+        'Nessuna anteprima',
+    'Bild wird erstellt …':
+        "Creazione dell'immagine …",
+    'Vorschaubild folgt nach der Runde':
+        "L'anteprima arriva dopo la partita",
+    'Einrichtung fortsetzen':
+        'Continua la configurazione',
+    'Zurück zum Einrichtungs-Assistenten, an die Stelle, an der du ihn verlassen hast.':
+        "Torna alla configurazione guidata, al punto in cui l'hai lasciata.",
 }

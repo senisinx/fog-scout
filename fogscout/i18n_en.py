@@ -4930,4 +4930,30 @@ EN = {
         'Fills the calculator with a common case (four Survivors on the Generators against a Killer) – to try it out. The present choice is lost.',
     'Übernimmt den Build von Survivor 1 – Perks, Item, Add-ons – für alle Survivor des Teams.':
         'Takes the build of Survivor 1 – perks, item, add-ons – for every Survivor of the team.',
+    'Dreht diese Karte um 90° im Uhrzeigersinn (für die Map gemerkt).':
+        'Turns this map by 90° clockwise (remembered for the map).',
+    'Ein eigenes Bild für diese Map wählen – das mitgelieferte bleibt erhalten.':
+        'Choose a picture of your own for this map – the one that came with the program stays.',
+    'Öffnet die Statistik.':
+        'Opens the statistics.',
+    'Alle zeigen':
+        'Show all',
+    'Setzt alle Filter dieser Zeile zurück – alle Aufnahmen bzw. Clips sind wieder zu sehen. Sortierung und Ansicht bleiben.':
+        'Resets every filter of this row – all recordings or clips are shown again. The order and the view stay.',
+    'Die Kachel davor abspielen.':
+        'Play the tile before.',
+    'Die nächste Kachel abspielen.':
+        'Play the next tile.',
+    'Schliesst den Spieler.':
+        'Closes the player.',
+    'Kein Vorschaubild':
+        'No preview picture',
+    'Bild wird erstellt …':
+        'Making the picture …',
+    'Vorschaubild folgt nach der Runde':
+        'The preview picture follows after the round',
+    'Einrichtung fortsetzen':
+        'Continue the setup',
+    'Zurück zum Einrichtungs-Assistenten, an die Stelle, an der du ihn verlassen hast.':
+        'Back to the setup assistant, at the step where you left it.',
 }

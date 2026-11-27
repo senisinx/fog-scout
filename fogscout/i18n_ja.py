@@ -6452,4 +6452,30 @@ T = {
         'よくある場面（サバイバー 4 人が発電機を修理、キラー 1 人）を計算機に入れます。試すためのもので、現在の選択は失われます。',
     'Übernimmt den Build von Survivor 1 – Perks, Item, Add-ons – für alle Survivor des Teams.':
         'サバイバー 1 のビルド（パーク、アイテム、アドオン）をチームの全サバイバーに使います。',
+    'Dreht diese Karte um 90° im Uhrzeigersinn (für die Map gemerkt).':
+        'このマップを時計回りに 90° 回します（マップごとに記憶）。',
+    'Ein eigenes Bild für diese Map wählen – das mitgelieferte bleibt erhalten.':
+        'このマップに自分の画像を選びます。付属の画像は残ります。',
+    'Öffnet die Statistik.':
+        '統計を開きます。',
+    'Alle zeigen':
+        'すべて表示',
+    'Setzt alle Filter dieser Zeile zurück – alle Aufnahmen bzw. Clips sind wieder zu sehen. Sortierung und Ansicht bleiben.':
+        'この行のフィルターをすべて戻します。すべての録画またはクリップが再び表示されます。並び順と表示はそのままです。',
+    'Die Kachel davor abspielen.':
+        '前のタイルを再生します。',
+    'Die nächste Kachel abspielen.':
+        '次のタイルを再生します。',
+    'Schliesst den Spieler.':
+        'プレーヤーを閉じます。',
+    'Kein Vorschaubild':
+        'プレビュー画像なし',
+    'Bild wird erstellt …':
+        '画像を作成中 …',
+    'Vorschaubild folgt nach der Runde':
+        'プレビュー画像はラウンド後に作成されます',
+    'Einrichtung fortsetzen':
+        '設定を続ける',
+    'Zurück zum Einrichtungs-Assistenten, an die Stelle, an der du ihn verlassen hast.':
+        'セットアップアシスタントの、離れた手順に戻ります。',
 }

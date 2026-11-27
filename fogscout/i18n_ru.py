@@ -6452,4 +6452,30 @@ T = {
         'Заполняет калькулятор типичным случаем (четверо выживших на генераторах против убийцы) – чтобы попробовать. Текущий выбор теряется.',
     'Übernimmt den Build von Survivor 1 – Perks, Item, Add-ons – für alle Survivor des Teams.':
         'Берёт сборку выжившего 1 – навыки, предмет, улучшения – для всех выживших команды.',
+    'Dreht diese Karte um 90° im Uhrzeigersinn (für die Map gemerkt).':
+        'Поворачивает эту карту на 90° по часовой стрелке (запоминается для карты).',
+    'Ein eigenes Bild für diese Map wählen – das mitgelieferte bleibt erhalten.':
+        'Выбрать своё изображение для этой карты – поставляемое сохраняется.',
+    'Öffnet die Statistik.':
+        'Открывает статистику.',
+    'Alle zeigen':
+        'Показать все',
+    'Setzt alle Filter dieser Zeile zurück – alle Aufnahmen bzw. Clips sind wieder zu sehen. Sortierung und Ansicht bleiben.':
+        'Сбрасывает все фильтры этой строки – снова видны все записи или клипы. Сортировка и вид остаются.',
+    'Die Kachel davor abspielen.':
+        'Воспроизвести предыдущую плитку.',
+    'Die nächste Kachel abspielen.':
+        'Воспроизвести следующую плитку.',
+    'Schliesst den Spieler.':
+        'Закрывает проигрыватель.',
+    'Kein Vorschaubild':
+        'Нет изображения',
+    'Bild wird erstellt …':
+        'Создаётся изображение …',
+    'Vorschaubild folgt nach der Runde':
+        'Изображение появится после раунда',
+    'Einrichtung fortsetzen':
+        'Продолжить настройку',
+    'Zurück zum Einrichtungs-Assistenten, an die Stelle, an der du ihn verlassen hast.':
+        'Назад к мастеру настройки, к шагу, на котором вы его оставили.',
 }

@@ -4219,3 +4219,91 @@ def test_the_cards_of_the_settings_stand_in_two_columns_in_a_wide_window(qapp, k
     plain = keep(qt_pages.CardColumn())                        # other pages: one column, however wide
     plain.resize(2000, 300)
     assert not plain.two and plain.maximumWidth() > 5000
+
+
+def test_a_place_of_a_build_opens_a_list_with_a_search(qapp, keep):
+    """1.57.96 (review of the calculator: up to 87 perks only to be scrolled through): a click on a place opens a
+    popup – a search field over the entries; typing narrows them, Enter takes the first shown, and the page hears
+    of it as of any choice (``activated``)."""
+    from fogscout import qt_pages
+    combo = keep(qt_pages.SlotCombo("Perk 1"))
+    combo.addItems(["—", "Botany Knowledge", "Prove Thyself", "Resilience", "Hex: Ruin"])
+    picked = []
+    combo.activated.connect(picked.append)
+    combo.show()
+    combo.showPopup()
+    picker = combo.picker
+    assert isinstance(picker, qt_pages.SlotPicker) and picker.shown() == [combo.itemText(i) for i in range(5)]
+    picker.search.setText("PROVE")
+    assert picker.shown() == ["Prove Thyself"] and picker.list.currentItem().text() == "Prove Thyself"
+    picker.search.setText("e i")                               # every word, anywhere in the name
+    assert picker.shown() == ["Resilience", "Hex: Ruin"]
+    assert picker.list.currentItem().text() == "Resilience"
+    picker.search.setText("zzz")
+    assert picker.shown() == []
+    picker.take()                                              # nothing shown: nothing is taken
+    assert picked == [] and combo.currentIndex() == 0
+    picker.search.setText("ruin")
+    picker.take()
+    assert picked == [4] and combo.currentText() == "Hex: Ruin" and not combo.empty()
+    combo.showPopup()                                          # again: the chosen entry is the current one
+    assert combo.picker.list.currentItem().text() == "Hex: Ruin"
+    combo.picker.take(combo.picker.list.item(0))               # "—": the place is empty again
+    assert picked == [4, 0] and combo.empty()
+
+
+def test_the_foot_entries_lead_to_their_page_and_a_page_without_a_row_marks_its_parent(qapp, keep):
+    """1.57.96: a click on "OBS" at the foot of the navigation asks for the OBS connection in the settings, one on
+    "Server" opens the server page; the calculator (no row of its own) marks "Statistik", the log its button."""
+    from PySide6.QtCore import QEvent, QPointF, Qt
+    from PySide6.QtGui import QMouseEvent
+    from fogscout import qt_window
+    posted = []
+    win = keep(qt_window.MainWindow(lambda a, arg=None: posted.append((a, arg))))
+    win.resize(1280, 800)
+    win.show()
+    win.show_status_rows([("OBS", "bereit", "ok"), ("Server", "Frankfurt · 28 ms", "ok")])
+
+    def click(row):
+        e = QMouseEvent(QEvent.MouseButtonRelease, QPointF(4, 4), QPointF(4, 4), Qt.LeftButton, Qt.NoButton,
+                        Qt.NoModifier)
+        win.nav_foot.eventFilter(row, e)
+    click(win.nav_foot.rows[0][0])
+    assert ("rec_setup_obs", None) in posted
+    click(win.nav_foot.rows[1][0])
+    assert win.stack.currentWidget() is win._page("server")
+    stats = win.nav.item(win._nav_row("stats"))
+    settings = win.nav.item(win._nav_row("settings"))
+    assert settings.font().bold() and not stats.font().bold()             # the server belongs to the settings
+    win.show_page("calc")
+    assert stats.font().bold() and not settings.font().bold() and win._nav_marked == "stats"
+    win.show_page("log")
+    assert not stats.font().bold() and win.nav_foot.log_btn.property("on") is True
+    win.show_page("maps")
+    assert win._nav_marked is None and not win.nav_foot.log_btn.property("on")
+
+
+def test_the_setup_assistant_put_aside_can_be_continued(qapp, keep):
+    """1.57.96 (user: "wenn man beim Einrichtungsassistent den Tab wechselt, kommt man nicht mehr zurück"): leaving
+    the assistant through the navigation only puts it aside – "Einrichtung fortsetzen" above the navigation brings
+    it back at the step it was on; finished or skipped, the button is gone."""
+    from fogscout import qt_window
+    win = keep(qt_window.MainWindow(lambda a, arg=None: None))
+    win.resize(1280, 800)
+    win.show()
+    assert win.setup_btn.isHidden()
+    win.show_setup(True)
+    assert win.stack.currentWidget() is win.setup and win.setup_btn.isHidden()       # on display: no button
+    win.setup.go(3)
+    win.show_page("maps")                                      # away through the navigation
+    assert win.stack.currentWidget() is not win.setup and not win.setup_btn.isHidden()
+    assert win.setup_btn.text() == "Einrichtung fortsetzen"
+    win.setup_btn.click()
+    assert win.stack.currentWidget() is win.setup and win.setup.steps.currentIndex() == 3
+    assert win.setup_btn.isHidden()
+    win.show_setup(False, done=True)                           # finished or skipped
+    assert win.setup_btn.isHidden()
+    win.show_page("stats")
+    assert win.setup_btn.isHidden()
+    win.show_setup(True)                                       # "Einrichtung starten" again: from the first step
+    assert win.setup.steps.currentIndex() == 0

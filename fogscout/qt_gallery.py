@@ -13,6 +13,7 @@ from PySide6.QtGui import QColor, QFont, QImage, QPainter, QPainterPath, QPen, Q
 from PySide6.QtWidgets import QAbstractItemView, QListView, QListWidget, QListWidgetItem, QStyle, QStyledItemDelegate
 
 from . import qt_theme, thumbs
+from .i18n import _
 from .qt_common import steady_scroll
 
 TILE_W, TILE_H = 248, 140          # px (logical) of the picture inside a tile (16:9) at the least
@@ -26,6 +27,8 @@ PUMP_MS = 30                       # how often finished thumbnails are taken fro
 PUMP_TAKE = 6                      # ... at most this many per tick (≈ 1 ms each: scrolling stays smooth)
 AHEAD_PX = 400                     # thumbnails are asked for this far below/above what is on display
 PIX_KEPT = 240                     # pixmaps kept at most (≈ 40 MB at 322×135): the longest unused far ones go
+VIDEO_THUMB = (528, 297)           # px (logical) a video's tile picture is made in – the widest a tile's picture gets
+VIDEO_PIX_KEPT = 80                # … and fewer of them are kept (≈ 50 MB at 100 %)
 PATH_ROLE = Qt.UserRole
 INFO_ROLE = Qt.UserRole + 1        # (caption, line below, badge or "")
 
@@ -71,6 +74,12 @@ class _TileDelegate(QStyledItemDelegate):
             dw, dh = w * s, h * s
             p.drawPixmap(QRectF(pic.center().x() - dw / 2, pic.center().y() - dh / 2, dw, dh), pm, QRectF(pm.rect()))
         p.setClipping(False)
+        if pm is None or pm.isNull():                          # 1.57.96: say why the tile is black
+            note = self.view.placeholder(pm is not None)
+            if note:
+                p.setFont(_smaller(option.font))
+                p.setPen(QColor("#9ba1a9"))                    # on black in every theme
+                p.drawText(pic.adjusted(8, 8, -8, -8), Qt.AlignCenter | Qt.TextWordWrap, note)
         caption, sub, badge = index.data(INFO_ROLE) or ("", "", "")
         f = QFont(option.font)
         f.setWeight(QFont.DemiBold)
@@ -141,6 +150,10 @@ class ShotGallery(QListWidget):
 
     def tile_size(self) -> QSize:
         return self._tile
+
+    def placeholder(self, failed: bool) -> str:
+        """What a tile without a picture says: ``failed`` – none could be made; else it is still to come."""
+        return _("Kein Vorschaubild") if failed else _("Bild wird erstellt …")
 
     def _fit_tiles(self):
         """As many tiles per row as fit at their least width, widened so that the row ends at the edge. 1.57.94:
@@ -237,7 +250,7 @@ class ShotGallery(QListWidget):
         """At most PIX_KEPT pixmaps: the longest unused ones away from the display go (a gallery of years of
         screenshots scrolled through held all of them, ~370 MB for 2000) – scrolled back, they come again from
         the disk cache."""
-        extra = len(self._pix) - PIX_KEPT
+        extra = len(self._pix) - getattr(self, "pix_kept", PIX_KEPT)
         if extra > 0:
             for path in [p for p in self._pix if p not in near][:extra]:
                 del self._pix[path]
@@ -306,7 +319,10 @@ class ClipGallery(ShotGallery):
     def __init__(self, cache_dir, ffmpeg, dark=True, on_pick=None, on_open=None, on_menu=None, busy=None):
         super().__init__(cache_dir, dark, on_pick, on_open, on_menu)
         from .qt_library import ThumbLoader
-        self._video = ThumbLoader(cache_dir, ffmpeg, self._ratio)
+        # 1.57.97 (user: "die Vorschaubilder sind sehr unscharf"): made as large as a tile gets (two per row: just
+        # under twice the least width), not in the size of the editor's library rows
+        self._video = ThumbLoader(cache_dir, ffmpeg, self._ratio, size=VIDEO_THUMB)
+        self.pix_kept = VIDEO_PIX_KEPT
         self._busy = busy or (lambda: False)
         self._retry = QTimer(self)
         self._retry.setSingleShot(True)
@@ -318,6 +334,11 @@ class ClipGallery(ShotGallery):
     def _picked(self):
         if self.on_pick:
             self.on_pick(self.selected_paths())                # a list, as the tables hold several rows
+
+    def placeholder(self, failed: bool) -> str:
+        if not failed and self._busy():                        # no ffmpeg beside a running round
+            return _("Vorschaubild folgt nach der Runde")
+        return super().placeholder(failed)
 
     def _ask_visible(self):
         from types import SimpleNamespace

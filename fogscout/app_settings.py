@@ -557,7 +557,7 @@ class SettingsTab:
         self.settings.set("welcome_seen", True)
         self._save_soon()
         if self.qt is not None:
-            self.qt.show_setup(False)
+            self.qt.show_setup(False, done=True)
             self.qt.show_page("server")
 
     def _export_settings(self, path=None):

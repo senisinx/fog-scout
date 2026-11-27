@@ -2371,8 +2371,9 @@ class ClipWindow(ClipBase):
 
     def __init__(self, path: str, marks: list, clips_dir: str, mode: str = "copy", sound: bool = True,
                  compact: bool = True, parent=None, on_expand=None, autoplay: bool = False, player_only: bool = False,
-                 **kw):
+                 on_step=None, on_close=None, **kw):
         self.on_expand = on_expand
+        self.on_step, self.on_close = on_step, on_close      # 1.57.96: the player's ‹ › and × (the page's tiles)
         self.autoplay = bool(autoplay)        # 1.57.93: above the clip tiles – plays as soon as the file is read
         self.player_only = bool(player_only)  # … and is only a player: the picture, the strip, playback, "Grosser
         #                                       Editor …" – the cards for cutting and saving stay away
@@ -2420,6 +2421,11 @@ class ClipWindow(ClipBase):
             self.preview.setMaximumHeight(PLAYER_PREVIEW_H)
             self.player_expand = self._btn(row, _("Grosser Editor …"), self._expand,
                                            _("Öffnet den Clip im grossen Editor – gleicher Bereich, gleiche Stelle."))
+            if self.on_step is not None:
+                self.player_prev = self._btn(row, "‹", lambda: self.on_step(-1), _("Die Kachel davor abspielen."))
+                self.player_next = self._btn(row, "›", lambda: self.on_step(1), _("Die nächste Kachel abspielen."))
+            if self.on_close is not None:
+                self.player_close = self._btn(row, "×", self.on_close, _("Schliesst den Spieler."))
         self._mode_changed(self.mode_box.currentIndex(), save=False)
 
     def _transport_row(self):

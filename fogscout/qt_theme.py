@@ -379,6 +379,9 @@ QFrame[class="card"] QLabel {{ background: transparent; }}
 QFrame[class="card"][dragging="true"], QFrame[class="card"][found="true"] {{ border: 1px solid {c['accent']}; }}
 QFrame[class="card"][link="true"]:hover {{ border: 1px solid {c['accent']}; }}
 QWidget#navside {{ background: {c['nav']}; }}
+QPushButton#navsetup {{ margin: 6px 10px 2px 10px; padding: 6px 8px; background: {c['accent']}; color: {c['on_accent']};
+    border: none; border-radius: {RADIUS['m']}px; font-weight: 600; font-size: {px(TYPE['small'])}; }}  /* 1.57.96 */
+QPushButton#navsetup:focus {{ border: 1px solid {c['fg']}; }}
 QPushButton#navsearch {{ margin: 12px 10px 2px 10px; background: {c['field']}; border: 1px solid {c['border']};
     border-radius: {RADIUS['m']}px; padding: 5px 8px; text-align: left; color: {c['dim']}; }}  /* 1.38.55: a search button */
 QPushButton#navsearch:hover {{ background: {c['hover']}; color: {c['fg']}; }}
@@ -400,6 +403,7 @@ QPushButton#navfootbtn {{ background: transparent; border: 1px solid transparent
     padding: 2px 6px; font-size: {px(TYPE['small'])}; }}
 QPushButton#navfootbtn:hover {{ background: {c['hover']}; color: {c['fg']}; }}
 QPushButton#navfootbtn:focus {{ border-color: {c['accent']}; }}
+QPushButton#navfootbtn[on="true"] {{ color: {c['accent']}; font-weight: 700; }}  /* 1.57.96: the log is open */
 QLabel#navstatustext {{ color: {c['fg']}; font-size: {px(TYPE['small'])}; background: transparent; }}
 QLabel[class="subtitle"] {{ color: {c['dim']}; font-size: {px(TYPE['body'])}; }}  /* 1.24: a page's purpose */
 QLabel[class="dim"] {{ color: {c['dim']}; font-size: {px(TYPE['small'])}; }}

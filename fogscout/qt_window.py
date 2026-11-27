@@ -20,7 +20,7 @@ from . import i18n, qt_icons, qt_theme
 from .status import DOT_STYLE
 from .i18n import N_, _
 from .qt_app import FIRA, application          # 1.14.2: made before the heavy imports (splash)
-from .qt_common import NAV_HIDDEN                # 1.57.81: pages off the navigation
+from .qt_common import NAV_HIDDEN, NAV_PARENT                # 1.57.81: pages off the navigation
 from .qt_common import (SLIDER_MAX, WheelGuard, guard_wheel, pixmap_from_pil, rezoom, set_glyph, _label, _tip, _card, _set,
                         _scroll_page)
 from .qt_views import (FactBox, CHECKS, _check, Table, LogView, HotkeyButton, Chart, HEAT_RAMP,
@@ -688,9 +688,10 @@ class NavFoot(QFrame):
     on the icons' column, a small heading, the state in words below it – then "Log" and the arrow that folds the
     navigation to its icons or opens it again. Folded: only the dots (the words as hover text) and the arrow."""
 
-    def __init__(self, on_log, on_fold):
+    def __init__(self, on_log, on_fold, on_row=None):
         super().__init__()
         self.setObjectName("navfoot")
+        self._on_row = on_row                     # 1.57.96: a click on an entry leads to where it is set up
         outer = QVBoxLayout(self)
         outer.setContentsMargins(0, 0, 0, 0)
         outer.setSpacing(0)
@@ -716,6 +717,9 @@ class NavFoot(QFrame):
             h.addWidget(dot, 0, Qt.AlignTop)
             h.addLayout(col, 1)
             v.addWidget(row)
+            if on_row is not None:
+                row.setCursor(Qt.PointingHandCursor)
+                row.installEventFilter(self)
             self.rows.append((row, dot, name, words))
         outer.addWidget(self.rows_box)
         foot = QWidget()
@@ -736,6 +740,14 @@ class NavFoot(QFrame):
         outer.addWidget(foot)
         self._data, self._shown = [], None
         self.rezoom()
+
+    def eventFilter(self, obj, e):
+        if e.type() == QEvent.MouseButtonRelease and e.button() == Qt.LeftButton and self._on_row is not None:
+            for i, (row, _dot, _name, _words) in enumerate(self.rows):
+                if obj is row and i < len(self._data):
+                    self._on_row(self._data[i][0])
+                    return True
+        return super().eventFilter(obj, e)
 
     def rezoom(self):
         side = qt_theme.icon_px(qt_theme.ICON["s"])
@@ -862,6 +874,14 @@ class MainWindow(QMainWindow):
         self.search.setToolTip(_("Suchen (Strg+F)"))
         self.search.setFocusPolicy(Qt.TabFocus)    # not the window's first focus; Tab, a click or Ctrl+F
         self.search.clicked.connect(self.focus_search)
+        self.setup_btn = QPushButton(_("Einrichtung fortsetzen"))      # 1.57.96: back to the assistant put aside
+        self.setup_btn.setObjectName("navsetup")
+        self.setup_btn.setCursor(Qt.PointingHandCursor)
+        self.setup_btn.setToolTip(_("Zurück zum Einrichtungs-Assistenten, an die Stelle, an der du ihn verlassen hast."))
+        self.setup_btn.setFocusPolicy(Qt.TabFocus)
+        self.setup_btn.clicked.connect(lambda: self.show_setup(True, resume=True))
+        self.setup_btn.hide()
+        self._setup_open = False
         set_glyph(self.search, "search", tone="dim")
         keys = QHBoxLayout(self.search)
         keys.setContentsMargins(0, 12, 20, 2)               # inside the box: the sheet margin 12/10/2 + padding
@@ -877,6 +897,7 @@ class MainWindow(QMainWindow):
         sl.addWidget(self._brand_row())           # 1.24 (phase 2): the program's name on top …
         sl.addWidget(self.search)
         sl.addWidget(self.search_btn)
+        sl.addWidget(self.setup_btn)
         sl.addWidget(self.nav, 1)
         self.status_btn = NavStatus(lambda: self.show_page("overview"))   # … what it does now at the foot
         self.status_btn.setFixedWidth(nav_w())
@@ -884,7 +905,7 @@ class MainWindow(QMainWindow):
         sl.addWidget(self.status_btn)
         self._nav_user = False                    # 1.57.80: folded by the user (setting nav_collapsed)
         self._status_rows = []
-        self.nav_foot = NavFoot(lambda: self.show_page("log"), self._fold_clicked)
+        self.nav_foot = NavFoot(lambda: self.show_page("log"), self._fold_clicked, self._foot_row_clicked)
         self.nav_foot.setFixedWidth(nav_w())
         sl.addWidget(self.nav_foot)
         self._found = {}                  # search entry text -> (page key, widget, folded)
@@ -997,7 +1018,44 @@ class MainWindow(QMainWindow):
         if page is not None:
             self._style_page(page)
             self.stack.setCurrentWidget(page)
+        self._nav_mark(key)
+        self._setup_button()
         self._post("page", key)                                    # the App fills it now
+
+    def _setup_button(self):
+        """"Einrichtung fortsetzen": there while the assistant was begun, is not finished and is not on display."""
+        b = self.__dict__.get("setup_btn")
+        if b is None:                                   # the window is still being built
+            return
+        want = bool(self._setup_open) and not self._setup_on
+        if b.isHidden() == want:
+            b.setVisible(want)
+
+    def _nav_mark(self, key):
+        """1.57.96: a page without a row of its own (the calculator, the server, the log) marks where it belongs –
+        the row it is reached from gets the accent icon and bold text, "Log" at the foot its accent."""
+        parent = NAV_PARENT.get(key, (None,))[0]
+        if parent == getattr(self, "_nav_marked", None) and (key == "log") == bool(self.nav_foot.log_btn.property("on")):
+            return
+        self._nav_marked = parent
+        for r in range(self.nav.count()):
+            item = self.nav.item(r)
+            f = item.font()
+            f.setBold(item.data(Qt.UserRole) == parent)
+            item.setFont(f)
+        self._nav_icons()
+        b = self.nav_foot.log_btn
+        if bool(b.property("on")) != (key == "log"):
+            b.setProperty("on", key == "log")
+            b.style().unpolish(b)
+            b.style().polish(b)
+
+    def _foot_row_clicked(self, title: str):
+        """A click on "OBS" or "Server" at the foot: the OBS connection in the settings, the server page."""
+        if title == "OBS":
+            self._post("rec_setup_obs")
+        else:
+            self.show_page("server")
 
     def nav_keys(self) -> list:
         """The page keys in the order the navigation shows them (1.7.6: the user's order)."""
@@ -1063,11 +1121,20 @@ class MainWindow(QMainWindow):
         item = self.nav.currentItem()
         return item.data(Qt.UserRole) if item is not None else PAGES[0][0]
 
-    def show_setup(self, on: bool = True):
-        """The setup assistant instead of a page (first start); the navigation still leads away from it."""
+    def show_setup(self, on: bool = True, done: bool = False, resume: bool = False):
+        """The setup assistant instead of a page (first start); the navigation still leads away from it. 1.57.96
+        (user: "wenn man beim Einrichtungsassistent den Tab wechselt, kommt man nicht mehr zurück"): left that way,
+        it is only put aside – "Einrichtung fortsetzen" above the navigation brings it back at the step it was on
+        (``resume``), until it is finished or skipped (``done``)."""
         self._setup_on = bool(on)
         if on:
-            self.setup.go(0)
+            self._setup_open = True
+        elif done:
+            self._setup_open = False
+        self._setup_button()
+        if on:
+            if not resume:
+                self.setup.go(0)
             self._style_page(self.setup)
             self.stack.setCurrentWidget(self.setup)
             self.nav.blockSignals(True)                # 1.2.19: no page is highlighted behind the assistant
@@ -1454,7 +1521,8 @@ class MainWindow(QMainWindow):
             key = self.nav.item(row).data(Qt.UserRole)
             alert = key == "log" and self._log_alert
             icon = QIcon()
-            icon.addPixmap(nav_icon(key, c["dim"], ratio, alert), QIcon.Normal)
+            icon.addPixmap(nav_icon(key, c["accent" if key == getattr(self, "_nav_marked", None) else "dim"], ratio,
+                                    alert), QIcon.Normal)
             icon.addPixmap(nav_icon(key, c["accent"], ratio, alert), QIcon.Selected)
             icon.addPixmap(nav_icon(key, c["fg"], ratio, alert), QIcon.Active)
             self.nav.item(row).setIcon(icon)
@@ -1617,6 +1685,7 @@ class MainWindow(QMainWindow):
             return
         self._nav_compact = on
         self.search.setVisible(not on)
+        _set(self.setup_btn, "…" if on else _("Einrichtung fortsetzen"))     # narrow: the words are its hover text
         self.search_btn.setVisible(on)
         if on:
             self._search_icon()
