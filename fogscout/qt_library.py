@@ -123,6 +123,10 @@ class ThumbLoader:
                         return
                 continue
             path, seconds = job
+            if self._stop:                                 # 1.57.84: stopped meanwhile – no ffmpeg for this one
+                with self._lock:
+                    self._thread = None
+                return
             key = _cache_key(path)
             with _MEM_LOCK:
                 img = _MEM.get(key)

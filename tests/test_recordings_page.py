@@ -487,6 +487,53 @@ def test_the_clips_are_tiles_and_a_chosen_tile_marks_the_clip_for_the_buttons(ap
         app.quit()
 
 
+def test_the_rounds_are_tiles_too_and_a_chosen_tile_marks_the_recording(app_root, tmp_path, monkeypatch):
+    """1.57.84 (draft B "Kacheln"): the recordings of rounds as tiles (setting rounds_view) – a chosen tile marks its
+    row in the table, which the buttons read; "Liste" brings the table back."""
+    import time
+    from fogscout import obsrec, qt_gallery
+    from fogscout.app import App
+    folder = str(tmp_path / "rec")
+    os.makedirs(folder)
+    t = time.mktime((2026, 10, 17, 21, 40, 0, 0, 0, -1))
+    recs = []
+    for i, (label, keep, marks) in enumerate((("Coal Tower", True, []), ("The Game", False, [12.0, 40.0]))):
+        name = f"round{i}.mkv"
+        with open(os.path.join(folder, name), "wb") as fh:
+            fh.write(b"\0" * 100)
+        recs.append(obsrec.Recording(t=t + i * 900, file=name, label=label, role="killer", killer="nurse",
+                                     end=t + i * 900 + 600, size=100, keep=keep, marks=marks))
+    obsrec.save_index(folder, recs)
+    _settings(app_root, rec_on=True, rec_folder=folder)
+    app = App(str(app_root), simulate=str(app_root / "sim"))
+    monkeypatch.setattr(app.recorder, "folder", lambda: folder)
+    try:
+        app.qt.show_page("recordings")
+        app._rec_render(force=True)
+        app._qt_refresh(force=True)
+        assert app._recs_as_tiles() and app.rec_tiles_host.winfo_manager() and not app.rec_table_frame.winfo_manager()
+        tiles = {os.path.basename(p): (cap, sub, badge) for p, cap, sub, badge in app._rec_tiles}
+        assert set(tiles) == {"round0.mkv", "round1.mkv"}
+        assert tiles["round0.mkv"][0] == "Kohlelager" and tiles["round0.mkv"][2] == "★"
+        assert tiles["round1.mkv"][2] == "⚑ 2" and tiles["round1.mkv"][1].startswith("17.10.26 21:55")
+        gallery = app.qt.host(str(app.rec_tiles_host)).content
+        assert isinstance(gallery, qt_gallery.ClipGallery) and len(gallery.paths()) == 2
+        path = next(p for p in gallery.paths() if p.endswith("round1.mkv"))
+        app._rec_tile_picked(path)
+        assert app._rec_selected().file == "round1.mkv" and app.rec_play_btn.cget("state") == "normal"
+        assert app._rec_preview_t is None                          # the compact preview belongs to the table
+        app._rec_render(force=True)                                 # a refresh keeps the chosen tile
+        assert app._rec_selected().file == "round1.mkv"
+        app._rec_tile_picked(None)
+        assert app._rec_selected() is None
+        app.rec_view_var.set("Liste")
+        app._rec_view_changed()
+        assert app.settings.get("rounds_view") == "list" and app.rec_table_frame.winfo_manager()
+        assert not app.rec_tiles_host.winfo_manager()
+    finally:
+        app.quit()
+
+
 def test_no_clip_picture_is_made_while_a_round_runs(tmp_path):
     """1.57.83: ClipGallery asks its loader for nothing while ``busy()`` (a round) – it tries again later."""
     pytest.importorskip("PySide6.QtWidgets", exc_type=ImportError)
