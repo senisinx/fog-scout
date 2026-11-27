@@ -389,10 +389,13 @@ QPushButton#navsearchbtn:hover {{ background: {c['hover']}; }}
 QPushButton#navsearchbtn:focus {{ border: 1px solid {c['accent']}; }}
 QWidget#navbrand {{ background: {c['nav']}; }}  /* 1.24: the program's name above the navigation */
 QLabel#brandname {{ font-size: {px(TYPE['big'])}; font-weight: 700; color: {c['head']}; }}
+/* 1.57.92 (draft C): the state, OBS and the server are three entries – a small heading, the words below */
 QFrame#navstatus {{ background: {c['nav']}; border: none; border-top: 1px solid {c['border']}; border-radius: 0; }}
 QFrame#navstatus:hover {{ background: {c['hover']}; }}  /* 1.24: what Fog Scout does now, every page */
 QFrame#navstatus:focus {{ border: 1px solid {c['accent']}; }}
 QFrame#navfoot {{ background: {c['nav']}; border: none; border-radius: 0; }}  /* 1.57.80 */
+QFrame#navrows {{ background: {c['nav']}; border: none; border-radius: 0; }}
+QLabel[class="navlab"] {{ color: {c['dim']}; font-size: {px(TYPE['label'])}; letter-spacing: 0.8px; background: transparent; }}
 QPushButton#navfootbtn {{ background: transparent; border: 1px solid transparent; color: {c['dim']};
     padding: 2px 6px; font-size: {px(TYPE['small'])}; }}
 QPushButton#navfootbtn:hover {{ background: {c['hover']}; color: {c['fg']}; }}

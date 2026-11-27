@@ -619,16 +619,26 @@ class NavStatus(QFrame):
         self.text = QLabel()
         self.text.setTextFormat(Qt.PlainText)            # 1.57.62: status words can hold an error text from outside
         self.text.setObjectName("navstatustext")         # 1.24.5: lines made by _two_lines, no wrapping
+        # 1.57.92 (user picked draft C "Liste mit Beschriftung"): a small heading over the words, as for OBS and
+        # the server below – three entries, every sign on the icons' column
+        self.label = _label(_("Status").upper(), "navlab")
+        col = QVBoxLayout()
+        col.setContentsMargins(0, 0, 0, 0)
+        col.setSpacing(1)
+        col.addWidget(self.label)
+        col.addWidget(self.text)
         h.addWidget(self.dot, 0, Qt.AlignTop)
-        h.addWidget(self.text, 1)
+        h.addLayout(col, 1)
         self._shown = None
         self.rezoom()
 
     def rezoom(self):
         """The sign on the icons' column of the navigation (1.24.7), at the text zoom (1.55.7)."""
         side = qt_theme.icon_px(qt_theme.ICON["s"])
-        self.layout().setContentsMargins(nav_sign_x() - side // 2, 10, 10, 12)
+        self.layout().setContentsMargins(nav_sign_x() - side // 2, 10, 10, 4)
         self.dot.setFixedWidth(side)                     # 1.24.7: the layout squeezed it to half – off the column
+        self.dot.setFixedHeight(self.label.sizeHint().height() + side)   # the sign beside the heading's lower half
+        self.dot.setAlignment(Qt.AlignHCenter | Qt.AlignBottom)
         self._shown = None
 
     def show_state(self, colour: str, text: str, compact: bool, ratio: float = 1.0, sign: str = "record"):
@@ -639,6 +649,9 @@ class NavStatus(QFrame):
         self.dot.setPixmap(qt_icons.pixmap(sign, colour, qt_theme.icon_px(qt_theme.ICON["s"]), ratio))
         _set(self.text, "" if compact else self._two_lines(text))
         self.text.setVisible(not compact)
+        self.label.setVisible(not compact)
+        side = qt_theme.icon_px(qt_theme.ICON["s"])        # folded: no heading – the sign alone, no gap above it
+        self.dot.setFixedHeight(side if compact else self.label.sizeHint().height() + side)
         self.setAccessibleName(text)
 
     def _two_lines(self, text: str) -> str:
@@ -670,15 +683,21 @@ class NavStatus(QFrame):
 
 
 class NavFoot(QFrame):
-    """1.57.80 (user picked draft D "Einklappbar"): under the state – a row each for OBS and the server (a dot in
-    the level's colour, the name, the state in words), then "Log" and the arrow that folds the navigation to its
-    icons or opens it again. Folded: only the dots (the words as hover text) and the arrow."""
+    """Under the state (1.57.80, draft D "Einklappbar"; 1.57.92, the user picked draft C "Liste mit Beschriftung"
+    for the foot): an entry each for OBS and the server like the state above them – the dot in the level's colour
+    on the icons' column, a small heading, the state in words below it – then "Log" and the arrow that folds the
+    navigation to its icons or opens it again. Folded: only the dots (the words as hover text) and the arrow."""
 
     def __init__(self, on_log, on_fold):
         super().__init__()
         self.setObjectName("navfoot")
-        v = QVBoxLayout(self)
-        v.setSpacing(4)
+        outer = QVBoxLayout(self)
+        outer.setContentsMargins(0, 0, 0, 0)
+        outer.setSpacing(0)
+        self.rows_box = QFrame()
+        self.rows_box.setObjectName("navrows")
+        v = QVBoxLayout(self.rows_box)
+        v.setSpacing(7)
         self._lay = v
         self.rows = []
         for _i in range(2):
@@ -686,17 +705,21 @@ class NavFoot(QFrame):
             h = QHBoxLayout(row)
             h.setContentsMargins(0, 0, 0, 0)
             h.setSpacing(8)
-            dot, name, words = QLabel(), _label("", "dim"), QLabel()
+            dot, name, words = QLabel(), _label("", "navlab"), QLabel()
             words.setTextFormat(Qt.PlainText)
             words.setObjectName("navstatustext")
-            h.addWidget(dot)
-            h.addWidget(name)
-            h.addWidget(words, 1)
+            col = QVBoxLayout()
+            col.setContentsMargins(0, 0, 0, 0)
+            col.setSpacing(1)
+            col.addWidget(name)
+            col.addWidget(words)
+            h.addWidget(dot, 0, Qt.AlignTop)
+            h.addLayout(col, 1)
             v.addWidget(row)
             self.rows.append((row, dot, name, words))
+        outer.addWidget(self.rows_box)
         foot = QWidget()
         self._foot = QHBoxLayout(foot)
-        self._foot.setContentsMargins(0, 2, 0, 0)
         self._foot.setSpacing(4)
         self.log_btn = QPushButton(_("Log"))
         self.log_btn.setObjectName("navfootbtn")
@@ -710,15 +733,19 @@ class NavFoot(QFrame):
         self._foot.addWidget(self.log_btn)
         self._foot.addStretch(1)
         self._foot.addWidget(self.fold_btn)
-        v.addWidget(foot)
+        outer.addWidget(foot)
         self._data, self._shown = [], None
         self.rezoom()
 
     def rezoom(self):
         side = qt_theme.icon_px(qt_theme.ICON["s"])
-        self._lay.setContentsMargins(nav_sign_x() - side // 2, 6, 8, 8)
-        for _row, dot, _name, _words in self.rows:
+        left = nav_sign_x() - side // 2            # the dots on the icons' column, like the state's
+        self._lay.setContentsMargins(left, 3, 10, 6)
+        self._foot.setContentsMargins(left - 6, 4, 8, 8)
+        for _row, dot, name, _words in self.rows:
             dot.setFixedWidth(side)
+            dot.setFixedHeight(name.sizeHint().height() + side)
+            dot.setAlignment(Qt.AlignHCenter | Qt.AlignBottom)
         self._shown = None
 
     def show_rows(self, rows, compact: bool, folded: bool, dark: bool, ratio: float = 1.0):
@@ -728,6 +755,7 @@ class NavFoot(QFrame):
             return
         self._shown, self._data = key, list(rows)
         side = qt_theme.icon_px(qt_theme.ICON["s"])
+        self.rows_box.setVisible(bool(rows))
         for (row, dot, name, words), data in zip(self.rows, list(rows) + [None] * len(self.rows)):
             row.setVisible(data is not None)
             if data is None:
@@ -735,18 +763,16 @@ class NavFoot(QFrame):
             title, text, level = data
             style = level if level in ("ok", "warn", "err") else "idle"
             dot.setPixmap(qt_icons.pixmap("record", qt_theme.dot_colour(style, dark), side, ratio))
-            _set(name, title)
-            name.ensurePolished()
+            _set(name, title.upper())
             words.ensurePolished()
-            # 1.57.83: name and state when both fit; a long state ("Frankfurt · 28 ms") stands alone – it says
-            # what it is of; longer still, it ends in "…" (the tooltip has all of it)
+            # the heading above, the state on a line of its own: "Frankfurt · 28 ms" fits; longer, it ends in "…"
+            # (the tooltip has all of it)
             m = self._lay.contentsMargins()
-            room = nav_w() - m.left() - m.right() - side - 8
-            named = name.fontMetrics().horizontalAdvance(title) + 8
-            alone = words.fontMetrics().horizontalAdvance(text) + named > room
-            _set(words, words.fontMetrics().elidedText(text, Qt.ElideRight, max(20, room - (0 if alone else named))))
-            name.setVisible(not compact and not alone)
+            room = nav_w() - m.left() - m.right() - side - row.layout().spacing()
+            _set(words, words.fontMetrics().elidedText(text, Qt.ElideRight, max(20, room)))
+            name.setVisible(not compact)
             words.setVisible(not compact)
+            dot.setFixedHeight(side if compact else name.sizeHint().height() + side)
             row.setToolTip(f"{title}: {text}")
             row.setAccessibleName(f"{title}: {text}")
         self.log_btn.setVisible(not compact)

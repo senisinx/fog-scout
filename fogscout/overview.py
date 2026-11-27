@@ -88,6 +88,7 @@ class Overview:
     week: list = field(default_factory=list)           # 1.8.83: this week against the last one (Facts); [] = no rounds
     week_note: str = ""
     news_since: str = ""                      # the card's title
+    charts: object = None                     # 1.57.92: Charts – more diagrams below the numbers
     days: dict = field(default_factory=dict)  # 1.11.14: chart data (trendchart panel "killer") – {} = no round in DAYS
     dark: bool = True
 
@@ -622,6 +623,50 @@ def _system_rows(app, now: float, is_win: bool) -> tuple[list, str]:
     return rows, note
 
 
+CHART_DAYS = 30            # 1.57.92: the overview's charts look at this many days
+CHART_MAPS = 5             # … the most played maps shown
+CHART_KILLS = 12           # … the last killer rounds with a result
+
+
+@dataclass
+class Charts:
+    """1.57.92 (user: "Bau verschiedene Diagramme ein"): what the overview draws below the numbers, all from the
+    rounds and matches the statistics hold anyway. A part without data is empty/None – its card is not shown."""
+    times: object = None                        # dashboard.Grid: rounds by weekday × time of day
+    maps: list = field(default_factory=list)    # [(map shown, rounds, results)]
+    maps_max: int = 1
+    kills: list = field(default_factory=list)   # [(kills, label, tip)] oldest first – qt_views.CountBars
+    roles: list = field(default_factory=list)   # [(role name, rounds, "")] – MapBars
+    roles_max: int = 1
+
+
+def charts(app, now: float) -> Charts:
+    j = app._joined()
+    first = history.period_start("day", now) - (CHART_DAYS - 1) * 86400
+    rounds = [r for r in j.rounds if r.t >= first]
+    c = Charts()
+    if not rounds:
+        return c
+    pairs = [(r, j.off[id(r)]) for r in rounds if id(r) in j.off and not r.custom]
+    grid = dashboard.play_grid(rounds)
+    c.times = grid if grid.rows else None
+    c.maps = [(shown(name), n, res) for name, n, res in dashboard.map_rows(rounds, pairs, CHART_MAPS)]
+    c.maps_max = max((n for _m, n, _r in c.maps), default=1)
+    counts = {}
+    for r in rounds:
+        who = _("Custom Game") if r.custom else app._role_name(r.role) or _("ohne Rolle")
+        counts[who] = counts.get(who, 0) + 1
+    c.roles = [(who, n, "") for who, n in sorted(counts.items(), key=lambda x: (-x[1], x[0]))]
+    c.roles_max = max(counts.values())
+    done = [(r, official.kills(m)) for r, m in pairs if r.role == "killer"]
+    for r, k in sorted((x for x in done if x[1] is not None), key=lambda x: x[0].t)[-CHART_KILLS:]:
+        when = time.strftime("%d.%m. %H:%M", time.localtime(r.t))
+        who = killer_label(r.killer) if r.killer else _("Killer")
+        c.kills.append((k, time.strftime("%d.%m.", time.localtime(r.t)),
+                        _("{when} · {who} · {map}: {n} Kills", when=when, who=who, map=shown(r.map), n=k)))
+    return c
+
+
 def days(app, now: float) -> dict:
     """1.11.14 (user picked "Übersicht: freie Fläche nutzen"): rounds per day over the last DAYS days as one chart
     panel (trendchart format, drawn by qt_views.Chart) – {} while none of those days has a round."""
@@ -709,8 +754,9 @@ def overview_model(app, now: float, is_win: bool) -> Overview:
     cache = getattr(app, "_ov_cache", None)
     if cache is None or cache[0] is not j or cache[1] != int(now // 60):
         cache = app._ov_cache = (j, int(now // 60), today(app, now), last_rounds(app), week(app, now),
-                                 days(app, now))
+                                 days(app, now), charts(app, now))
     (o.today, o.today_note), o.rounds, (o.week, o.week_note), o.days = cache[2], cache[3], cache[4], cache[5]
+    o.charts = cache[6]
     o.dark = bool(app.settings.get("dark_mode", True))
     o.system, o.system_note = system(app, now, is_win)
     o.log_alert = bool(getattr(app, "_log_alert", False))
