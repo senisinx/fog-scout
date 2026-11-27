@@ -9,7 +9,7 @@ from __future__ import annotations
 
 from PySide6.QtCore import QRectF, QSize, Qt, QTimer
 from PySide6.QtGui import QColor, QKeySequence, QPainter, QShortcut
-from PySide6.QtWidgets import (QAbstractButton, QFrame, QGridLayout, QHBoxLayout, QLabel, QPushButton, QScrollArea,
+from PySide6.QtWidgets import (QAbstractButton, QBoxLayout, QFrame, QGridLayout, QHBoxLayout, QLabel, QPushButton, QScrollArea,
                                QSizePolicy, QToolButton, QVBoxLayout, QWidget)
 
 from . import qt_icons, qt_theme
@@ -25,10 +25,12 @@ NAMES = {"map": N_("Karte"), "text": N_("Infos"), "hud": N_("Systemwerte"), "tod
 WHAT = {"map": N_("Callout-Karte der Map"), "text": N_("Timer, Bilanz, Server"), "hud": N_("CPU, GPU, RAM"),
         "today": N_("Runden und Zeit heute"), "music": N_("Läuft gerade"), "inputs": N_("Tasten und Gamepad"),
         "loadouts": N_("Perks der Mitspieler"), "charts": N_("Ping, Punkte, Kills …")}
-RAIL_W = 236                 # px at text zoom 1.0: the list of elements
 INSPECTOR_W = 344            # px at text zoom 1.0: the settings of the element picked
-WIDE_FROM = 1180             # px (× zoom): list | canvas | inspector side by side
-MEDIUM_FROM = 720            # px (× zoom): the list as a row of chips on top, canvas | inspector below it
+MEDIUM_FROM = 720            # px (× zoom): from here the "stage" (1.57.87), below it all in one column
+STAGE_MIN_H = 200            # px: the stage's preview is at least this tall …
+STAGE_SETTINGS_H = 280       # … and leaves the settings below it at least this much of the editor's height
+STAGE_COLS = 5               # elements per line under the stage (9 rows: two lines), from STAGE_COLS_FROM px on
+STAGE_COLS_FROM = 1000
 ALIGN_LABEL, ALIGN_COMBO = 104, 196     # px: row labels / choices of the inspector aligned at most this wide
 PRESET_W = 190               # px: the choice of a preset in the tool bar
 CELL = QSize(30, 20)         # one cell of the quick places (a small screen, 3×3)
@@ -233,7 +235,7 @@ class ElementRail(QWidget):
         self._key, self._post = key, post
         self._rows = {}
         self._order = ()
-        self._compact = False
+        self._compact, self._cols = False, self.COMPACT_COLS
         self.general = False        # the tab "Allgemein" is open (the editor says so)
         self._data = {}
         self.grid = QGridLayout(self)
@@ -247,18 +249,20 @@ class ElementRail(QWidget):
     def rows(self) -> dict:
         return dict(self._rows)
 
-    def set_compact(self, on: bool):
-        if bool(on) != self._compact:
-            self._compact = bool(on)
+    def set_compact(self, on: bool, cols: int | None = None):
+        """``cols``: chips per line (default COMPACT_COLS)."""
+        cols = int(cols or self.COMPACT_COLS)
+        if bool(on) != self._compact or cols != self._cols:
+            self._compact, self._cols = bool(on), cols
             self._place()
 
     def _place(self):
         for row in self._rows.values():
             self.grid.removeWidget(row)
         names = list(self._order) + ["general"]
-        cols = self.COMPACT_COLS if self._compact else 1
-        for c in range(self.COMPACT_COLS):        # 1.55.7: chips share the width equally (a long name ends in "…",
-            self.grid.setColumnStretch(c, 1 if self._compact else 0)      # it does not squeeze a short one)
+        cols = self._cols if self._compact else 1
+        for c in range(max(self.grid.columnCount(), cols)):   # 1.55.7: chips share the width equally (a long name
+            self.grid.setColumnStretch(c, 1 if self._compact and c < cols else 0)   # ends in "…", it squeezes none)
         for i, name in enumerate(n for n in names if n in self._rows):
             row = self._rows[name]
             row.setSizePolicy(QSizePolicy.Ignored if self._compact else QSizePolicy.Preferred,
@@ -472,8 +476,21 @@ class OverlayEditor(QWidget):
         page._group = []
         page._items(inspector[:cut], eb, page_key)
         page._align()                                   # sizes and opacity line up (aligned once texts are in)
-        cl2.addWidget(self.element_box)
-        page._items(inspector[cut:], cl2, page_key)
+        eb.addStretch()
+        # 1.57.87 (user picked the draft "Bühne"): place / size / opacity and the element's own settings side by
+        # side under the preview (below each other in a narrow window)
+        self.columns = QBoxLayout(QBoxLayout.LeftToRight)
+        self.columns.setContentsMargins(0, 0, 0, 0)
+        self.columns.setSpacing(24)
+        self.columns.addWidget(self.element_box)
+        self.own_box = QWidget()
+        ob = QVBoxLayout(self.own_box)
+        ob.setContentsMargins(0, 0, 0, 0)
+        ob.setSpacing(6)
+        page._items(inspector[cut:], ob, page_key)
+        ob.addStretch()
+        self.columns.addWidget(self.own_box, 1)
+        cl2.addLayout(self.columns)
         cl2.addStretch()
         self.scroll.setWidget(content)
         il.addWidget(self.scroll)
@@ -492,12 +509,13 @@ class OverlayEditor(QWidget):
 
     # ------------------------------------------------------------ layout
     def mode_for(self, width: int) -> str:
-        z = qt_theme.current_zoom()
-        return "wide" if width >= WIDE_FROM * z else "medium" if width >= MEDIUM_FROM * z else "narrow"
+        return "stage" if width >= MEDIUM_FROM * qt_theme.current_zoom() else "narrow"
 
     def arrange(self, width: int):
-        """"wide": list | canvas | inspector; "medium": the list as chips on top, canvas | inspector below it;
-        "narrow": all below each other (the page scrolls). The canvas always gets the room left over."""
+        """1.57.87 (user picked the draft "Bühne"): "stage" – the preview on top across the page, below it the row
+        of all elements with their switches, below that the settings of the element picked (place and size beside
+        its own settings); "narrow": the same order, the settings in one column (the page scrolls). Before: the
+        list, the preview and the settings side by side."""
         mode = self.mode_for(width)
         if mode == self._wide:
             return
@@ -511,30 +529,44 @@ class OverlayEditor(QWidget):
             self.body.setColumnStretch(i, 0)
             self.body.setRowStretch(i, 0)
         if self.rail_view is not None:
-            self.rail_view.set_compact(mode != "wide")
-        self.rail_head.setVisible(mode == "wide")
-        if mode == "wide":
-            self.rail.setFixedWidth(round(RAIL_W * z))
-            self.inspector.setFixedWidth(round(INSPECTOR_W * z))
-            self.body.addWidget(self.rail, 0, 0)
-            self.body.addWidget(self.canvas_box, 0, 1)
-            self.body.addWidget(self.inspector, 0, 2)
-            self.body.setColumnStretch(1, 1)
-            self.body.setRowStretch(0, 1)
-        elif mode == "medium":
-            self.inspector.setFixedWidth(round(INSPECTOR_W * 0.92 * z))
-            self.body.addWidget(self.rail, 0, 0, 1, 2)
-            self.body.addWidget(self.canvas_box, 1, 0)
-            self.body.addWidget(self.inspector, 1, 1)
-            self.body.setColumnStretch(0, 1)
-            self.body.setRowStretch(1, 1)
+            self.rail_view.set_compact(True, STAGE_COLS if width >= STAGE_COLS_FROM * z else None)
+        self.rail_head.setVisible(False)
+        self.body.addWidget(self.canvas_box, 0, 0)
+        self.body.addWidget(self.rail, 1, 0)
+        self.body.addWidget(self.inspector, 2, 0)
+        self.body.setColumnStretch(0, 1)
+        if mode == "stage":
+            self.columns.setDirection(QBoxLayout.LeftToRight)
+            self.element_box.setFixedWidth(round(INSPECTOR_W * z))
+            self.inspector.setMinimumHeight(STAGE_SETTINGS_H)
+            self.body.setRowStretch(2, 1)
+            self._stage_canvas()
         else:
+            self.columns.setDirection(QBoxLayout.TopToBottom)
+            self.element_box.setMinimumWidth(0)
+            self.element_box.setMaximumWidth(16777215)
             self.inspector.setMinimumHeight(420)
-            self.body.addWidget(self.rail, 0, 0)
-            self.body.addWidget(self.canvas_box, 1, 0)
-            self.body.addWidget(self.inspector, 2, 0)
-            self.body.setColumnStretch(0, 1)
             self._narrow_canvas()
+
+    def _stage_canvas(self):
+        """The stage: as tall as a 21:9 picture across the page – less where the settings below would not keep
+        STAGE_SETTINGS_H of the editor's height, never under STAGE_MIN_H."""
+        gap = self.body.spacing()
+        room = self._view_height() - self.bar.sizeHint().height() - self.rail.sizeHint().height() - 3 * gap \
+            - STAGE_SETTINGS_H
+        h = max(STAGE_MIN_H, min(round(self.width() * 9 / 21) + 40, room))
+        if self.canvas_box.minimumHeight() != h or self.canvas_box.maximumHeight() != h:
+            self.canvas_box.setFixedHeight(h)
+
+    def _view_height(self) -> int:
+        """The height the editor has on display: the page scrolls, so its own height is what it asks for – the
+        scroll area's view minus what stands above the editor."""
+        w = self.parentWidget()
+        while w is not None and not isinstance(w, QScrollArea):
+            w = w.parentWidget()
+        if w is None:
+            return self.height()
+        return max(0, w.viewport().height() - self.mapTo(w.widget(), self.rect().topLeft()).y())
 
     def _narrow_canvas(self):
         h = max(220, round(self.width() * 0.5))
@@ -543,9 +575,6 @@ class OverlayEditor(QWidget):
 
     def mode(self) -> str:
         return self._wide or ""
-
-    def beside(self) -> bool:
-        return self._wide == "wide"
 
     def resizeEvent(self, e):
         super().resizeEvent(e)
@@ -556,6 +585,8 @@ class OverlayEditor(QWidget):
             QTimer.singleShot(0, self, self._arrange_now)
         elif self._wide == "narrow":
             self._narrow_canvas()
+        elif self._wide == "stage":
+            self._stage_canvas()
 
     def _rezoomed(self):
         """1.55.7: the text zoom changed while the window runs – the list's and inspector's widths follow it (arranged

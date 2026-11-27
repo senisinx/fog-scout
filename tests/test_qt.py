@@ -947,6 +947,26 @@ def test_the_dashboard_has_no_tile_that_would_only_say_nothing():
     assert "Filter zurücksetzen" in dashboard.build([], []).empty
 
 
+def test_the_tick_boxes_of_the_settings_are_switches(qapp, keep):
+    """1.57.88 (draft B of the settings): on the settings page a tick box is the on / off switch of the overview
+    and the overlay's list – the same state and clicks; other hand-made pages keep their tick boxes."""
+    from PySide6.QtWidgets import QCheckBox
+    from fogscout import qt_overlay, qt_pages, qt_window
+    posted = []
+    page = keep(qt_window.FormPage(lambda a, arg=None: posted.append((a, arg)), "Einstellungen",
+                                   qt_window.SPECS["settings"], "settings"))
+    checks = {k: w for k, (kind, w, _x) in page.controls.items() if kind == "check"}
+    assert len(checks) > 20 and all(isinstance(w.box, qt_overlay.SwitchButton) for w in checks.values())
+    w = checks["st.tray"]
+    page.show_states({"st.tray": {"text": "Beim Minimieren in den Infobereich", "value": True, "visible": True}})
+    assert w.isChecked() and w.text() == "Beim Minimieren in den Infobereich"
+    w.click()
+    assert posted[-1] == ("act", ("st.tray", False))
+    assert qt_pages.SWITCH_PAGES == ("settings",)
+    plain, _x = qt_pages.make_control("check", "x", lambda *a: None)
+    assert isinstance(keep(plain).box, QCheckBox)
+
+
 def test_the_look_kartentisch_and_cards_without_an_outline():
     """1.57.86 ("Gold bleibt, Kartentisch dazu", "weniger Kästen"): the theme "table" changes surfaces and text too
     (with OLED black only text and accent); a card has an outline only where its fill hardly differs from the
@@ -2253,8 +2273,7 @@ def test_the_settings_page_is_split_into_tabs_with_its_cards(qapp, keep):
 
 def test_the_overlay_editor_has_a_tool_bar_list_canvas_and_inspector_in_three_widths(qapp, keep):
     """1.46 (user: "das Overlay-Fenster ist sehr klein … ein vollwertiger Overlay-Editor"): the page is an editor –
-    tool bar, list of elements, the canvas with the room left over, the inspector of the element picked. Wide: side
-    by side; medium: the list as chips on top; narrow: all below each other. (Before: preview + tools | tabs.)"""
+    tool bar, list of elements, the canvas, the inspector of the element picked (before: preview + tools | tabs)."""
     from fogscout import qt_overlay, qt_window
     page = keep(qt_window.FormPage(lambda a, arg=None: None, "Overlay", qt_window.SPECS["overlay"], "overlay"))
     ed = page.editor
@@ -2266,26 +2285,29 @@ def test_the_overlay_editor_has_a_tool_bar_list_canvas_and_inspector_in_three_wi
     assert ed.inspector.isAncestorOf(page.controls["ov.sel_size"][1]) and ed.inspector.isAncestorOf(ed.tabs)
     assert ed.tabs.tabBar().isHidden() and ed.tabs.count() == 9         # the list picks the tab, not a tab row
     assert not ed.canvas.hasHeightForWidth()                           # fills its place – no 380-px cap
-    for width, mode in ((1600, "wide"), (900, "medium"), (600, "narrow")):
+    # 1.57.87 (user picked the draft "Bühne"): the preview on top across the page, the elements below it, the
+    # settings below them – place and size beside the element's own settings; narrow: the same in one column
+    for width, mode in ((1600, "stage"), (900, "stage"), (600, "narrow")):
         ed.arrange(width)
         assert ed.mode() == mode
 
     def placed(mode):                     # the parts where the mode puts them
         r, c, i = (w.geometry() for w in (ed.rail, ed.canvas_box, ed.inspector))
-        if mode == "wide":
-            return r.right() < c.left() and c.right() < i.left() and c.width() > r.width() + i.width() - 200
-        if mode == "medium":
-            return r.bottom() < c.top() and c.right() < i.left() and c.top() == i.top()
-        return r.bottom() < c.top() and c.bottom() < i.top()
+        e, o = ed.element_box.geometry(), ed.own_box.geometry()
+        below = c.bottom() < r.top() and r.bottom() < i.top() and c.width() == r.width() == i.width()
+        if mode == "stage":
+            return below and e.right() < o.left() and c.height() >= qt_overlay.STAGE_MIN_H
+        return below and e.bottom() < o.top()
     page.show()
-    # a real window is limited to the screen (the Windows runner's is smaller than 1500 px): the editor follows the
-    # width it really got – wide here (Linux offscreen), medium on a small screen
     for width in (1500, 700):
         page.resize(width, 860)
         for _i in range(3):
             qapp.processEvents()
         assert ed.mode() == ed.mode_for(ed.width()) and placed(ed.mode()), (width, ed.width(), ed.mode())
     assert ed.mode() == "narrow"                                       # 700 px fit every screen
+    assert ed.rail_view._cols == 4
+    ed.arrange(1500)                                                   # a wide stage: the nine rows in two lines
+    assert ed.rail_view._cols == qt_overlay.STAGE_COLS and not ed.rail_head.isVisible()
     keys = qt_window.page_keys("overlay")
     assert {"ov.preview", "ov.undo", "ov.elements", "ov.anchors", "ov.focus_mode", "ov.master"} <= keys
     assert "ov.sel" not in keys                                          # the list replaced the choice
