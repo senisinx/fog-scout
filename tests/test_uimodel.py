@@ -3984,3 +3984,50 @@ def test_the_statistics_open_on_one_page_and_a_click_filters_everything(app_root
         assert app._stats_current_title() == "Übersicht" and not app.stats_crumb.winfo_manager()
     finally:
         app.quit()
+
+
+def test_the_last_pings_show_at_once_and_stay_while_a_new_measurement_runs(app_root, monkeypatch):
+    """1.57.100 (user: "Server auch, damit man nicht warten muss"): the pings of the last measurement – the ms only,
+    never an address – are kept in the settings and show when the program starts; a new measurement leaves them on
+    display until its own results are in."""
+    import json
+    from fogscout import regions
+    from fogscout.app import App
+    code = regions.REGIONS[0][0]
+    (app_root / "settings.json").write_text(json.dumps({"welcome_seen": True, "srv_ping_seen": {
+        "t": time.time() - 600, "ms": {code: 42.0, "bad": "x"}}}), encoding="utf-8")
+    app = App(str(app_root), simulate=str(app_root / "sim"))
+    try:
+        app._srv_refresh = lambda *a, **k: app._srv_render()                  # never the real hosts file
+        assert app.srv_ping == {code: {"ms": 42.0}}
+        app._srv_render()
+        assert app.srv_tree.item(f"r:{code}", "values")[0] == "42 ms"
+        monkeypatch.setattr(regions, "measure_all", lambda *a, **k: (time.sleep(0.3), {})[1])
+        app.srv_measure()
+        assert app._srv_busy and app.srv_tree.item(f"r:{code}", "values")[0] == "42 ms"   # no "…" over a value
+        app._srv_ping_done({code: {"ms": 31.4, "ip": "192.0.2.1", "how": "icmp"}})
+        seen = app.settings.get("srv_ping_seen")
+        assert seen["ms"] == {code: 31.4} and "192.0.2.1" not in json.dumps(seen)
+        assert "srv_ping_seen" in __import__("fogscout.config", fromlist=["x"]).LOCAL_KEYS
+    finally:
+        app.quit()
+
+
+def test_the_maps_tiles_are_built_ahead_but_never_while_a_round_runs(app_root):
+    """1.57.100 (user: "Map-Vorschaubilder ebenfalls"): after the pages the warm-up builds the maps page's tiles –
+    their pictures then come from the loader's thread before the first visit; while a round runs it waits."""
+    import json
+    from fogscout.app import App
+    (app_root / "settings.json").write_text(json.dumps({"welcome_seen": True}), encoding="utf-8")
+    app = App(str(app_root), simulate=str(app_root / "sim"))
+    try:
+        app._tiles_prewarm = lambda: None                    # no recordings here; tested on its own
+        assert not app.qt.maps._tiles
+        app._hist = {"t": time.time()}                       # a round runs
+        assert app._qt_warm_extras() and not app.qt.maps._tiles
+        app._hist = None
+        assert app._qt_warm_extras() and app.qt.maps._tiles  # the tiles are there, the page never shown
+        assert app.qt.current_key() != "maps"
+        assert not app._qt_warm_extras() and not app._qt_warm_extras()      # once
+    finally:
+        app.quit()

@@ -189,6 +189,8 @@ Seit 1.8.8 haben Auswahllisten und Häkchen einen eigenen Stil wie Knöpfe und F
 
 **Statistik auf einer Seite, Klicken filtert alles** (seit 1.57.99): Die Statistik hat keine Reiterleisten mehr. Die erste Seite zeigt Kennzahlen, Verlauf, Maps, **Killer**, Spielzeiten und die **Runden dieser Auswahl**. Ein Klick auf einen Map- oder Killer-Balken filtert danach; jeder gesetzte Filter steht oben als **Chip mit ×**, ein Klick darauf nimmt ihn wieder weg. Die übrigen Auswertungen (Rekorde, Bloodpoints, Gegner, Wartezeit …) öffnen sich über „Details“ oder **„Weitere Auswertungen“** und führen mit **„‹ Übersicht“** zurück.
 
+**Vorladen im Hintergrund** (seit 1.57.100): Kurz nach dem Start baut Fog Scout in ruhigen Momenten die **Map-Kacheln** und macht die **Vorschaubilder der neuesten Clips und Aufnahmen** – beim ersten Öffnen von Maps und Aufnahmen sind sie schon da. Während einer Runde wartet das. Der Tab **Server** zeigt die zuletzt gemessenen Pings sofort an und ersetzt sie, sobald die neue Messung fertig ist (gespeichert werden nur die Millisekunden je Region).
+
 **Schalter in den Einstellungen** (seit 1.57.88): Die Häkchen der Einstellungen sind Ein/Aus-Schalter – wie auf der Übersicht und in der Liste der Overlay-Elemente.
 
 **Overlay-Seite als „Bühne“** (seit 1.57.87): Die **Vorschau** steht oben über die ganze Breite der Seite, darunter die **Zeile aller Elemente** mit Schloss und Ein/Aus-Schalter, darunter die **Einstellungen des gewählten Elements** – links Schnellposition, Grösse und Deckkraft, rechts seine eigenen Einstellungen. In einem schmalen Fenster steht alles untereinander.
