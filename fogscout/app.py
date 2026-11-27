@@ -2072,7 +2072,8 @@ class App(ServerTab, StatsTab, ExportDialog, RecordingsTab, DiscordPresence, Spo
                                 getattr(self, "charts_win", None))
                     if w is not None]
             # first the clip saves still running: stopped, or done ones into the clips list while the recorder runs
-            steps = [self._clip_saves_stop, self._hist_quit,     # 1.38.24: an open round is noted as lost
+            steps = [self._clip_saves_stop, self._tile_loaders_stop,   # 1.57.84: no ffmpeg for tiles after the end
+                     self._hist_quit,                            # 1.38.24: an open round is noted as lost
                      self._qt_close, self.settings.save, self.tray.stop, self.conn.stop, self.sysmon.stop,
                      self._inputs_quit,
                      self.media.stop, self.recorder.quit, self.presence.quit, self.spotify.quit, self.youtube.quit,

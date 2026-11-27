@@ -269,6 +269,15 @@ class RecordingsTab:
         cb._dbdms_name = _("Art")
         cb.pack(side="left", padx=(8, 0))
         cb.bind("<<ComboboxSelected>>", lambda e: self._rec_render(force=True))
+        # 1.57.84 (draft B "Kacheln"): the rounds as tiles with a picture too, or the table as before
+        self._clip_views = [(k, _(label)) for k, label in CLIP_VIEWS]
+        self.rec_view_var = ui.StringVar(value=dict(self._clip_views).get(self.settings.get("rounds_view", "tiles"),
+                                                                           self._clip_views[0][1]))
+        cb = ui.Combobox(fr, textvariable=self.rec_view_var, values=[lbl for _k, lbl in self._clip_views],
+                         state="readonly", width=10)
+        cb._dbdms_name = _("Ansicht")
+        cb.pack(side="right")
+        cb.bind("<<ComboboxSelected>>", lambda e: self._rec_view_changed())
 
         row = ui.Frame(f)
         row.pack(fill="x", pady=(0, 6))          # above the table, like the server tab: seen without scrolling
@@ -301,7 +310,9 @@ class RecordingsTab:
         self.rec_adopt_btn = ui.Button(row, text=_("Aufnahmen nachtragen …"), command=self._rec_adopt_find)
         self.rec_adopt_btn.pack(side="right", padx=(0, 6))
 
-        tf = ui.Frame(f)
+        self.rec_tiles_host = ui.Host(f)         # 1.57.84: the tiles (qt_gallery.ClipGallery), put in by _rec_tiles_sync
+        self._rec_tiles, self._rec_tile_iid = [], {}
+        tf = self.rec_table_frame = ui.Frame(f)
         tf.pack(fill="both", expand=True)
         # 1.12.2 (user: "ich find das nicht schön"): marks, keep and YouTube in one narrow column (symbols, explained
         # below the table); the file name – date, map and role once more – hidden until the heading's menu shows it
@@ -956,6 +967,7 @@ class RecordingsTab:
         keep = t.selection()
         t.delete(*t.get_children())
         self._rec_rows = {}
+        self._rec_tiles, self._rec_tile_iid = [], {}
         for r in shown:
             rnd = by_t.get(r.t)
             res = self._official_result(j.off.get(id(rnd))) if rnd is not None else "–"
@@ -971,8 +983,15 @@ class RecordingsTab:
                                                  role_txt, res, fmt_duration(r.end - r.t) if r.end > r.t else "–",
                                                  size, self._rec_status(r.keep, len(r.marks),
                                                                         self._yt_mark(r.file, r.yt)), r.file))
+            if p and p not in self._rec_tile_iid:               # 1.57.84: the same round as a tile
+                self._rec_tile_iid[p] = iid
+                sub = " · ".join(x for x in (time.strftime("%d.%m.%y %H:%M", time.localtime(r.t)), role_txt,
+                                             res if res != "–" else "") if x and x != "–")
+                self._rec_tiles.append((p, map_shown(r.label) or "–", sub,
+                                        "★" if r.keep else f"⚑ {len(r.marks)}" if r.marks else ""))
         if keep and t.exists(keep[0]):
             t.selection_set(keep[0])
+        self._rec_tiles_sync()
         self._rec_buttons()
         self._clips_render(folder, recs)
         self._shots_render()                                    # 1.12
@@ -1073,7 +1092,68 @@ class RecordingsTab:
         self._clip_tiles_sync()
         self._clip_buttons()
 
-    # ------------------------------------------------------------ 1.57.83: the clips as tiles
+    # ------------------------------------------------------------ 1.57.83/84: clips and rounds as tiles
+    def _tiles_show(self, host_w, frame, tiles: bool, items, selected, on_pick, on_open, menu):
+        """Tiles (``host_w``) or the table (``frame``) of a tab; the gallery is made once (nothing without the Qt
+        window) and shows ``items`` with ``selected`` chosen."""
+        if tiles and not host_w.winfo_manager():
+            frame.pack_forget()
+            host_w.pack(fill="both", expand=True, before=frame)
+        elif not tiles and not frame.winfo_manager():
+            host_w.pack_forget()
+            frame.pack(fill="both", expand=True)
+        if not tiles or self.qt is None:
+            return
+        host = self.qt.host(str(host_w))
+        if host is None:
+            return
+        from .qt_gallery import ClipGallery
+        gallery = host.content if isinstance(host.content, ClipGallery) else None
+        if gallery is None:
+            gallery = ClipGallery(os.path.join(self.data_dir, CLIP_THUMBS), obsrec.ffmpeg_exe(),
+                                  dark=bool(self.settings.get("dark_mode", True)), on_pick=on_pick, on_open=on_open,
+                                  on_menu=lambda pos: self._context_menu(menu[0](), pos, menu[1]),
+                                  busy=lambda: bool(self._hist))
+            gallery.setMinimumHeight(SHOT_GALLERY_MIN_H)
+            host.set_content(gallery)
+            self.__dict__.setdefault("_tile_galleries", []).append(gallery)
+        gallery.dark = bool(self.settings.get("dark_mode", True))
+        gallery.set_items(items, selected)
+
+    def _tile_loaders_stop(self):
+        """Quit: the tiles' picture loaders stop – what they still owed is dropped (no ffmpeg after the end)."""
+        for g in self.__dict__.get("_tile_galleries", ()):
+            g.stop()
+
+    def _recs_as_tiles(self) -> bool:
+        return self.settings.get("rounds_view", "tiles") == "tiles"
+
+    def _rec_view_changed(self):
+        key = next((k for k, lbl in self._clip_views if lbl == self.rec_view_var.get()), "tiles")
+        if key != self.settings.get("rounds_view", "tiles"):
+            self.settings.set("rounds_view", key)
+            self._save_soon()
+        self._rec_tiles_sync()
+        self._rec_buttons()
+        self._qt_refresh()
+
+    def _rec_tiles_sync(self):
+        """1.57.84: the rounds as tiles or as the table (setting rounds_view) – as for the clips, the table stays
+        the truth for what is marked."""
+        sel = self.rec_table.selection()
+        chosen = next((p for p, iid in self._rec_tile_iid.items() if sel and iid == sel[0]), None)
+        self._tiles_show(self.rec_tiles_host, self.rec_table_frame, self._recs_as_tiles(), self._rec_tiles, chosen,
+                         self._rec_tile_picked, lambda _p: self._rec_play(), (self._rec_menu_items, self._rec_menu_act))
+
+    def _rec_tile_picked(self, path):
+        iid = self._rec_tile_iid.get(path)
+        if iid is not None and self.rec_table.exists(iid):
+            self.rec_table.selection_set(iid)
+        elif path is None:
+            self.rec_table.selection_set()
+        self._rec_buttons()
+        self._qt_refresh()
+
     def _clips_as_tiles(self) -> bool:
         return self.settings.get("clips_view", "tiles") == "tiles"
 
@@ -1088,33 +1168,11 @@ class RecordingsTab:
 
     def _clip_tiles_sync(self):
         """Tiles or the table (setting clips_view) – the table stays the truth for what is marked, so every button
-        and the right-click menu work the same in both. The gallery is made once (nothing without the Qt window)."""
-        tiles = self._clips_as_tiles()
-        if tiles and not self.clip_tiles_host.winfo_manager():
-            self.clip_table_frame.pack_forget()
-            self.clip_tiles_host.pack(fill="both", expand=True, before=self.clip_table_frame)
-        elif not tiles and not self.clip_table_frame.winfo_manager():
-            self.clip_tiles_host.pack_forget()
-            self.clip_table_frame.pack(fill="both", expand=True)
-        if not tiles or self.qt is None:
-            return
-        host = self.qt.host(str(self.clip_tiles_host))
-        if host is None:
-            return
-        from .qt_gallery import ClipGallery
-        gallery = host.content if isinstance(host.content, ClipGallery) else None
-        if gallery is None:
-            gallery = ClipGallery(os.path.join(self.data_dir, CLIP_THUMBS), obsrec.ffmpeg_exe(),
-                                  dark=bool(self.settings.get("dark_mode", True)), on_pick=self._clip_tile_picked,
-                                  on_open=lambda _p: self._clip_play(),
-                                  on_menu=lambda pos: self._context_menu(self._clip_menu_items(), pos,
-                                                                         self._clip_menu_act),
-                                  busy=lambda: bool(self._hist))
-            gallery.setMinimumHeight(SHOT_GALLERY_MIN_H)
-            host.set_content(gallery)
-        gallery.dark = bool(self.settings.get("dark_mode", True))
+        and the right-click menu work the same in both."""
         c = self._clip_selected()
-        gallery.set_items(self._clip_tiles, self._clip_path(c) if c is not None else None)
+        self._tiles_show(self.clip_tiles_host, self.clip_table_frame, self._clips_as_tiles(), self._clip_tiles,
+                         self._clip_path(c) if c is not None else None, self._clip_tile_picked,
+                         lambda _p: self._clip_play(), (self._clip_menu_items, self._clip_menu_act))
 
     def _clip_tile_picked(self, path):
         """A tile was chosen: the table marks the same clip (it is what the buttons read)."""
@@ -1406,7 +1464,7 @@ class RecordingsTab:
         self.rec_yt_btn.configure(state="normal" if r is not None and self._rec_uploadable(r) else "disabled")
         self._sel_buttons(self.rec_sel_row, self.rec_sel_hint, r is not None)
         self._montage_button(self.rec_montage_btn, len(self._recs_selected()))
-        self._rec_preview_follow(r)
+        self._rec_preview_follow(None if self._recs_as_tiles() else r)   # 1.57.84: the preview belongs to the table
         if r is None:
             self.rec_marks_var.set("")
         elif r.marks:

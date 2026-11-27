@@ -334,6 +334,13 @@ class ClipGallery(ShotGallery):
         if not self._awaited:
             self._pump.stop()
 
+    def stop(self):
+        """No more pictures (the program ends): the loader drops what it still owed."""
+        self._retry.stop()
+        self._pump.stop()
+        self._awaited = set()
+        self._video.stop()
+
     def load_all(self):
         """Tests: nothing is made here (the loader's thread makes the pictures)."""
 
