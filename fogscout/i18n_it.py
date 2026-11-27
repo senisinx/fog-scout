@@ -6304,4 +6304,15 @@ T = {
         'Normale (grafico sotto il titolo)',
     'Aussehen':
         'Aspetto',
+    # 1.57.75: views of the system values (sysview)
+    'Zeilen (wie bisher)':
+        'Righe (come prima)',
+    'Kurven (FPS, GPU, CPU)':
+        'Curve (FPS, GPU, CPU)',
+    'Messleisten':
+        'Barre di misura',
+    'Zwei Zeilen (kompakt)':
+        'Due righe (compatto)',
+    'gedrosselt':
+        'limitata',
 }

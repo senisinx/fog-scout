@@ -6304,4 +6304,15 @@ T = {
         'Обычно (график под заголовком)',
     'Aussehen':
         'Вид',
+    # 1.57.75: views of the system values (sysview)
+    'Zeilen (wie bisher)':
+        'Строки (как раньше)',
+    'Kurven (FPS, GPU, CPU)':
+        'Кривые (FPS, ГП, ЦП)',
+    'Messleisten':
+        'Шкалы',
+    'Zwei Zeilen (kompakt)':
+        'Две строки (компактно)',
+    'gedrosselt':
+        'троттлинг',
 }

@@ -13,6 +13,10 @@ HUD_SIDES = [("off", N_("Aus")), ("above", N_("Direkt über der Karte (wandert m
              ("left", N_("Links oben (über der Karte)")), ("right", N_("Rechts oben")),
              ("custom", N_("Eigene Position (mit der Maus verschieben)"))]
 
+# from app_sysinfo (1.57.75): how the system values are drawn (sysview.VIEWS)
+HUD_VIEWS = [("rows", N_("Zeilen (wie bisher)")), ("curves", N_("Kurven (FPS, GPU, CPU)")),
+             ("meters", N_("Messleisten")), ("compact", N_("Zwei Zeilen (kompakt)"))]
+
 # from app_sysinfo
 BAR_ALIGNS = [("left", N_("Links")), ("centre", N_("Mittig")), ("right", N_("Rechts"))]     # 1.2.8
 

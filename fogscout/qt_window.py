@@ -188,6 +188,7 @@ SPECS = {
                   ("check", "ov.notes"))),
               ("ov.sys", N_("Systemwerte"), (
                   ("row", (("label", "ov.sysinfo.label"), ("combo", "ov.sysinfo"), ("stretch",))),
+                  ("row", (("label", "ov.hud_view.label"), ("combo", "ov.hud_view"), ("stretch",))),      # 1.57.75
                   ("hint", "ov.sys_text"), ("hint", "ov.sys_hint"), ("check", "ov.hud_backdrop"),
                   ("sub", N_("Zeilen")),
                   ("check", "ov.hud_row_cpu"), ("check", "ov.hud_row_gpu"), ("check", "ov.hud_row_spot"),

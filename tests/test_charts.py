@@ -197,3 +197,74 @@ def test_the_look_comes_from_the_settings_and_a_broken_one_is_classic():
     assert app_charts.look_of({"charts_look": "nonsense"}, acc).style == "classic"
     assert charts.palette(charts.Look(style="map")).back is None and charts.palette(charts.Look(style="line")).hollow
     assert charts.palette(charts.Look(backdrop=False)).back is None
+
+
+# ------------------------------------------------------------------ 1.57.75: views of the system values (sysview)
+def _snaps():
+    from fogscout import sysinfo
+    return (sysinfo.Snapshot(t=1, fps=141, cpu_temp=75, cpu_load=63, gpu_temp=77, gpu_load=89, gpu_hot=98,
+                             vram_used=5.8, vram_total=12, ram_used=21.2, ram_total=32),
+            sysinfo.Snapshot(t=2, fps=96, cpu_temp=92, cpu_load=91, gpu_temp=86, gpu_load=99, gpu_hot=104,
+                             vram_used=11.4, vram_total=12, ram_used=29.1, ram_total=32, throttle="thermal"),
+            sysinfo.Snapshot(t=3, cpu_load=40, ram_used=10, ram_total=32))        # no NVIDIA card, no HWiNFO
+
+
+def test_a_view_of_the_system_values_has_one_size_for_any_readings():
+    from fogscout import sysview
+    for view in sysview.VIEWS:
+        sizes = {sysview.draw(view, s, h, p, 240).size
+                 for s, h, p in zip(_snaps(), (sysview.sample_history(), sysview.sample_history(), None),
+                                    (28.0, 47.0, None))}
+        assert sizes == {sysview.size(view, 240)}, view
+    assert sysview.size("compact", 240)[1] < sysview.size("meters", 240)[1] < sysview.size("curves", 240)[1]
+    assert sysview.size("curves", 480) == (480, 2 * sysview.size("curves", 240)[1])
+
+
+def test_the_warning_colours_follow_the_rows_thresholds():
+    from fogscout import sysinfo, sysview
+    assert [sysview.level("gpu", t) for t in (sysinfo.GPU_WARM - 1, sysinfo.GPU_WARM, sysinfo.GPU_HOT)] == [0, 1, 2]
+    assert [sysview.level("cpu", t) for t in (sysinfo.CPU_WARM - 1, sysinfo.CPU_WARM, sysinfo.CPU_HOT)] == [0, 1, 2]
+    assert [sysview.level("fps", v) for v in (141, 100, 60)] == [0, 1, 2]
+    assert sysview.level("ping", None) == 0 and sysview.colour("full", 0.95) == sysview.BAD
+    ok, hot, bare = _snaps()
+    a, b = sysview.draw("compact", ok, None, 28, 240), sysview.draw("compact", hot, None, 47, 240)
+    assert a.tobytes() != b.tobytes()
+
+
+@WHOLE_APP
+def test_the_app_draws_the_system_values_as_the_view_picked(tmp_path):
+    """The view replaces the text rows in the same window: shown in the bar at the view's size, and back to the rows."""
+    import json
+    from fogscout import sysinfo, sysview
+    from fogscout.app import App
+    from test_info_apart import _DrawWin
+    root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    for name in ("maps", "models", "maps.json"):
+        os.symlink(os.path.join(root, name), tmp_path / name)
+    (tmp_path / "sim").mkdir()
+    (tmp_path / "settings.json").write_text(json.dumps({"welcome_seen": True, "sysinfo": "right", "overlay": {
+        "hud_view": "meters", "fade": False, "show_today": False, "show_media": False}}), encoding="utf-8")
+    app = App(str(tmp_path), simulate=str(tmp_path / "sim"))
+    try:
+        app.info_win, app.hud = _DrawWin("INFOS"), _DrawWin("SYSTEM")
+        app.today_win, app.media_win, app.charts_win = _DrawWin("HEUTE"), _DrawWin("MUSIK"), _DrawWin("DIAGRAMME")
+        app._game_rect = lambda: (0, 0, 3440, 1440)
+        app._force_until = time.time() + 30
+        app._forced = True
+        app.sysmon.snapshot = sysinfo.Snapshot(t=time.time(), cpu_load=40, gpu_temp=60, gpu_load=50)
+        app.show_map("shattered-square", 1, "auto")
+        for view in ("meters", "curves", "compact"):
+            app.settings["overlay"]["hud_view"] = view
+            app._hud_steady = None
+            for _ in range(2):
+                app._place_overlay()
+            assert app.hud.shown and app.hud.size == sysview.size(view, int(1440 * sysview.WIDTH)), view
+            x, y = app.hud.at
+            assert x >= 3440 - layout.bar_width(3440, 1440) and x + app.hud.size[0] <= 3440
+            assert any(n == "hud" and (w, h) == app.hud.size for n, _x, _y, w, h in app._preview_data()["layers"])
+        app.settings["overlay"]["hud_view"] = "rows"
+        app._hud_steady = None
+        app._place_overlay()
+        assert app.hud.shown and app.hud.size != sysview.size("compact", int(1440 * sysview.WIDTH))
+    finally:
+        app.quit()

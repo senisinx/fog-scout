@@ -151,12 +151,14 @@ def music_rows(now: media.NowPlaying, wall: float):
 
 def layers(gw: int, gh: int, o: dict, hud_side: str, hud_rows: list, hud_own, map_pic, caption: str,
            info: dict, height_frac: float, music=None, today=None, editing: bool = False, accent=None,
-           upnext=None, fits=None, inputs=None, loadouts=None, charts=None):
+           upnext=None, fits=None, inputs=None, loadouts=None, charts=None, hud_pic=None):
     """[(name, picture, x, y)] in screen pixels, bottom to top, + the map's (x, y, w, h) for clicks.
     ``o`` = settings["overlay"], ``hud_side`` = settings["sysinfo"] ("" for none), ``info`` = timer/server/ping/
     record lines, ``music`` = (rows, cover) or None, ``today`` = rows of "today" (its own card, 1.2.6) or None,
     ``inputs`` = the layout of the input card (1.39: "keyboard" / "gamepad", drawn with made-up keys) or None,
     ``loadouts`` = ``placed(o, game)`` of the loadouts – (picture, x, y) or None (1.57: app_loadouts, sample) or None,
+    ``hud_pic`` = (``f(height, min width)`` -> the system values as a picture, cache key) for a sysview view
+    (1.57.75) or None = the text rows,
     ``charts`` = ``f(game height, room)`` -> the charts' card (1.57.73, app_charts.picture with made-up values) or None,
     ``upnext`` = (label, items) of the Spotify queue on the music card (1.8) or None, ``fits`` (1.8.24): a dict
     that gets {element: shown size / asked size} – "map", "text", "hud", "today", "music"."""
@@ -184,7 +186,8 @@ def layers(gw: int, gh: int, o: dict, hud_side: str, hud_rows: list, hud_own, ma
             hh = int(gh * min(2.0, max(0.6, float(o.get("hud_scale", 1.0)))))      # its own size (1.64.9)
             boxed = bool(o.get("hud_backdrop", False))
             mw = mins.get("hud", 0)
-            hud = fitted((lambda h: skin.card(hud_rows, h, style, accent, _("SYSTEM"), min_w=mw)) if modern else
+            hud = fitted((lambda h: hud_pic[0](h, mw)), hh, avail, ("hud", "pic", hud_pic[1], mw), fits) \
+                if hud_pic is not None else fitted((lambda h: skin.card(hud_rows, h, style, accent, _("SYSTEM"), min_w=mw)) if modern else
                          (lambda h: backdrop(pad_to(render_hud(hud_rows, h), mw), h) if boxed
                           else pad_to(render_hud(hud_rows, h), mw)), hh, avail,
                          ("hud", repr(hud_rows), boxed, style, accent, mw), fits)

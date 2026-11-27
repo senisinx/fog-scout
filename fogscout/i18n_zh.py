@@ -6304,4 +6304,15 @@ T = {
         '普通（图表在标题下方）',
     'Aussehen':
         '外观',
+    # 1.57.75: views of the system values (sysview)
+    'Zeilen (wie bisher)':
+        '行（与之前相同）',
+    'Kurven (FPS, GPU, CPU)':
+        '曲线（FPS、GPU、CPU）',
+    'Messleisten':
+        '量表条',
+    'Zwei Zeilen (kompakt)':
+        '两行（紧凑）',
+    'gedrosselt':
+        '已降频',
 }

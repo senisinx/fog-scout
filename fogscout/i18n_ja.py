@@ -6304,4 +6304,15 @@ T = {
         '標準（タイトルの下にグラフ）',
     'Aussehen':
         '外観',
+    # 1.57.75: views of the system values (sysview)
+    'Zeilen (wie bisher)':
+        '行（従来どおり）',
+    'Kurven (FPS, GPU, CPU)':
+        'グラフ（FPS、GPU、CPU）',
+    'Messleisten':
+        'メーターバー',
+    'Zwei Zeilen (kompakt)':
+        '2 行（コンパクト）',
+    'gedrosselt':
+        'スロットル中',
 }

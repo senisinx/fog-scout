@@ -6304,4 +6304,15 @@ T = {
         '보통(제목 아래 차트)',
     'Aussehen':
         '모양',
+    # 1.57.75: views of the system values (sysview)
+    'Zeilen (wie bisher)':
+        '줄(기존과 동일)',
+    'Kurven (FPS, GPU, CPU)':
+        '곡선(FPS, GPU, CPU)',
+    'Messleisten':
+        '미터 막대',
+    'Zwei Zeilen (kompakt)':
+        '두 줄(컴팩트)',
+    'gedrosselt':
+        '스로틀링',
 }

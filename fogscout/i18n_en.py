@@ -4781,4 +4781,15 @@ EN = {
         'Normal (chart below the title)',
     'Aussehen':
         'Look',
+    # 1.57.75: views of the system values (sysview)
+    'Zeilen (wie bisher)':
+        'Rows (as before)',
+    'Kurven (FPS, GPU, CPU)':
+        'Curves (FPS, GPU, CPU)',
+    'Messleisten':
+        'Meter bars',
+    'Zwei Zeilen (kompakt)':
+        'Two lines (compact)',
+    'gedrosselt':
+        'throttled',
 }
