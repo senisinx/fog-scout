@@ -6404,4 +6404,10 @@ T = {
         '設定',
     'Springt zum Kasten dieser Verbindung weiter unten – dort wird sie ein- oder ausgeschaltet und eingerichtet.':
         '下にあるこの接続の枠へ移動します。オン・オフと設定はそこで行います。',
+    'Map A–Z':
+        'マップ A–Z',
+    'Grösste zuerst':
+        '大きい順',
+    'Sortierung':
+        '並び順',
 }

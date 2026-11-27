@@ -6404,4 +6404,10 @@ T = {
         '设置',
     'Springt zum Kasten dieser Verbindung weiter unten – dort wird sie ein- oder ausgeschaltet und eingerichtet.':
         '跳到下方该连接的设置框——在那里开启、关闭并进行设置。',
+    'Map A–Z':
+        '地图 A–Z',
+    'Grösste zuerst':
+        '最大的在前',
+    'Sortierung':
+        '排序',
 }

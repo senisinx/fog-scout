@@ -6404,4 +6404,10 @@ T = {
         '설정',
     'Springt zum Kasten dieser Verbindung weiter unten – dort wird sie ein- oder ausgeschaltet und eingerichtet.':
         '아래에 있는 이 연결의 상자로 이동합니다. 켜고 끄기와 설정은 거기서 합니다.',
+    'Map A–Z':
+        '맵 A–Z',
+    'Grösste zuerst':
+        '큰 것부터',
+    'Sortierung':
+        '정렬',
 }

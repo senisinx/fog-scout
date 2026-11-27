@@ -171,6 +171,8 @@ Since 1.8.8 choice boxes and tick boxes have their own style like buttons and fi
 
 **Mark several tiles, “Set up” per connection** (since 1.57.90): in the **tiles** of the recordings Ctrl or Shift mark **several rounds or clips** – “Open as montage” works without the list view, and a redraw of the page keeps every mark. Under Settings › Connections each line of “State of the connections” ends in **Set up**: the button jumps to that connection's box. Two fixes as well: a round with a broken time stamp (start of 1970) can no longer break a trend of the statistics on Windows, and the clip tiles ask for the recordings folder once per build instead of once per clip.
 
+**Sort the recordings, more filters** (since 1.57.91): rounds and clips have a choice **Order** – newest first, oldest first, map A–Z, longest first, largest first – that applies to tiles and list and is remembered. The rounds can also be filtered by **killer** and the clips by **map**; in a narrow window the filter row wraps.
+
 **Switches in the settings** (since 1.57.88): the tick boxes of the settings are on/off switches – as on the overview and in the list of overlay elements.
 
 **Overlay page as a "stage"** (since 1.57.87): the **preview** is on top across the page, below it the **row of all elements** with lock and on/off switch, below that the **settings of the element picked** – quick place, size and opacity on the left, its own settings on the right. In a narrow window everything is below each other.

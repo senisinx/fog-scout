@@ -307,6 +307,25 @@ def prune(folder: str, recs: list[Recording], limit: int, reserve: int = RESERVE
     return left, deleted
 
 
+SORTS = ("new", "old", "map", "long", "big")       # 1.57.91: orders of the recordings' and the clips' list
+
+
+def sort_items(items: list, how: str, name=lambda x: x.label or "", length=lambda x: 0.0) -> list:
+    """``items`` (recordings or clips, anything with .t and .size) in the order ``how``: "new" / "old" by time,
+    "map" by ``name(item)`` (A–Z, items without a name last), "long" by ``length(item)`` and "big" by size, both
+    largest first; equal ones newest first. An unknown ``how`` is "new"."""
+    out = sorted(items, key=lambda x: x.t, reverse=True)
+    if how == "old":
+        out.reverse()
+    elif how == "map":
+        out.sort(key=lambda x: (not name(x), name(x).casefold()))
+    elif how == "long":
+        out.sort(key=length, reverse=True)
+    elif how == "big":
+        out.sort(key=lambda x: x.size, reverse=True)
+    return out
+
+
 def select_recordings(recs: list[Recording], since: float | None = None, map_label: str | None = None,
                       role: str | None = None, only: str | None = None, hide_farming: bool = False) -> list[Recording]:
     """1.5, tab "Aufnahmen": the index filtered – ``since`` (banner time ≥), map label, role ("killer" /

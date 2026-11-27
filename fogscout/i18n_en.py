@@ -4882,4 +4882,10 @@ EN = {
         'Set up',
     'Springt zum Kasten dieser Verbindung weiter unten – dort wird sie ein- oder ausgeschaltet und eingerichtet.':
         "Jumps to this connection's box further down – that is where it is switched on or off and set up.",
+    'Map A–Z':
+        'Map A–Z',
+    'Grösste zuerst':
+        'Largest first',
+    'Sortierung':
+        'Order',
 }

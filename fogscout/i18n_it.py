@@ -6404,4 +6404,10 @@ T = {
         'Configura',
     'Springt zum Kasten dieser Verbindung weiter unten – dort wird sie ein- oder ausgeschaltet und eingerichtet.':
         'Passa al riquadro di questo collegamento più in basso: lì lo si attiva, disattiva e configura.',
+    'Map A–Z':
+        'Mappa A–Z',
+    'Grösste zuerst':
+        'Prima i più grandi',
+    'Sortierung':
+        'Ordinamento',
 }

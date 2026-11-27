@@ -535,6 +535,15 @@ def test_the_rounds_are_tiles_too_and_a_chosen_tile_marks_the_recording(app_root
         assert app._rec_selected().file == "round1.mkv"
         app._rec_tile_picked(None)
         assert app._rec_selected() is None
+        # 1.57.91: the order and one killer – tiles and table alike, the order is kept in the settings
+        assert [os.path.basename(t[0]) for t in app._rec_tiles] == ["round1.mkv", "round0.mkv"]
+        app.rec_sort_var.set("Älteste zuerst")
+        app._sort_changed("rec_sort", app.rec_sort_var)
+        assert [os.path.basename(t[0]) for t in app._rec_tiles] == ["round0.mkv", "round1.mkv"]
+        assert app.settings.get("rec_sort") == "old" and len(app.rec_killer_cb.cget("values")) == 2
+        app.rec_killer_var.set(app.rec_killer_cb.cget("values")[1])
+        app._rec_render(force=True)
+        assert len(app._rec_tiles) == 2                           # both rounds were played as that killer
         app.rec_view_var.set("Liste")
         app._rec_view_changed()
         assert app.settings.get("rounds_view") == "list" and app.rec_table_frame.winfo_manager()
@@ -1201,3 +1210,18 @@ def test_the_marks_of_a_round_become_single_clips_in_a_thread(app_root, tmp_path
         assert len(added) == 2
     finally:
         app.quit()
+
+
+def test_the_recordings_sort_by_time_map_length_and_size():
+    """1.57.91 (user: "Sortierfilter etc … damit man nicht limitiert ist"): recindex.sort_items – newest / oldest,
+    map A–Z (unnamed last), longest, largest; equal ones newest first, an unknown order is "newest"."""
+    from types import SimpleNamespace as N
+    from fogscout import recindex
+    a = N(t=1.0, label="Coal Tower", size=30, sec=50.0)
+    b = N(t=2.0, label="", size=10, sec=90.0)
+    c = N(t=3.0, label="Azarov's Resting Place", size=20, sec=50.0)
+    items = [a, b, c]
+    order = lambda how: [x.t for x in recindex.sort_items(items, how, length=lambda x: x.sec)]   # noqa: E731
+    assert order("new") == [3.0, 2.0, 1.0] and order("old") == [1.0, 2.0, 3.0] and order("?") == order("new")
+    assert order("map") == [3.0, 1.0, 2.0] and order("long") == [2.0, 3.0, 1.0] and order("big") == [1.0, 3.0, 2.0]
+    assert set(recindex.SORTS) == {"new", "old", "map", "long", "big"} and items == [a, b, c]
