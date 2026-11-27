@@ -1991,8 +1991,6 @@ T = {
         'Situazione',
     'Survivor {n}':
         'Sopravvissuto {n}',
-    'Survivor-Builds':
-        'Build dei sopravvissuti',
     'S{n}: {v} c/s':
         'S{n}: {v} c/s',
     'Ein verfehlter Skill Check kostet (Anteil am Generator): {odds}':
@@ -6422,4 +6420,36 @@ T = {
         '{when} · {who} · {map}: {n} uccisioni',
     'Öffnet den Clip im grossen Editor – gleicher Bereich, gleiche Stelle.':
         "Apre la clip nell'editor grande: stesso intervallo, stessa posizione.",
+    'Add-on {n}':
+        'Accessorio {n}',
+    'Beispiel laden':
+        'Carica un esempio',
+    'Der Killer kostet':
+        'Il Killer costa',
+    'Ein Generator, alle {n}':
+        'Un generatore, tutti e {n}',
+    'Ein Generator, allein':
+        'Un generatore, da solo',
+    'Einsetzen':
+        'Inserisci',
+    'Fünf Generatoren':
+        'Cinque generatori',
+    'Für alle übernehmen':
+        'Usa per tutti',
+    'Ladungen pro Sekunde':
+        'cariche al secondo',
+    'Perk {n}':
+        'Competenza {n}',
+    'Tempo Survivor 1':
+        'Velocità del Sopravvissuto 1',
+    'auf fünf Generatoren':
+        'su cinque generatori',
+    'ohne Killer {t}':
+        'senza Killer {t}',
+    'Setzt diesen Perk in den ersten freien Platz des Builds, für den er vorgeschlagen ist.':
+        'Mette questa competenza nel primo posto libero della build per cui è proposta.',
+    'Füllt den Rechner mit einem üblichen Fall (vier Survivor an den Generatoren gegen einen Killer) – zum Ausprobieren. Die jetzige Auswahl geht dabei verloren.':
+        'Riempie il calcolatore con un caso comune (quattro Sopravvissuti ai generatori contro un Killer), per provare. La scelta attuale va persa.',
+    'Übernimmt den Build von Survivor 1 – Perks, Item, Add-ons – für alle Survivor des Teams.':
+        'Usa la build del Sopravvissuto 1 – competenze, oggetto, accessori – per tutti i Sopravvissuti della squadra.',
 }

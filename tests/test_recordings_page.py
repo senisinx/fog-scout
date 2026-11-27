@@ -535,7 +535,8 @@ def test_the_rounds_are_tiles_too_and_a_chosen_tile_marks_the_recording(app_root
         path = next(p for p in gallery.paths() if p.endswith("round1.mkv"))
         app._rec_tile_picked(path)
         assert app._rec_selected().file == "round1.mkv" and app.rec_play_btn.cget("state") == "normal"
-        assert app._rec_preview_t is None                          # the compact preview belongs to the table
+        assert app._rec_preview_t is not None                      # 1.57.94: a clicked tile plays – above the
+        assert app._rec_preview_place()[0] is app.rec_top_host     # tiles, as the clips do
         app._rec_render(force=True)                                 # a refresh keeps the chosen tile
         assert app._rec_selected().file == "round1.mkv"
         app._rec_tile_picked(None)
@@ -630,8 +631,10 @@ def test_obs_away_with_recordings_off_but_a_folder_keeps_the_next_step(app_root,
         app._rec_card_state({"connected": False, "error": "x"})
         assert app.rec_state_label._dbdms_level == "warn" and app.rec_obs_btn.winfo_manager()
         assert str(app.rec_f8_btn.cget("state")) == "disabled"                    # 1.24.7: a clip needs OBS too
+        assert not app.rec_acts.winfo_manager()                   # 1.57.94: OBS away – no row of dead buttons
         app._rec_card_state({"connected": True})
         assert str(app.rec_f8_btn.cget("state")) == "normal"
+        assert app.rec_acts.winfo_manager()                       # … and back with OBS
         app._rec_event("status", {"text": "OBS hat die Anmeldung abgelehnt – Passwort falsch?", "ok": False,
                                   "err": True})
         assert app.rec_status_label._dbdms_level == "err"
@@ -1230,3 +1233,26 @@ def test_the_recordings_sort_by_time_map_length_and_size():
     assert order("new") == [3.0, 2.0, 1.0] and order("old") == [1.0, 2.0, 3.0] and order("?") == order("new")
     assert order("map") == [3.0, 1.0, 2.0] and order("long") == [2.0, 3.0, 1.0] and order("big") == [1.0, 3.0, 2.0]
     assert set(recindex.SORTS) == {"new", "old", "map", "long", "big"} and items == [a, b, c]
+
+
+def test_two_or_more_tiles_per_row_fill_the_row(tmp_path):
+    """1.57.94 (review of the recordings page: a strip stayed empty beside the tiles): with two or more tiles per
+    row they widen until the row ends at the edge; one tile per row still stops at GROW."""
+    pytest.importorskip("PySide6.QtWidgets", exc_type=ImportError)
+    from PySide6.QtWidgets import QApplication
+    from fogscout import qt_gallery
+    QApplication.instance() or QApplication([])
+    g = qt_gallery.ShotGallery(str(tmp_path / "cache"))
+    try:
+        least = qt_gallery.TILE_W + 2 * qt_gallery.PAD + qt_gallery.GAP
+        for width in (2 * least + 150, 3 * least + 200, 4 * least + 10):
+            g.resize(width, 400)
+            g._fit_tiles()
+            avail = g.viewport().width() - 4
+            n = avail // least
+            assert n >= 2 and avail - n * g.tile_size().width() <= n          # at most a pixel per tile is left
+        g.resize(least + 200, 400)
+        g._fit_tiles()
+        assert g.tile_size().width() <= int(least * qt_gallery.GROW)
+    finally:
+        g.close()

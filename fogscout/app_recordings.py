@@ -209,13 +209,17 @@ class RecordingsTab:
         self.rec_quality_undo = ui.Button(qrow, text=_("OBS-Werte zurücksetzen"), command=self.rec_quality_restore)
         crow = ui.Frame(card)
         crow.pack(fill="x", pady=(6, 0))
-        self.rec_start_btn = ui.Button(crow, text=_("Aufnahme starten"), command=self.record_toggle)
+        # 1.57.94: the four actions in a frame of their own – without OBS none of them can do anything, the row is
+        # then only "Verbindung prüfen …" (four grey buttons were noise above the tiles)
+        acts = self.rec_acts = ui.Frame(crow)
+        acts.pack(side="left")
+        self.rec_start_btn = ui.Button(acts, text=_("Aufnahme starten"), command=self.record_toggle)
         self.rec_start_btn.pack(side="left")
-        self.rec_pause_btn = ui.Button(crow, text=_("Pause"), command=self.record_pause_toggle, state="disabled")
+        self.rec_pause_btn = ui.Button(acts, text=_("Pause"), command=self.record_pause_toggle, state="disabled")
         self.rec_pause_btn.pack(side="left", padx=(6, 0))
-        self.rec_f8_btn = ui.Button(crow, text=_("Clip speichern (F8)"), command=self.mark_clip)
+        self.rec_f8_btn = ui.Button(acts, text=_("Clip speichern (F8)"), command=self.mark_clip)
         self.rec_f8_btn.pack(side="left", padx=(6, 0))
-        self.rec_mark_btn = ui.Button(crow, text=_("Marke setzen"), command=self._rec_card_mark_only, state="disabled")
+        self.rec_mark_btn = ui.Button(acts, text=_("Marke setzen"), command=self._rec_card_mark_only, state="disabled")
         self.rec_mark_btn.pack(side="left", padx=(6, 0))
         # 1.24.3 (phase 2): OBS not reachable – the next step right here (the settings with "Verbindung testen")
         self.rec_obs_btn = ui.Button(crow, text=_("Verbindung prüfen …"),
@@ -328,6 +332,7 @@ class RecordingsTab:
         self.rec_adopt_btn = ui.Button(row, text=_("Aufnahmen nachtragen …"), command=self._rec_adopt_find)
         self.rec_adopt_btn.pack(side="right", padx=(0, 6))
 
+        self.rec_top_host = ui.Host(f)           # 1.57.94: a clicked round plays here, above the tiles (as the clips)
         self.rec_tiles_host = ui.Host(f)         # 1.57.84: the tiles (qt_gallery.ClipGallery), put in by _rec_tiles_sync
         self._rec_tiles, self._rec_tile_iid = [], {}
         tf = self.rec_table_frame = ui.Frame(f)
@@ -807,6 +812,11 @@ class RecordingsTab:
         elif not away and self.rec_obs_btn.winfo_manager():
             self.rec_obs_btn.pack_forget()
         ours = bool(self.recorder.recording)
+        idle = away and not ours                        # 1.57.94: OBS away and nothing running – no dead buttons
+        if idle and self.rec_acts.winfo_manager():
+            self.rec_acts.pack_forget()
+        elif not idle and not self.rec_acts.winfo_manager():
+            self.rec_acts.pack(side="left", before=self.rec_obs_btn)
         obs_rec = bool(d and d.get("connected") and d.get("recording"))
         start_text = _("Aufnahme stoppen") if ours else _("Aufnahme starten")
         if self.rec_start_btn.cget("text") != start_text:
@@ -1211,9 +1221,26 @@ class RecordingsTab:
         if key != self.settings.get("rounds_view", "tiles"):
             self.settings.set("rounds_view", key)
             self._save_soon()
+        self._rec_preview_clear()                   # the other view shows the round elsewhere: build it anew
         self._rec_tiles_sync()
         self._rec_buttons()
         self._qt_refresh()
+
+    def _rec_preview_clear(self):
+        """Both places of the rounds' preview empty and hidden."""
+        self._rec_preview_t = None
+        for model in (self.rec_host, self.rec_top_host):
+            host = self.qt.host(str(model)) if self.qt is not None else None
+            if host is not None and host.content is not None:
+                host.content.stop()
+                host.set_content(None)
+            model.pack_forget()
+
+    def _rec_preview_place(self):
+        """(model, how it is packed) of the rounds' preview now: above the tiles, or beside the table."""
+        if self._recs_as_tiles():
+            return self.rec_top_host, {"fill": "x", "before": self.rec_tiles_host}
+        return self.rec_host, {"side": "left", "fill": "both"}
 
     def _rec_tiles_sync(self):
         """1.57.84: the rounds as tiles or as the table (setting rounds_view) – as for the clips, the table stays
@@ -1566,7 +1593,9 @@ class RecordingsTab:
         self.rec_yt_btn.configure(state="normal" if r is not None and self._rec_uploadable(r) else "disabled")
         self._sel_buttons(self.rec_sel_row, self.rec_sel_hint, r is not None)
         self._montage_button(self.rec_montage_btn, len(self._recs_selected()))
-        self._rec_preview_follow(None if self._recs_as_tiles() else r)   # 1.57.84: the preview belongs to the table
+        # 1.57.94: a clicked tile plays above the tiles, as the clips do (1.57.93); several marked: no player
+        one = r if len(self._recs_selected()) == 1 else None
+        self._rec_preview_follow(one if self._recs_as_tiles() else r)
         if r is None:
             self.rec_marks_var.set("")
         elif r.marks:
@@ -2086,7 +2115,8 @@ class RecordingsTab:
         recording, hidden without one (or when the file is missing / ffmpeg is not there)."""
         if self.qt is None:
             return
-        host = self.qt.host(str(self.rec_host))
+        model, _how = self._rec_preview_place()
+        host = self.qt.host(str(model))
         if host is None:
             return
         t = r.t if r is not None else None
@@ -2100,7 +2130,7 @@ class RecordingsTab:
         path = self._rec_editable(r, quiet=True) if r is not None else None
         if path is None:
             host.set_content(None)
-            self.rec_host.pack_forget()
+            model.pack_forget()
             return
         # 1.8.11: built a moment later – marking row after row (arrow keys, quick clicks) started ffmpeg for each
         # one in the window's thread and the marking lagged; now only the row that stays marked is loaded
@@ -2115,10 +2145,15 @@ class RecordingsTab:
             return
         if seq != self._probe_seq.get("rec"):
             return
+        model, how = self._rec_preview_place()
+        if self.qt.host(str(model)) is not host:               # the view changed while the file was read
+            return
+        tiles = self._recs_as_tiles()
         win = self._clip_window(r, path, compact=True, parent=host,
-                                on_expand=lambda s, e, p: self._rec_clip(at=(s, e, p)), info=info)
+                                on_expand=lambda s, e, p: self._rec_clip(at=(s, e, p)), info=info,
+                                autoplay=tiles and not self._hist, player_only=tiles)
         host.set_content(win)
-        self.rec_host.pack(side="left", fill="both")
+        model.pack(**how)
 
     def _probe_then(self, kind, path, done):
         """1.12.3 (audit): ``ffmpeg -i`` for a preview in a thread – it ran in the window's thread on every marked
@@ -2134,7 +2169,7 @@ class RecordingsTab:
     def _rec_preview_stop(self):
         """1.8.8: the recordings tab was left – the preview stops playing (1.11.4: the clips' preview too)."""
         for model in (getattr(self, "rec_host", None), getattr(self, "clip_host", None),
-                      getattr(self, "clip_top_host", None)):
+                      getattr(self, "clip_top_host", None), getattr(self, "rec_top_host", None)):
             host = self.qt.host(str(model)) if self.qt is not None and model is not None else None
             if host is not None and host.content is not None:
                 host.content.stop()

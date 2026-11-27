@@ -5,7 +5,7 @@ from __future__ import annotations
 
 from PIL import Image, ImageDraw
 from PySide6.QtCore import QEvent, QRectF, QSize, Qt, QTimer
-from PySide6.QtGui import QColor, QGuiApplication, QIcon, QPainter, QPen
+from PySide6.QtGui import QColor, QFont, QGuiApplication, QIcon, QPainter, QPen
 from PySide6.QtWidgets import (QAbstractItemView, QBoxLayout, QComboBox, QDialog, QFrame, QGridLayout, QHBoxLayout, QLabel, QLineEdit, QListWidget, QProgressBar,
                                QPushButton, QRadioButton, QScrollArea, QSizePolicy, QSlider, QStackedWidget,
                                QStyle, QStyleOptionSlider, QTabWidget, QVBoxLayout, QWidget)
@@ -809,7 +809,102 @@ ROW_COLUMN_W = 760               # 1.57.89: … and the cards are at most this w
                                  # control at the right end stay within one glance
 
 
-def make_control(kind, key, post, switch=False):
+SLOT_W, SLOT_H, SLOT_ICON, SLOT_MAX = 104, 92, 44, 190   # px at 100 %: a place of a build, its picture, its most
+
+
+class SlotCombo(QComboBox):
+    """1.57.95 (user picked draft B "Build-Karten" for the calculator): a choice drawn as a place of a build – a
+    tile with the entry's picture and its name below; empty (the first entry, "—"), a dashed tile that says what
+    goes there. The list, the keyboard and the wheel guard are the choice's own."""
+
+    def __init__(self, what: str):
+        super().__init__()
+        self._what = what
+        self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
+        self.setCursor(Qt.PointingHandCursor)
+        self.setFocusPolicy(Qt.TabFocus)
+        self._grow_to = 0
+        on_zoom(self, self._rezoom)
+
+    def _rezoom(self, zoom: float):
+        self.setMinimumWidth(round(SLOT_W * zoom))
+        self.setMaximumWidth(round(SLOT_MAX * zoom))
+        self.setFixedHeight(round(SLOT_H * zoom))
+        self._grow_to = self.maximumWidth()
+        self.view().setMinimumWidth(round(260 * zoom))
+        self.updateGeometry()
+
+    def sizeHint(self):
+        return QSize(self.minimumWidth(), self.minimumHeight())
+
+    def minimumSizeHint(self):
+        return self.sizeHint()
+
+    def empty(self) -> bool:
+        return self.currentIndex() <= 0
+
+    def paintEvent(self, _e):
+        c = qt_theme.colours(qt_theme.current_dark())
+        zoom = qt_theme.current_zoom()
+        p = QPainter(self)
+        p.setRenderHint(QPainter.Antialiasing)
+        r = QRectF(self.rect()).adjusted(1, 1, -1, -1)
+        empty = self.empty()
+        hot = self.underMouse() or self.hasFocus()
+        pen = QPen(QColor(c["accent"] if hot else c["border"]), 1)
+        if empty and not hot:
+            pen.setStyle(Qt.DashLine)
+        p.setPen(pen)
+        p.setBrush(QColor(c["hover"] if hot else c["field"]))
+        p.drawRoundedRect(r, 7, 7)
+        side = round(SLOT_ICON * zoom)
+        top = r.top() + round(10 * zoom)
+        spot = QRectF(r.center().x() - side / 2, top, side, side)
+        icon = self.itemIcon(self.currentIndex()) if not empty else QIcon()
+        if not icon.isNull():
+            icon.paint(p, spot.toRect())
+        else:                                                # no picture (or no perk): the outline of a perk
+            p.save()
+            p.translate(spot.center())
+            p.rotate(45)
+            half = side * 0.33
+            p.setPen(QPen(QColor(c["border"] if empty else c["dim"]), 1.5))
+            p.setBrush(Qt.NoBrush)
+            p.drawRoundedRect(QRectF(-half, -half, 2 * half, 2 * half), 3, 3)
+            p.restore()
+        text = self._what if empty else self.currentText()
+        f = QFont(self.font())
+        if f.pixelSize() > 0:
+            f.setPixelSize(max(9, round(f.pixelSize() * 0.86)))
+        elif f.pointSizeF() > 0:
+            f.setPointSizeF(max(7.0, f.pointSizeF() * 0.86))
+        p.setFont(f)
+        p.setPen(QColor(c["dim"] if empty else c["fg"]))
+        room = QRectF(r.left() + 5, spot.bottom() + round(5 * zoom), r.width() - 10, r.bottom() - spot.bottom() - round(7 * zoom))
+        lines = _two_lines(p.fontMetrics(), text, int(room.width()))
+        p.drawText(room, Qt.AlignHCenter | Qt.AlignTop, lines)
+
+    def enterEvent(self, e):
+        super().enterEvent(e)
+        self.update()
+
+    def leaveEvent(self, e):
+        super().leaveEvent(e)
+        self.update()
+
+
+def _two_lines(fm, text: str, width: int) -> str:
+    """``text`` on two lines at most ``width`` px wide: words to the first line while they fit, the rest cut."""
+    words, first = str(text).split(), ""
+    for i, word in enumerate(words):
+        t = f"{first} {word}" if first else word
+        if first and fm.horizontalAdvance(t) > width:
+            return first + "\n" + fm.elidedText(" ".join(words[i:]), Qt.ElideRight, width)
+        first = t
+    return fm.elidedText(first, Qt.ElideRight, width)
+
+
+def make_control(kind, key, post, switch=False, slot=None):
     """(widget, extra) of one control of the UI model; clicks go out as post("act", (key, value)). ``switch``: a
     tick box as the on / off switch of the overlay's list and the overview (the same state, another look)."""
     extra = None
@@ -827,9 +922,10 @@ def make_control(kind, key, post, switch=False):
         w.setFocusPolicy(Qt.TabFocus)
         w.clicked.connect(lambda _c=False: post("act", (key, None)))
     elif kind == "combo":
-        w = guard_wheel(QComboBox())
-        w.setMinimumWidth(140)
-        w.setSizeAdjustPolicy(QComboBox.AdjustToContents)
+        w = guard_wheel(SlotCombo(slot) if slot else QComboBox())
+        if not slot:
+            w.setMinimumWidth(140)
+            w.setSizeAdjustPolicy(QComboBox.AdjustToContents)
         w.activated.connect(lambda i: post("act", (key, w.itemText(i))))
         w.editTextChanged.connect(lambda text: w.isEditable() and w.hasFocus() and post("act", (key, text)))
     elif kind == "slider":
@@ -1117,6 +1213,7 @@ class CardColumn(QWidget):
             v = QVBoxLayout(w)
             v.setContentsMargins(0, 0, 0, 0)
             v.setSpacing(self.GAP)
+            _height_follows_width(w)
             outer.addWidget(w, 1, Qt.AlignTop)
             self._cols.append((w, v))
         self._lay = self._cols[0][1]
@@ -1489,6 +1586,16 @@ def _combo_px(w, zoom: float, px: int, top: int):
     w.view().setMinimumWidth(round(260 * zoom))
 
 
+def _height_follows_width(w):
+    """A widget that a box layout aligns (AlignTop) gets its size hint as height – unless its size policy says that
+    its height follows its width; only then Qt asks heightForWidth. A column of cards with wrapping lines was
+    given the height of its widest form: too little, the rows inside were squeezed and drawn over each other
+    (1.57.95: the calculator's result table under its text)."""
+    sp = w.sizePolicy()
+    sp.setHeightForWidth(True)
+    w.setSizePolicy(sp)
+
+
 class SideBySide(QWidget):
     """1.8.2: two cards next to each other while the page is wide enough (the overlay preview and the tools of the
     picked element), one below the other on a narrow page. The first card takes the larger share."""
@@ -1508,6 +1615,7 @@ class SideBySide(QWidget):
 
     def add(self, card):
         self.cards.append(card)
+        _height_follows_width(card)
         self.box.addWidget(card, self.weights[0] if len(self.cards) == 1 else self.weights[1])
 
     def beside(self) -> bool:
@@ -2143,7 +2251,7 @@ class AutoPage(QWidget, _Arranged):
             return
         if n.get("fold") and not isinstance(lay, (QHBoxLayout, FlowRow)):
             lay = make_fold(n["fold"], lay)               # 1.38.13: a long explanation shut behind "Erklärung"
-        w, extra = make_control(kind, key, self._post)
+        w, extra = make_control(kind, key, self._post, slot=n.get("slot") if kind == "combo" else None)
         if kind == "combo" and n.get("px"):               # 1.51: as wide as the model says, whatever its longest
             w.setSizeAdjustPolicy(QComboBox.AdjustToMinimumContentsLengthWithIcon)     # entry (the list shows all
             w.view().setTextElideMode(Qt.ElideNone)                                     # of it: view at its own width)

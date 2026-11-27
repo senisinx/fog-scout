@@ -143,11 +143,13 @@ class ShotGallery(QListWidget):
         return self._tile
 
     def _fit_tiles(self):
-        """As many tiles per row as fit at their least width, widened (≤ GROW) so that the row ends at the edge."""
+        """As many tiles per row as fit at their least width, widened so that the row ends at the edge. 1.57.94:
+        two or more per row always fill it (a tile is then under twice its least width) – before, they widened by
+        GROW at most and a strip stayed empty on the right; a single tile per row still stops at GROW."""
         avail = max(1, self.viewport().width() - 4)            # Qt wraps a row that would end exactly at the edge
         least = TILE_W + 2 * PAD + GAP
         n = max(1, avail // least)
-        w = min(int(least * GROW), avail // n - 1)
+        w = avail // n - 1 if n > 1 else min(int(least * GROW), avail - 1)
         size = QSize(w, round((w - GAP - 2 * PAD) / self.aspect) + 2 * PAD + GAP + CAPTION_H)
         if size != self._tile:
             self._tile = size

@@ -1991,8 +1991,6 @@ T = {
         'Ситуация',
     'Survivor {n}':
         'Выживший {n}',
-    'Survivor-Builds':
-        'Билды выживших',
     'S{n}: {v} c/s':
         'S{n}: {v} c/s',
     'Ein verfehlter Skill Check kostet (Anteil am Generator): {odds}':
@@ -6422,4 +6420,36 @@ T = {
         '{when} · {who} · {map}: убийств: {n}',
     'Öffnet den Clip im grossen Editor – gleicher Bereich, gleiche Stelle.':
         'Открывает клип в большом редакторе – тот же отрезок, та же позиция.',
+    'Add-on {n}':
+        'Улучшение {n}',
+    'Beispiel laden':
+        'Загрузить пример',
+    'Der Killer kostet':
+        'Убийца стоит',
+    'Ein Generator, alle {n}':
+        'Один генератор, все {n}',
+    'Ein Generator, allein':
+        'Один генератор, в одиночку',
+    'Einsetzen':
+        'Вставить',
+    'Fünf Generatoren':
+        'Пять генераторов',
+    'Für alle übernehmen':
+        'Применить ко всем',
+    'Ladungen pro Sekunde':
+        'зарядов в секунду',
+    'Perk {n}':
+        'Навык {n}',
+    'Tempo Survivor 1':
+        'Скорость выжившего 1',
+    'auf fünf Generatoren':
+        'на пять генераторов',
+    'ohne Killer {t}':
+        'без убийцы {t}',
+    'Setzt diesen Perk in den ersten freien Platz des Builds, für den er vorgeschlagen ist.':
+        'Ставит этот навык в первое свободное место сборки, для которой он предложен.',
+    'Füllt den Rechner mit einem üblichen Fall (vier Survivor an den Generatoren gegen einen Killer) – zum Ausprobieren. Die jetzige Auswahl geht dabei verloren.':
+        'Заполняет калькулятор типичным случаем (четверо выживших на генераторах против убийцы) – чтобы попробовать. Текущий выбор теряется.',
+    'Übernimmt den Build von Survivor 1 – Perks, Item, Add-ons – für alle Survivor des Teams.':
+        'Берёт сборку выжившего 1 – навыки, предмет, улучшения – для всех выживших команды.',
 }

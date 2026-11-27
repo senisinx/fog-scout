@@ -1991,8 +1991,6 @@ T = {
         '状況',
     'Survivor {n}':
         'サバイバー{n}',
-    'Survivor-Builds':
-        'サバイバーのビルド',
     'S{n}: {v} c/s':
         'S{n}: {v} c/s',
     'Ein verfehlter Skill Check kostet (Anteil am Generator): {odds}':
@@ -6422,4 +6420,36 @@ T = {
         '{when} · {who} · {map}: {n} キル',
     'Öffnet den Clip im grossen Editor – gleicher Bereich, gleiche Stelle.':
         'クリップを大きいエディターで開きます。範囲と位置はそのままです。',
+    'Add-on {n}':
+        'アドオン {n}',
+    'Beispiel laden':
+        '例を読み込む',
+    'Der Killer kostet':
+        'キラーによる損失',
+    'Ein Generator, alle {n}':
+        '発電機 1 台、{n} 人全員',
+    'Ein Generator, allein':
+        '発電機 1 台、単独',
+    'Einsetzen':
+        '入れる',
+    'Fünf Generatoren':
+        '発電機 5 台',
+    'Für alle übernehmen':
+        '全員に適用',
+    'Ladungen pro Sekunde':
+        '毎秒のチャージ',
+    'Perk {n}':
+        'パーク {n}',
+    'Tempo Survivor 1':
+        'サバイバー 1 の速度',
+    'auf fünf Generatoren':
+        '発電機 5 台の合計',
+    'ohne Killer {t}':
+        'キラーなし {t}',
+    'Setzt diesen Perk in den ersten freien Platz des Builds, für den er vorgeschlagen ist.':
+        'このパークを、提案されたビルドの最初の空き枠に入れます。',
+    'Füllt den Rechner mit einem üblichen Fall (vier Survivor an den Generatoren gegen einen Killer) – zum Ausprobieren. Die jetzige Auswahl geht dabei verloren.':
+        'よくある場面（サバイバー 4 人が発電機を修理、キラー 1 人）を計算機に入れます。試すためのもので、現在の選択は失われます。',
+    'Übernimmt den Build von Survivor 1 – Perks, Item, Add-ons – für alle Survivor des Teams.':
+        'サバイバー 1 のビルド（パーク、アイテム、アドオン）をチームの全サバイバーに使います。',
 }

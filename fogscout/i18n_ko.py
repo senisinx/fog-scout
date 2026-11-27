@@ -1991,8 +1991,6 @@ T = {
         '상황',
     'Survivor {n}':
         '생존자 {n}',
-    'Survivor-Builds':
-        '생존자 빌드',
     'S{n}: {v} c/s':
         'S{n}: {v} c/s',
     'Ein verfehlter Skill Check kostet (Anteil am Generator): {odds}':
@@ -6422,4 +6420,36 @@ T = {
         '{when} · {who} · {map}: 처치 {n}',
     'Öffnet den Clip im grossen Editor – gleicher Bereich, gleiche Stelle.':
         '클립을 큰 편집기에서 엽니다. 범위와 위치는 그대로입니다.',
+    'Add-on {n}':
+        '애드온 {n}',
+    'Beispiel laden':
+        '예시 불러오기',
+    'Der Killer kostet':
+        '살인마로 인한 손실',
+    'Ein Generator, alle {n}':
+        '발전기 1대, {n}명 모두',
+    'Ein Generator, allein':
+        '발전기 1대, 혼자',
+    'Einsetzen':
+        '넣기',
+    'Fünf Generatoren':
+        '발전기 5대',
+    'Für alle übernehmen':
+        '모두에게 적용',
+    'Ladungen pro Sekunde':
+        '초당 충전',
+    'Perk {n}':
+        '기술 {n}',
+    'Tempo Survivor 1':
+        '생존자 1의 속도',
+    'auf fünf Generatoren':
+        '발전기 5대 합계',
+    'ohne Killer {t}':
+        '살인마 없이 {t}',
+    'Setzt diesen Perk in den ersten freien Platz des Builds, für den er vorgeschlagen ist.':
+        '이 기술을 제안된 빌드의 첫 번째 빈 자리에 넣습니다.',
+    'Füllt den Rechner mit einem üblichen Fall (vier Survivor an den Generatoren gegen einen Killer) – zum Ausprobieren. Die jetzige Auswahl geht dabei verloren.':
+        '흔한 경우(생존자 4명이 발전기를 수리, 살인마 1명)로 계산기를 채웁니다. 시험용이며 현재 선택은 사라집니다.',
+    'Übernimmt den Build von Survivor 1 – Perks, Item, Add-ons – für alle Survivor des Teams.':
+        '생존자 1의 빌드(기술, 아이템, 애드온)를 팀의 모든 생존자에게 적용합니다.',
 }
