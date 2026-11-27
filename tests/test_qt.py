@@ -244,6 +244,41 @@ def test_form_page_shows_states_and_posts_clicks(qapp, keep):
                                                         ("act", ("ov.sel_size", 50))]
 
 
+def test_the_maps_page_has_realm_chips_and_the_chosen_map_beside_the_tiles(qapp, keep):
+    """1.57.82 (draft A "Raster mit Detail"): the realms are chips in a row that wraps (as tall as its lines, never
+    scrolling); the chosen map stands beside the tiles – on a narrow page instead of them – with what its tile
+    says; Esc or "Schliessen" closes it."""
+    from PySide6.QtCore import Qt
+    from PySide6.QtTest import QTest
+    from PySide6.QtWidgets import QListView
+    from fogscout import qt_maps, qt_window
+    posted = queue.Queue()
+    page = keep(qt_window.MapsPage(lambda a, arg=None: posted.put((a, arg))))
+    items = [(f"Realm mit langem Namen {i}", f"Map {i}", f"m{i}", 1) for i in range(12)]
+    page.resize(1100, 700)
+    page.show()
+    page.show_maps(items, None, {}, [], marks={("m0", 1): ("7 Runden · Ø 2,9 Kills", "")})
+    qapp.processEvents()
+    r = page.realms
+    assert r.flow() == QListView.LeftToRight and r.isWrapping() and r.count() == 13
+    rects = [r.visualItemRect(r.item(i)) for i in range(r.count())]
+    assert len({q.top() for q in rects}) > 1                                  # more than one line of chips
+    assert max(q.bottom() for q in rects) <= r.height() and max(q.right() for q in rects) <= r.width()
+    assert not page.detail_open() and page.detail.isHidden() and page.grid_scroll.isVisible()
+    page.open_big(("m0", 1))
+    page.show_preview(("m0", 1, "Map 0", "Realm 0", None, ""))
+    assert page.detail_open() and page.detail.isVisible() and page.grid_scroll.isVisible()
+    assert page.detail.width() == qt_maps.DETAIL_W and page.p_info.text() == "7 Runden · Ø 2,9 Kills"
+    assert page.p_back.text() == "Schliessen"
+    page.resize(qt_maps.DETAIL_BESIDE - 60, 700)                              # narrow: the map instead of the tiles
+    qapp.processEvents()
+    assert page.detail.isVisible() and page.grid_scroll.isHidden()
+    QTest.keyClick(page, Qt.Key_Escape)
+    assert not page.detail_open() and page.detail.isHidden() and page.grid_scroll.isVisible()
+    page.show_preview(("m1", 1, "Map 1", "Realm 1", None, ""))                # a map without a mark: no line
+    assert page.p_info.isHidden()
+
+
 def test_maps_page_lists_by_realm_and_posts_the_pick(qapp, keep, tmp_path):
     """1.66.4 (variant A): realms left with counts, "Alle Maps" / "Zuletzt gespielt" on top, the tiles of the
     chosen realm; the realm of the shown map first; the search shows all realms."""
@@ -284,21 +319,21 @@ def test_maps_page_shows_a_map_big_after_a_click(qapp, keep):
     page.resize(900, 700)
     items = [("MacMillan", "Coal Tower", "coal", 1), ("MacMillan", "Suffocation Pit", "pit", 1)]
     page.show_maps(items, ("pit", 1))
-    assert posted.empty() and page.stack.currentIndex() == 0          # marking the shown map is no click
+    assert posted.empty() and not page.detail_open()          # marking the shown map is no click
     page.clicked(("coal", 1))
     page.show_in_game(("coal", 1))                                     # a double click: no big view
     page._clicker.timeout.emit()
-    assert posted.get_nowait() == ("show_map", ("coal", 1)) and page.stack.currentIndex() == 0
+    assert posted.get_nowait() == ("show_map", ("coal", 1)) and not page.detail_open()
     page.clicked(("coal", 1))
     page._clicker.timeout.emit()
-    assert posted.get_nowait() == ("map_preview", ("coal", 1)) and page.stack.currentIndex() == 1
+    assert posted.get_nowait() == ("map_preview", ("coal", 1)) and page.detail_open()
     page.show_preview(("coal", 1, "Coal Tower", "The MacMillan Estate", Image.new("RGBA", (200, 400), "red")))
     assert page.p_name.text() == "Coal Tower" and page.p_show.isEnabled()
     assert page.p_pic.pixmap() is not None and not page.p_pic.pixmap().isNull()
     page.p_show.click()
     assert posted.get_nowait() == ("show_map", ("coal", 1))
     page.p_back.click()
-    assert page.stack.currentIndex() == 0
+    assert not page.detail_open()
 
 
 # ------------------------------------------------------------------ pages built from a tab of the UI model
@@ -2581,7 +2616,7 @@ def test_the_tiles_are_walked_with_the_keyboard(qapp, keep):
     assert qapp.focusWidget().geometry().y() == first.geometry().y()
     key(first, Qt.Key_Left)                                              # nothing before the first: stays
     key(page._tiles[("m0_2", 1)], Qt.Key_Return)
-    assert posted[-1] == ("map_preview", ("m0_2", 1)) and page.stack.currentIndex() == 1
+    assert posted[-1] == ("map_preview", ("m0_2", 1)) and page.detail_open()
     page.close_big()
     key(page._tiles[("m0_3", 1)], Qt.Key_Return, Qt.ControlModifier)
     assert posted[-1] == ("show_map", ("m0_3", 1))

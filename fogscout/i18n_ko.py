@@ -6382,4 +6382,6 @@ T = {
         '{page} 페이지를 엽니다.',
     'Öffnet den Rechner: Reparatur-, Heil- und andere Zeiten aus Perks, Items und Add-ons.':
         '계산기를 엽니다: 퍽, 아이템, 애드온으로 수리·치료 등의 시간을 계산합니다.',
+    'Schliesst die gewählte Map (Esc).':
+        '선택한 맵을 닫습니다 (Esc).',
 }

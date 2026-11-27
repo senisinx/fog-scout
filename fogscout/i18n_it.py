@@ -6382,4 +6382,6 @@ T = {
         'Apre la pagina {page}.',
     'Öffnet den Rechner: Reparatur-, Heil- und andere Zeiten aus Perks, Items und Add-ons.':
         'Apre il calcolatore: tempi di riparazione, cura e altri da competenze, oggetti e accessori.',
+    'Schliesst die gewählte Map (Esc).':
+        'Chiude la mappa scelta (Esc).',
 }

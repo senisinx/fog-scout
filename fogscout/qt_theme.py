@@ -423,8 +423,8 @@ QLabel[state="warn"] {{ color: {c['warn']}; }}
 QLabel[state="err"] {{ color: {c['err']}; }}
 QLabel[state="off"] {{ color: {c['dim']}; }}
 QListWidget#paletterows {{ background: transparent; border: none; outline: 0; }}  /* 1.26: the palette's rows */
-QListWidget#realms {{ border: 1px solid {c['border']}; border-radius: {RADIUS['l']}px; padding: 4px; outline: 0; }}
-QListWidget#realms::item {{ padding: 7px 0; border-radius: {RADIUS['m']}px; }}
+QListWidget#realms {{ border: none; background: transparent; padding: 0; outline: 0; }}  /* 1.57.82: chips */
+QListWidget#realms::item {{ padding: 5px 0; border-radius: {RADIUS['m']}px; border: 1px solid {c['border']}; }}
 QListWidget#realms::item:selected {{ background: {c['nav_sel']}; }}
 QListWidget#realms::item:hover:!selected {{ background: {c['hover']}; }}
 QFrame#roundrow {{ border-radius: {RADIUS['m']}px; }}  /* 1.17.1: overview "Letzte Runden" – a row opens the round */

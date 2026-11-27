@@ -7,10 +7,10 @@ disk) and the tiles can be walked with the keyboard (arrows, Enter = big, Ctrl+E
 from __future__ import annotations
 
 from PySide6.QtCore import QPoint, QSize, Qt, QTimer
-from PySide6.QtGui import QColor, QImage, QPalette, QPixmap
-from PySide6.QtWidgets import (QApplication, QButtonGroup, QFrame, QHBoxLayout, QLabel, QLineEdit, QListWidget, QListWidgetItem, QMenu,
+from PySide6.QtGui import QColor, QFont, QImage, QPalette, QPixmap
+from PySide6.QtWidgets import (QApplication, QButtonGroup, QFrame, QHBoxLayout, QLabel, QLineEdit, QListView, QListWidget, QListWidgetItem, QMenu,
                                QPlainTextEdit, QPushButton, QStyle, QStyledItemDelegate, QStyleOptionViewItem, QScrollArea,
-                               QSizePolicy, QStackedWidget, QVBoxLayout, QWidget)
+                               QSizePolicy, QVBoxLayout, QWidget)
 
 from . import i18n, qt_theme, thumbs
 from .qt_layouts import FlowRow
@@ -103,8 +103,13 @@ class MapTile(QFrame):
         self._page.grid_scroll.ensureWidgetVisible(self, 0, 24)
 
 
+DETAIL_W = 340                     # px (logical): the chosen map beside the tiles (1.57.82)
+DETAIL_BESIDE = 760                # the page is at least this wide: tiles and the chosen map side by side
+
+
 class RealmDelegate(QStyledItemDelegate):
-    """Realm list: the name left, the number of maps right (dim) – text "name\tcount"."""
+    """Realm chips: the name, then the number of maps (dim) – text "name\tcount". 1.57.82 (user picked draft A
+    "Raster mit Detail"): a chip as wide as its text in a row that wraps, no list beside the tiles any more."""
 
     def paint(self, p, opt, index):
         name, _tab, count = str(index.data() or "").partition("\t")
@@ -124,8 +129,14 @@ class RealmDelegate(QStyledItemDelegate):
         p.drawText(r, Qt.AlignVCenter | Qt.AlignRight, count)                 # the placeholder role (3.3:1)
         p.restore()
 
-    def sizeHint(self, opt, index):                 # as wide as the list: the count stays in sight
-        return QSize(1, super().sizeHint(opt, index).height())
+    def sizeHint(self, opt, index):                 # as wide as its text: a chip
+        name, _tab, count = str(index.data() or "").partition("\t")
+        fm = opt.fontMetrics
+        bold = QFont(opt.font)
+        bold.setBold(True)                          # the chosen chip is bold: room for that, so nothing jumps
+        from PySide6.QtGui import QFontMetrics
+        w = QFontMetrics(bold).horizontalAdvance(name) + (fm.horizontalAdvance(count) + 10 if count else 0) + 22
+        return QSize(w, super().sizeHint(opt, index).height())
 
 
 STYLE_BUTTONS = (("classic", N_("Original"), N_("Die Karten mit lila Boden, wie sie mitgeliefert werden – gilt auch im Spiel.")),
@@ -210,14 +221,21 @@ class MapsPage(QWidget):
         lay.addWidget(style_row)                        # 1.8.16: six styles – a row of their own, wraps when narrow
         body = QHBoxLayout()
         body.setSpacing(16)
+        # 1.57.82 (draft A): the realms as chips in a row that wraps, above the tiles – the list beside them took
+        # 250 px the chosen map now has
         self.realms = QListWidget()
         self.realms.setObjectName("realms")
-        self.realms.setFixedWidth(250)          # 1.8.2: 230 cut "Hawkins National Laboratory"
+        self.realms.setFlow(QListView.LeftToRight)
+        self.realms.setWrapping(True)
+        self.realms.setResizeMode(QListView.Adjust)
+        self.realms.setMovement(QListView.Static)
+        self.realms.setSpacing(2)
         self.realms.setItemDelegate(RealmDelegate(self.realms))
         self.realms.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.realms.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.realms.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
         self.realms.currentItemChanged.connect(self._realm_picked)
-        body.addWidget(self.realms)
-        self.stack = QStackedWidget()
+        lay.addWidget(self.realms)
         # the grid of tiles
         grid_page = QScrollArea()
         grid_page.setWidgetResizable(True)
@@ -252,16 +270,18 @@ class MapsPage(QWidget):
         wrap.addLayout(self.grid_lay, 1)
         grid_page.setWidget(inner)
         self.grid_scroll = grid_page
-        self.stack.addWidget(grid_page)
-        # one map big
+        body.addWidget(grid_page, 1)
+        # the chosen map: beside the tiles (a narrow page: instead of them)
         big = _card()
+        self.detail = big
+        self._detail_open = False
         cl = QVBoxLayout(big)
         cl.setContentsMargins(*qt_theme.PAD_CARD)
         cl.setSpacing(6)
         top = QHBoxLayout()
-        self.p_back = QPushButton(_("Zurück"))
-        set_glyph(self.p_back, "back")            # 1.24: a drawn arrow, not "←"
-        self.p_back.setToolTip(_tip("Zurück"))
+        self.p_back = QPushButton(_("Schliessen"))   # 1.57.82: the map is beside the tiles – nothing to go back to
+        set_glyph(self.p_back, "close")
+        self.p_back.setToolTip(_("Schliesst die gewählte Map (Esc)."))
         self.p_back.clicked.connect(self.close_big)
         top.addWidget(self.p_back)
         top.addStretch()
@@ -278,8 +298,10 @@ class MapsPage(QWidget):
         self.p_pic.setAlignment(Qt.AlignCenter)
         self.p_pic.setMinimumSize(160, 160)
         self.p_pic.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Ignored)   # scales with the card, not the image
+        self.p_info = _label(cls="dim", wrap=True)      # 1.57.82: what the tile says (rounds, Ø kills, own picture)
         cl.addWidget(self.p_name)
         cl.addWidget(self.p_realm)
+        cl.addWidget(self.p_info)
         cl.addWidget(self.p_pic, 1)
         # 1.8.54 (user: "Notizen für die Map"): the own note, saved while typing, shown in the game with the map
         cl.addWidget(_label(_("Eigene Notiz (im Spiel unter dem Timer)"), "dim"))
@@ -296,9 +318,9 @@ class MapsPage(QWidget):
         self._note_saver.setSingleShot(True)
         self._note_saver.setInterval(600)
         self._note_saver.timeout.connect(self._save_note)
-        self.stack.addWidget(big)
-        body.addWidget(self.stack, 1)
+        body.addWidget(big)
         lay.addLayout(body, 1)
+        self._arrange_detail()
         self.hint = _label(_("Klick oder Enter = groß ansehen · Doppelklick oder Strg+Enter = jetzt anzeigen. Die "
                              "Erkennung übernimmt beim nächsten Match wieder."), "dim", wrap=True)
         lay.addWidget(self.hint)
@@ -348,6 +370,7 @@ class MapsPage(QWidget):
             it.setData(Qt.UserRole, k)
             self.realms.addItem(it)
         self.realms.blockSignals(False)
+        self._fit_realms()
 
     def _select_realm(self, key):
         for i in range(self.realms.count()):
@@ -639,11 +662,39 @@ class MapsPage(QWidget):
 
     def open_big(self, key):
         self._post("map_preview", tuple(key))
-        self.stack.setCurrentIndex(1)
+        self._detail_open = True
+        self._arrange_detail()
 
     def close_big(self):
         self._save_note()
-        self.stack.setCurrentIndex(0)
+        self._detail_open = False
+        self._arrange_detail()
+
+    def detail_open(self) -> bool:
+        """The chosen map is on display (beside the tiles, or instead of them on a narrow page)."""
+        return self._detail_open
+
+    def _arrange_detail(self):
+        """1.57.82: the chosen map beside the tiles from DETAIL_BESIDE px on, else instead of them (as before)."""
+        beside = self.width() >= DETAIL_BESIDE
+        self.detail.setVisible(self._detail_open)
+        self.grid_scroll.setVisible(beside or not self._detail_open)
+        if beside:
+            self.detail.setFixedWidth(DETAIL_W)
+        else:
+            self.detail.setMinimumWidth(0)
+            self.detail.setMaximumWidth(16777215)
+
+    def _fit_realms(self):
+        """The chips' row as tall as its lines at this width (it never scrolls)."""
+        n = self.realms.count()
+        if not n:
+            return
+        self.realms.doItemsLayout()
+        bottom = max(self.realms.visualItemRect(self.realms.item(i)).bottom() for i in range(n))
+        h = bottom + 2 * self.realms.frameWidth() + 8
+        if self.realms.height() != h:
+            self.realms.setFixedHeight(h)
 
     def edit_note(self, key):
         self.open_big(key)
@@ -692,7 +743,7 @@ class MapsPage(QWidget):
         self._post("show_map", tuple(key))
 
     def keyPressEvent(self, e):
-        if e.key() == Qt.Key_Escape and self.stack.currentIndex() == 1:
+        if e.key() == Qt.Key_Escape and self._detail_open:
             self.close_big()
             return
         super().keyPressEvent(e)
@@ -710,8 +761,14 @@ class MapsPage(QWidget):
         self._preview_key, self._preview_src = key, (p[4] if p else None)
         _set(self.p_name, p[2] if p else _("Keine Map gewählt"))
         _set(self.p_realm, p[3] if p else "")
+        self._show_info()
         self.p_show.setEnabled(p is not None)
         self._scale_preview()
+
+    def _show_info(self):
+        mark = self._marks.get(self._preview_key) if self._preview_key else None
+        _set(self.p_info, mark[0] if mark else "")
+        self.p_info.setVisible(bool(mark and mark[0]))
 
     def _scale_preview(self):
         src = self._preview_src
@@ -724,6 +781,8 @@ class MapsPage(QWidget):
 
     def resizeEvent(self, e):
         super().resizeEvent(e)
+        self._arrange_detail()
+        self._fit_realms()
         self._scale_preview()
 
     def _pick_first(self):

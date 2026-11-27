@@ -4859,4 +4859,6 @@ EN = {
         'Opens the page {page}.',
     'Öffnet den Rechner: Reparatur-, Heil- und andere Zeiten aus Perks, Items und Add-ons.':
         'Opens the calculator: repair, healing and other times from perks, items and add-ons.',
+    'Schliesst die gewählte Map (Esc).':
+        'Closes the chosen map (Esc).',
 }
