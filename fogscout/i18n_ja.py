@@ -6366,4 +6366,8 @@ T = {
         '{when}: {n} ラウンド',
     'Öffnet die ausführliche Ansicht dazu.':
         '詳しい表示を開きます。',
+    'Dunkel (Hens)':
+        'ダーク（Hens）',
+    'Die dunklen Karten von hens333.com (Lethia), wie sie dort stehen – gilt auch im Spiel. Eigene Bilder und Maps ohne dunkle Karte nehmen „Dunkel“.':
+        'hens333.com のダークマップ（Lethia）をそのまま表示 – ゲーム内にも適用。自分の画像とダーク版のないマップは「ダーク」を使います。',
 }

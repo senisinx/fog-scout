@@ -358,7 +358,7 @@ def test_the_app_takes_the_picture_of_a_floor_style(tmp_path):
     assert styled.startswith(os.path.join(str(tmp_path), appmod.STYLE_CACHE)) and "-lilac-" in styled
     from fogscout.app_overlay import MAP_STYLES
     from fogscout.qt_maps import STYLE_BUTTONS
-    assert [k for k, _l in MAP_STYLES] == [k for k, _l, _t in STYLE_BUTTONS] == ["classic", *mapstyle.STYLES]
+    assert [k for k, _l in MAP_STYLES] == [k for k, _l, _t in STYLE_BUTTONS] == ["classic", mapstyle.OFFICIAL, *mapstyle.STYLES]
 
 
 @pytest.mark.parametrize("style", sorted(mapstyle.FLOORS))
@@ -466,7 +466,7 @@ def test_right_click_makes_one_style_or_all_styles_of_the_map_clicked(tmp_path, 
     from fogscout import qt_maps
     assert ["styles", "note"] == [a for a, _l in qt_maps.MapsPage.MENU][-2:]
     entries = [a for a, _l in qt_maps.MapsPage.style_entries()]
-    assert entries == ["style:" + k for k, _l, _t in qt_maps.STYLE_BUTTONS if k != "classic"] + ["style:all"]
+    assert entries == ["style:" + k for k, _l, _t in qt_maps.STYLE_BUTTONS if k not in ("classic", "hens")] + ["style:all"]
     assert {e.split(":")[1] for e in entries[:-1]} == set(appmod.mapstyle.STYLES)      # every style can be made
     maps = {"coal": types.SimpleNamespace(id="coal", name="Coal Tower", title="Coal Tower", variants={1: "a", 2: "b"}),
             "bad": types.SimpleNamespace(id="bad", name="Badham", title="Badham", variants={1: "c"})}
@@ -518,3 +518,43 @@ def test_pruning_never_deletes_through_a_linked_style_folder(tmp_path):
         pytest.skip("no symlinks")
     assert mapstyle.prune(str(cache)) == 1
     assert (outside / name).exists() and not (cache / "dark" / name).exists()
+
+
+def test_hens_dark_maps_are_shipped_under_the_names_of_the_supplied_ones(tmp_path):
+    """1.57.79: maps_dark/ holds the dark callout pictures of hens333.com – each under the path of a picture in maps/
+    (so official_path finds it), with the name on top like the supplied ones (retitle works in every language)."""
+    from PIL import Image
+    from fogscout import mapimage
+    root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    dark = [os.path.relpath(os.path.join(d, f), os.path.join(root, mapstyle.OFFICIAL_DIR))
+            for d, _s, fs in os.walk(os.path.join(root, mapstyle.OFFICIAL_DIR)) for f in fs]
+    assert len(dark) >= 55 and all(f.endswith(".webp") for f in dark)
+    light = {os.path.splitext(os.path.relpath(os.path.join(d, f), os.path.join(root, "maps")))[0]
+             for d, _s, fs in os.walk(os.path.join(root, "maps")) for f in fs}
+    assert not [f for f in dark if os.path.splitext(f)[0] not in light]
+    for rel in sorted(dark):                          # every one: the name on top, apart from the map
+        with Image.open(os.path.join(root, mapstyle.OFFICIAL_DIR, rel)) as im:
+            assert max(im.size) <= 1500 and mapimage.title_split(im) is not None, rel
+    own = os.path.join(root, "maps", "Azarovs", "Blood Lodge.webp")
+    assert mapstyle.official_path(own, root) == os.path.join(root, mapstyle.OFFICIAL_DIR, "Azarovs", "Blood Lodge.webp")
+    assert mapstyle.official_path(os.path.join(root, "maps", "Other", "Haddonfield.webp"), root) is None   # none there
+    assert mapstyle.official_path(str(tmp_path / "user_maps" / "x" / "own.webp"), root) is None
+    assert mapstyle.official_path(os.path.join(root, "maps", "..", "LICENSE"), root) is None
+    assert mapstyle.official_path("", root) is None
+
+
+def test_the_style_hens_shows_the_shipped_picture_and_falls_back_to_dark(tmp_path):
+    """1.57.79: with the style "hens" a supplied map shows Hens' picture at once (nothing is made); a picture without
+    one is asked for in the style "dark"."""
+    from fogscout import app as appmod
+    root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    path = os.path.join(root, "maps", "Azarovs", "Blood Lodge.webp")
+    asked = []
+    fake = types.SimpleNamespace(catalog=types.SimpleNamespace(image_path=lambda mid, v=1: (path, v)), root_dir=root,
+                                 data_dir=str(tmp_path), settings={"overlay": {"map_style": "hens"}},
+                                 _style_request=lambda p, s: asked.append((p, s)))
+    got, shown = appmod.App._map_file(fake, "blood", 1)
+    assert got == os.path.join(root, "maps_dark", "Azarovs", "Blood Lodge.webp") and shown == 1 and not asked
+    path = os.path.join(root, "maps", "Other", "Haddonfield.webp")
+    got, _v = appmod.App._map_file(fake, "haddonfield", 1)
+    assert got == path and asked == [(path, "dark")]                # the original until the dark one is made

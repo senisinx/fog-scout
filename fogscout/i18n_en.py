@@ -4843,4 +4843,8 @@ EN = {
         '{when}: {n} rounds',
     'Öffnet die ausführliche Ansicht dazu.':
         'Opens the detailed view of this.',
+    'Dunkel (Hens)':
+        'Dark (Hens)',
+    'Die dunklen Karten von hens333.com (Lethia), wie sie dort stehen – gilt auch im Spiel. Eigene Bilder und Maps ohne dunkle Karte nehmen „Dunkel“.':
+        'The dark maps of hens333.com (Lethia) as they are there – also applies in the game. Own pictures and maps without a dark map take “Dark”.',
 }

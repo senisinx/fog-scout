@@ -121,6 +121,26 @@ FLOORS = {"grey": ((48, 50, 58), None, 0, 255),
           "lilac_glass": ((140, 148, 232), None, 0, 70)}
 DARK_SEE_THROUGH = 0.3       # a picture already drawn in the dark style: this share of its outline see-through
 STYLES = ("dark",) + tuple(FLOORS)        # every style made from the dark conversion ("classic" = the original)
+# 1.57.79 (user: "Hens333 hat auf seiner Webseite offizielle dunkle Maps vorgestellt" – Hens' OK relayed by the user):
+# the dark callout pictures of hens333.com (Lethia), shipped in maps_dark/ under the names of maps/ – a style of its
+# own, nothing is converted. A picture without one (own pictures, Haddonfield) takes the "dark" conversion instead.
+OFFICIAL = "hens"
+OFFICIAL_DIR = "maps_dark"
+
+
+def official_path(path: str, root: str):
+    """The shipped dark picture for the supplied map picture ``path`` (``root``/maps/…) or None – for a picture
+    outside maps/ (user_maps/) and for one without a dark version."""
+    if not path or not root:
+        return None
+    try:
+        rel = os.path.relpath(os.path.abspath(path), os.path.join(os.path.abspath(root), "maps"))
+    except ValueError:                                  # another drive
+        return None
+    if rel.startswith(os.pardir) or os.path.isabs(rel):
+        return None
+    dark = os.path.join(root, OFFICIAL_DIR, os.path.splitext(rel)[0] + ".webp")
+    return dark if os.path.isfile(dark) else None
 
 
 def add_floor(img: Image.Image, top: int, style: str, shape=None) -> Image.Image:

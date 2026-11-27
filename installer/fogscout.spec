@@ -27,6 +27,7 @@ datas = [
     (os.path.join(ROOT, "LICENSE"), "."),               # 1.38.43: the terms, next to the program
     (os.path.join(ROOT, "licenses"), "licenses"),       # 1.38.44: Apache-2.0 text (maps.json, OCR models)
     (os.path.join(ROOT, "maps"), "maps"),
+    (os.path.join(ROOT, "maps_dark"), "maps_dark"),     # 1.57.79: Hens' dark callout pictures (mapstyle.OFFICIAL)
     (os.path.join(ROOT, "models"), "models"),
     (os.path.join(PACKAGE, "assets"), os.path.join("fogscout", "assets")),   # 1.50.2: the icon pictures (icon.ASSETS)
     (os.path.join(PACKAGE, "fonts"), os.path.join("fogscout", "fonts")),

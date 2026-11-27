@@ -129,6 +129,9 @@ class RealmDelegate(QStyledItemDelegate):
 
 
 STYLE_BUTTONS = (("classic", N_("Original"), N_("Die Karten mit lila Boden, wie sie mitgeliefert werden – gilt auch im Spiel.")),
+                 ("hens", N_("Dunkel (Hens)"), N_("Die dunklen Karten von hens333.com (Lethia), wie sie dort stehen – "
+                                                  "gilt auch im Spiel. Eigene Bilder und Maps ohne dunkle Karte nehmen "
+                                                  "„Dunkel“.")),
                  ("dark", N_("Dunkel"), N_("Durchsichtiger Boden mit dunklem Rand – gilt auch im Spiel.")),
                  # 1.8.16 (user: "zusätzlich", plain names): the dark conversion with a floor
                  ("grey", N_("Grau"), N_("Dunkelgrauer Boden – die Form der Map bleibt auf dem schwarzen Balken "
@@ -597,7 +600,7 @@ class MapsPage(QWidget):
         """1.38.10 (user: „Map Stile → dann die Option zwischen den verschiedenen Mapstilen eine zu erstellen oder
         alle auf einmal, nur die ausgewählte Map“): [(action, label)] of the submenu „Map-Stile“ – each style of the
         style row (not „Original“: nothing to make), then all of them; every one for the map clicked only."""
-        return [("style:" + k, _(label)) for k, label, _tip in STYLE_BUTTONS if k != "classic"] + \
+        return [("style:" + k, _(label)) for k, label, _tip in STYLE_BUTTONS if k not in ("classic", "hens")] + \
             [("style:all", _("Alle auf einmal"))]
 
     def open_menu(self, key, pos):
