@@ -581,7 +581,10 @@ def test_undo_arrow_keys_and_a_layout_per_window_size(app_root, monkeypatch):
         assert app.undo_btn.instate(["disabled"])
         app.toggle_edit()
 
-        # one layout per DBD window size: the first size takes the layout in use
+        # one layout per DBD window size: the first size takes the layout in use. The fake windows must stay: after a
+        # second of real time App._game_rect looks for DBD again and drops them (a slow CI run did, and the size
+        # limit below was measured on the offscreen screen without bars – "assert 'Balken' in ''")
+        app._game_checked = time.time() + 3600
         app.game = SimpleNamespace(width=3440, height=1440, minimized=False, rect=(0, 0, 3440, 1440), monitor=None, hwnd=0)
         app._layout_size_tick()                               # a new size must settle first …
         clock[0] += app_layout.SIZE_SETTLE + 0.1

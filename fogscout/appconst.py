@@ -13,6 +13,10 @@ HUD_SIDES = [("off", N_("Aus")), ("above", N_("Direkt über der Karte (wandert m
              ("left", N_("Links oben (über der Karte)")), ("right", N_("Rechts oben")),
              ("custom", N_("Eigene Position (mit der Maus verschieben)"))]
 
+# from app_sysinfo (1.57.75): how the system values are drawn (sysview.VIEWS)
+HUD_VIEWS = [("rows", N_("Zeilen (wie bisher)")), ("curves", N_("Kurven (FPS, GPU, CPU)")),
+             ("meters", N_("Messleisten")), ("compact", N_("Zwei Zeilen (kompakt)"))]
+
 # from app_sysinfo
 BAR_ALIGNS = [("left", N_("Links")), ("centre", N_("Mittig")), ("right", N_("Rechts"))]     # 1.2.8
 
@@ -65,6 +69,9 @@ CHART_SPOTS = [("under_music", N_("Unter der Musik")), ("under_today", N_("Unter
                ("below", N_("Unter den Systemwerten")),
                ("bottom_right", N_("Rechts unten im Balken")), ("bottom_left", N_("Links unten im Balken")),
                ("custom", N_("Eigene Position (mit der Maus verschieben)"))]
+CHART_LOOKS = [("classic", N_("Klassisch")), ("map", N_("Kartentisch")), ("glass", N_("Glas")),   # 1.57.74
+               ("line", N_("Linie"))]
+CHART_DENSITIES = [("normal", N_("Normal (Diagramm unter dem Titel)")), ("dense", N_("Kompakt (eine Zeile je Diagramm)"))]
 # from app_loadouts (1.57): the loadouts' place
 LOADOUT_SPOTS = [("hud", N_("Neben der Survivor-Liste")), ("name", N_("Unter dem Namen")),
                  ("custom", N_("Eigene Position (mit der Maus verschieben)"))]

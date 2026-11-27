@@ -6225,14 +6225,14 @@ T = {
         'グラフの後ろに暗い面',
     'Eine halb durchsichtige dunkle Fläche mit runden Ecken hinter den Diagrammen.':
         'グラフの後ろに角の丸い半透明の暗い面。',
-    'FORM':
-        '調子',
+    'LETZTE 10':
+        '直近 10',
     'FPS':
         'FPS',
     'FPS-Verlauf (HWiNFO)':
         'FPS の推移（HWiNFO）',
-    'Form der letzten 10 Runden':
-        '直近 10 ラウンドの調子',
+    'Letzte 10 Runden (gut, mittel, schlecht)':
+        '直近 10 ラウンド（良・並・悪）',
     'GPU':
         'GPU',
     'Grün: als Killer 3 Kills oder mehr bzw. als Survivor entkommen, grau: 2 Kills, rot: weniger bzw. gestorben, leerer Ring: noch ohne Match-Daten.':
@@ -6291,4 +6291,28 @@ T = {
         '平均 {n}',
     'Ø {t}':
         '平均 {t}',
+    # 1.57.74: looks and density of the charts
+    'Dichte':
+        '密度',
+    'Kartentisch':
+        'マップテーブル',
+    'Glas':
+        'ガラス',
+    'Kompakt (eine Zeile je Diagramm)':
+        'コンパクト（グラフごとに 1 行）',
+    'Normal (Diagramm unter dem Titel)':
+        '標準（タイトルの下にグラフ）',
+    'Aussehen':
+        '外観',
+    # 1.57.75: views of the system values (sysview)
+    'Zeilen (wie bisher)':
+        '行（従来どおり）',
+    'Kurven (FPS, GPU, CPU)':
+        'グラフ（FPS、GPU、CPU）',
+    'Messleisten':
+        'メーターバー',
+    'Zwei Zeilen (kompakt)':
+        '2 行（コンパクト）',
+    'gedrosselt':
+        'スロットル中',
 }

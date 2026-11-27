@@ -6225,14 +6225,14 @@ T = {
         'Area scura dietro i grafici',
     'Eine halb durchsichtige dunkle Fläche mit runden Ecken hinter den Diagrammen.':
         "Un'area scura semitrasparente con angoli arrotondati dietro i grafici.",
-    'FORM':
-        'FORMA',
+    'LETZTE 10':
+        'ULTIMI 10',
     'FPS':
         'FPS',
     'FPS-Verlauf (HWiNFO)':
         'Andamento FPS (HWiNFO)',
-    'Form der letzten 10 Runden':
-        'Forma degli ultimi 10 round',
+    'Letzte 10 Runden (gut, mittel, schlecht)':
+        'Ultimi 10 round (bene, medio, male)',
     'GPU':
         'GPU',
     'Grün: als Killer 3 Kills oder mehr bzw. als Survivor entkommen, grau: 2 Kills, rot: weniger bzw. gestorben, leerer Ring: noch ohne Match-Daten.':
@@ -6291,4 +6291,28 @@ T = {
         'media {n}',
     'Ø {t}':
         'media {t}',
+    # 1.57.74: looks and density of the charts
+    'Dichte':
+        'Densità',
+    'Kartentisch':
+        'Tavolo da mappa',
+    'Glas':
+        'Vetro',
+    'Kompakt (eine Zeile je Diagramm)':
+        'Compatto (una riga per grafico)',
+    'Normal (Diagramm unter dem Titel)':
+        'Normale (grafico sotto il titolo)',
+    'Aussehen':
+        'Aspetto',
+    # 1.57.75: views of the system values (sysview)
+    'Zeilen (wie bisher)':
+        'Righe (come prima)',
+    'Kurven (FPS, GPU, CPU)':
+        'Curve (FPS, GPU, CPU)',
+    'Messleisten':
+        'Barre di misura',
+    'Zwei Zeilen (kompakt)':
+        'Due righe (compatto)',
+    'gedrosselt':
+        'limitata',
 }

@@ -286,6 +286,16 @@ class OverlayTab:
         self.sysinfo_hint_var = ui.StringVar(value="")
         self._reg("ov.sys_hint", ui.Label(sysf, textvariable=self.sysinfo_hint_var, style="Dim.TLabel",
                                            wraplength=520)).pack(anchor="w")
+        from .appconst import HUD_VIEWS                      # 1.57.75: rows / curves / meters / two lines
+        vr = ui.Frame(sysf)
+        vr.pack(fill="x", pady=(4, 0))
+        self._reg("ov.hud_view.label", ui.Label(vr, text=_("Darstellung"), width=12)).pack(side="left")
+        views = dict(HUD_VIEWS)
+        self.hud_view_var = ui.StringVar(value=_(views.get(o.get("hud_view", "rows"), views["rows"])))
+        vcb = self._reg("ov.hud_view", ui.Combobox(vr, textvariable=self.hud_view_var, state="readonly", width=38,
+                                                    values=[_(t) for _k, t in HUD_VIEWS]))
+        vcb.pack(side="left", padx=6)
+        vcb.bind("<<ComboboxSelected>>", lambda e: self._hud_view_changed())
         self.hud_backdrop_var = ui.BooleanVar(value=o.get("hud_backdrop", False))
         self._reg("ov.hud_backdrop", ui.Checkbutton(sysf, text=_("Dunkle Fläche hinter den Systemwerten"),
                                                     variable=self.hud_backdrop_var, command=self._look_flags_changed)
@@ -403,6 +413,15 @@ class OverlayTab:
         self._charts_box_ui(f, o)                           # 1.57.73
         return outer
 
+    def _hud_view_changed(self):
+        """1.57.75: the system values as text rows or as one of the picture views (sysview)."""
+        from .appconst import HUD_VIEWS
+        key = dict((_(label), k) for k, label in HUD_VIEWS).get(self.hud_view_var.get(), "rows")
+        self.settings["overlay"]["hud_view"] = key
+        self._hud_steady = None                             # another view: another width
+        self._save_soon()
+        self._tick_overlay(reschedule=False)
+
     def _charts_box_ui(self, f, o):
         """1.57.73: the tab "Diagramme" – where the card stands, the dark area and which charts it shows."""
         from . import charts
@@ -419,6 +438,25 @@ class OverlayTab:
                                                       values=[_(t) for _k, t in CHART_SPOTS]))
         pcb.pack(side="left", padx=6)
         pcb.bind("<<ComboboxSelected>>", lambda e: self._charts_spot_changed())
+        from .appconst import CHART_DENSITIES, CHART_LOOKS                       # 1.57.74: look and density
+        lr = ui.Frame(cf)
+        lr.pack(fill="x", pady=(4, 0))
+        self._reg("ov.charts_look.label", ui.Label(lr, text=_("Aussehen"), width=12)).pack(side="left")
+        looks = dict(CHART_LOOKS)
+        self.charts_look_var = ui.StringVar(value=_(looks.get(o.get("charts_look", "classic"), looks["classic"])))
+        lcb = self._reg("ov.charts_look", ui.Combobox(lr, textvariable=self.charts_look_var, state="readonly", width=38,
+                                                       values=[_(t) for _k, t in CHART_LOOKS]))
+        lcb.pack(side="left", padx=6)
+        lcb.bind("<<ComboboxSelected>>", lambda e: self._charts_look_changed())
+        dr = ui.Frame(cf)
+        dr.pack(fill="x", pady=(4, 0))
+        self._reg("ov.charts_dense.label", ui.Label(dr, text=_("Dichte"), width=12)).pack(side="left")
+        dens = dict(CHART_DENSITIES)
+        self.charts_dense_var = ui.StringVar(value=_(dens["dense" if o.get("charts_dense", False) else "normal"]))
+        dcb = self._reg("ov.charts_dense", ui.Combobox(dr, textvariable=self.charts_dense_var, state="readonly",
+                                                        width=38, values=[_(t) for _k, t in CHART_DENSITIES]))
+        dcb.pack(side="left", padx=6)
+        dcb.bind("<<ComboboxSelected>>", lambda e: self._charts_look_changed())
         self.charts_backdrop_var = ui.BooleanVar(value=bool(o.get("charts_backdrop", True)))
         self._reg("ov.charts_backdrop", ui.Checkbutton(cf, text=_("Dunkle Fläche hinter den Diagrammen"),
                                                        variable=self.charts_backdrop_var,

@@ -11,7 +11,8 @@ import time
 import traceback
 
 from . import corpus, i18n, inputs, launch, layout, mapimage, mapnotes, mapstyle, obsrec, regions, restart, tooltip
-from . import scoreview
+from . import scoreview, sysview
+from .skin import accent_rgba
 from . import uimodel as ui
 from .capture import IS_WIN, find_game_window
 from .catalog import Catalog
@@ -1534,12 +1535,21 @@ class App(ServerTab, StatsTab, ExportDialog, RecordingsTab, DiscordPresence, Spo
             if o.get("show_inputs", False) else None       # 1.39: the input card with made-up keys
         layout_lo = ((lambda oo, game: loadouts_placed(oo, game, LOADOUT_SAMPLE, bool(self.overlay.editing), True))
                      if o.get("show_loadouts", False) else None)    # 1.57: the loadouts with a made-up board
+        hud_pic = None                                    # 1.57.75: the system values as a picture (sysview)
+        if sys_on and self._hud_view() != "rows":
+            view, psnap = self._hud_view(), (snap if now - snap.t < 3 else preview.sample_snapshot())
+            phist = self._charts_sys if len(self._charts_sys.rows) >= 2 else sysview.sample_history()
+            ping = self.conn.ping_ms if self.conn.ping_ms is not None else 31.0
+            hud_pic = ((lambda h, mw: sysview.draw(view, psnap, phist if view == "curves" else None, ping,
+                                                   max(int(h * sysview.WIDTH), int(mw)), True, accent_rgba(accent))),
+                       (view, repr(psnap), ping, accent, len(phist.rows)))
         chart_items = charts_samples(o) if o.get("show_charts", False) else []       # 1.57.73: made-up values
         layout_ch = ((lambda gh, avail: charts_picture(o, chart_items, gh, avail, accent, bool(self.overlay.editing)))
                      if chart_items else None)
         key = (gw, gh, repr(sorted((k, v) for k, v in o.items() if not isinstance(v, dict))), hud_side,
                bool(self.overlay.editing), accent,
                repr(rows), repr(today_rows), repr(self.settings.get("sysinfo_pos")), id(pic), caption, repr(info),
+               repr(hud_pic[1]) if hud_pic else None,
                self._map_height(), repr(music[0]) if music else None, id(music[1]) if music else None, repr(upnext))
         cached = getattr(self, "_preview_cache", None)
         if cached is None or cached[0] != key:
@@ -1549,7 +1559,7 @@ class App(ServerTab, StatsTab, ExportDialog, RecordingsTab, DiscordPresence, Spo
             layers, rect = preview.layers(round(gw * f), round(gh * f), o, hud_side, rows,
                                           self.settings.get("sysinfo_pos"), pic, caption, info, self._map_height(),
                                           music, today_rows, bool(self.overlay.editing), accent, upnext, fits,
-                                          inputs=layout_in, loadouts=layout_lo, charts=layout_ch)
+                                          inputs=layout_in, loadouts=layout_lo, charts=layout_ch, hud_pic=hud_pic)
             self._preview_cache = cached = (key, layers, tuple(round(v / f) for v in rect), f, fits)
         _key, layers, (x, y, w, h), f, fits = cached
         boxes = [(name, (round(lx / f), round(ly / f), round(img.width / f), round(img.height / f)))

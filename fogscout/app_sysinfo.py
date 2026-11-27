@@ -7,7 +7,7 @@ import logging
 import time
 
 from . import dashboard, history, layout, layoutmem, media, official, qt_theme, selfload, skin, spotify, sysinfo
-from . import records
+from . import records, sysview
 from .capture import IS_WIN
 from .i18n import _
 from .textnorm import fmt_duration
@@ -222,6 +222,9 @@ class SysInfo:
             from .preview import sample_snapshot
             snap = sample_snapshot()
         rows = sysinfo.hud_rows(snap, self.settings["overlay"].get("hud_rows")) if on else []
+        self._hud_snap = snap                               # 1.57.75: what a picture view (sysview) draws
+        if on and self._hud_view() == "curves":
+            self._charts_sys.add(self.sysmon.snapshot)      # the last ten minutes of readings (charts.SystemHistory)
         editing = on and self.overlay.editing          # 1.64.1: always draggable while moving, like the music
         if self.hud is not None:
             self.hud.set_editing(editing and not self._el_locked("hud"))      # 1.46: locked = click-through
@@ -247,17 +250,17 @@ class SysInfo:
         hh = int(gh * hud_scale(o))
         look = ("backdrop",) if o.get("hud_backdrop", False) else ()
         style = dict(skin=self._skin(), accent=self._skin_accent(), title=_("SYSTEM"))     # 1.3
-        w, h = self.hud.render(rows, hh, look=look, **style)
+        w, h = self._hud_render(rows, hh, look, style)
         f = layout.fit_scale(w, h, avail_w, avail_h)
         hh2 = hh
         if f < 1:                                           # narrow bar / low bar: smaller text
             hh2 = max(200, int(hh * f))
-            w, h = self.hud.render(rows, hh2, look=look, **style)
+            w, h = self._hud_render(rows, hh2, look, style)
         labels = tuple(r[0][0] for r in rows if r)
         self._hud_steady, sw = layout.steady_width(getattr(self, "_hud_steady", None), (side, hh, labels), w)
         col = self._column_min_w("hud", sw, avail_w)        # 1.8.29: as wide as the other cards in its bar
         if max(sw, col) > w:
-            w, h = self.hud.render(rows, hh2, look=look, min_w=int(max(sw, col)), **style)
+            w, h = self._hud_render(rows, hh2, look, style, min_w=int(max(sw, col)))
             sw = max(sw, w)
         if follow or beside:                                # shown by _hud_follow_map() after the map
             self._hud_pending = "beside" if beside else "above"
@@ -275,6 +278,37 @@ class SysInfo:
         self.worker.hud_rect = self._el_show("hud", self.hud, x, y, (w, h))
         self._hud_box = (int(x), self.worker.hud_rect[1], sw, h)    # steady box: the music card centres below it
         return None if vb or own else (side, h)   # only at the top of a side bar does the map move below it
+
+    def _hud_view(self) -> str:
+        """1.57.75: how the system values are drawn – "rows" (text rows, as before) or a sysview picture."""
+        view = self.settings["overlay"].get("hud_view", "rows")
+        return view if view in sysview.VIEWS else "rows"
+
+    def _hud_render(self, rows, height, look, style, min_w: int = 0):
+        """The system values into their window at ``height`` (the size setting in px): the text rows, or the view
+        picked (sysview: Kurven / Messleisten / Zwei Zeilen – one size for a height, drawn again only when a value
+        shown, the size or the look changed). Returns (w, h)."""
+        view = self._hud_view()
+        if view == "rows":
+            return self.hud.render(rows, height, look=look, min_w=min_w, **style)
+        snap = getattr(self, "_hud_snap", None) or self.sysmon.snapshot
+        forced = getattr(self, "_forced", False) or self.overlay.editing
+        hist = None
+        if view == "curves":
+            hist = self._charts_sys if len(self._charts_sys.rows) >= 2 or not forced else sysview.sample_history()
+        ping = self.conn.ping_ms if self.conn.ping_ms is not None else (31.0 if forced and self._hist is None else None)
+        width = max(int(height * sysview.WIDTH), int(min_w))
+        backdrop = True                                    # these views need their dark area to be read
+        key = ("sysview", view, width, repr(snap), len(hist.rows) if hist is not None else 0,
+               hist.rows[-1][0] if hist is not None and hist.rows else 0, ping, self.hud.editing, style.get("accent"))
+        if key != getattr(self.hud, "_key", None):
+            from .overlay_render import add_border
+            from .skin import accent_rgba
+            pic = sysview.draw(view, snap, hist, ping, width, backdrop, accent_rgba(style.get("accent")))
+            if self.hud.editing:
+                pic = add_border(pic, self.hud.edit_label)
+            self.hud.set_picture(pic, key)
+        return self.hud.size
 
     def _today_rows(self, now: float) -> list:
         """Block "today" below the system values (1.62, user: the black bars are big): rounds and play time,

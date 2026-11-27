@@ -89,6 +89,7 @@ DEFAULTS = {
         "media_fade": True,             # … fades in/out (also on a new song)
         "fade": True,                   # map, system values and "today" fade in/out too (1.2.9)
         "text_scale": 1.0,              # name/timer/info lines of the map, independent of its size (1.65)
+        "hud_view": "rows",             # 1.57.75: rows (text) / curves / meters / compact (sysview.VIEWS)
         "hud_scale": 1.0,               # size of the system values / "today" (60–200 %, 1.64.9)
         "show_today": True,             # block "today" (rounds, play time, kills/escaped, clock; 1.62)
         "today_pos": "below",           # 1.2.6: its own element – below the system values / bottom_right /
@@ -117,7 +118,9 @@ DEFAULTS = {
         "charts_xy": [0.94, 0.75],      #   custom: centre of the card as a share of the window
         "charts_scale": 1.0,            #   size (slider 60–200 %)
         "charts_opacity": 0.9,
-        "charts_backdrop": True,        #   dark area behind the charts
+        "charts_backdrop": True,        #   dark area behind the charts (look "classic")
+        "charts_look": "classic",       #   1.57.74: classic / map / glass / line (charts.LOOKS)
+        "charts_dense": False,          #   1.57.74: one row per chart
         "locked": [],                   # 1.46: elements locked in place ("map", "hud", "today", …) – not dragged
     },
     "hotkeys": {
