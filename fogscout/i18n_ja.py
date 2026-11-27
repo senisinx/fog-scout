@@ -2463,6 +2463,32 @@ T = {
         '任意',
     '{n} von {total} angesehen':
         '{total} 件中 {n} 件確認済み',
+    'Killer – am häufigsten':
+        'キラー – 多い順',
+    'Runden dieser Auswahl':
+        'この絞り込みのラウンド',
+    'Alle Runden der Auswahl':
+        'この絞り込みの全ラウンド',
+    'Weitere Auswertungen':
+        'その他の分析',
+    'Region: {name}':
+        '地域: {name}',
+    'Killer: {name}':
+        'キラー: {name}',
+    'Map: {name}':
+        'マップ: {name}',
+    'Modus: {name}':
+        'モード: {name}',
+    'Ohne Farming':
+        'ファーミングを除く',
+    'Diesen Filter entfernen – die Statistik zeigt dann wieder alle.':
+        'この絞り込みを外す – 統計は再びすべてを表示します。',
+    'Zurück zur Übersicht der Statistik.':
+        '統計の概要に戻る。',
+    'Öffnet „{name}“ mit allen Zahlen dazu.':
+        '「{name}」をすべての数値とともに開きます。',
+    'Öffnet die ganze Rundenliste dieser Auswahl – dort lassen sich Runden korrigieren, löschen und exportieren.':
+        'この絞り込みのラウンド一覧をすべて開きます – そこで修正・削除・エクスポートできます。',
     'Schritt {n} von {total}':
         'ステップ {n} / {total}',
     'Sprache':

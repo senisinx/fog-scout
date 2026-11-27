@@ -2324,6 +2324,9 @@ class AutoPage(QWidget, _Arranged):
                 tw.setObjectName("segments")
                 tw.tabBar().setObjectName("segbar")
                 tw.tabBar().setDrawBase(False)
+            if n.get("nobar"):                         # 1.57.99 (draft H): the statistics without tab rows – the
+                tw.tabBar().hide()                     # App switches the pages ("Details", "‹ Übersicht")
+                tw.setDocumentMode(True)
             fill = bool(n.get("fill"))
             pages = []
             ids = {}                                   # model tab index (str) -> the tab's widget

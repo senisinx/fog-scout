@@ -2463,6 +2463,32 @@ T = {
         '선택 사항',
     '{n} von {total} angesehen':
         '{total}개 중 {n}개 확인',
+    'Killer – am häufigsten':
+        '킬러 – 가장 많이',
+    'Runden dieser Auswahl':
+        '이 선택의 라운드',
+    'Alle Runden der Auswahl':
+        '선택의 모든 라운드',
+    'Weitere Auswertungen':
+        '추가 분석',
+    'Region: {name}':
+        '지역: {name}',
+    'Killer: {name}':
+        '킬러: {name}',
+    'Map: {name}':
+        '맵: {name}',
+    'Modus: {name}':
+        '모드: {name}',
+    'Ohne Farming':
+        '파밍 제외',
+    'Diesen Filter entfernen – die Statistik zeigt dann wieder alle.':
+        '이 필터 제거 – 통계가 다시 전체를 보여 줍니다.',
+    'Zurück zur Übersicht der Statistik.':
+        '통계 개요로 돌아가기.',
+    'Öffnet „{name}“ mit allen Zahlen dazu.':
+        '„{name}“을(를) 모든 수치와 함께 엽니다.',
+    'Öffnet die ganze Rundenliste dieser Auswahl – dort lassen sich Runden korrigieren, löschen und exportieren.':
+        '이 선택의 전체 라운드 목록을 엽니다 – 거기서 라운드를 수정, 삭제, 내보낼 수 있습니다.',
     'Schritt {n} von {total}':
         '{n}/{total}단계',
     'Sprache':

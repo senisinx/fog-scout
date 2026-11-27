@@ -1178,7 +1178,11 @@ class MainWindow(QMainWindow):
                 if folded:
                     continue
                 static = kind in STATIC_KINDS and i18n.is_program_text(text)
-                found.append((text, key, w, folded, _haystack(text, i18n.other(text)), static))
+                found.append((text, key, w, folded, _haystack(text, i18n.other(text)), static, kind))
+        # 1.57.99: a button that only opens a tab of the same name (statistics "Weitere Auswertungen") is no hit of
+        # its own – the tab is, and going there opens it
+        tabs = {(text, key) for text, key, *_r, kind in found if kind == "tab"}
+        found = [f[:6] for f in found if f[6] != "button" or (f[0], f[1]) not in tabs]
         count = collections.Counter((text, key) for text, key, *_rest in found)
         out = {}
         for text, key, w, folded, hay, static in found:

@@ -54,6 +54,8 @@ STATS_GROUPS = [("rounds", N_("Runden")), ("bp", N_("Bloodpoints & Farming")), (
                 ("maps", N_("Maps, Server & PC"))]
 WEEKDAYS = [N_("Montag"), N_("Dienstag"), N_("Mittwoch"), N_("Donnerstag"), N_("Freitag"), N_("Samstag"),
             N_("Sonntag")]
+STATS_CHIPS = ("region", "killer", "map", "mode", "farming")   # 1.57.99: filters shown as chips with × when set
+STATS_RECENT = 8                            # rows of "Runden dieser Auswahl" on the first page
 STATS_SYS_GROUPS = [("map", N_("nach Map")), ("hour", N_("nach Uhrzeit")), ("weekday", N_("nach Wochentag")),
                     ("killer", N_("nach Killer"))]
 SYS_PEAK_ROWS = {"gpu_temp_max": (N_("GPU-Temperatur"), " °C"), "gpu_hot_max": (N_("Hotspot"), " °C"),
@@ -170,6 +172,14 @@ class StatsTab:
         self._stats_mode_want = self.settings.get("stats_mode") or None      # 1.8.51: the pick is remembered
         self.stats_farming_box = self._farming_box(more)                                         # 1.11.5
         self.stats_farming_box.pack(side="left", padx=(8, 0))
+        # 1.57.99 (user picked draft H "Klicken filtert alles"): every filter set behind "Filter ▾" – by hand or by
+        # a click on a bar – as a chip with × in a row of its own; a click on the chip drops that filter
+        self.stats_chips = ui.Frame(f)
+        self.stats_chip_btns = {}
+        for kind in STATS_CHIPS:
+            self.stats_chip_btns[kind] = ui.glyph(ui.Button(self.stats_chips, text=kind,
+                                                            command=lambda k=kind: self._stats_chip_drop(k)), "close")
+            self.stats_chip_btns[kind].pack(side="left", padx=(0, 6))     # left of the row; hidden while unset
         self._stats_last_limit = LAST_ROUNDS_STEP
         self._stats_filter_key = None
         # one thing at a time: the dashboard and each table on a sub-tab of its own, filling the window's height
@@ -186,8 +196,18 @@ class StatsTab:
         self.stats_empty_btn = ui.Button(self.stats_empty, text=_("Match-Daten einrichten …"),
                                          command=self._reveal_official)
         self.stats_empty_btn.pack(anchor="w", pady=(8, 0))
+        # 1.57.99 (draft H): no tab rows – the first page holds everything, the other parts open by "Details" or
+        # "Weitere Auswertungen" there and lead back by "‹ Übersicht" above them
+        self.stats_crumb = ui.Frame(f)
+        self.stats_back_btn = ui.glyph(ui.Button(self.stats_crumb, text=_("Übersicht"),
+                                                 command=lambda: self._stats_select(_("Übersicht"))), "back")
+        self.stats_back_btn.pack(side="left")
+        self.stats_crumb_var = ui.StringVar(value="")
+        ui.Label(self.stats_crumb, textvariable=self.stats_crumb_var, style="Big.TLabel").pack(side="left",
+                                                                                            padx=(10, 0))
         self.stats_nb = ui.Notebook(f)
         self.stats_nb._dbdms_segments = True     # 1.11.14: the four groups as a segment switch, the parts as tabs
+        self.stats_nb._dbdms_no_bar = True
         self.stats_nb.pack(fill="both", expand=True)
         self.stats_nb.bind("<<NotebookTabChanged>>", lambda e: self._stats_render_tab())
         self._stats_groups = {}                  # group key -> the notebook with its parts
@@ -195,6 +215,7 @@ class StatsTab:
             frame = ui.Frame(self.stats_nb)
             self.stats_nb.add(frame, text=_(label))
             nb = ui.Notebook(frame)
+            nb._dbdms_no_bar = True
             nb.pack(fill="both", expand=True)
             nb.bind("<<NotebookTabChanged>>", lambda e: self._stats_render_tab())
             self._stats_groups[gkey] = nb
@@ -233,6 +254,22 @@ class StatsTab:
                                                                                                padx=(6, 0))
         ui.Button(fr, text=_("Alle als Farming"), command=self._stats_farm_found).pack(side="left", padx=(18, 0))
         ui.Button(fr, text=_("Alle ignorieren"), command=self._stats_farm_ignore).pack(side="left", padx=(6, 0))
+        # 1.57.99 (draft H): the newest rounds of the selection right under the charts – a click on a bar narrows
+        # them down like everything else; "Alle Runden der Auswahl" opens the full list with its buttons
+        rf = ui.Frame(box_d)
+        rf.pack(fill="x", pady=(12, 0))
+        ui.Label(rf, text=_("Runden dieser Auswahl"), style="Dim.TLabel").pack(anchor="w")
+        self.stats_recent = self._stats_tree(rf, (("when", _("Wann"), 120, "w"), ("map", _("Map"), 140, "w"),
+                                                  ("dur", _("Dauer"), 60, "e"), ("role", _("Rolle/Killer"), 120, "w"),
+                                                  ("res", _("Ergebnis"), 80, "w")), STATS_RECENT)
+        self.stats_recent._dbdms_open = self._stats_open_recording
+        ui.Button(rf, text=_("Alle Runden der Auswahl"),
+                  command=lambda: self._stats_select(_("Letzte Runden"))).pack(anchor="w", pady=(4, 0))
+        mf = ui.Frame(box_d)
+        mf.pack(fill="x", pady=(12, 0))
+        ui.Label(mf, text=_("Weitere Auswertungen"), style="Dim.TLabel").pack(anchor="w")
+        self._stats_more_box = mf
+        self.stats_part_btns = []
         # 1.51.1: with the hint about the stats page right above (stats_data_row) only the first sentence – it said
         # the same about kills, escapes and bloodpoints twice
         self.stats_about_var = ui.StringVar(value=_(STATS_ABOUT_FULL))
@@ -614,13 +651,21 @@ class StatsTab:
                                            "Survivor-Matches, die beide Werte kennen."),
                            style="Dim.TLabel", wraplength=520)).pack(anchor="w", pady=(4, 0))
         self._stats_sort = ("n", True)
+        for gkey, label in STATS_GROUPS:              # 1.57.99: one row per group, a button per part
+            row = ui.Frame(self._stats_more_box)
+            row.pack(fill="x", pady=(4, 0))
+            for path in self._stats_groups[gkey].tabs():
+                title = self._stats_parts[path][0]
+                if title == _("Übersicht"):
+                    continue
+                b = ui.Button(row, text=title, command=lambda p=path: self._stats_select(p))
+                b.pack(side="left", padx=(0, 6))
+                self.stats_part_btns.append(b)
         return outer
 
     def _stats_filters_shown(self, hidden_set: int, shown_set: bool):
         """1.11.14: "Filter ▾" names how many of its filters are set (and opens itself while one is – a click on the
         dashboard sets the map), "Filter zurücksetzen" only while any filter is set."""
-        if hidden_set:
-            self._stats_more_open = True
         if self._stats_more_open and not self.stats_more_row.winfo_manager() and self.stats_nb.winfo_manager():
             self.stats_more_row.pack(fill="x", pady=(0, 6), after=self.stats_filter_btn.master)
         elif not self._stats_more_open and self.stats_more_row.winfo_manager():
@@ -633,12 +678,57 @@ class StatsTab:
         elif not (hidden_set or shown_set) and self.stats_reset_btn.winfo_manager():
             self.stats_reset_btn.pack_forget()
 
+    def _stats_chips_show(self, chips):
+        """1.57.99 (draft H): ``chips`` = [(kind, text)] of the filters set – one chip each, the row only with any."""
+        texts = dict(chips)
+        for kind in STATS_CHIPS:
+            b = self.stats_chip_btns[kind]
+            if kind in texts:
+                b.configure(text=texts[kind])
+                ui.glyph(b, "close")
+                if not b.winfo_manager():
+                    b.pack(side="left", padx=(0, 6))
+            elif b.winfo_manager():
+                b.pack_forget()
+        on = bool(chips) and self.stats_nb.winfo_manager()
+        if on and not self.stats_chips.winfo_manager():
+            self.stats_chips.pack(fill="x", pady=(0, 6), before=self.stats_nb)
+        elif not on and self.stats_chips.winfo_manager():
+            self.stats_chips.pack_forget()
+
+    def _stats_chip_drop(self, kind):
+        """1.57.99: a click on a chip – that filter back to "all"."""
+        if kind == "farming":
+            self._farming_set(False)
+            if hasattr(self, "_rec_render"):
+                self._rec_render(force=True)
+        else:
+            var, choices = {"region": (self.stats_region_var, self._stats_regions),
+                            "killer": (self.stats_killer_var, self._stats_killers),
+                            "map": (self.stats_map_var, self._stats_maps_f),
+                            "mode": (self.stats_mode_var, self._stats_modes)}[kind]
+            var.set(choices[0][1])
+            if kind == "mode":
+                self._stats_mode_want = None
+                self.settings.set("stats_mode", "")
+        self._stats_render()
+
+    def _stats_crumb_show(self):
+        """1.57.99: above every part but the first: "‹ Übersicht" and the part's name."""
+        title = self._stats_current_title()
+        on = bool(title) and title != _("Übersicht") and self.stats_nb.winfo_manager()
+        self.stats_crumb_var.set(title if on else "")
+        if on and not self.stats_crumb.winfo_manager():
+            self.stats_crumb.pack(fill="x", pady=(0, 6), before=self.stats_nb)
+        elif not on and self.stats_crumb.winfo_manager():
+            self.stats_crumb.pack_forget()
+
     def _stats_empty_shown(self, empty: bool, set_up: bool):
         """1.11.14: no round yet – the note instead of the filter rows and the tabs (the button only while the
         match data were never set up)."""
         bar = self.stats_filter_btn.master
         if empty and self.stats_nb.winfo_manager():
-            for w in (bar, self.stats_more_row, self.stats_nb):
+            for w in (bar, self.stats_more_row, self.stats_chips, self.stats_crumb, self.stats_nb):
                 w.pack_forget()
             self.stats_empty.pack(fill="x", pady=(4, 0))
         elif not empty and not self.stats_nb.winfo_manager():
@@ -942,12 +1032,27 @@ class StatsTab:
         self._stats_dirty = set(self._stats_parts)
         self._stats_filters_shown(sum((wanted is not None, killer is not None, wmap is not None, wmode is not None,
                                        hide)), period != "all" or role != "all")
+        chips = []
+        if wanted is not None:
+            chips.append(("region", _("Region: {name}", name=dict(self._stats_regions)[wanted])))
+        if killer is not None:
+            chips.append(("killer", _("Killer: {name}", name=dict(self._stats_killers)[killer])))
+        if wmap is not None:
+            chips.append(("map", _("Map: {name}", name=dict(self._stats_maps_f)[wmap])))
+        if wmode is not None:
+            chips.append(("mode", _("Modus: {name}", name=dict(self._stats_modes)[wmode])))
+        if hide:
+            chips.append(("farming", _("Ohne Farming")))
+        self._stats_chips_show(chips)
+        self._stats_active = {"map": wmap, "killer": dict(self._stats_killers)[killer] if killer else None}
         self._stats_render_tab()
 
     def _stats_render_tab(self, page=None):
         """Draw a part of the statistics (``page`` = its path, default the one on display) for the current
         selection, if it has not been drawn for it yet."""
         c = self._stats_ctx
+        if page is None:
+            self._stats_crumb_show()
         path = self._stats_current_page() if page is None else str(page)
         if c is None or path not in self._stats_dirty:
             return
@@ -1001,8 +1106,10 @@ class StatsTab:
             self.stats_farm_row.pack_forget()
         self._stats_farm_rows(found)
         dash = dashboard.build(rounds, pairs, lambda k: killer_label(k), TREND_UNIT.get(c.period, "week"))
+        dash.active = dict(getattr(self, "_stats_active", None) or {})
         if not all_rounds:
             dash.empty = _("Noch keine Runden gespeichert.")
+        self._stats_recent_rows(c)
         self.stats_dash.data = dash
         self.stats_dash.dark = bool(self.settings.get("dark_mode", True))
 
@@ -1505,6 +1612,18 @@ class StatsTab:
             for key, n, avg, med in rows:
                 t.insert("", "end", values=(name(key), n, fmt_duration(avg), fmt_duration(med)))
             t._dbdms_empty = "" if rows else _("Noch keine Ladezeiten in dieser Auswahl.")
+
+    def _stats_recent_rows(self, c):
+        """1.57.99: the newest STATS_RECENT rounds of the selection on the first page (no buttons – the full list
+        has them); double-click shows the recording like there."""
+        t = self.stats_recent
+        t.delete(*t.get_children())
+        for r in sorted(c.rounds, key=lambda r: r.t, reverse=True)[:STATS_RECENT]:
+            role = _("Custom Game") if r.custom else (killer_label(r.killer) if r.role == "killer" and r.killer
+                                                      else self._role_name(r.role) or "–")
+            t.insert("", "end", iid=t.free_iid(repr(r.t)),
+                     values=(time.strftime("%d.%m.%y %H:%M", time.localtime(r.t)), shown(r.map),
+                             fmt_duration(r.seconds), role, self._official_result(c.off.get(id(r)))))
 
     def _stats_part_last(self, c):
         rounds, off = c.rounds, c.off
@@ -2092,6 +2211,11 @@ class StatsTab:
         """1.2.16: a click on the dashboard filters – a map bar sets the map, a heatmap cell map and killer."""
         if value and value[0] == "open":               # 1.57.77: "Details" of a block – the part with the full view
             self._stats_select(_(value[1]))
+            return
+        if value and value[0] == "killer":             # 1.57.99 (draft H): a killer row filters by that killer
+            if value[1] in [lbl for _k, lbl in self._stats_killers]:
+                self.stats_killer_var.set(value[1])
+                self._stats_render()
             return
         if not value or value[0] not in ("map", "cell"):
             return

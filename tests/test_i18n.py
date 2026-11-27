@@ -231,7 +231,7 @@ SAME_IN = {
            "Hotkey {action}: {keys}.", "INFO", "Info", "Iri", "Killer", "Killer · {killer}", "Layout {n} ({p})",
            "Main", "Mumbai", "Oceania", "Overlay", "Password", "Perk", "Ping (ms)", "Ping {lo}–{hi} ms", "Realm", "Server", "Singapore",
            "Sydney", "Timeline", "Tokyo", "Volume", "Zoom", "h", "hot spot max {v} °C", "lobby/menu", "no",
-           "ping {ms} ms", "{n} s", "{n}× farming", "Ø {ping} ms"},
+           "ping {ms} ms", "{n} s", "{n}× farming", "Ø {ping} ms", "Killer: {name}"},
     "ru": KEY_CAPS, "zh": KEY_CAPS, "ja": KEY_CAPS, "ko": KEY_CAPS}
 
 

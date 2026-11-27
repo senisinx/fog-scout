@@ -187,6 +187,8 @@ Seit 1.8.8 haben Auswahllisten und Häkchen einen eigenen Stil wie Knöpfe und F
 
 **Einrichtung mit Schrittliste** (seit 1.57.98): Neben dem Einrichtungs-Assistenten stehen alle acht Schritte als Liste – ein Klick springt hin, angesehene Schritte bekommen einen grünen Haken, die vier freiwilligen (Match-Daten, OBS, Verbindungen, Server) stehen unter „Optional“, und ein Balken zeigt, wie viele schon angesehen sind. Beim „Einrichtung fortsetzen“ bleiben die Haken.
 
+**Statistik auf einer Seite, Klicken filtert alles** (seit 1.57.99): Die Statistik hat keine Reiterleisten mehr. Die erste Seite zeigt Kennzahlen, Verlauf, Maps, **Killer**, Spielzeiten und die **Runden dieser Auswahl**. Ein Klick auf einen Map- oder Killer-Balken filtert danach; jeder gesetzte Filter steht oben als **Chip mit ×**, ein Klick darauf nimmt ihn wieder weg. Die übrigen Auswertungen (Rekorde, Bloodpoints, Gegner, Wartezeit …) öffnen sich über „Details“ oder **„Weitere Auswertungen“** und führen mit **„‹ Übersicht“** zurück.
+
 **Schalter in den Einstellungen** (seit 1.57.88): Die Häkchen der Einstellungen sind Ein/Aus-Schalter – wie auf der Übersicht und in der Liste der Overlay-Elemente.
 
 **Overlay-Seite als „Bühne“** (seit 1.57.87): Die **Vorschau** steht oben über die ganze Breite der Seite, darunter die **Zeile aller Elemente** mit Schloss und Ein/Aus-Schalter, darunter die **Einstellungen des gewählten Elements** – links Schnellposition, Grösse und Deckkraft, rechts seine eigenen Einstellungen. In einem schmalen Fenster steht alles untereinander.

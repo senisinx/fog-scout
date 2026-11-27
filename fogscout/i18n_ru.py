@@ -2463,6 +2463,32 @@ T = {
         'Необязательно',
     '{n} von {total} angesehen':
         'Просмотрено {n} из {total}',
+    'Killer – am häufigsten':
+        'Убийцы – чаще всего',
+    'Runden dieser Auswahl':
+        'Раунды этой выборки',
+    'Alle Runden der Auswahl':
+        'Все раунды выборки',
+    'Weitere Auswertungen':
+        'Другие разделы',
+    'Region: {name}':
+        'Регион: {name}',
+    'Killer: {name}':
+        'Убийца: {name}',
+    'Map: {name}':
+        'Карта: {name}',
+    'Modus: {name}':
+        'Режим: {name}',
+    'Ohne Farming':
+        'Без фарма',
+    'Diesen Filter entfernen – die Statistik zeigt dann wieder alle.':
+        'Убрать этот фильтр – статистика снова покажет всё.',
+    'Zurück zur Übersicht der Statistik.':
+        'Назад к обзору статистики.',
+    'Öffnet „{name}“ mit allen Zahlen dazu.':
+        'Открывает «{name}» со всеми цифрами.',
+    'Öffnet die ganze Rundenliste dieser Auswahl – dort lassen sich Runden korrigieren, löschen und exportieren.':
+        'Открывает полный список раундов этой выборки – там их можно исправить, удалить и экспортировать.',
     'Schritt {n} von {total}':
         'Шаг {n} из {total}',
     'Sprache':

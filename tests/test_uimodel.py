@@ -3029,9 +3029,15 @@ def test_the_statistics_filters_fold_away_count_and_reset(app_root):
         assert app.stats_more_row.winfo_manager() and app.stats_filter_btn.cget("text") == "Filter"
         assert app.stats_filter_btn._dbdms_glyph == "chevron_up"                 # 1.24: a drawn chevron, not "▴"
         app._stats_more_toggle()
-        app._dash_clicked(("map", "Coal Tower"))                       # a hidden filter set: the row opens
-        assert app.stats_more_row.winfo_manager() and app.stats_filter_btn.cget("text") == "Filter (1)"
-        assert app.stats_reset_btn.winfo_manager()
+        # 1.57.99 (draft H): a hidden filter set shows as a chip with × – the row stays shut
+        app._dash_clicked(("map", "Coal Tower"))
+        assert not app.stats_more_row.winfo_manager() and app.stats_filter_btn.cget("text") == "Filter (1)"
+        assert app.stats_reset_btn.winfo_manager() and app.stats_chips.winfo_manager()
+        chip = app.stats_chip_btns["map"]
+        assert chip.winfo_manager() and chip.cget("text") == "Map: Kohlelager" and chip._dbdms_tip()
+        chip.invoke()                                                  # the chip drops its filter
+        assert app.stats_map_var.get() == "Alle Maps" and not app.stats_chips.winfo_manager()
+        app._dash_clicked(("map", "Coal Tower"))
         app.stats_period_var.set(app._stats_periods[1][1])
         app._farming_vars[0].set(True)
         app._farming_switch(app._farming_vars[0])
@@ -3044,6 +3050,7 @@ def test_the_statistics_filters_fold_away_count_and_reset(app_root):
         page = app.qt.forms["stats"]
         seg = [tw for _k, tw, _p, _w in page._tabs if tw.objectName() == "segments"]
         assert len(seg) == 1 and seg[0].count() == 4 and seg[0].tabBar().objectName() == "segbar"
+        assert all(tw.tabBar().isHidden() for _k, tw, _p, _w in page._tabs)     # 1.57.99: no tab rows
     finally:
         app.quit()
 
@@ -3937,5 +3944,43 @@ def test_a_broken_map_picture_still_arms_the_end_of_the_round(app_root, monkeypa
                                              name_fit=0.0, unsure=False, latency=0.1)))
         assert app.current is not None and app.current[0] == map_id and app._hist is not None
         assert app.worker.map_on_screen and app.overlay.has_map() and not app.overlay.show_map   # info lines only
+    finally:
+        app.quit()
+
+
+def test_the_statistics_open_on_one_page_and_a_click_filters_everything(app_root):
+    """1.57.99 (user picked draft H "Klicken filtert alles"): no tab rows – the first page holds the charts, the
+    killers beside the maps and the newest rounds of the selection; a click on a killer row filters by it like a map
+    row by its map (the row is marked); the other parts open from "Weitere Auswertungen" and lead back by
+    "‹ Übersicht"."""
+    import json
+    from fogscout import history
+    from fogscout.app import App
+    (app_root / "settings.json").write_text(json.dumps({"welcome_seen": True}), encoding="utf-8")
+    now = time.time()
+    for i, (m, label, killer) in enumerate((("coal", "Coal Tower", "Nurse"), ("coal", "Coal Tower", "Huntress"),
+                                            ("saloon", "Dead Dawg Saloon", "Nurse"))):
+        history.append(str(app_root / "rounds.jsonl"), history.Round(now - 3000 + i * 700, 600, m, label,
+                                                                     role="killer", killer=killer))
+    app = App(str(app_root), simulate=str(app_root / "sim"))
+    try:
+        app._stats_render()
+        dash = app.stats_dash.data
+        assert [(k, n) for k, n, _r in dash.killers][:1] == [("Krankenschwester", 2)]
+        assert len(app.stats_recent.get_children()) == 3 and not app.stats_crumb.winfo_manager()
+        app._dash_clicked(("killer", "Krankenschwester"))
+        assert app.stats_killer_var.get() == "Krankenschwester"
+        assert app.stats_dash.data.active == {"map": None, "killer": "Krankenschwester"}
+        assert len(app.stats_recent.get_children()) == 2
+        assert app.stats_chip_btns["killer"].cget("text") == "Killer: Krankenschwester"
+        rekorde = next(b for b in app.stats_part_btns if b.cget("text") == "Rekorde")
+        assert "Übersicht" not in [b.cget("text") for b in app.stats_part_btns] and rekorde._dbdms_tip()
+        rekorde.invoke()
+        app._stats_render_tab()
+        assert app._stats_current_title() == "Rekorde" and app.stats_crumb.winfo_manager()
+        assert app.stats_crumb_var.get() == "Rekorde" and app.stats_back_btn._dbdms_tip()
+        app.stats_back_btn.invoke()
+        app._stats_render_tab()
+        assert app._stats_current_title() == "Übersicht" and not app.stats_crumb.winfo_manager()
     finally:
         app.quit()
