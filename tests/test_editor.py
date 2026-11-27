@@ -982,13 +982,16 @@ def test_the_sound_plays_in_pieces_on_one_clock_and_leaves_no_wav(qapp, clip, tm
     monkeypatch.setattr(clipedit, "SOUND_CHUNK_S", 1.5)
     monkeypatch.setattr(clipedit, "SOUND_TAIL_S", 0.3)
     monkeypatch.setattr(qt_clip.ClipBase, "_sound_wanted", lambda self: True)
-    played = []                                                     # (monotonic, wav, samples) per PlaySound
+    played = []                                                     # (clock, wav, samples) per PlaySound
 
     def play(wav, flags):
         if wav:
             import wave
+            # perf_counter, not monotonic: under Windows monotonic ticks every 15.6 ms – two readings 1.000 s apart
+            # read as 0.985 s and the 10 ms allowed below was less than the clock could tell (CI, 27.11.2026)
+            at = time.perf_counter()
             with wave.open(wav, "rb") as w:
-                played.append((time.monotonic(), wav, w.getnframes()))
+                played.append((at, wav, w.getnframes()))
     monkeypatch.setitem(sys.modules, "winsound", types.SimpleNamespace(
         PlaySound=play, SND_FILENAME=1, SND_ASYNC=2, SND_NODEFAULT=4, SND_PURGE=8))
     win = _window(qapp, clip, tmp_path)
