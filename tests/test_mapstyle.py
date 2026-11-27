@@ -532,7 +532,7 @@ def test_hens_dark_maps_are_shipped_under_the_names_of_the_supplied_ones(tmp_pat
     light = {os.path.splitext(os.path.relpath(os.path.join(d, f), os.path.join(root, "maps")))[0]
              for d, _s, fs in os.walk(os.path.join(root, "maps")) for f in fs}
     assert not [f for f in dark if os.path.splitext(f)[0] not in light]
-    for rel in sorted(dark)[:6]:
+    for rel in sorted(dark):                          # every one: the name on top, apart from the map
         with Image.open(os.path.join(root, mapstyle.OFFICIAL_DIR, rel)) as im:
             assert max(im.size) <= 1500 and mapimage.title_split(im) is not None, rel
     own = os.path.join(root, "maps", "Azarovs", "Blood Lodge.webp")
