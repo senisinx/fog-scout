@@ -4898,4 +4898,6 @@ EN = {
         'no role',
     '{when} · {who} · {map}: {n} Kills':
         '{when} · {who} · {map}: {n} kills',
+    'Öffnet den Clip im grossen Editor – gleicher Bereich, gleiche Stelle.':
+        'Opens the clip in the large editor – same range, same position.',
 }

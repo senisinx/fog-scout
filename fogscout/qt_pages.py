@@ -1099,11 +1099,33 @@ class CardColumn(QWidget):
     schieben"): drag a card at its grip, the others make room as it passes them; the page scrolls at its edges.
     No QDrag – that runs a second event loop. ``on_order(ids)`` gets the new order (saved by the App)."""
 
-    def __init__(self, on_order=None):
+    GAP = 12
+
+    def __init__(self, on_order=None, row_w: int = 0):
         super().__init__()
-        self._lay = QVBoxLayout(self)
-        self._lay.setContentsMargins(0, 0, 0, 0)
-        self._lay.setSpacing(12)
+        # 1.57.93 (user, on the settings in a wide window: "ich mag es nicht das es nicht ausgefüllt wird und soviel
+        # schwarz bleibt"): with ``row_w`` (px, the most a card is wide) the cards stand in two columns once two
+        # fit – the first cards on the left, the rest on the right, about equally high; else one column as before
+        self._row_w = int(row_w)
+        self.two = False
+        outer = QHBoxLayout(self)
+        outer.setContentsMargins(0, 0, 0, 0)
+        outer.setSpacing(self.GAP)
+        self._cols = []
+        for _i in range(2):
+            w = QWidget()
+            v = QVBoxLayout(w)
+            v.setContentsMargins(0, 0, 0, 0)
+            v.setSpacing(self.GAP)
+            outer.addWidget(w, 1, Qt.AlignTop)
+            self._cols.append((w, v))
+        self._lay = self._cols[0][1]
+        self._cols[1][0].hide()
+        if self._row_w:
+            outer.addStretch(0)
+            self._cols[0][0].setMaximumWidth(self._row_w)
+            self._cols[1][0].setMaximumWidth(self._row_w)
+            self.setMaximumWidth(2 * self._row_w + self.GAP)
         self.cards = []                   # [(id, card)] in the order shown
         self._default = []
         self._drag = None
@@ -1120,6 +1142,48 @@ class CardColumn(QWidget):
         self.cards.append((card_id, card))
         self._default.append(card_id)
         self._lay.addWidget(card)
+        self._place()
+
+    TWO_FROM = 0.72        # two columns once each gets this share of ``row_w`` (below, a row's name would wrap)
+
+    def _split(self) -> int:
+        """How many of the cards (in their order) stand in the left column: all of them in one column, else the
+        count that leaves the two columns closest in height."""
+        shown = [c for _i, c in self.cards if not c.isHidden()]
+        if not self.two or len(shown) < 2:
+            return len(self.cards)
+        def tall(c):                       # as high as it is now; before it was ever laid out, its size hint
+            laid_out = c.testAttribute(Qt.WA_WState_Created) and c.height() > 1
+            return c.height() if laid_out else max(c.sizeHint().height(), c.minimumHeight())
+        heights = [tall(c) + self.GAP if not c.isHidden() else 0 for _i, c in self.cards]
+        total, best, left = sum(heights), (None, len(self.cards)), 0
+        for k, h in enumerate(heights[:-1], 1):
+            left += h
+            gap = abs(total - 2 * left)
+            if best[0] is None or gap < best[0]:
+                best = (gap, k)
+        return best[1]
+
+    def _place(self):
+        """The cards into the column(s), in their order."""
+        k = self._split()
+        for n, (_i, card) in enumerate(self.cards):
+            lay = self._cols[0][1] if n < k else self._cols[1][1]
+            at = n if n < k else n - k
+            if lay.indexOf(card) != at:
+                hidden = card.isHidden()               # a move to the other column reparents the card, and Qt
+                for _w, other in self._cols:           # shows a reparented widget only on the next turn of the loop
+                    other.removeWidget(card)
+                lay.insertWidget(at, card)
+                card.setVisible(not hidden)
+        self._cols[1][0].setVisible(k < len(self.cards))
+
+    def resizeEvent(self, e):
+        super().resizeEvent(e)
+        two = bool(self._row_w) and self.width() >= 2 * self._row_w * self.TWO_FROM + self.GAP
+        if two != self.two:
+            self.two = two
+            self._place()
 
     def ids(self) -> list:
         return [i for i, _c in self.cards]
@@ -1131,11 +1195,8 @@ class CardColumn(QWidget):
         if ids == self.ids():
             return
         by_id = dict(self.cards)
-        for _i, card in self.cards:
-            self._lay.removeWidget(card)
         self.cards = [(i, by_id[i]) for i in ids]
-        for _i, card in self.cards:
-            self._lay.addWidget(card)
+        self._place()
         self._tab_order()
 
     def _tab_order(self):
@@ -1177,19 +1238,26 @@ class CardColumn(QWidget):
         card = self._drag
         if card is None:
             return
-        y = self.mapFromGlobal(global_pos).y()
+        at = self.mapFromGlobal(global_pos)
+        y = at.y()
         others = [(i, c) for i, c in self.cards if c is not card]
-        pos = len(others)
+        right = self.two and at.x() > self._cols[1][0].x() - self.GAP // 2       # the column under the pointer
+        pos = None
+        last = -1
         for n, (_i, c) in enumerate(others):
-            if c.isVisible() and y < c.geometry().center().y():
+            if self.two and (c.parentWidget() is self._cols[1][0]) != right:
+                continue
+            last = n
+            if c.isVisible() and y < c.mapTo(self, c.rect().center()).y():
                 pos = n
                 break
+        if pos is None:                    # below the column's last card: after it (an empty right column: the end)
+            pos = last + 1 if last >= 0 else (len(others) if right else 0)
         me = next(e for e in self.cards if e[1] is card)
         if self.cards.index(me) != pos:
             others.insert(pos, me)
             self.cards = others
-            self._lay.removeWidget(card)
-            self._lay.insertWidget(pos, card)
+            self._place()
 
     def _autoscroll(self):
         from PySide6.QtGui import QCursor
@@ -1234,9 +1302,10 @@ class _Arranged:
 
     def _column(self, page_key):
         n = len(self.columns)
-        col = CardColumn(lambda ids, n=n: self._post("card_order", (page_key, n, ids)))
-        if page_key in SWITCH_PAGES:                  # 1.57.89: rows, not a page-wide form
-            col.setMaximumWidth(round(ROW_COLUMN_W * qt_theme.current_zoom()))
+        # 1.57.89: on the settings a card is at most ROW_COLUMN_W wide (rows, not a page-wide form); 1.57.93: two
+        # such columns side by side in a wide window
+        row_w = round(ROW_COLUMN_W * qt_theme.current_zoom()) if page_key in SWITCH_PAGES else 0
+        col = CardColumn(lambda ids, n=n: self._post("card_order", (page_key, n, ids)), row_w=row_w)
         self.columns.append(col)
         return col
 

@@ -33,6 +33,7 @@ log = logging.getLogger("fogscout")
 CENSOR_LABELS = {"pixel": N_("Verpixelt"), "blur": N_("Verwischt"), "black": N_("Schwarz"),
                  "retouch": N_("Retusche (aus der Umgebung übermalt)")}   # 1.7.2, retouch 1.7.3
 MARK_BEFORE_S, MARK_AFTER_S = 20.0, 10.0          # a clip around an F8 mark (on opening, „Clip um Marke“)
+PLAYER_PREVIEW_H = 320                           # 1.57.93: picture height of the player above the clip tiles
 COMPACT_PREVIEW_H = 360                          # 1.8.8: picture height of the preview beside the recordings
 MIX_MAX = 150                                    # 1.8.6: a source may be raised to 150 %
 SOURCE_LABELS = {"dbd": N_("Spiel"), "discord": N_("Discord"), "mic": N_("Mikrofon"), "other": N_("Hintergrund")}
@@ -2369,8 +2370,12 @@ class ClipWindow(ClipBase):
     compact = True
 
     def __init__(self, path: str, marks: list, clips_dir: str, mode: str = "copy", sound: bool = True,
-                 compact: bool = True, parent=None, on_expand=None, **kw):
+                 compact: bool = True, parent=None, on_expand=None, autoplay: bool = False, player_only: bool = False,
+                 **kw):
         self.on_expand = on_expand
+        self.autoplay = bool(autoplay)        # 1.57.93: above the clip tiles – plays as soon as the file is read
+        self.player_only = bool(player_only)  # … and is only a player: the picture, the strip, playback, "Grosser
+        #                                       Editor …" – the cards for cutting and saving stay away
         super().__init__(path, marks, clips_dir, mode, sound, parent=parent, flags=Qt.Widget, **kw)
 
     def _ready(self, ok: bool):
@@ -2384,6 +2389,8 @@ class ClipWindow(ClipBase):
             self.timeline.set_range(max(0.0, first - MARK_BEFORE_S), min(self.info.duration, first + MARK_AFTER_S))
         self._show_range()
         self.goto(self.timeline.start)
+        if self.autoplay and not self.playing:
+            self.toggle_play()
 
     # ---- building
     def _build(self, mode, sound):
@@ -2407,6 +2414,12 @@ class ClipWindow(ClipBase):
         lay.addLayout(row)
         lay.addWidget(clip_card)
         lay.addWidget(export_card)
+        if self.player_only:
+            clip_card.hide()
+            export_card.hide()
+            self.preview.setMaximumHeight(PLAYER_PREVIEW_H)
+            self.player_expand = self._btn(row, _("Grosser Editor …"), self._expand,
+                                           _("Öffnet den Clip im grossen Editor – gleicher Bereich, gleiche Stelle."))
         self._mode_changed(self.mode_box.currentIndex(), save=False)
 
     def _transport_row(self):

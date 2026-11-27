@@ -962,7 +962,9 @@ def test_the_settings_are_rows_and_say_how_each_connection_is(qapp, keep):
     assert w.box.geometry().left() > w.label.geometry().right() - 2          # the switch after its text
     label, combo = page.controls["st.dark.label"][1], page.controls["st.dark"][1]
     assert combo.geometry().left() > label.geometry().right() + 40            # the choice at the row's right end
-    assert all(c.maximumWidth() == qt_pages.ROW_COLUMN_W for c in page.columns)
+    # 1.57.93: a card is still at most that wide – two such columns stand side by side in a wide window
+    assert all(w.maximumWidth() == qt_pages.ROW_COLUMN_W for c in page.columns for w, _lay in c._cols)
+    assert all(c.maximumWidth() == 2 * qt_pages.ROW_COLUMN_W + c.GAP for c in page.columns)
     assert {f"st.link.{k}" for k, _n in overview.LINKS} <= qt_window.page_keys("settings")
 
     def app(**settings):
@@ -4175,3 +4177,45 @@ def test_the_foot_of_the_navigation_is_a_list_of_three_entries_with_a_small_head
     assert st.layout().contentsMargins().left() == foot._lay.contentsMargins().left()      # one column of signs
     st.show_state("#4fd06a", "Im Match: Coal Tower", True)
     assert st.label.isHidden() and st.text.isHidden()
+
+
+def test_the_cards_of_the_settings_stand_in_two_columns_in_a_wide_window(qapp, keep):
+    """1.57.93 (user, on the settings in a wide window: "ich mag es nicht das es nicht ausgefüllt wird und soviel
+    schwarz bleibt"): a CardColumn with a row width shows its cards in two columns once two fit – the first cards
+    left, the rest right, about equally high, each at most the row width; narrow, one column as before. The order
+    stays one list: a card dragged into the other column lands in it, and the order is posted."""
+    from PySide6.QtCore import QPoint
+    from PySide6.QtWidgets import QFrame, QHBoxLayout, QVBoxLayout
+    from fogscout import qt_pages
+    orders = []
+    col = keep(qt_pages.CardColumn(orders.append, row_w=400))
+    for name, h in (("a", 200), ("b", 100), ("c", 100), ("d", 60)):
+        card = QFrame()
+        card.setFixedHeight(h)
+        head = QHBoxLayout()
+        QVBoxLayout(card).addLayout(head)
+        col.add(name, card, head)
+    by = dict(col.cards)
+    side = lambda n: "right" if by[n].parentWidget() is col._cols[1][0] else "left"     # noqa: E731
+    col.resize(500, 600)
+    col.show()
+    qapp.processEvents()
+    assert not col.two and {side(n) for n in "abcd"} == {"left"} and col._cols[1][0].isHidden()
+    col.resize(812, 600)
+    qapp.processEvents()
+    assert col.two and [side(n) for n in "abcd"] == ["left", "right", "right", "right"]      # 212 beside 296
+    assert col.ids() == ["a", "b", "c", "d"] and col.maximumWidth() == 812
+    assert by["a"].width() <= 400 and by["b"].x() == 0 and col._cols[1][0].x() >= by["a"].width()
+    col.begin(by["a"])                                         # "a" to the foot of the right column
+    col.drag_to(col.mapToGlobal(QPoint(col.width() - 20, col.height() - 2)))
+    col.end()
+    assert col.ids() == ["b", "c", "d", "a"] and orders == [["b", "c", "d", "a"]]
+    assert side("a") == "right" and side("b") == "left"
+    col.apply(["a", "b", "c", "d"])                            # a saved order: the same list, split anew
+    assert [side(n) for n in "abcd"] == ["left", "right", "right", "right"]
+    col.resize(500, 600)
+    qapp.processEvents()
+    assert not col.two and {side(n) for n in "abcd"} == {"left"}
+    plain = keep(qt_pages.CardColumn())                        # other pages: one column, however wide
+    plain.resize(2000, 300)
+    assert not plain.two and plain.maximumWidth() > 5000

@@ -6420,4 +6420,6 @@ T = {
         '역할 없음',
     '{when} · {who} · {map}: {n} Kills':
         '{when} · {who} · {map}: 처치 {n}',
+    'Öffnet den Clip im grossen Editor – gleicher Bereich, gleiche Stelle.':
+        '클립을 큰 편집기에서 엽니다. 범위와 위치는 그대로입니다.',
 }
