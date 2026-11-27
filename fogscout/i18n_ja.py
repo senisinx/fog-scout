@@ -6322,8 +6322,6 @@ T = {
         'Dead by Daylight は起動していません',
     'Fenster':
         'ウィンドウ',
-    'Heute, Woche und letzte Runden':
-        '今日・今週・最近のラウンド',
     'Map erkannt':
         'マップを認識',
     'PC und Verbindung':
@@ -6410,4 +6408,16 @@ T = {
         '大きい順',
     'Sortierung':
         '並び順',
+    'Häufigste Maps – letzte {n} Tage':
+        'よく遊ぶマップ – 直近 {n} 日',
+    'Kills der letzten Killer-Runden':
+        '直近のキラー戦のキル数',
+    'Rollen – letzte {n} Tage':
+        '役割 – 直近 {n} 日',
+    'Wann du spielst – letzte {n} Tage':
+        'プレイする時間帯 – 直近 {n} 日',
+    'ohne Rolle':
+        '役割なし',
+    '{when} · {who} · {map}: {n} Kills':
+        '{when} · {who} · {map}: {n} キル',
 }

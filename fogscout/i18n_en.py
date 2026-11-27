@@ -4800,8 +4800,6 @@ EN = {
         'Dead by Daylight is not running',
     'Fenster':
         'Window',
-    'Heute, Woche und letzte Runden':
-        'Today, the week and the last rounds',
     'Map erkannt':
         'Map detected',
     'PC und Verbindung':
@@ -4888,4 +4886,16 @@ EN = {
         'Largest first',
     'Sortierung':
         'Order',
+    'Häufigste Maps – letzte {n} Tage':
+        'Most played maps – last {n} days',
+    'Kills der letzten Killer-Runden':
+        'Kills of the last killer rounds',
+    'Rollen – letzte {n} Tage':
+        'Roles – last {n} days',
+    'Wann du spielst – letzte {n} Tage':
+        'When you play – last {n} days',
+    'ohne Rolle':
+        'no role',
+    '{when} · {who} · {map}: {n} Kills':
+        '{when} · {who} · {map}: {n} kills',
 }

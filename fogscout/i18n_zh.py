@@ -6322,8 +6322,6 @@ T = {
         'Dead by Daylight 未运行',
     'Fenster':
         '窗口',
-    'Heute, Woche und letzte Runden':
-        '今天、本周和最近对局',
     'Map erkannt':
         '已识别地图',
     'PC und Verbindung':
@@ -6410,4 +6408,16 @@ T = {
         '最大的在前',
     'Sortierung':
         '排序',
+    'Häufigste Maps – letzte {n} Tage':
+        '最常玩的地图——最近 {n} 天',
+    'Kills der letzten Killer-Runden':
+        '最近几局杀手的击杀数',
+    'Rollen – letzte {n} Tage':
+        '角色——最近 {n} 天',
+    'Wann du spielst – letzte {n} Tage':
+        '你的游玩时间——最近 {n} 天',
+    'ohne Rolle':
+        '无角色',
+    '{when} · {who} · {map}: {n} Kills':
+        '{when} · {who} · {map}：{n} 次击杀',
 }

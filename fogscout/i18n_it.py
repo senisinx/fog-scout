@@ -6322,8 +6322,6 @@ T = {
         'Dead by Daylight non è in esecuzione',
     'Fenster':
         'Finestra',
-    'Heute, Woche und letzte Runden':
-        'Oggi, settimana e ultimi round',
     'Map erkannt':
         'Mappa riconosciuta',
     'PC und Verbindung':
@@ -6410,4 +6408,16 @@ T = {
         'Prima i più grandi',
     'Sortierung':
         'Ordinamento',
+    'Häufigste Maps – letzte {n} Tage':
+        'Mappe più giocate – ultimi {n} giorni',
+    'Kills der letzten Killer-Runden':
+        'Uccisioni delle ultime partite da killer',
+    'Rollen – letzte {n} Tage':
+        'Ruoli – ultimi {n} giorni',
+    'Wann du spielst – letzte {n} Tage':
+        'Quando giochi – ultimi {n} giorni',
+    'ohne Rolle':
+        'senza ruolo',
+    '{when} · {who} · {map}: {n} Kills':
+        '{when} · {who} · {map}: {n} uccisioni',
 }

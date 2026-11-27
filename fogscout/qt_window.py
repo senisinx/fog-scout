@@ -121,6 +121,9 @@ def nav_icon_px() -> int:
     return round(NAV_ICON * qt_theme.current_zoom())
 
 
+NAV_CARD_PAD = 8          # px between the navigation's edge and the status card at its foot (1.57.92)
+
+
 def nav_sign_x() -> int:
     """NAV_SIGN_X at the text zoom: the item padding stays, the icon grows."""
     return 24 + nav_icon_px() // 2
@@ -627,7 +630,8 @@ class NavStatus(QFrame):
     def rezoom(self):
         """The sign on the icons' column of the navigation (1.24.7), at the text zoom (1.55.7)."""
         side = qt_theme.icon_px(qt_theme.ICON["s"])
-        self.layout().setContentsMargins(nav_sign_x() - side // 2, 10, 10, 12)
+        # 1.57.92: the style sheet insets the card by NAV_CARD_PAD on both sides – the sign stays on the column
+        self.layout().setContentsMargins(nav_sign_x() - side // 2 - NAV_CARD_PAD, 10, 6, 10)
         self.dot.setFixedWidth(side)                     # 1.24.7: the layout squeezed it to half – off the column
         self._shown = None
 
@@ -647,7 +651,8 @@ class NavStatus(QFrame):
         self.text.ensurePolished()
         fm = self.text.fontMetrics()
         m = self.layout().contentsMargins()      # margins, the sign, the gap
-        width = nav_w() - m.left() - m.right() - qt_theme.icon_px(qt_theme.ICON["s"]) - self.layout().spacing()
+        width = (nav_w() - 2 * NAV_CARD_PAD - m.left() - m.right() - qt_theme.icon_px(qt_theme.ICON["s"])
+                 - self.layout().spacing())
         words, first = text.split(), ""
         for i, word in enumerate(words):
             t = f"{first} {word}" if first else word
@@ -670,15 +675,21 @@ class NavStatus(QFrame):
 
 
 class NavFoot(QFrame):
-    """1.57.80 (user picked draft D "Einklappbar"): under the state – a row each for OBS and the server (a dot in
-    the level's colour, the name, the state in words), then "Log" and the arrow that folds the navigation to its
-    icons or opens it again. Folded: only the dots (the words as hover text) and the arrow."""
+    """Under the state (1.57.80, draft D "Einklappbar"; 1.57.92, user: "gefällt mir nicht wie unten das angezeigt
+    wird"): one status card with the state above – a row each for OBS and the server, the name on the left, a dot
+    in the level's colour and the state in words on the right – and below the card "Log" and the arrow that folds
+    the navigation to its icons or opens it again. Folded: only the dots (the words as hover text) and the arrow."""
 
     def __init__(self, on_log, on_fold):
         super().__init__()
         self.setObjectName("navfoot")
-        v = QVBoxLayout(self)
-        v.setSpacing(4)
+        outer = QVBoxLayout(self)
+        outer.setContentsMargins(0, 0, 0, 0)
+        outer.setSpacing(0)
+        self.rows_box = QFrame()                  # the lower half of the card (the state is its upper half)
+        self.rows_box.setObjectName("navrows")
+        v = QVBoxLayout(self.rows_box)
+        v.setSpacing(5)
         self._lay = v
         self.rows = []
         for _i in range(2):
@@ -689,14 +700,15 @@ class NavFoot(QFrame):
             dot, name, words = QLabel(), _label("", "dim"), QLabel()
             words.setTextFormat(Qt.PlainText)
             words.setObjectName("navstatustext")
-            h.addWidget(dot)
             h.addWidget(name)
-            h.addWidget(words, 1)
+            h.addStretch(1)
+            h.addWidget(dot)
+            h.addWidget(words)
             v.addWidget(row)
             self.rows.append((row, dot, name, words))
+        outer.addWidget(self.rows_box)
         foot = QWidget()
         self._foot = QHBoxLayout(foot)
-        self._foot.setContentsMargins(0, 2, 0, 0)
         self._foot.setSpacing(4)
         self.log_btn = QPushButton(_("Log"))
         self.log_btn.setObjectName("navfootbtn")
@@ -710,13 +722,15 @@ class NavFoot(QFrame):
         self._foot.addWidget(self.log_btn)
         self._foot.addStretch(1)
         self._foot.addWidget(self.fold_btn)
-        v.addWidget(foot)
+        outer.addWidget(foot)
         self._data, self._shown = [], None
         self.rezoom()
 
     def rezoom(self):
         side = qt_theme.icon_px(qt_theme.ICON["s"])
-        self._lay.setContentsMargins(nav_sign_x() - side // 2, 6, 8, 8)
+        left = nav_sign_x() - side // 2            # the names start on the icons' column, like the state's dot
+        self._lay.setContentsMargins(left - NAV_CARD_PAD, 8, 10, 10)
+        self._foot.setContentsMargins(left - 6, 6, NAV_CARD_PAD, 8)
         for _row, dot, _name, _words in self.rows:
             dot.setFixedWidth(side)
         self._shown = None
@@ -728,6 +742,7 @@ class NavFoot(QFrame):
             return
         self._shown, self._data = key, list(rows)
         side = qt_theme.icon_px(qt_theme.ICON["s"])
+        self.rows_box.setVisible(bool(rows))
         for (row, dot, name, words), data in zip(self.rows, list(rows) + [None] * len(self.rows)):
             row.setVisible(data is not None)
             if data is None:
@@ -738,14 +753,17 @@ class NavFoot(QFrame):
             _set(name, title)
             name.ensurePolished()
             words.ensurePolished()
-            # 1.57.83: name and state when both fit; a long state ("Frankfurt · 28 ms") stands alone – it says
-            # what it is of; longer still, it ends in "…" (the tooltip has all of it)
+            # the name on the left, the state on the right when both fit; a long state ("Frankfurt · 28 ms")
+            # stands alone – it says what it is of; longer still, it ends in "…" (the tooltip has all of it)
             m = self._lay.contentsMargins()
-            room = nav_w() - m.left() - m.right() - side - 8
+            room = nav_w() - 2 * NAV_CARD_PAD - m.left() - m.right() - side - 2 * row.layout().spacing()
             named = name.fontMetrics().horizontalAdvance(title) + 8
             alone = words.fontMetrics().horizontalAdvance(text) + named > room
             _set(words, words.fontMetrics().elidedText(text, Qt.ElideRight, max(20, room - (0 if alone else named))))
             name.setVisible(not compact and not alone)
+            lay = row.layout()                     # without the name the dot stands where the name would: on the
+            lay.setStretch(1, 0 if alone or compact else 1)      # icons' column, the state after it
+            lay.setStretch(3, 1 if alone or compact else 0)
             words.setVisible(not compact)
             row.setToolTip(f"{title}: {text}")
             row.setAccessibleName(f"{title}: {text}")

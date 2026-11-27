@@ -6322,8 +6322,6 @@ T = {
         'Dead by Daylight не запущена',
     'Fenster':
         'Окно',
-    'Heute, Woche und letzte Runden':
-        'Сегодня, неделя и последние раунды',
     'Map erkannt':
         'Карта распознана',
     'PC und Verbindung':
@@ -6410,4 +6408,16 @@ T = {
         'Сначала самые большие',
     'Sortierung':
         'Сортировка',
+    'Häufigste Maps – letzte {n} Tage':
+        'Самые частые карты – последние {n} дн.',
+    'Kills der letzten Killer-Runden':
+        'Убийства в последних раундах за убийцу',
+    'Rollen – letzte {n} Tage':
+        'Роли – последние {n} дн.',
+    'Wann du spielst – letzte {n} Tage':
+        'Когда ты играешь – последние {n} дн.',
+    'ohne Rolle':
+        'без роли',
+    '{when} · {who} · {map}: {n} Kills':
+        '{when} · {who} · {map}: убийств: {n}',
 }

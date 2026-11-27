@@ -4122,7 +4122,51 @@ def test_the_overview_shows_the_big_line_the_three_columns_and_switches(qapp, ke
     assert isinstance(box.box, qt_overlay.SwitchButton) and box.isChecked() and box.text() == "Automatische Erkennung"
     box.click()
     assert posted.get_nowait() == ("switch", ("detect", False))
-    assert page.more_body.isHidden() and page.more_body.isAncestorOf(page.today_note)     # the numbers: folded away
+    assert not hasattr(page, "more_body") and not page.today_note.isHidden()     # 1.57.92: no fold – always open
     o.map_label = o.headline = "Coal Tower"
     page.update_page(o)
     assert page.map_name.text() == "Coal Tower" and not page.map_title.isHidden()
+
+
+def test_the_overview_draws_charts_of_the_last_weeks_and_hides_the_ones_without_data(qapp):
+    """1.57.92 (user: "Bau verschiedene Diagramme ein"): overview.Charts → four cards (when, maps, roles, kills);
+    a card without data is not shown, one role alone or one killer round is no chart."""
+    import queue
+    from fogscout import dashboard, overview, qt_pages
+    page = qt_pages.OverviewPage(queue.Queue().put)
+    o = overview.Overview()
+    page.update_page(o)
+    assert all(c.isHidden() for c in (page.times_card, page.maps_card, page.roles_card, page.kills_card))
+    grid = dashboard.Grid(rows=["Montag"], columns=["18–21"], cells={("Montag", "18–21"): (3.0, 3)}, top=3.0,
+                          count=True, legend="3 Runden", n=3)
+    o.charts = overview.Charts(times=grid, maps=[("Kohlelager", 3, "")], maps_max=3,
+                               roles=[("Killer", 2, ""), ("Survivor", 1, "")], roles_max=2,
+                               kills=[(4, "26.11.", "a"), (2, "27.11.", "b")])
+    page.update_page(o)
+    assert not any(c.isHidden() for c in (page.times_card, page.maps_card, page.roles_card, page.kills_card))
+    o.charts = overview.Charts(maps=[("Kohlelager", 1, "")], roles=[("Killer", 1, "")], kills=[(4, "27.11.", "a")])
+    page.update_page(o)
+    assert not page.maps_card.isHidden()
+    assert page.times_card.isHidden() and page.roles_card.isHidden() and page.kills_card.isHidden()
+
+
+def test_the_foot_of_the_navigation_is_one_card_with_the_name_left_and_the_state_right(qapp):
+    """1.57.92 (user: "gefällt mir bei der Seitenleiste nicht wie unten das angezeigt wird"): the state, OBS and
+    the server are one card – a row's name on the left, its dot and state on the right; a long state stands alone
+    and is cut; folded, only the dots."""
+    from fogscout import qt_window
+    foot = qt_window.NavFoot(lambda: None, lambda: None)
+    assert foot.rows_box.objectName() == "navrows"
+    foot.show_rows([("OBS", "bereit", "ok"), ("Server", "Frankfurt am Main · 28 ms · sehr lang", "warn")], False, False,
+                   True)
+    row, dot, name, words = foot.rows[0]
+    lay = row.layout()
+    assert lay.indexOf(name) < lay.indexOf(dot) < lay.indexOf(words)
+    assert (name.text(), words.text()) == ("OBS", "bereit") and not name.isHidden()
+    long_row = foot.rows[1]                                   # too long for name and state: the state alone, cut
+    assert long_row[2].isHidden() and long_row[3].text().endswith("…")
+    assert long_row[0].toolTip() == "Server: Frankfurt am Main · 28 ms · sehr lang"
+    foot.show_rows([("OBS", "bereit", "ok")], True, True, True)
+    assert name.isHidden() and words.isHidden() and foot.log_btn.isHidden() and foot.rows[1][0].isHidden()
+    foot.show_rows([], False, False, True)
+    assert foot.rows_box.isHidden()

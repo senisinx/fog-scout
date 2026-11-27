@@ -15,7 +15,8 @@ from .qt_layouts import FlowRow, TileGrid, WrapCheck
 from .i18n import N_, _
 from .qt_common import SLIDER_MAX, guard_wheel, on_zoom, pixmap_from_pil, steady_scroll, _label, _tip, _card, _set, _scroll_page, page_head, set_glyph
 from .qt_views import FactBox, Table, LogView, HotkeyButton, Chart, SwatchView, TilesView, DashboardView
-from .qt_views import HeatmapView
+from .qt_views import HeatmapView, Heatmap, MapBars, CountBars
+from .overview import CHART_DAYS
 from .qt_preview import PreviewView
 
 
@@ -255,12 +256,9 @@ class OverviewPage(QWidget):
         self.news_card.setVisible(False)
         page.addWidget(self.news_card)
 
-        # 1.57.76: today, the week, the system card, the last rounds and the chart – below a fold (the user: those
-        # numbers are not what the page is for); the search opens it like every fold
-        more = make_fold(N_("Heute, Woche und letzte Runden"), page)
-        more.setSpacing(12)
-        self.more_body = more.parentWidget()
-        page_top, page = page, more
+        # today, the week, the system card, the last rounds and the charts – 1.57.76 below a fold, 1.57.92 always
+        # open again (user: "gefällt mir nicht das man es aufklappen muss … die option soll weg")
+        page_top = page
         # today
         head = QHBoxLayout()
         head.addWidget(_label(_("Heute").upper(), "h2"))
@@ -328,7 +326,46 @@ class OverviewPage(QWidget):
         dl.addWidget(self.days_chart)
         self.days_card.setVisible(False)
         page.addWidget(self.days_card)
+        # 1.57.92 (user: "Bau verschiedene Diagramme ein"): when, where, as what and how well – overview.Charts
+        self.chart_grid = TileGrid(min_width=380, columns=2)
+        self.times_card, self.times_chart = self._chart_card(_("Wann du spielst – letzte {n} Tage", n=CHART_DAYS),
+                                                             Heatmap(None))
+        self.maps_card, self.maps_chart = self._chart_card(_("Häufigste Maps – letzte {n} Tage", n=CHART_DAYS),
+                                                           MapBars(None))
+        self.roles_card, self.roles_chart = self._chart_card(_("Rollen – letzte {n} Tage", n=CHART_DAYS),
+                                                             MapBars(None))
+        self.kills_card, self.kills_chart = self._chart_card(_("Kills der letzten Killer-Runden"), CountBars())
+        page.addLayout(self.chart_grid)
+        self._charts_shown = None
         page_top.addStretch()
+
+    def _chart_card(self, title, widget):
+        card = _card()
+        cl = QVBoxLayout(card)
+        cl.setContentsMargins(*qt_theme.PAD_CARD)
+        cl.setSpacing(8)
+        cl.addWidget(_label(title.upper(), "h2"))
+        cl.addWidget(widget)
+        cl.addStretch()
+        card.setVisible(False)
+        self.chart_grid.addWidget(card)
+        return card, widget
+
+    def _show_charts(self, c, dark):
+        if self._charts_shown is not None and self._charts_shown[0] is c and self._charts_shown[1] == dark:
+            return
+        self._charts_shown = (c, dark)
+        times = getattr(c, "times", None)
+        maps, roles, kills = (getattr(c, k, None) or [] for k in ("maps", "roles", "kills"))
+        if times is not None:
+            self.times_chart.set_data(times, dark)
+        self.maps_chart.set_rows(maps, getattr(c, "maps_max", 1), dark)
+        self.roles_chart.set_rows(roles, getattr(c, "roles_max", 1), dark)
+        self.kills_chart.set_rows(kills, dark)
+        self.times_card.setVisible(times is not None)
+        self.maps_card.setVisible(bool(maps))
+        self.roles_card.setVisible(len(roles) > 1)             # one role alone is no chart
+        self.kills_card.setVisible(len(kills) > 1)
 
     # ------------------------------------------------------------- update
     def show_status_line(self, on: bool):
@@ -415,6 +452,7 @@ class OverviewPage(QWidget):
         if days:
             self.days_chart.show_state({"data": days, "dark": getattr(o, "dark", True), "panels": ("rounds",)})
         self.days_card.setVisible(bool(days))
+        self._show_charts(getattr(o, "charts", None), getattr(o, "dark", True))
 
     def _today_tile(self) -> QWidget:
         """One tile of „Heute“ (1.24.7: made when needed – five fixed widgets dropped the sixth and seventh fact)."""

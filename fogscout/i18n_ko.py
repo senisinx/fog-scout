@@ -6322,8 +6322,6 @@ T = {
         'Dead by Daylight가 실행 중이 아닙니다',
     'Fenster':
         '창',
-    'Heute, Woche und letzte Runden':
-        '오늘, 이번 주, 최근 라운드',
     'Map erkannt':
         '맵 인식됨',
     'PC und Verbindung':
@@ -6410,4 +6408,16 @@ T = {
         '큰 것부터',
     'Sortierung':
         '정렬',
+    'Häufigste Maps – letzte {n} Tage':
+        '가장 많이 한 맵 – 최근 {n}일',
+    'Kills der letzten Killer-Runden':
+        '최근 살인마 라운드의 처치 수',
+    'Rollen – letzte {n} Tage':
+        '역할 – 최근 {n}일',
+    'Wann du spielst – letzte {n} Tage':
+        '플레이하는 시간 – 최근 {n}일',
+    'ohne Rolle':
+        '역할 없음',
+    '{when} · {who} · {map}: {n} Kills':
+        '{when} · {who} · {map}: 처치 {n}',
 }
