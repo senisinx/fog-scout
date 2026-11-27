@@ -128,3 +128,37 @@ def test_prestige_series_is_bounded(monkeypatch):
     monkeypatch.setattr(builds, "_graded", lambda m: True)
     assert len(builds.prestige_series([M(OLD), M(NOW)], "Meg", "hour")) == official.MAX_BUCKETS
 
+
+
+def test_a_round_the_clock_cannot_place_is_left_out_of_every_trend(monkeypatch):
+    """Windows has no local time for a stamp at the start of 1970 (OSError): every trend goes through
+    official.bucket_of, leaves such a round out and still shows the others – also when counting back reaches it."""
+    real = official.bucket_start
+
+    def start(t, unit):
+        if t < 3 * 86400:
+            raise OSError(22, "Invalid argument")
+        return real(t, unit)
+    monkeypatch.setattr(official, "bucket_start", start)
+    assert official.bucket_of(100.0, "day") is None and official.bucket_of(NOW, "day") == real(NOW, "day")
+    assert official.bucket_span(real(4 * 86400, "day"), real(5 * 86400, "day"), "day")      # stops, does not raise
+
+    def rnd(t):
+        return history.Round(t=t, seconds=600.0, map_id="x", map="X", balance=5, wait=30.0, role="killer",
+                             sys={"gpu_temp": 60.0})
+    rs = [rnd(100.0), rnd(NOW)]
+    assert len(dashboard.balance_trend(rs, "day")) == 1
+    assert len(dashboard.wait_trend(rs, "day")) == 1
+    assert len(history.sys_trend(rs, "day")) == 1
+    assert len(dashboard.play_trend(rs, "day")) == 1
+
+    class M:
+        def __init__(self, t):
+            self.t, self.character, self.prestige, self.level, self.bp = t, "Meg", 1, 2, 1000
+    monkeypatch.setattr(builds, "_graded", lambda m: True)
+    monkeypatch.setattr(official, "kills", lambda m: 2)
+    monkeypatch.setattr(official, "escaped", lambda m: None)
+    pairs = [(r, M(r.t)) for r in rs]
+    assert len(builds.prestige_series([M(100.0), M(NOW)], "Meg", "day")) == 1
+    assert len(dashboard.bp_trend(pairs, "day")) == 1
+    assert len(official.trend(pairs, "day")) == 1

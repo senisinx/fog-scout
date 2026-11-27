@@ -169,6 +169,8 @@ Seit 1.8.8 haben Auswahllisten und Häkchen einen eigenen Stil wie Knöpfe und F
 
 **Einstellungen als Zeilen, Stand der Verbindungen** (seit 1.57.89): In den Einstellungen steht der **Name links, der Schalter oder die Auswahl rechts** in der Zeile; die Kästen sind höchstens 760 px breit, damit beides in einem Blick bleibt. **Verbindungen** beginnt mit einer Zeile je Verbindung (OBS, Discord, Spotify, YouTube, Claude), die sagt, wie es um sie steht: aus, nicht eingerichtet, verbunden, Anmeldung nötig …
 
+**Mehrere Kacheln markieren, „Einrichten“ je Verbindung** (seit 1.57.90): In den **Kacheln** der Aufnahmen lassen sich mit Strg oder Umschalt **mehrere Runden bzw. Clips** markieren – „Als Montage öffnen“ geht damit auch ohne die Listenansicht, und ein Neuzeichnen der Seite behält alle Markierungen. Unter Einstellungen › Verbindungen endet jede Zeile von „Stand der Verbindungen“ mit **Einrichten**: der Knopf springt zum Kasten dieser Verbindung. Dazu zwei Korrekturen: eine Runde mit kaputtem Zeitstempel (Anfang 1970) kann unter Windows keinen Verlauf der Statistik mehr abbrechen, und die Clip-Kacheln fragen den Aufnahmeordner nur noch einmal je Aufbau statt einmal je Clip.
+
 **Schalter in den Einstellungen** (seit 1.57.88): Die Häkchen der Einstellungen sind Ein/Aus-Schalter – wie auf der Übersicht und in der Liste der Overlay-Elemente.
 
 **Overlay-Seite als „Bühne“** (seit 1.57.87): Die **Vorschau** steht oben über die ganze Breite der Seite, darunter die **Zeile aller Elemente** mit Schloss und Ein/Aus-Schalter, darunter die **Einstellungen des gewählten Elements** – links Schnellposition, Grösse und Deckkraft, rechts seine eigenen Einstellungen. In einem schmalen Fenster steht alles untereinander.

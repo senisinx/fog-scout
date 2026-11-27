@@ -336,8 +336,13 @@ SPECS = {
                              ("combo", "st.more.rec_farming_days"), ("stretch",))))))),
             ("st.tab.links", N_("Verbindungen"), (
                 # 1.57.89 (draft B): one line per connection – its name and its state now
-                ("card", "st.links", (("hint", "st.link.obs"), ("hint", "st.link.discord"), ("hint", "st.link.spotify"),
-                                      ("hint", "st.link.youtube"), ("hint", "st.link.claude"))),
+                # 1.57.90: "Einrichten" at the end of each line leads to that connection's box below
+                ("card", "st.links", (
+                    ("row", (("hint", "st.link.obs"), ("stretch",), ("button", "st.link.obs.go"))),
+                    ("row", (("hint", "st.link.discord"), ("stretch",), ("button", "st.link.discord.go"))),
+                    ("row", (("hint", "st.link.spotify"), ("stretch",), ("button", "st.link.spotify.go"))),
+                    ("row", (("hint", "st.link.youtube"), ("stretch",), ("button", "st.link.youtube.go"))),
+                    ("row", (("hint", "st.link.claude"), ("stretch",), ("button", "st.link.claude.go"))))),
                 # 1.28 (user): the connection to OBS here, the recording settings stay on "Aufnahmen"
                 ("card", "st.more.obs", (("row", (("label", "st.more.rec_port.label"), ("entry", "st.more.rec_port"),
                                                   ("label", "st.more.rec_pw.label"), ("entry", "st.more.rec_pw"),

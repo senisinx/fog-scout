@@ -989,8 +989,9 @@ class RecordingsTab:
                                              res if res != "–" else "") if x and x != "–")
                 self._rec_tiles.append((p, map_shown(r.label) or "–", sub,
                                         "★" if r.keep else f"⚑ {len(r.marks)}" if r.marks else ""))
-        if keep and t.exists(keep[0]):
-            t.selection_set(keep[0])
+        keep = [i for i in keep if t.exists(i)]                 # 1.57.90: every marked row, not only the first
+        if keep:
+            t.selection_set(keep)
         self._rec_tiles_sync()
         self._rec_buttons()
         self._clips_render(folder, recs)
@@ -1082,9 +1083,11 @@ class RecordingsTab:
                 time.strftime("%d.%m.%y %H:%M", time.localtime(c.t)), label, who,
                 _(CLIP_KIND_NAMES.get(c.kind, "Clip")), fmt_duration(c.seconds) if c.seconds else "–",
                 fmt_bytes(c.size), self._rec_status(False, 0, self._yt_mark(self._clip_rel(c), c.yt)), c.file))
-        if keep and t.exists(keep[0]):
-            t.selection_set(keep[0])
-        self._clip_tiles = [(self._clip_path(c), map_shown(c.label) if c.label and c.label not in ("Clip", _("Clip"))
+        keep = [i for i in keep if t.exists(i)]                 # 1.57.90: every marked row, not only the first
+        if keep:
+            t.selection_set(keep)
+        base = obsrec.clips_dir(folder) if folder else None        # once – _clip_path asks the recorder per clip
+        self._clip_tiles = [(os.path.join(base, c.file) if base else None, map_shown(c.label) if c.label and c.label not in ("Clip", _("Clip"))
                              else _(CLIP_KIND_NAMES.get(c.kind, "Clip")),
                              " · ".join(x for x in (time.strftime("%d.%m.%y %H:%M", time.localtime(c.t)),
                                                     fmt_duration(c.seconds) if c.seconds else "") if x),
@@ -1140,17 +1143,15 @@ class RecordingsTab:
     def _rec_tiles_sync(self):
         """1.57.84: the rounds as tiles or as the table (setting rounds_view) – as for the clips, the table stays
         the truth for what is marked."""
-        sel = self.rec_table.selection()
-        chosen = next((p for p, iid in self._rec_tile_iid.items() if sel and iid == sel[0]), None)
+        sel = list(self.rec_table.selection())
+        chosen = [p for p, iid in self._rec_tile_iid.items() if iid in sel]
         self._tiles_show(self.rec_tiles_host, self.rec_table_frame, self._recs_as_tiles(), self._rec_tiles, chosen,
                          self._rec_tile_picked, lambda _p: self._rec_play(), (self._rec_menu_items, self._rec_menu_act))
 
-    def _rec_tile_picked(self, path):
-        iid = self._rec_tile_iid.get(path)
-        if iid is not None and self.rec_table.exists(iid):
-            self.rec_table.selection_set(iid)
-        elif path is None:
-            self.rec_table.selection_set()
+    def _rec_tile_picked(self, paths):
+        """Tiles were chosen (1.57.90: several with Ctrl/Shift): the table marks the same rounds."""
+        iids = [self._rec_tile_iid.get(p) for p in ([paths] if isinstance(paths, str) else paths or ())]
+        self.rec_table.selection_set([i for i in iids if i is not None and self.rec_table.exists(i)])
         self._rec_buttons()
         self._qt_refresh()
 
@@ -1169,18 +1170,17 @@ class RecordingsTab:
     def _clip_tiles_sync(self):
         """Tiles or the table (setting clips_view) – the table stays the truth for what is marked, so every button
         and the right-click menu work the same in both."""
-        c = self._clip_selected()
+        chosen = [self._clip_path(self._clip_rows[f]) for f in self.clip_table.selection() if f in self._clip_rows]
         self._tiles_show(self.clip_tiles_host, self.clip_table_frame, self._clips_as_tiles(), self._clip_tiles,
-                         self._clip_path(c) if c is not None else None, self._clip_tile_picked,
+                         chosen, self._clip_tile_picked,
                          lambda _p: self._clip_play(), (self._clip_menu_items, self._clip_menu_act))
 
-    def _clip_tile_picked(self, path):
-        """A tile was chosen: the table marks the same clip (it is what the buttons read)."""
-        file = next((f for f, c in self._clip_rows.items() if self._clip_path(c) == path), None)
-        if file is not None and self.clip_table.exists(file):
-            self.clip_table.selection_set(file)
-        elif path is None:
-            self.clip_table.selection_set()
+    def _clip_tile_picked(self, paths):
+        """Tiles were chosen (1.57.90: several with Ctrl/Shift, for a montage): the table marks the same clips
+        (it is what the buttons read)."""
+        by_path = {self._clip_path(c): f for f, c in self._clip_rows.items()}
+        files = [by_path.get(p) for p in ([paths] if isinstance(paths, str) else paths or ())]
+        self.clip_table.selection_set([f for f in files if f is not None and self.clip_table.exists(f)])
         self._clip_buttons()
         self._qt_refresh()
 
