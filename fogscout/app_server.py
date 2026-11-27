@@ -213,7 +213,7 @@ class ServerTab:
             box = ui.CHECK_ON if n == len(codes) else ui.CHECK_OFF if n == 0 else ui.CHECK_PART
             t.item(f"g:{g}", text=_(g), tags=("group", box))
             # 1.11.14: after a measurement the fastest region of each group first (unanswered ones last)
-            measured = bool(self.srv_ping) and not self._srv_busy
+            measured = bool(self.srv_ping)
             ms_of = {c: (self.srv_ping.get(c) or {}).get("ms") for c in codes}
             order = sorted(codes, key=lambda c: (ms_of[c] is None, ms_of[c] or 0)) if measured else codes
             for i, c in enumerate(order):
@@ -268,8 +268,7 @@ class ServerTab:
         if self._srv_busy:
             return
         self._srv_busy = True
-        self.srv_ping = {}
-        self._srv_render()
+        self._srv_render()                     # 1.57.100: the last pings stay on display until the new ones are in
         self.srv_status.set(_("Messe Ping zu den Serverregionen …"))
         ui.level(self.srv_status_label, "")
         for b in self.srv_btns:
@@ -303,6 +302,8 @@ class ServerTab:
             return
         self.srv_ping = res
         ok = {c: r["ms"] for c, r in res.items() if r.get("ms") is not None}
+        self.settings.set("srv_ping_seen", {"t": time.time(), "ms": {c: round(float(ms), 1) for c, ms in ok.items()}})
+        self._save_soon()
         self._srv_refresh()
         if ok:
             best = sorted(ok, key=ok.get)[:3]

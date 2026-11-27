@@ -36,6 +36,7 @@ REC_REFRESH_S = 20            # the table re-reads the index this often while th
 PREVIEW_DELAY_MS = 180               # 1.8.11: the clip preview is built once the marking stays
 SHOT_KINDS = [("all", N_("Alle Bilder")), ("taken", N_("Aufgenommen (F12)")), ("edited", N_("Bearbeitet"))]   # 1.12
 CLIP_THUMBS = os.path.join("cache", "clips")   # 1.57.83: the clip tiles' pictures (qt_library.ThumbLoader)
+TILES_PREWARM = 150                  # 1.57.100: newest clips and recordings whose tile pictures are made ahead
 REC_SORTS = (("new", N_("Neueste zuerst")), ("old", N_("Älteste zuerst")), ("map", N_("Map A–Z")),
              ("long", N_("Längste zuerst")), ("big", N_("Grösste zuerst")))      # 1.57.91, recindex.SORTS
 CLIP_VIEWS = (("tiles", N_("Kacheln")), ("list", N_("Liste")))
@@ -1204,6 +1205,44 @@ class RecordingsTab:
         """Quit: the tiles' picture loaders stop – what they still owed is dropped (no ffmpeg after the end)."""
         for g in self.__dict__.get("_tile_galleries", ()):
             g.stop()
+        warm = self.__dict__.get("_tile_warmer")
+        if warm is not None:
+            warm.stop()
+
+    def _tiles_prewarm(self):
+        """1.57.100 (user: "Clips-Vorschaubilder im Hintergrund bereits laden"): the pictures of the newest
+        TILES_PREWARM clips and recordings into the tiles' cache, in a thread of their own – the page then reads them
+        instead of waiting for ffmpeg. Only what is missing is made, nothing while a round runs (the loader waits)."""
+        if self.qt is None or self._quitting:
+            return
+        folder = self.recorder.folder() if self.settings.get("rec_on", False) or self.settings.get("rec_folder") \
+            else None
+        ff = obsrec.ffmpeg_exe()
+        if not folder or not ff:
+            return
+        from types import SimpleNamespace
+        from .qt_gallery import VIDEO_THUMB
+        from .qt_library import ThumbLoader
+        warm = ThumbLoader(os.path.join(self.data_dir, CLIP_THUMBS), ff, self.qt.devicePixelRatioF(),
+                           size=VIDEO_THUMB, warm=True, busy=lambda: bool(self._hist))
+        self._tile_warmer = warm
+
+        def work():
+            try:
+                recs = obsrec.load_index(folder)
+                clips = obsrec.list_clips(obsrec.clips_dir(folder), recs)
+            except (OSError, ValueError):
+                return
+            cdir = obsrec.clips_dir(folder)
+            videos = [c for c in clips if c.kind != "still"]          # a still is a picture: no ffmpeg
+            paths = [os.path.join(cdir, c.file) for c in sorted(videos, key=lambda c: c.t, reverse=True)[:TILES_PREWARM]]
+            for r in sorted(recs, key=lambda r: r.t, reverse=True)[:TILES_PREWARM]:
+                p = obsrec.rel_path(folder, r.file)
+                if p and os.path.isfile(p):
+                    paths.append(p)
+            if paths and not self._quitting:
+                warm.request([SimpleNamespace(path=p, seconds=1.0) for p in paths])
+        threading.Thread(target=work, daemon=True, name="tile-prewarm").start()
 
     def _rec_filters_reset(self, tab: str):
         """"Alle zeigen": every filter of the rounds ("rec") or the clips ("clip") back to its first entry – the

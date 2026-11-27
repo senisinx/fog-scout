@@ -3,6 +3,8 @@ column, the file column hidden until shown, the gallery taking the page's height
 import os
 import sys
 
+import time
+
 import pytest
 from PIL import Image
 
@@ -1317,3 +1319,45 @@ def test_the_tiles_of_videos_get_pictures_in_tile_size(tmp_path):
     finally:
         g.stop()
         g.close()
+
+
+def test_the_tile_pictures_are_made_ahead_into_the_cache_only_once_and_never_beside_a_round(tmp_path, monkeypatch):
+    """1.57.100 (user: "Clips-Vorschaubilder im Hintergrund bereits laden"): a warm loader makes the missing tile
+    pictures into the cache and hands nothing out; a picture already there is not made again; while ``busy()`` (a
+    round) it waits."""
+    pytest.importorskip("PySide6.QtWidgets", exc_type=ImportError)
+    import threading
+    from types import SimpleNamespace
+    from PIL import Image
+    from fogscout import clipedit, qt_library
+    made = []
+    monkeypatch.setattr(clipedit, "probe", lambda path, ff: SimpleNamespace(ok=True, duration=10.0))
+    monkeypatch.setattr(clipedit, "frame_at", lambda path, at, h, info, ff, keyframe=False:
+                        (made.append(path), Image.new("RGB", (640, 360), "red"))[1])
+    monkeypatch.setattr(qt_library, "BUSY_WAIT_S", 0.02)
+    videos = []
+    for i in range(3):
+        p = tmp_path / f"v{i}.mkv"
+        p.write_bytes(b"x" * (10 + i))
+        videos.append(SimpleNamespace(path=str(p), seconds=1.0))
+    busy = threading.Event()
+    busy.set()
+    cache = tmp_path / "cache"
+    warm = qt_library.ThumbLoader(str(cache), "ffmpeg", 1.0, size=(528, 297), warm=True, busy=busy.is_set)
+    warm.request(videos)
+    time.sleep(0.3)
+    assert not made                                       # a round runs: nothing made
+    busy.clear()
+    for _i in range(200):
+        if len(made) == 3 and len(list(cache.glob("*.jpg"))) == 3:
+            break
+        time.sleep(0.02)
+    assert len(made) == 3 and len(list(cache.glob("*.jpg"))) == 3 and warm.take() == []
+    with Image.open(next(cache.glob("*.jpg"))) as im:
+        assert im.size == (528, 297)
+    warm.request(videos)                                  # all there: nothing made again
+    time.sleep(0.3)
+    assert len(made) == 3
+    warm.stop()
+    tile = qt_library.ThumbLoader(str(cache), "ffmpeg", 1.0, size=(528, 297))    # the gallery reads the same file
+    assert tile._file(qt_library._cache_key(videos[0].path)) in {str(p) for p in cache.glob("*.jpg")}

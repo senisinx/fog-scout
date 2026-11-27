@@ -155,6 +155,12 @@ class App(ServerTab, StatsTab, ExportDialog, RecordingsTab, DiscordPresence, Spo
         self._unsure = None              # doubtful detection: {"label", "t", "shown", "fit", "name"}
         self._rejected = None            # (map_id, time) thrown away with "Falsch erkannt"
         self.srv_ping = {}               # region code -> latency result
+        # 1.57.100 (user: "Server auch, damit man nicht warten muss"): the last measured pings (ms only, no address)
+        # show at once – a new measurement replaces them when it is done
+        seen = self.settings.get("srv_ping_seen") or {}
+        if isinstance(seen, dict) and isinstance(seen.get("ms"), dict):
+            self.srv_ping = {c: {"ms": float(ms)} for c, ms in seen["ms"].items()
+                             if isinstance(c, str) and isinstance(ms, (int, float))}
         self.srv_state = {}              # result of regions.current_state()
         self._srv_busy = False
         self._srv_last_ping = 0.0

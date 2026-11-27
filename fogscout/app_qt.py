@@ -25,6 +25,7 @@ log = logging.getLogger("fogscout")
 WARM_AFTER_MS = 300                  # 1.3.4: pages laid out once after the start (1.8.72: built here, so sooner)
 WARM_STEP_MS = 40                    # 1.8.72: pause between building two pages in the warm-up (each 20–70 ms)
 WARM_QUIET_S = 0.4                   # 1.25: no warm-up step this soon after a click or key (_ui_refresh_t)
+WARM_EXTRA_RETRY_MS = 60000         # 1.57.100: a round runs – the background pictures wait this long
 WARM_HIDDEN_MS = 2000                # 1.50.4: a tray start looks this often whether the window was opened yet
 GEOMETRY_DELAY = 1.0          # s after the last move/resize before the size is saved
 QT_HOTKEYS = {"scan": "scan_now", "reject": "reject_map"}
@@ -365,6 +366,37 @@ class QtShell:
         self._warm_hidden = bool(start_in_tray)
         self.root.after(WARM_AFTER_MS, self._qt_warm)
 
+    def _qt_show_maps(self, force=False):
+        """The maps page's tiles, sent again only when something on them changed."""
+        q = self.qt
+        sel = getattr(self, "_qt_preview_sel", None) or self.current
+        rev = (getattr(self, "_qt_maps_rev", 0), id(self.catalog), self.current, sel,
+               self.settings["overlay"].get("map_style", "classic"))
+        if force or rev != getattr(self, "_qt_maps_shown", None):
+            self._qt_maps_shown = rev
+            items = self._qt_map_items(search=False)      # 1.8.72: all maps, the search only as a filter
+            found = {(mid, v) for _r, _l, mid, v in self._qt_map_items()} if self._qt_search_text() else None
+            q.show_maps(items, self.current, self._qt_preview(sel), self._qt_thumbs(items), self._qt_recent(),
+                        self._qt_marks(items), self.settings["overlay"].get("map_style", "classic"), found)
+
+    def _qt_warm_extras(self) -> bool:
+        """1.57.100 (user: "Vorschaubilder im Hintergrund bereits laden, Maps ebenfalls"): after the pages, once
+        each – the maps page's tiles (their pictures then come from the loader's thread, the first visit finds them
+        ready) and the pictures of the recordings' and clips' tiles into their cache. Never while a round runs (the
+        overlay's ticks come first). True = a step was done or put off (call again)."""
+        if self.__dict__.get("_extras_done"):
+            return False
+        if self._hist:
+            self.root.after(WARM_EXTRA_RETRY_MS, self._qt_warm)
+            return True
+        if not self.__dict__.get("_maps_warmed"):
+            self._maps_warmed = True
+            self._qt_show_maps(force=True)
+            return True
+        self._extras_done = True
+        self._tiles_prewarm()
+        return False
+
     def _qt_warm(self):
         """1.3.4: every page filled and laid out once while nothing happens, so the first visit is as quick as the
         next ones (measured: settings 112 → ~11 ms). 1.8.72: the pages are built here too, one per step with a
@@ -391,6 +423,8 @@ class QtShell:
             if queue is None:
                 queue = self._warm_queue = list(self.qt.forms)
             if not queue:
+                if self._qt_warm_extras() and not self._hist:
+                    self.root.after(WARM_STEP_MS, self._qt_warm)
                 return
             page = queue.pop(0)
             form = self.qt.forms.get(page)
@@ -706,15 +740,7 @@ class QtShell:
         else:
             q.show_log_alert(bool(getattr(self, "_log_alert", False)))
         if page == "maps":
-            sel = getattr(self, "_qt_preview_sel", None) or self.current
-            rev = (getattr(self, "_qt_maps_rev", 0), id(self.catalog), self.current, sel,
-                   self.settings["overlay"].get("map_style", "classic"))
-            if force or rev != getattr(self, "_qt_maps_shown", None):
-                self._qt_maps_shown = rev
-                items = self._qt_map_items(search=False)      # 1.8.72: all maps, the search only as a filter
-                found = {(mid, v) for _r, _l, mid, v in self._qt_map_items()} if self._qt_search_text() else None
-                q.show_maps(items, self.current, self._qt_preview(sel), self._qt_thumbs(items), self._qt_recent(),
-                            self._qt_marks(items), self.settings["overlay"].get("map_style", "classic"), found)
+            self._qt_show_maps(force)
         reg = self.__dict__.get("_qt_reg", {})
         keys = self._qt_mod.page_keys(page)
         if page == "settings" and hasattr(self, "link_vars"):

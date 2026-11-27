@@ -394,7 +394,8 @@ def export_settings(data: dict, path: str) -> None:
 LOCAL_KEYS = ("setup_version", "setup_root", "qt_geometry", "official_dir", "layouts", "layout_key",
               "rec_volume", "rec_rel", "rec_folder", "rec_password", "spotify_token", "seen_version",
               "youtube_client_secret", "youtube_token", "youtube_queue", "youtube_quota", "shots_folder",
-              "editor_layout", "claude_key", "palette_recent", "rec_obs_before", "claude_spent", "crash_seen")
+              "editor_layout", "claude_key", "palette_recent", "rec_obs_before", "claude_spent", "crash_seen",
+              "srv_ping_seen")
 
 
 def no_bar_defaults(data: dict) -> dict:

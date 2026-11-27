@@ -9,6 +9,7 @@ import hashlib
 import os
 import queue
 import threading
+import time
 
 from PySide6.QtCore import QAbstractListModel, QMimeData, QModelIndex, QRectF, QSize, Qt, Signal
 from PySide6.QtGui import QColor, QFont, QImage, QPainter, QPainterPath, QPixmap
@@ -24,6 +25,7 @@ ROW_H = 54
 THUMB_W, THUMB_H = 72, 40
 THUMB_AT = 0.3                      # the picture from this share into the video (not the black first frame)
 THUMB_MAX_S = 20.0                  # … but at most this many seconds in
+BUSY_WAIT_S = 5.0                   # 1.57.100: a loader with busy() looks again this often while a round runs
 CACHE_DIR = os.path.join("cache", "clipthumbs")
 ITEM_ROLE = Qt.UserRole + 1
 _MEM = {}                           # (path, size, mtime) -> PIL image, for the editors of one program run
@@ -42,7 +44,8 @@ class ThumbLoader:
     """Pictures of videos in a thread: ``request(items)`` sets what to do (newest first), ``take()`` in the window
     thread gives (path, PIL image or None, seconds) – ``seconds`` probed for items that did not know their length."""
 
-    def __init__(self, cache_dir: str | None, ffmpeg: str | None, ratio: float = 1.0, size=None):
+    def __init__(self, cache_dir: str | None, ffmpeg: str | None, ratio: float = 1.0, size=None, warm=False,
+                 busy=None):
         """``size``: (width, height) in logical px the pictures are made for – the library's rows by default; the
         tiles of the recordings page ask for their own (1.57.97: they showed these 144 × 80 px pictures stretched
         to 390 px – blurred)."""
@@ -50,6 +53,9 @@ class ThumbLoader:
         w, h = size or (THUMB_W * 2, THUMB_H * 2)
         self.box = (int(w * ratio), int(h * ratio)) if size else (int(THUMB_W * ratio) * 2, int(THUMB_H * ratio) * 2)
         self._small = size is None           # only the small pictures are kept in memory for every loader (_MEM)
+        # 1.57.100 (user: "Clips-Vorschaubilder im Hintergrund bereits laden"): ``warm`` = only fill the cache –
+        # a picture already there is not read, nothing is handed out; ``busy()`` true = wait (a round runs)
+        self._warm, self._busy = bool(warm), busy
         self._done: queue.Queue = queue.Queue()
         self._lock = threading.Condition()
         self._todo = []
@@ -128,11 +134,28 @@ class ThumbLoader:
                         return
                 continue
             path, seconds = job
+            while self._busy is not None and not self._stop and self._busy():
+                time.sleep(BUSY_WAIT_S)                    # never ffmpeg beside a running round
             if self._stop:                                 # 1.57.84: stopped meanwhile – no ffmpeg for this one
                 with self._lock:
                     self._thread = None
                 return
             key = _cache_key(path)
+            if self._warm:
+                target = self._file(key)
+                if not target or os.path.isfile(target):
+                    continue
+                try:
+                    info = clipedit.probe(path, self.ffmpeg)
+                    if info.ok:
+                        img = clipedit.frame_at(path, min(THUMB_MAX_S, info.duration * THUMB_AT), self.box[1], info,
+                                                self.ffmpeg, keyframe=True)
+                        if img is not None:
+                            img.thumbnail(self.box, Image.LANCZOS)
+                            self._store(img, target)
+                except Exception:                          # one broken file never ends the thread
+                    pass
+                continue
             with _MEM_LOCK:
                 img = _MEM.get(key) if self._small else None       # a small picture is no answer for a tile
             if img is None:

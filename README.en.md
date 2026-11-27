@@ -189,6 +189,8 @@ Since 1.8.8 choice boxes and tick boxes have their own style like buttons and fi
 
 **Statistics on one page, a click filters everything** (since 1.57.99): the statistics have no tab rows any more. The first page shows key figures, trend, maps, **killers**, times of play and the **rounds of this selection**. A click on a map or killer bar filters by it; every filter set stands at the top as a **chip with ×**, a click on it removes it again. The other analyses (records, bloodpoints, opponents, waiting time …) open via “Details” or **“More analyses”** and lead back with **“‹ Overview”**.
 
+**Loading ahead in the background** (since 1.57.100): shortly after the start Fog Scout builds the **map tiles** and makes the **preview pictures of the newest clips and recordings** in quiet moments – the first visit of Maps and Recordings finds them ready. During a round this waits. The **Server** tab shows the last measured pings at once and replaces them as soon as the new measurement is done (only the milliseconds per region are stored).
+
 **Switches in the settings** (since 1.57.88): the tick boxes of the settings are on/off switches – as on the overview and in the list of overlay elements.
 
 **Overlay page as a "stage"** (since 1.57.87): the **preview** is on top across the page, below it the **row of all elements** with lock and on/off switch, below that the **settings of the element picked** – quick place, size and opacity on the left, its own settings on the right. In a narrow window everything is below each other.
