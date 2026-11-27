@@ -6350,4 +6350,20 @@ T = {
         'やや高温',
     'Öffnet die Seite Aufnahmen mit deinen Runden, Clips und Screenshots.':
         'ラウンド、クリップ、スクリーンショットのある「録画」ページを開きます。',
+    'Details':
+        '詳細',
+    'Verlauf – Runden pro Stunde':
+        '推移 – 1時間あたりのラウンド数',
+    'Verlauf – Runden pro Tag':
+        '推移 – 1日あたりのラウンド数',
+    'Verlauf – Runden pro Woche':
+        '推移 – 1週間あたりのラウンド数',
+    'Wann du spielst – Runden nach Wochentag und Uhrzeit':
+        'プレイする時間帯 – 曜日と時刻ごとのラウンド数',
+    '{row} · {column}: {n} Runden':
+        '{row} · {column}: {n} ラウンド',
+    '{when}: {n} Runden':
+        '{when}: {n} ラウンド',
+    'Öffnet die ausführliche Ansicht dazu.':
+        '詳しい表示を開きます。',
 }

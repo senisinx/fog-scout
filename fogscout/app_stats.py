@@ -997,7 +997,7 @@ class StatsTab:
         else:
             self.stats_farm_row.pack_forget()
         self._stats_farm_rows(found)
-        dash = dashboard.build(rounds, pairs, lambda k: killer_label(k))
+        dash = dashboard.build(rounds, pairs, lambda k: killer_label(k), TREND_UNIT.get(c.period, "week"))
         if not all_rounds:
             dash.empty = _("Noch keine Runden gespeichert.")
         self.stats_dash.data = dash
@@ -2087,6 +2087,9 @@ class StatsTab:
 
     def _dash_clicked(self, value):
         """1.2.16: a click on the dashboard filters – a map bar sets the map, a heatmap cell map and killer."""
+        if value and value[0] == "open":               # 1.57.77: "Details" of a block – the part with the full view
+            self._stats_select(_(value[1]))
+            return
         if not value or value[0] not in ("map", "cell"):
             return
         labels = dict(self._stats_maps_f)

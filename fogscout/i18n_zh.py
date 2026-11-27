@@ -6350,4 +6350,20 @@ T = {
         '偏热',
     'Öffnet die Seite Aufnahmen mit deinen Runden, Clips und Screenshots.':
         '打开“录像”页面，查看你的对局、剪辑和截图。',
+    'Details':
+        '详情',
+    'Verlauf – Runden pro Stunde':
+        '趋势 – 每小时对局数',
+    'Verlauf – Runden pro Tag':
+        '趋势 – 每天对局数',
+    'Verlauf – Runden pro Woche':
+        '趋势 – 每周对局数',
+    'Wann du spielst – Runden nach Wochentag und Uhrzeit':
+        '你何时游玩 – 按星期和时段的对局数',
+    '{row} · {column}: {n} Runden':
+        '{row} · {column}：{n} 局',
+    '{when}: {n} Runden':
+        '{when}：{n} 局',
+    'Öffnet die ausführliche Ansicht dazu.':
+        '打开对应的详细视图。',
 }

@@ -6350,4 +6350,20 @@ T = {
         'tiepido',
     'Öffnet die Seite Aufnahmen mit deinen Runden, Clips und Screenshots.':
         'Apre la pagina Registrazioni con i tuoi round, clip e screenshot.',
+    'Details':
+        'Dettagli',
+    'Verlauf – Runden pro Stunde':
+        "Andamento – round all'ora",
+    'Verlauf – Runden pro Tag':
+        'Andamento – round al giorno',
+    'Verlauf – Runden pro Woche':
+        'Andamento – round a settimana',
+    'Wann du spielst – Runden nach Wochentag und Uhrzeit':
+        'Quando giochi – round per giorno della settimana e ora',
+    '{row} · {column}: {n} Runden':
+        '{row} · {column}: {n} round',
+    '{when}: {n} Runden':
+        '{when}: {n} round',
+    'Öffnet die ausführliche Ansicht dazu.':
+        'Apre la vista dettagliata.',
 }

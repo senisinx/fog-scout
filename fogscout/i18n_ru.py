@@ -6350,4 +6350,20 @@ T = {
         'тепло',
     'Öffnet die Seite Aufnahmen mit deinen Runden, Clips und Screenshots.':
         'Открывает страницу «Записи» с твоими раундами, клипами и снимками.',
+    'Details':
+        'Подробнее',
+    'Verlauf – Runden pro Stunde':
+        'Динамика – раунды в час',
+    'Verlauf – Runden pro Tag':
+        'Динамика – раунды в день',
+    'Verlauf – Runden pro Woche':
+        'Динамика – раунды в неделю',
+    'Wann du spielst – Runden nach Wochentag und Uhrzeit':
+        'Когда ты играешь – раунды по дням недели и времени',
+    '{row} · {column}: {n} Runden':
+        '{row} · {column}: {n} раундов',
+    '{when}: {n} Runden':
+        '{when}: {n} раундов',
+    'Öffnet die ausführliche Ansicht dazu.':
+        'Открывает подробный вид.',
 }
