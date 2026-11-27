@@ -6400,4 +6400,14 @@ T = {
         'Отдельный вид: тёмно-зелёные поверхности, текст цвета бумаги, янтарный акцент. Цветной квадрат выше возвращает обычный вид с этим цветом.',
     'Stand der Verbindungen':
         'Состояние подключений',
+    'Einrichten':
+        'Настроить',
+    'Springt zum Kasten dieser Verbindung weiter unten – dort wird sie ein- oder ausgeschaltet und eingerichtet.':
+        'Переходит к блоку этого подключения ниже – там оно включается, выключается и настраивается.',
+    'Map A–Z':
+        'Карта А–Я',
+    'Grösste zuerst':
+        'Сначала самые большие',
+    'Sortierung':
+        'Сортировка',
 }

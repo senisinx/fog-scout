@@ -357,8 +357,8 @@ def prestige_series(matches, character: str, unit: str) -> list:
     last = {}
     for m in matches:
         if _graded(m) and m.character == character:
-            b = official.bucket_start(m.t, unit)
-            if b not in last or m.t >= last[b].t:
+            b = official.bucket_of(m.t, unit)
+            if b is not None and (b not in last or m.t >= last[b].t):
                 last[b] = m
     if not last:
         return []

@@ -151,6 +151,8 @@ DEFAULTS = {
     "card_order": {},
     "tab_order": {},                    # 1.7.6: {page: {tabs id: [tab ids]}} – the user's order of the tab rows
     "nav_order": [],                    # 1.7.6: page keys in the user's order of the navigation
+    "rec_sort": "new",                  # 1.57.91: order of recordings › Runden (recindex.SORTS)
+    "clips_sort": "new",                # … and of › Clips
     "rounds_view": "tiles",             # 1.57.84: recordings › Runden as tiles too
     "clips_view": "tiles",              # 1.57.83: recordings › Clips as tiles with a picture, or "list" (the table)
     "nav_collapsed": False,             # 1.57.80: the navigation folded to its icons by the user (the arrow at its foot)

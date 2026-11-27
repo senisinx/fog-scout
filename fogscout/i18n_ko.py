@@ -6400,4 +6400,14 @@ T = {
         '독자적인 모습: 짙은 녹색 면, 종이색 글자, 호박색 강조. 위의 색상 칸을 고르면 그 색의 일반 모습으로 돌아갑니다.',
     'Stand der Verbindungen':
         '연결 상태',
+    'Einrichten':
+        '설정',
+    'Springt zum Kasten dieser Verbindung weiter unten – dort wird sie ein- oder ausgeschaltet und eingerichtet.':
+        '아래에 있는 이 연결의 상자로 이동합니다. 켜고 끄기와 설정은 거기서 합니다.',
+    'Map A–Z':
+        '맵 A–Z',
+    'Grösste zuerst':
+        '큰 것부터',
+    'Sortierung':
+        '정렬',
 }

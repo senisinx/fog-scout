@@ -36,6 +36,8 @@ REC_REFRESH_S = 20            # the table re-reads the index this often while th
 PREVIEW_DELAY_MS = 180               # 1.8.11: the clip preview is built once the marking stays
 SHOT_KINDS = [("all", N_("Alle Bilder")), ("taken", N_("Aufgenommen (F12)")), ("edited", N_("Bearbeitet"))]   # 1.12
 CLIP_THUMBS = os.path.join("cache", "clips")   # 1.57.83: the clip tiles' pictures (qt_library.ThumbLoader)
+REC_SORTS = (("new", N_("Neueste zuerst")), ("old", N_("Älteste zuerst")), ("map", N_("Map A–Z")),
+             ("long", N_("Längste zuerst")), ("big", N_("Grösste zuerst")))      # 1.57.91, recindex.SORTS
 CLIP_VIEWS = (("tiles", N_("Kacheln")), ("list", N_("Liste")))
 SHOT_THUMBS = os.path.join("cache", "shots")   # 1.12.2: the gallery's thumbnails (thumbs.py), gitignored
 SECURE_POLL_MS = 100                 # 1.18.1: quit phase 1 looks this often whether the editors' states are safe
@@ -261,6 +263,14 @@ class RecordingsTab:
         cb._dbdms_name = _("Rolle")
         cb.pack(side="left", padx=(8, 0))
         cb.bind("<<ComboboxSelected>>", lambda e: self._rec_render(force=True))
+        # 1.57.91 (user: "Sortierfilter etc … damit man nicht limitiert ist"): one killer, as on the clips
+        self._rec_killers = [(None, _("Alle Killer"))]
+        self.rec_killer_var = ui.StringVar(value=self._rec_killers[0][1])
+        self.rec_killer_cb = ui.Combobox(fr, textvariable=self.rec_killer_var, state="readonly", width=16,
+                                         values=[lbl for _k, lbl in self._rec_killers])
+        self.rec_killer_cb._dbdms_name = _("Killer")
+        self.rec_killer_cb.pack(side="left", padx=(8, 0))
+        self.rec_killer_cb.bind("<<ComboboxSelected>>", lambda e: self._rec_render(force=True))
         self._farming_box(fr).pack(side="left", padx=(8, 0))                                    # 1.11.5
         self._rec_onlys = [(k, _(label)) for k, label in REC_ONLY]
         self.rec_only_var = ui.StringVar(value=self._rec_onlys[0][1])
@@ -278,6 +288,14 @@ class RecordingsTab:
         cb._dbdms_name = _("Ansicht")
         cb.pack(side="right")
         cb.bind("<<ComboboxSelected>>", lambda e: self._rec_view_changed())
+        self._rec_sorts = [(k, _(label)) for k, label in REC_SORTS]          # 1.57.91: the order, tiles and table
+        self.rec_sort_var = ui.StringVar(value=dict(self._rec_sorts).get(self.settings.get("rec_sort", "new"),
+                                                                           self._rec_sorts[0][1]))
+        cb = ui.Combobox(fr, textvariable=self.rec_sort_var, values=[lbl for _k, lbl in self._rec_sorts],
+                         state="readonly", width=15)
+        cb._dbdms_name = _("Sortierung")
+        cb.pack(side="right", padx=(0, 8))
+        cb.bind("<<ComboboxSelected>>", lambda e: self._sort_changed("rec_sort", self.rec_sort_var))
 
         row = ui.Frame(f)
         row.pack(fill="x", pady=(0, 6))          # above the table, like the server tab: seen without scrolling
@@ -393,6 +411,13 @@ class RecordingsTab:
         self.clip_killer_cb._dbdms_name = _("Killer")
         self.clip_killer_cb.pack(side="left", padx=(8, 0))
         self.clip_killer_cb.bind("<<ComboboxSelected>>", lambda e: self._clips_render())
+        self._clip_maps = [(None, _("Alle Maps"))]                           # 1.57.91: one map, as on the rounds
+        self.clip_map_var = ui.StringVar(value=self._clip_maps[0][1])
+        self.clip_map_cb = ui.Combobox(fr, textvariable=self.clip_map_var, state="readonly", width=20,
+                                       values=[lbl for _m, lbl in self._clip_maps])
+        self.clip_map_cb._dbdms_name = _("Map")
+        self.clip_map_cb.pack(side="left", padx=(8, 0))
+        self.clip_map_cb.bind("<<ComboboxSelected>>", lambda e: self._clips_render())
         self._clip_kinds = [(k, _(label)) for k, label in CLIP_KINDS]
         self.clip_kind_var = ui.StringVar(value=self._clip_kinds[0][1])
         cb = ui.Combobox(fr, textvariable=self.clip_kind_var, values=[lbl for _k, lbl in self._clip_kinds],
@@ -409,6 +434,13 @@ class RecordingsTab:
         cb._dbdms_name = _("Ansicht")
         cb.pack(side="right")
         cb.bind("<<ComboboxSelected>>", lambda e: self._clip_view_changed())
+        self.clip_sort_var = ui.StringVar(value=dict(self._rec_sorts).get(self.settings.get("clips_sort", "new"),
+                                                                            self._rec_sorts[0][1]))
+        cb = ui.Combobox(fr, textvariable=self.clip_sort_var, values=[lbl for _k, lbl in self._rec_sorts],
+                         state="readonly", width=15)
+        cb._dbdms_name = _("Sortierung")
+        cb.pack(side="right", padx=(0, 8))
+        cb.bind("<<ComboboxSelected>>", lambda e: self._sort_changed("clips_sort", self.clip_sort_var))
 
         row = ui.Frame(f)
         row.pack(fill="x", pady=(0, 6))
@@ -956,10 +988,22 @@ class RecordingsTab:
             self.rec_map_cb.configure(values=[lbl for _m, lbl in maps])
             if self.rec_map_var.get() not in [lbl for _m, lbl in maps]:
                 self.rec_map_var.set(maps[0][1])
+        killers = sorted({self._killer_of(r.killer) for r in recs if r.role == "killer" and r.killer})   # 1.57.91
+        opts = [(None, _("Alle Killer"))] + [(k, killer_label(k)) for k in killers]
+        if opts != self._rec_killers:
+            self._rec_killers = opts
+            self.rec_killer_cb.configure(values=[lbl for _k, lbl in opts])
+            if self.rec_killer_var.get() not in [lbl for _k, lbl in opts]:
+                self.rec_killer_var.set(opts[0][1])
         period, map_label, role, only = self._rec_filters()
         since = history.period_start(period, time.time()) if period != "all" else None
         shown = obsrec.select_recordings(recs, since=since, map_label=map_label, role=role, only=only,
                                          hide_farming=self._farming_hidden())
+        killer = next((k for k, lbl in self._rec_killers if lbl == self.rec_killer_var.get()), None)
+        if killer:
+            shown = [r for r in shown if r.role == "killer" and r.killer and self._killer_of(r.killer) == killer]
+        shown = obsrec.sort_items(shown, self._sort_key(self.rec_sort_var), name=lambda r: map_shown(r.label) or "",
+                                  length=lambda r: max(0.0, r.end - r.t))
         j = self._joined()
         by_t = {r.t: r for r in j.rounds}
         t = self.rec_table
@@ -989,8 +1033,9 @@ class RecordingsTab:
                                              res if res != "–" else "") if x and x != "–")
                 self._rec_tiles.append((p, map_shown(r.label) or "–", sub,
                                         "★" if r.keep else f"⚑ {len(r.marks)}" if r.marks else ""))
-        if keep and t.exists(keep[0]):
-            t.selection_set(keep[0])
+        keep = [i for i in keep if t.exists(i)]                 # 1.57.90: every marked row, not only the first
+        if keep:
+            t.selection_set(keep)
         self._rec_tiles_sync()
         self._rec_buttons()
         self._clips_render(folder, recs)
@@ -1057,6 +1102,19 @@ class RecordingsTab:
             c.killer = self._killer_of(c.killer) if c.killer else ""
         shown = obsrec.select_clips(clips, since=since, role=None if role == "all" else role, killer=killer,
                                     kind=None if kind == "all" else kind, hide_farming=self._farming_hidden())
+        named = sorted({c.label for c in clips if c.label and c.label not in ("Clip", _("Clip"))})   # 1.57.91
+        maps = [(None, _("Alle Maps"))] + [(lbl, map_shown(lbl)) for lbl in named]
+        if maps != self._clip_maps:
+            self._clip_maps = maps
+            self.clip_map_cb.configure(values=[lbl for _m, lbl in maps])
+            if self.clip_map_var.get() not in [lbl for _m, lbl in maps]:
+                self.clip_map_var.set(maps[0][1])
+        one_map = next((m for m, lbl in self._clip_maps if lbl == self.clip_map_var.get()), None)
+        if one_map:
+            shown = [c for c in shown if c.label == one_map]
+        shown = obsrec.sort_items(shown, self._sort_key(self.clip_sort_var),
+                                  name=lambda c: map_shown(c.label) if c.label and c.label not in ("Clip", _("Clip")) else "",
+                                  length=lambda c: c.seconds or 0.0)
         if not folder:
             self.clip_summary_var.set(_("Kein Aufnahmeordner – die Clips liegen in seinem Ordner „Clips“."))
         elif not clips:
@@ -1082,9 +1140,11 @@ class RecordingsTab:
                 time.strftime("%d.%m.%y %H:%M", time.localtime(c.t)), label, who,
                 _(CLIP_KIND_NAMES.get(c.kind, "Clip")), fmt_duration(c.seconds) if c.seconds else "–",
                 fmt_bytes(c.size), self._rec_status(False, 0, self._yt_mark(self._clip_rel(c), c.yt)), c.file))
-        if keep and t.exists(keep[0]):
-            t.selection_set(keep[0])
-        self._clip_tiles = [(self._clip_path(c), map_shown(c.label) if c.label and c.label not in ("Clip", _("Clip"))
+        keep = [i for i in keep if t.exists(i)]                 # 1.57.90: every marked row, not only the first
+        if keep:
+            t.selection_set(keep)
+        base = obsrec.clips_dir(folder) if folder else None        # once – _clip_path asks the recorder per clip
+        self._clip_tiles = [(os.path.join(base, c.file) if base else None, map_shown(c.label) if c.label and c.label not in ("Clip", _("Clip"))
                              else _(CLIP_KIND_NAMES.get(c.kind, "Clip")),
                              " · ".join(x for x in (time.strftime("%d.%m.%y %H:%M", time.localtime(c.t)),
                                                     fmt_duration(c.seconds) if c.seconds else "") if x),
@@ -1125,6 +1185,17 @@ class RecordingsTab:
         for g in self.__dict__.get("_tile_galleries", ()):
             g.stop()
 
+    def _sort_key(self, var) -> str:
+        return next((k for k, lbl in self._rec_sorts if lbl == var.get()), "new")
+
+    def _sort_changed(self, setting: str, var):
+        """1.57.91: the order of the rounds or the clips was chosen – kept (rec_sort / clips_sort), both views."""
+        key = self._sort_key(var)
+        if key != self.settings.get(setting, "new"):
+            self.settings.set(setting, key)
+            self._save_soon()
+        self._rec_render(force=True)
+
     def _recs_as_tiles(self) -> bool:
         return self.settings.get("rounds_view", "tiles") == "tiles"
 
@@ -1140,17 +1211,15 @@ class RecordingsTab:
     def _rec_tiles_sync(self):
         """1.57.84: the rounds as tiles or as the table (setting rounds_view) – as for the clips, the table stays
         the truth for what is marked."""
-        sel = self.rec_table.selection()
-        chosen = next((p for p, iid in self._rec_tile_iid.items() if sel and iid == sel[0]), None)
+        sel = list(self.rec_table.selection())
+        chosen = [p for p, iid in self._rec_tile_iid.items() if iid in sel]
         self._tiles_show(self.rec_tiles_host, self.rec_table_frame, self._recs_as_tiles(), self._rec_tiles, chosen,
                          self._rec_tile_picked, lambda _p: self._rec_play(), (self._rec_menu_items, self._rec_menu_act))
 
-    def _rec_tile_picked(self, path):
-        iid = self._rec_tile_iid.get(path)
-        if iid is not None and self.rec_table.exists(iid):
-            self.rec_table.selection_set(iid)
-        elif path is None:
-            self.rec_table.selection_set()
+    def _rec_tile_picked(self, paths):
+        """Tiles were chosen (1.57.90: several with Ctrl/Shift): the table marks the same rounds."""
+        iids = [self._rec_tile_iid.get(p) for p in ([paths] if isinstance(paths, str) else paths or ())]
+        self.rec_table.selection_set([i for i in iids if i is not None and self.rec_table.exists(i)])
         self._rec_buttons()
         self._qt_refresh()
 
@@ -1169,18 +1238,17 @@ class RecordingsTab:
     def _clip_tiles_sync(self):
         """Tiles or the table (setting clips_view) – the table stays the truth for what is marked, so every button
         and the right-click menu work the same in both."""
-        c = self._clip_selected()
+        chosen = [self._clip_path(self._clip_rows[f]) for f in self.clip_table.selection() if f in self._clip_rows]
         self._tiles_show(self.clip_tiles_host, self.clip_table_frame, self._clips_as_tiles(), self._clip_tiles,
-                         self._clip_path(c) if c is not None else None, self._clip_tile_picked,
+                         chosen, self._clip_tile_picked,
                          lambda _p: self._clip_play(), (self._clip_menu_items, self._clip_menu_act))
 
-    def _clip_tile_picked(self, path):
-        """A tile was chosen: the table marks the same clip (it is what the buttons read)."""
-        file = next((f for f, c in self._clip_rows.items() if self._clip_path(c) == path), None)
-        if file is not None and self.clip_table.exists(file):
-            self.clip_table.selection_set(file)
-        elif path is None:
-            self.clip_table.selection_set()
+    def _clip_tile_picked(self, paths):
+        """Tiles were chosen (1.57.90: several with Ctrl/Shift, for a montage): the table marks the same clips
+        (it is what the buttons read)."""
+        by_path = {self._clip_path(c): f for f, c in self._clip_rows.items()}
+        files = [by_path.get(p) for p in ([paths] if isinstance(paths, str) else paths or ())]
+        self.clip_table.selection_set([f for f in files if f is not None and self.clip_table.exists(f)])
         self._clip_buttons()
         self._qt_refresh()
 

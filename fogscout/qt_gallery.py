@@ -8,7 +8,7 @@ below ``cache/shots``), the ones on display first; the window thread only turns 
 """
 from __future__ import annotations
 
-from PySide6.QtCore import QRect, QRectF, QSize, Qt, QTimer
+from PySide6.QtCore import QItemSelectionModel, QRect, QRectF, QSize, Qt, QTimer
 from PySide6.QtGui import QColor, QFont, QImage, QPainter, QPainterPath, QPen, QPixmap
 from PySide6.QtWidgets import QAbstractItemView, QListView, QListWidget, QListWidgetItem, QStyle, QStyledItemDelegate
 
@@ -173,22 +173,34 @@ class ShotGallery(QListWidget):
         self.select_path(selected)
         self._ask_soon.start()
 
-    def select_path(self, path: str | None):
+    def select_path(self, path):
+        """Mark the tile of ``path`` – or the tiles of a list of paths (ClipGallery: several at once), the first
+        of them the current one."""
+        want = [path] if isinstance(path, str) else list(path or ())
         self.blockSignals(True)
         try:
             self.clearSelection()
+            current = None
             for i in range(self.count()):
                 it = self.item(i)
-                if path and it.data(PATH_ROLE) == path:
+                if it.data(PATH_ROLE) in want:
                     it.setSelected(True)
-                    self.setCurrentItem(it)
-                    break
+                    if current is None or it.data(PATH_ROLE) == want[0]:
+                        current = it
+                    if len(want) == 1:
+                        break
+            if current is not None:
+                self.setCurrentItem(current, QItemSelectionModel.NoUpdate)
         finally:
             self.blockSignals(False)
 
     def selected_path(self) -> str | None:
         items = self.selectedItems()
         return items[0].data(PATH_ROLE) if items else None
+
+    def selected_paths(self) -> list:
+        """The marked tiles' paths, top to bottom."""
+        return [self.item(i).data(PATH_ROLE) for i in range(self.count()) if self.item(i).isSelected()]
 
     def paths(self) -> list:
         return [self.item(i).data(PATH_ROLE) for i in range(self.count())]
@@ -299,6 +311,11 @@ class ClipGallery(ShotGallery):
         self._retry.setInterval(self.RETRY_MS)
         self._retry.timeout.connect(self._ask_visible)
         self.destroyed.connect(lambda *_a, v=self._video: v.stop())
+        self.setSelectionMode(QAbstractItemView.ExtendedSelection)     # 1.57.90: Ctrl/Shift mark several (montage)
+
+    def _picked(self):
+        if self.on_pick:
+            self.on_pick(self.selected_paths())                # a list, as the tables hold several rows
 
     def _ask_visible(self):
         from types import SimpleNamespace

@@ -892,11 +892,12 @@ def sys_trend(rounds, unit: str) -> list:
     """GPU temperature over time: [(bucket start, [round averages], [round maxima], [hot spot maxima])] per
     hour / day / week, empty buckets included (honest time axis), the newest MAX_BUCKETS. A slow rise over
     weeks points at dust, thermal paste or a fan."""
-    from .official import bucket_span, bucket_start
+    from .official import bucket_of, bucket_span
     groups = {}
     for r in rounds:
-        if r.sys and "gpu_temp" in r.sys:
-            g = groups.setdefault(bucket_start(r.t, unit), ([], [], []))
+        b = bucket_of(r.t, unit) if r.sys and "gpu_temp" in r.sys else None
+        if b is not None:
+            g = groups.setdefault(b, ([], [], []))
             g[0].append(r.sys["gpu_temp"])
             g[1].append(r.sys.get("gpu_temp_max", r.sys["gpu_temp"]))
             if "gpu_hot_max" in r.sys:

@@ -4878,4 +4878,14 @@ EN = {
         'A look of its own: dark green surfaces, paper-coloured text, amber accent. A colour square above brings back the normal look with that colour.',
     'Stand der Verbindungen':
         'State of the connections',
+    'Einrichten':
+        'Set up',
+    'Springt zum Kasten dieser Verbindung weiter unten – dort wird sie ein- oder ausgeschaltet und eingerichtet.':
+        "Jumps to this connection's box further down – that is where it is switched on or off and set up.",
+    'Map A–Z':
+        'Map A–Z',
+    'Grösste zuerst':
+        'Largest first',
+    'Sortierung':
+        'Order',
 }

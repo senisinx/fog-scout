@@ -12,6 +12,8 @@ from .i18n import _, source
 
 # German label -> German info text (buttons/checkboxes with a fixed label); both translated via i18n
 TIPS = {
+    "Einrichten": "Springt zum Kasten dieser Verbindung weiter unten – dort wird sie ein- oder ausgeschaltet "
+                  "und eingerichtet.",                                                              # 1.57.90
     # 1.12: screenshots
     'Bild bearbeiten …':
         'Öffnet das markierte Bild im Bild-Editor: zuschneiden, drehen, Pfeile und Text, zensieren, Farbe – gespeichert wird eine Kopie, das Original bleibt.',

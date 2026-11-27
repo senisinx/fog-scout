@@ -151,8 +151,9 @@ def bp_trend(pairs, unit: str) -> list:
     with bloodpoints, empty buckets included, the newest MAX_BUCKETS (like official.trend)."""
     groups = {}
     for r, m in pairs:
-        if m.bp > 0:
-            groups.setdefault(official.bucket_start(r.t, unit), []).append(m.bp)
+        b = official.bucket_of(r.t, unit) if m.bp > 0 else None
+        if b is not None:
+            groups.setdefault(b, []).append(m.bp)
     if not groups:
         return []
     return [(b, groups.get(b, [])) for b in official.bucket_span(min(groups), max(groups), unit)]     # CR-009
@@ -166,8 +167,8 @@ def balance_trend(rounds, unit: str) -> list:
     for r in rounds:
         if r.balance is None:
             continue
-        b = official.bucket_start(r.t, unit)
-        if b not in last or r.t >= last[b][0]:
+        b = official.bucket_of(r.t, unit)
+        if b is not None and (b not in last or r.t >= last[b][0]):
             last[b] = (r.t, r.balance)
     if not last:
         return []
@@ -274,9 +275,8 @@ def play_trend(rounds, unit: str) -> list:
     import time
     counts = {}
     for r in rounds:
-        try:
-            b = official.bucket_start(r.t, unit)
-        except (OSError, OverflowError, ValueError):   # Windows: no local time for a stamp at the start of 1970
+        b = official.bucket_of(r.t, unit)          # None on Windows for a stamp at the start of 1970
+        if b is None:
             continue
         counts[b] = counts.get(b, 0) + 1
     if not counts:
@@ -472,7 +472,9 @@ def wait_trend(rounds, unit: str) -> list:
     for r in rounds:
         if r.wait is None or r.role not in ("killer", "survivor") or not history.normal(r):
             continue
-        groups.setdefault(official.bucket_start(r.t, unit), {}).setdefault(r.role, []).append(r.wait)
+        b = official.bucket_of(r.t, unit)
+        if b is not None:
+            groups.setdefault(b, {}).setdefault(r.role, []).append(r.wait)
     if not groups:
         return []
     return [(b, {role: (history.median(w), len(w)) for role, w in groups.get(b, {}).items()})   # CR-009

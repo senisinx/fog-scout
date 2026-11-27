@@ -6400,4 +6400,14 @@ T = {
         "Un aspetto a sé: superfici verde scuro, testo color carta, accento ambra. Un riquadro di colore qui sopra riporta l'aspetto normale con quel colore.",
     'Stand der Verbindungen':
         'Stato dei collegamenti',
+    'Einrichten':
+        'Configura',
+    'Springt zum Kasten dieser Verbindung weiter unten – dort wird sie ein- oder ausgeschaltet und eingerichtet.':
+        'Passa al riquadro di questo collegamento più in basso: lì lo si attiva, disattiva e configura.',
+    'Map A–Z':
+        'Mappa A–Z',
+    'Grösste zuerst':
+        'Prima i più grandi',
+    'Sortierung':
+        'Ordinamento',
 }

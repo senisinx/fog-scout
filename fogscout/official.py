@@ -742,6 +742,16 @@ def bucket_start(t: float, unit: str) -> float:
     return d.timestamp()
 
 
+def bucket_of(t: float, unit: str):
+    """bucket_start, or None for a time the local clock cannot place: Windows has no local time for a stamp at the
+    start of 1970 (fromtimestamp/timestamp raise OSError) – such a round is left out of a trend instead of
+    taking the whole page down."""
+    try:
+        return bucket_start(t, unit)
+    except (OSError, OverflowError, ValueError):
+        return None
+
+
 def _next_bucket(start: float, unit: str) -> float:
     import datetime
     if unit == "hour":      # 1.46.4: an hour is 3600 s – the local clock skipped the repeated hour of a DST end
@@ -758,8 +768,8 @@ def bucket_span(first: float, last: float, unit: str) -> list:
     one of today over a million steps (the window froze) before all but the last 30 were thrown away."""
     out = [last]
     while len(out) < MAX_BUCKETS:
-        b = bucket_start(out[-1] - 1, unit)
-        if b < first or b >= out[-1]:
+        b = bucket_of(out[-1] - 1, unit)
+        if b is None or b < first or b >= out[-1]:
             break
         out.append(b)
     return out[::-1]
@@ -774,7 +784,10 @@ def trend(pairs, unit: str) -> list:
         k, e = kills(m), escaped(m)
         if k is None and e is None:
             continue
-        g = groups.setdefault(bucket_start(r.t, unit), ([], []))
+        b = bucket_of(r.t, unit)
+        if b is None:
+            continue
+        g = groups.setdefault(b, ([], []))
         if k is not None:
             g[0].append(k)
         if e is not None:

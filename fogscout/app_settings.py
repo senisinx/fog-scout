@@ -232,6 +232,13 @@ class SettingsTab:
         self.link_labels["claude"] = self._reg("st.link.claude", ui.Label(ls, textvariable=self.link_vars["claude"]))
         for lbl in self.link_labels.values():
             ui.level(lbl).pack(anchor="w")
+        # 1.57.90: each line ends in "Einrichten" – it opens that connection's box further down
+        go = lambda key: lambda: self._reveal_rec(f"st.more.{key}")       # noqa: E731
+        self._reg("st.link.obs.go", ui.Button(ls, text=_("Einrichten"), command=go("obs"))).pack()
+        self._reg("st.link.discord.go", ui.Button(ls, text=_("Einrichten"), command=go("discord"))).pack()
+        self._reg("st.link.spotify.go", ui.Button(ls, text=_("Einrichten"), command=go("spotify"))).pack()
+        self._reg("st.link.youtube.go", ui.Button(ls, text=_("Einrichten"), command=go("youtube"))).pack()
+        self._reg("st.link.claude.go", ui.Button(ls, text=_("Einrichten"), command=go("claude"))).pack()
         self._reg("st.tab.about", ui.Frame(f)).pack()               # 1.57.85: version, credits, "Installation prüfen"
         self._reg("st.about", ui.LabelFrame(f, text=_("Über Fog Scout"), padding=8)).pack()
         own = self._reg("st.more.own", ui.LabelFrame(more, text=_("Eigene Map-Zuordnungen"), padding=8))
