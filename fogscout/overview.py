@@ -156,6 +156,29 @@ def ops(app, now: float, is_win: bool, facts=None) -> list:
     return out
 
 
+def status_rows(app, now: float, is_win: bool) -> list:
+    """1.57.80 (user picked draft D "Einklappbar"): the rows under the state at the navigation's foot –
+    [(title, words, level)] for OBS and the server; level "ok"/"warn"/"err"/"off". Only values held anyway."""
+    if not app.settings.get("rec_on", False):
+        obs = (_("aus"), "off")
+    elif getattr(app.recorder, "recording", False):
+        obs = (_("nimmt auf"), "err")
+    else:
+        level, words = switch_state(app, "rec", True, is_win)
+        obs = (words or _("bereit"), level or "ok")
+    conn = app.conn
+    srv = conn.server if conn.running else None            # read once: the netwatch thread replaces it
+    if srv:
+        ms = conn.ping_ms if srv["region"] != UNKNOWN else None
+        words = region_name(srv["region"]) + (f" · {ms:.0f} ms" if ms is not None else "")
+        server = (words, ("ok", "warn", "err")[sysview.level("ping", ms)])
+    elif conn.running:
+        server = (_("Warte auf Match …"), "ok")
+    else:
+        server = (_("aus"), "off")
+    return [("OBS", obs[0], obs[1]), (_("Server"), server[0], server[1])]
+
+
 def _num(v: float, digits: int = 1) -> str:
     return f"{v:.{digits}f}"
 

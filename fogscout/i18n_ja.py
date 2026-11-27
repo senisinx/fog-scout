@@ -6370,4 +6370,10 @@ T = {
         'ダーク（Hens）',
     'Die dunklen Karten von hens333.com (Lethia), wie sie dort stehen – gilt auch im Spiel. Eigene Bilder und Maps ohne dunkle Karte nehmen „Dunkel“.':
         'hens333.com のダークマップ（Lethia）をそのまま表示 – ゲーム内にも適用。自分の画像とダーク版のないマップは「ダーク」を使います。',
+    'Öffnet das Log.':
+        'ログを開きます。',
+    'Navigation ausklappen':
+        'ナビゲーションを開く',
+    'Navigation einklappen (nur Symbole)':
+        'ナビゲーションをたたむ（アイコンのみ）',
 }

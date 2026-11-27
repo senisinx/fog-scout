@@ -3330,6 +3330,63 @@ def test_page_keys_never_get_in_the_way_of_typing(qapp, keep):
     win.close()
 
 
+def test_the_navigation_folds_to_its_icons_on_the_arrow_and_shows_obs_and_the_server(qapp, keep):
+    """1.57.80 (draft D "Einklappbar"): under the state a row each for OBS and the server, "Log" and an arrow – it
+    folds the navigation to its icons (remembered: posts nav_collapse) and opens it again; folded, the rows are
+    dots with the words as hover text."""
+    from fogscout import qt_window
+    posted = []
+    win = keep(qt_window.MainWindow(lambda a, arg=None: posted.append((a, arg))))
+    win.resize(1280, 800)
+    win.show()
+    win.show_status("wait", "Wartet auf das nächste Match")
+    win.show_status_rows([("OBS", "nimmt auf", "err"), ("Server", "Frankfurt · 28 ms", "ok")])
+    foot = win.nav_foot
+    shown = [(n.text(), w.text()) for _r, _d, n, w in foot.rows]
+    assert shown == [("OBS", "nimmt auf"), ("Server", "Frankfurt · 28 ms")]
+    assert all(r.isVisible() and n.isVisible() and not d.pixmap().isNull() for r, d, n, _w in foot.rows)
+    assert foot.rows[0][1].pixmap().toImage() != foot.rows[1][1].pixmap().toImage()      # red and green
+    assert foot.fold_btn.text() == "«" and foot.log_btn.isVisible() and not win._nav_compact
+    foot.log_btn.click()
+    assert win.current_key() == "log"
+    foot.fold_btn.click()
+    assert win._nav_compact and win._nav_user and posted[-1] == ("nav_collapse", True)
+    assert foot.width() == win.nav.width() == qt_window.nav_compact_w() and foot.fold_btn.text() == "»"
+    assert foot.log_btn.isHidden() and all(n.isHidden() and w.isHidden() for _r, _d, n, w in foot.rows)
+    assert foot.rows[1][0].toolTip() == "Server: Frankfurt · 28 ms"
+    win.resize(1500, 800)                                   # a wide window does not open it again
+    qapp.processEvents()
+    assert win._nav_compact
+    foot.fold_btn.click()
+    assert not win._nav_compact and posted[-1] == ("nav_collapse", False) and foot.width() == qt_window.nav_w()
+    win.set_nav_collapsed(True)                             # the setting at the start
+    assert win._nav_compact and ("nav_collapse", True) != posted[-1]
+    win.set_nav_collapsed(False)
+    win.resize(900, 700)                                    # too narrow for the names: narrow whatever the choice
+    qapp.processEvents()
+    assert win._nav_compact and not win._nav_user
+    foot.fold_btn.click()
+    assert win._nav_compact and posted[-1] == ("nav_collapse", False)
+    win.show_status_rows([("OBS", "aus", "off")])           # one row: the other is hidden
+    assert foot.rows[0][0].isVisible() and foot.rows[1][0].isHidden()
+
+
+def test_the_rows_of_obs_and_the_server_say_what_is_on():
+    """1.57.80: overview.status_rows – off, recording, the region with its ping (level from the ping)."""
+    from fogscout import overview
+    conn = SimpleNamespace(running=False, server=None, ping_ms=None)
+    app = SimpleNamespace(settings={"rec_on": False}, recorder=SimpleNamespace(recording=False), conn=conn)
+    assert overview.status_rows(app, 0.0, True) == [("OBS", "aus", "off"), ("Server", "aus", "off")]
+    app.settings["rec_on"], app.recorder.recording = True, True
+    conn.running = True
+    assert overview.status_rows(app, 0.0, True) == [("OBS", "nimmt auf", "err"), ("Server", "Warte auf Match …", "ok")]
+    conn.server, conn.ping_ms = {"region": "eu-central-1"}, 95.0
+    title, words, level = overview.status_rows(app, 0.0, True)[1]
+    assert words.endswith("· 95 ms") and level == "err"
+    conn.ping_ms = 28.0
+    assert overview.status_rows(app, 0.0, True)[1][2] == "ok"
+
+
 def test_the_navigation_shows_the_name_and_the_state_on_every_page(qapp, keep):
     """1.24 (phase 2): the program's name above the navigation, and what it does now at its foot – a dot in the
     state's colour and the words (never colour alone); narrow, only the dot with the words as hover text. A click

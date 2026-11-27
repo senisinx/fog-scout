@@ -657,6 +657,84 @@ class NavStatus(QFrame):
         super().keyPressEvent(e)
 
 
+class NavFoot(QFrame):
+    """1.57.80 (user picked draft D "Einklappbar"): under the state – a row each for OBS and the server (a dot in
+    the level's colour, the name, the state in words), then "Log" and the arrow that folds the navigation to its
+    icons or opens it again. Folded: only the dots (the words as hover text) and the arrow."""
+
+    def __init__(self, on_log, on_fold):
+        super().__init__()
+        self.setObjectName("navfoot")
+        v = QVBoxLayout(self)
+        v.setSpacing(4)
+        self._lay = v
+        self.rows = []
+        for _i in range(2):
+            row = QWidget()
+            h = QHBoxLayout(row)
+            h.setContentsMargins(0, 0, 0, 0)
+            h.setSpacing(8)
+            dot, name, words = QLabel(), _label("", "dim"), QLabel()
+            words.setTextFormat(Qt.PlainText)
+            words.setObjectName("navstatustext")
+            h.addWidget(dot)
+            h.addWidget(name)
+            h.addWidget(words, 1)
+            v.addWidget(row)
+            self.rows.append((row, dot, name, words))
+        foot = QWidget()
+        self._foot = QHBoxLayout(foot)
+        self._foot.setContentsMargins(0, 2, 0, 0)
+        self._foot.setSpacing(4)
+        self.log_btn = QPushButton(_("Log"))
+        self.log_btn.setObjectName("navfootbtn")
+        self.log_btn.setToolTip(_("Öffnet das Log."))
+        self.log_btn.setFocusPolicy(Qt.TabFocus)
+        self.log_btn.clicked.connect(on_log)
+        self.fold_btn = QPushButton()
+        self.fold_btn.setObjectName("navfootbtn")
+        self.fold_btn.setFocusPolicy(Qt.TabFocus)
+        self.fold_btn.clicked.connect(on_fold)
+        self._foot.addWidget(self.log_btn)
+        self._foot.addStretch(1)
+        self._foot.addWidget(self.fold_btn)
+        v.addWidget(foot)
+        self._data, self._shown = [], None
+        self.rezoom()
+
+    def rezoom(self):
+        side = qt_theme.icon_px(qt_theme.ICON["s"])
+        self._lay.setContentsMargins(nav_sign_x() - side // 2, 6, 8, 8)
+        for _row, dot, _name, _words in self.rows:
+            dot.setFixedWidth(side)
+        self._shown = None
+
+    def show_rows(self, rows, compact: bool, folded: bool, dark: bool, ratio: float = 1.0):
+        """``rows``: [(title, words, level)]; ``compact``: only icons now; ``folded``: the user folded it."""
+        key = (tuple(rows), compact, folded, dark, ratio)
+        if key == self._shown:
+            return
+        self._shown, self._data = key, list(rows)
+        side = qt_theme.icon_px(qt_theme.ICON["s"])
+        for (row, dot, name, words), data in zip(self.rows, list(rows) + [None] * len(self.rows)):
+            row.setVisible(data is not None)
+            if data is None:
+                continue
+            title, text, level = data
+            style = level if level in ("ok", "warn", "err") else "idle"
+            dot.setPixmap(qt_icons.pixmap("record", qt_theme.dot_colour(style, dark), side, ratio))
+            _set(name, title)
+            _set(words, text)
+            name.setVisible(not compact)
+            words.setVisible(not compact)
+            row.setToolTip(f"{title}: {text}")
+            row.setAccessibleName(f"{title}: {text}")
+        self.log_btn.setVisible(not compact)
+        _set(self.fold_btn, "»" if compact else "«")
+        self.fold_btn.setToolTip(_("Navigation ausklappen") if folded else _("Navigation einklappen (nur Symbole)"))
+        self.fold_btn.setAccessibleName(self.fold_btn.toolTip())
+
+
 class _NavList(QListWidget):
     """The navigation. Qt's list view makes the first row current as soon as it gets the keyboard focus while no
     row is current – on the first start that threw the user out of the setup assistant about a second after it
@@ -756,6 +834,11 @@ class MainWindow(QMainWindow):
         self.status_btn.setFixedWidth(nav_w())
         self._status = None                       # (kind, text) shown – status.user_state
         sl.addWidget(self.status_btn)
+        self._nav_user = False                    # 1.57.80: folded by the user (setting nav_collapsed)
+        self._status_rows = []
+        self.nav_foot = NavFoot(lambda: self.show_page("log"), self._fold_clicked)
+        self.nav_foot.setFixedWidth(nav_w())
+        sl.addWidget(self.nav_foot)
         self._found = {}                  # search entry text -> (page key, widget, folded)
         self._found_hay = {}              # 1.26: … -> what it is matched against (both languages, SEARCH_ALSO)
         self._found_static = {}           # 1.28: … -> a fixed program text of an allowed kind (may go to Claude)
@@ -1033,7 +1116,7 @@ class MainWindow(QMainWindow):
             w.click()                                  # 1.23: a closed fold opens (Log → Erweitert)
         if self._nav_kept:
             self._nav_kept = False
-            self._compact_nav(self._focus_nav or self.width() < NAV_COMPACT_BELOW)
+            self._compact_nav(self._want_compact())
         self._reveal_widget(w, delay=150 if folded else 0)
 
     def reveal(self, page: str, key: str):
@@ -1386,13 +1469,35 @@ class MainWindow(QMainWindow):
     def resizeEvent(self, e):
         self.geometry_changed = True
         super().resizeEvent(e)
-        self._compact_nav(self._focus_nav or self.width() < NAV_COMPACT_BELOW)
+        self._compact_nav(self._want_compact())
+
+    def _want_compact(self) -> bool:
+        return self._focus_nav or self._nav_user or self.width() < NAV_COMPACT_BELOW
+
+    def set_nav_collapsed(self, on: bool):
+        """1.57.80: the user's choice (the arrow at the navigation's foot) – only icons until opened again."""
+        self._nav_user = bool(on)
+        self._compact_nav(self._want_compact())
+        self._status_paint()
+
+    def _fold_clicked(self):
+        """The arrow: fold, or open again. In a window too narrow for the names (or the editor's focus view) the
+        navigation stays narrow whatever the choice – the click then only clears a fold."""
+        self.set_nav_collapsed(not self._nav_user if not self._nav_compact or self._nav_user else False)
+        self._post("nav_collapse", self._nav_user)
+
+    def show_status_rows(self, rows):
+        """1.57.80: OBS and the server under the state (overview.status_rows) – set on every refresh."""
+        rows = list(rows)
+        if rows != self._status_rows:
+            self._status_rows = rows
+            self._status_paint()
 
     def set_focus_nav(self, on: bool):
         """1.46: the overlay editor's "Fokus" – the navigation shows only its icons while it is on (not the search's
         latch ``keep``: a search must not end the focus view)."""
         self._focus_nav = bool(on)
-        self._compact_nav(self._focus_nav or self.width() < NAV_COMPACT_BELOW)
+        self._compact_nav(self._want_compact())
 
     def _brand_row(self) -> QWidget:
         """1.24 (phase 2, prompt_phase2.md): the compass of the program's icon and its name above the search – the
@@ -1427,12 +1532,18 @@ class MainWindow(QMainWindow):
 
     def _status_paint(self):
         if self._status is None:
+            self._foot_paint()
             return
         kind, text = self._status
         colour = qt_theme.dot_colour(DOT_STYLE.get(kind, "idle"), self._dark)
         self.status_btn.show_state(colour, text, self._nav_compact, self.devicePixelRatioF() or 1.0,
                                    "warning" if kind == "err" else "record")
         self.status_btn.setToolTip(text + " · " + _("Übersicht öffnen"))
+        self._foot_paint()
+
+    def _foot_paint(self):
+        self.nav_foot.show_rows(self._status_rows, self._nav_compact, self._nav_user, self._dark,
+                                self.devicePixelRatioF() or 1.0)
 
     def _compact_nav(self, on: bool, keep: bool = False):
         """A narrow window: the navigation shows only its icons (names as hover text) – the page gets the room.
@@ -1461,10 +1572,12 @@ class MainWindow(QMainWindow):
         self.search.setFixedWidth(nav_w())
         self.search_btn.setFixedWidth(nav_compact_w())
         self.status_btn.setFixedWidth(nav_compact_w() if on else nav_w())
+        self.nav_foot.setFixedWidth(nav_compact_w() if on else nav_w())
         side = nav_icon_px()                       # 1.55.7: the icons and the signs on their column grow too
         if self.nav.iconSize().width() != side:
             self.nav.setIconSize(QSize(side, side))
             self.status_btn.rezoom()
+            self.nav_foot.rezoom()
             m = self._brand_lay.contentsMargins()
             self._brand_lay.setContentsMargins(nav_sign_x() - qt_theme.icon_px(qt_theme.ICON["l"]) // 2, m.top(),
                                                m.right(), m.bottom())

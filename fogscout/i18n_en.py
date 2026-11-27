@@ -4847,4 +4847,10 @@ EN = {
         'Dark (Hens)',
     'Die dunklen Karten von hens333.com (Lethia), wie sie dort stehen – gilt auch im Spiel. Eigene Bilder und Maps ohne dunkle Karte nehmen „Dunkel“.':
         'The dark maps of hens333.com (Lethia) as they are there – also applies in the game. Own pictures and maps without a dark map take “Dark”.',
+    'Öffnet das Log.':
+        'Opens the log.',
+    'Navigation ausklappen':
+        'Open the navigation',
+    'Navigation einklappen (nur Symbole)':
+        'Fold the navigation (icons only)',
 }

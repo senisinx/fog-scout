@@ -364,6 +364,11 @@ QLabel#brandname {{ font-size: {px(TYPE['big'])}; font-weight: 700; color: {c['h
 QFrame#navstatus {{ background: {c['nav']}; border: none; border-top: 1px solid {c['border']}; border-radius: 0; }}
 QFrame#navstatus:hover {{ background: {c['hover']}; }}  /* 1.24: what Fog Scout does now, every page */
 QFrame#navstatus:focus {{ border: 1px solid {c['accent']}; }}
+QFrame#navfoot {{ background: {c['nav']}; border: none; border-radius: 0; }}  /* 1.57.80 */
+QPushButton#navfootbtn {{ background: transparent; border: 1px solid transparent; color: {c['dim']};
+    padding: 2px 6px; font-size: {px(TYPE['small'])}; }}
+QPushButton#navfootbtn:hover {{ background: {c['hover']}; color: {c['fg']}; }}
+QPushButton#navfootbtn:focus {{ border-color: {c['accent']}; }}
 QLabel#navstatustext {{ color: {c['fg']}; font-size: {px(TYPE['small'])}; background: transparent; }}
 QLabel[class="subtitle"] {{ color: {c['dim']}; font-size: {px(TYPE['body'])}; }}  /* 1.24: a page's purpose */
 QLabel[class="dim"] {{ color: {c['dim']}; font-size: {px(TYPE['small'])}; }}

@@ -350,6 +350,7 @@ class QtShell:
         self.qt.set_card_order(self.settings.get("card_order") or {})
         self.qt.set_tab_order(self.settings.get("tab_order") or {})              # 1.7.6
         self.qt.set_nav_order(self.settings.get("nav_order") or [])
+        self.qt.set_nav_collapsed(bool(self.settings.get("nav_collapsed", False)))            # 1.57.80
         self.qt.set_hidden_columns(self.settings.get("hidden_columns") or {})
         self._qt_refresh(force=True)
         if not start_in_tray:
@@ -557,6 +558,9 @@ class QtShell:
             hidden[str(key)] = [str(c) for c in cols]
             self.settings.set("hidden_columns", hidden)
             self._save_soon()
+        elif action == "nav_collapse":               # 1.57.80: the arrow at the navigation's foot
+            self.settings.set("nav_collapsed", bool(arg))
+            self._save_soon()
         elif action == "card_order":                 # a card dragged to another place: remember the order
             page, run, ids = arg
             orders = dict(self.settings.get("card_order") or {})
@@ -690,6 +694,7 @@ class QtShell:
             return
         st = self._user_state()                       # 1.24: the state at the foot of the navigation, every page
         q.show_status(st.kind, st.text)
+        q.show_status_rows(overview.status_rows(self, now, IS_WIN))                           # 1.57.80: OBS, server
         page = q.current_key()
         if page == "overview":
             q.show_model(overview.overview_model(self, now, IS_WIN), self._overview_thumb(), self._qt_tip)

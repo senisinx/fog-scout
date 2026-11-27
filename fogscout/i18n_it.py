@@ -6370,4 +6370,10 @@ T = {
         'Scuro (Hens)',
     'Die dunklen Karten von hens333.com (Lethia), wie sie dort stehen – gilt auch im Spiel. Eigene Bilder und Maps ohne dunkle Karte nehmen „Dunkel“.':
         'Le mappe scure di hens333.com (Lethia) così come sono lì – vale anche in gioco. Le immagini proprie e le mappe senza versione scura usano «Scuro».',
+    'Öffnet das Log.':
+        'Apre il log.',
+    'Navigation ausklappen':
+        'Apri la navigazione',
+    'Navigation einklappen (nur Symbole)':
+        'Riduci la navigazione (solo icone)',
 }

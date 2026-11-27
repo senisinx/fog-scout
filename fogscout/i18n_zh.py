@@ -6370,4 +6370,10 @@ T = {
         '深色（Hens）',
     'Die dunklen Karten von hens333.com (Lethia), wie sie dort stehen – gilt auch im Spiel. Eigene Bilder und Maps ohne dunkle Karte nehmen „Dunkel“.':
         'hens333.com 的深色地图（Lethia），原样使用 – 游戏中同样生效。自己的图片和没有深色版本的地图使用“深色”。',
+    'Öffnet das Log.':
+        '打开日志。',
+    'Navigation ausklappen':
+        '展开导航',
+    'Navigation einklappen (nur Symbole)':
+        '折叠导航（仅图标）',
 }
