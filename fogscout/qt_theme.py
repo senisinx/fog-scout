@@ -366,6 +366,7 @@ QLabel[class="dim"] {{ color: {c['dim']}; font-size: {px(TYPE['small'])}; }}
 QLabel[class="hint"] {{ color: {c['dim']}; font-size: {px(TYPE['small'])}; }}  /* 1.17.1: qt_pages.HintLabel – line length */
 QLabel[class="h1"] {{ font-size: {px(TYPE['h1'])}; font-weight: 700; color: {c['head']}; }}
 QLabel[class="map"] {{ font-family: 'Fira Sans ExtraBold', 'Segoe UI'; font-size: {px(TYPE['display'])}; color: {c['head']}; }}
+QLabel[class="opstate"] {{ font-size: {px(TYPE['big'])}; font-weight: 600; color: {c['fg']}; }}  /* 1.57.76: a column of "Betrieb" */
 QLabel[class="h2"] {{ font-size: {px(TYPE['small'])}; font-weight: 700; color: {c['fg']}; letter-spacing: 0.8px; }}  /* 1.17: the accent marks state, not every title */
 QLabel[class="big"] {{ font-size: {px(TYPE['big'])}; font-weight: 700; color: {c['head']}; }}
 QDialog#message {{ background: {c['bg']}; }}  /* 1.8.44: App._ask/_inform */

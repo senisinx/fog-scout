@@ -114,6 +114,8 @@ TIPS = {
         "Die Opfergabe (eine verdeckte als „?“), das Item und seine zwei Add-ons als kleine Felder neben den Perks.",
     "Dunkle Fläche hinter den Eingaben":
         "Eine halb durchsichtige dunkle Fläche mit runden Ecken hinter den Tasten.",
+    "Aufnahmen öffnen":
+        "Öffnet die Seite Aufnahmen mit deinen Runden, Clips und Screenshots.",
     # 1.57.73: the element "Diagramme" – the dark area and every chart of the catalogue (charts.CATALOGUE)
     "Dunkle Fläche hinter den Diagrammen":
         "Eine halb durchsichtige dunkle Fläche mit runden Ecken hinter den Diagrammen.",

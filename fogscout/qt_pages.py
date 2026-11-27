@@ -165,7 +165,8 @@ class OverviewPage(QWidget):
         cl.addWidget(self.thumb, alignment=Qt.AlignTop)
         info = QVBoxLayout()
         info.setSpacing(4)
-        info.addWidget(_label(_("Aktuelle Map").upper(), "h2"))
+        self.map_title = _label(_("Aktuelle Map").upper(), "h2")     # 1.57.76: only above a map's name
+        info.addWidget(self.map_title)
         self.map_name = _label(cls="map", wrap=True)
         info.addWidget(self.map_name)
         self.map_line = _label(cls="dim", wrap=True)
@@ -210,6 +211,17 @@ class OverviewPage(QWidget):
         card.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Maximum)    # without a picture: only as tall as its text
         page.addWidget(card)
 
+        # 1.57.76 (user picked the drafts B and C): "Betrieb" – detection, recording, PC and connection side by side,
+        # each a word on how it is, a few values and one button (overview.ops)
+        self.ops_card = _card()
+        ol = QVBoxLayout(self.ops_card)
+        ol.setContentsMargins(*qt_theme.PAD_CARD)
+        self.ops_row = TileGrid(min_width=220, columns=3, spacing=22)
+        ol.addLayout(self.ops_row)
+        self.op_views = []
+        self.ops_card.setVisible(False)
+        page.addWidget(self.ops_card)
+
         # 1.14: "Schnell ein/aus" – one tick box per feature (overview.switches), made as the model names them
         self.switch_card = _card()
         swl = QVBoxLayout(self.switch_card)
@@ -243,6 +255,12 @@ class OverviewPage(QWidget):
         self.news_card.setVisible(False)
         page.addWidget(self.news_card)
 
+        # 1.57.76: today, the week, the system card, the last rounds and the chart – below a fold (the user: those
+        # numbers are not what the page is for); the search opens it like every fold
+        more = make_fold(N_("Heute, Woche und letzte Runden"), page)
+        more.setSpacing(12)
+        self.more_body = more.parentWidget()
+        page_top, page = page, more
         # today
         head = QHBoxLayout()
         head.addWidget(_label(_("Heute").upper(), "h2"))
@@ -310,7 +328,7 @@ class OverviewPage(QWidget):
         dl.addWidget(self.days_chart)
         self.days_card.setVisible(False)
         page.addWidget(self.days_card)
-        page.addStretch()
+        page_top.addStretch()
 
     # ------------------------------------------------------------- update
     def show_status_line(self, on: bool):
@@ -334,7 +352,9 @@ class OverviewPage(QWidget):
         self._status_now = (o.status_kind, o.status_text)
         if not self.status_line.isHidden():
             self._status_paint()
-        _set(self.map_name, o.map_label or _("Noch keine Map"))
+        _set(self.map_name, getattr(o, "headline", "") or o.map_label or _("Noch keine Map"))
+        self.map_title.setVisible(bool(o.map_label))
+        self._show_ops(getattr(o, "ops", None) or [])
         _set(self.map_line, o.map_line)
         _set(self.queue, o.queue)
         self.queue.setVisible(bool(o.queue))
@@ -419,7 +439,8 @@ class OverviewPage(QWidget):
             col = QVBoxLayout(item)
             col.setContentsMargins(0, 0, 0, 0)
             col.setSpacing(0)
-            w = WrapCheck()
+            from .qt_overlay import SwitchButton               # 1.57.76: the same on / off switch as the overlay's list
+            w = WrapCheck(SwitchButton())
             w.key = ""
             w.clicked.connect(lambda on, w=w: self._post("switch", (w.key, bool(on))))
             state = _label(cls="dim")                          # under the box's text, not under the box
@@ -465,6 +486,69 @@ class OverviewPage(QWidget):
             if w.isEnabled() != sw.enabled:
                 w.setEnabled(sw.enabled)
         self.switch_card.setVisible(bool(switches))
+
+    def _op_clicked(self, op):
+        if op is None or not op.action:
+            return
+        if op.arg:
+            self._post(op.action, op.arg)
+        else:
+            self._post(op.action)
+
+    def _show_ops(self, ops):
+        """1.57.76: the columns of "Betrieb" follow the model (overview.Op): made once, then only their texts change."""
+        from .tooltip import tip_for_label
+        while len(self.op_views) < len(ops):
+            box = QWidget()
+            col = QVBoxLayout(box)
+            col.setContentsMargins(0, 0, 0, 0)
+            col.setSpacing(4)
+            title, state = _label(cls="h2"), _label(cls="opstate", wrap=True)
+            col.addWidget(title)
+            col.addWidget(state)
+            rows = []
+            for _i in range(3):
+                r = QHBoxLayout()
+                name, value = _label(cls="dim"), _label()
+                value.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
+                r.addWidget(name)
+                r.addWidget(value, 1)
+                col.addLayout(r)
+                rows.append((name, value))
+            col.addSpacing(4)
+            btn = QPushButton()
+            br = QHBoxLayout()
+            br.addWidget(btn)
+            br.addStretch(1)
+            col.addLayout(br)
+            col.addStretch(1)
+            view = {"title": title, "state": state, "rows": rows, "button": btn, "op": None}
+            btn.clicked.connect(lambda _c=False, v=view: self._op_clicked(v["op"]))
+            self.ops_row.addWidget(box)
+            self.op_views.append(view)
+        for view, op in zip(self.op_views, ops):
+            view["op"] = op
+            _set(view["title"], op.title.upper())
+            _set(view["state"], op.state)
+            state = view["state"]
+            if state.__dict__.get("_level") != op.level:
+                state._level = op.level
+                state.setProperty("state", op.level)
+                state.style().unpolish(state)
+                state.style().polish(state)
+            for i, (name, value) in enumerate(view["rows"]):
+                shown = i < len(op.rows)
+                name.setVisible(shown)
+                value.setVisible(shown)
+                if shown:
+                    _set(name, op.rows[i][0])
+                    _set(value, op.rows[i][1])
+            _set(view["button"], op.action_label)
+            view["button"].setVisible(bool(op.action))
+            tip = tip_for_label(op.action_label) or ""
+            if view["button"].toolTip() != tip:
+                view["button"].setToolTip(tip)
+        self.ops_card.setVisible(bool(ops))
 
     def _show_news(self, o):
         while len(self.news_rows) < len(o.news):

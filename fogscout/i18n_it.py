@@ -6315,4 +6315,39 @@ T = {
         'Due righe (compatto)',
     'gedrosselt':
         'limitata',
+    # 1.57.76: the overview follows the game, columns "Betrieb"
+    'Aufnahmen öffnen':
+        'Apri registrazioni',
+    'Custom Game – Lobby':
+        'Partita personalizzata – lobby',
+    'Dead by Daylight läuft nicht':
+        'Dead by Daylight non è in esecuzione',
+    'Fenster':
+        'Finestra',
+    'Heute, Woche und letzte Runden':
+        'Oggi, settimana e ultimi round',
+    'Map erkannt':
+        'Mappa riconosciuta',
+    'PC und Verbindung':
+        'PC e connessione',
+    'Platz':
+        'Spazio',
+    'Runde beendet':
+        'Round terminato',
+    'Spielsprachen':
+        'Lingue di gioco',
+    'Suche läuft':
+        'Ricerca in corso',
+    'Wartet auf das Map-Banner':
+        'In attesa del banner della mappa',
+    'heiss':
+        'caldo',
+    'im grünen Bereich':
+        'tutto a posto',
+    'keine Werte ohne Spiel':
+        'nessun valore senza il gioco',
+    'warm':
+        'tiepido',
+    'Öffnet die Seite Aufnahmen mit deinen Runden, Clips und Screenshots.':
+        'Apre la pagina Registrazioni con i tuoi round, clip e screenshot.',
 }

@@ -3710,3 +3710,36 @@ def test_statistics_tiles_with_a_target_post_their_click(qapp, keep):
     QTest.mouseClick(first, Qt.LeftButton)
     QTest.mouseClick(second, Qt.LeftButton)
     assert got == [("tile_open", "rounds:1.0")]
+
+
+def test_the_overview_shows_the_big_line_the_three_columns_and_switches(qapp, keep):
+    """1.57.76 (user picked the drafts B and C): without a map the big line says what the game does; "Betrieb" shows
+    one column per Op, its button posts the Op's action; the functions are on / off switches; the day's numbers wait
+    below a fold."""
+    from fogscout import qt_overlay, qt_pages
+    posted = queue.Queue()
+    page = keep(qt_pages.OverviewPage(lambda a, arg=None: posted.put((a, arg))))
+    o = overview.Overview(headline="In der Lobby", map_line="Killer-Suche")
+    o.ops = [overview.Op("Erkennung", "bereit", "ok", (("Fenster", "3440 × 1440"),)),
+             overview.Op("Aufnahme", "aus", "off", (), "rec_setup", "Aufnahmen einrichten …"),
+             overview.Op("PC und Verbindung", "heiss", "err", (("FPS", "96"), ("Server", "Frankfurt · 28 ms")),
+                         "tile_open", "Aufnahmen öffnen", "page:recordings")]
+    o.switches = [overview.Switch("detect", "Automatische Erkennung", True, level="ok", state="aktiv")]
+    page.update_page(o)
+    assert page.map_name.text() == "In der Lobby" and page.map_title.isHidden()
+    assert not page.ops_card.isHidden() and len(page.op_views) == 3
+    first, second, third = page.op_views
+    assert (first["title"].text(), first["state"].text(), first["state"].property("state")) == ("ERKENNUNG", "bereit", "ok")
+    assert first["button"].isHidden() and first["rows"][0][1].text() == "3440 × 1440" and first["rows"][1][0].isHidden()
+    second["button"].click()
+    third["button"].click()
+    assert [posted.get_nowait(), posted.get_nowait()] == [("rec_setup", None), ("tile_open", "page:recordings")]
+    assert third["state"].property("state") == "err"
+    box = page.switches[0]
+    assert isinstance(box.box, qt_overlay.SwitchButton) and box.isChecked() and box.text() == "Automatische Erkennung"
+    box.click()
+    assert posted.get_nowait() == ("switch", ("detect", False))
+    assert page.more_body.isHidden() and page.more_body.isAncestorOf(page.today_note)     # the numbers: folded away
+    o.map_label = o.headline = "Coal Tower"
+    page.update_page(o)
+    assert page.map_name.text() == "Coal Tower" and not page.map_title.isHidden()

@@ -95,7 +95,9 @@ def test_every_control_has_an_accessible_name(app_root):
         icons = q.findChildren(QAbstractButton, "ovicon") + q.findChildren(QAbstractButton, "ovcell")
         assert len(icons) >= 12 and all(b.accessibleName() for b in icons)
         switches = q.findChildren(QAbstractButton, "ovswitch")             # 1.57.49: on / off instead of the eye
-        assert len(switches) == 8 and any(b.accessibleName() == "Karte: Ein – zum Ausschalten klicken"
-                                          for b in switches)
+        # 1.57.76: the overview's functions are the same switches – the eight of the overlay's list and those, all named
+        assert len(switches) >= 8 and all(b.accessibleName() for b in switches)
+        assert sum(": Ein – " in b.accessibleName() or ": Aus – " in b.accessibleName() for b in switches) == 8
+        assert any(b.accessibleName() == "Karte: Ein – zum Ausschalten klicken" for b in switches)
     finally:
         app.quit()
