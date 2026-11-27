@@ -70,6 +70,7 @@ def ui_layout(w, reg: dict):
         except ui.UIError:                      # 1.11.14: hidden for now (empty statistics) – how it was packed
             fill = bool(getattr(w, "_pack", {}).get("expand"))
         return {"kind": "tabs", "key": key, "fill": fill, "segments": bool(getattr(w, "_dbdms_segments", False)),
+                "nobar": bool(getattr(w, "_dbdms_no_bar", False)),
                 "children": [n for n in (ui_layout(p, reg) for p in pages) if n]}
     kind = next((k for cls, k in KINDS if isinstance(w, cls)), None)
     note = False

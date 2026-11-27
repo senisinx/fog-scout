@@ -848,9 +848,10 @@ class MapBars(QWidget):
     """Most played maps: one row each – name, a bar for the rounds, the count and the results (stats page)."""
     ROW = 26
 
-    def __init__(self, on_click=None):
+    def __init__(self, on_click=None, kind="map"):
         super().__init__()
         self._rows, self._max, self._dark = [], 1, True
+        self._kind, self._active = kind, None         # 1.57.99: "killer" rows too; the row the filter set is marked
         self._on_click = on_click                     # 1.2.16: a click on a row filters the statistics by that map
         if on_click:
             self.setCursor(Qt.PointingHandCursor)
@@ -859,10 +860,10 @@ class MapBars(QWidget):
     def mousePressEvent(self, e):
         i = int(e.position().y() // self.ROW)
         if self._on_click and 0 <= i < len(self._rows):
-            self._on_click(("map", self._rows[i][0]))
+            self._on_click((self._kind, self._rows[i][0]))
 
-    def set_rows(self, rows, top, dark):
-        self._rows, self._max, self._dark = list(rows), max(1, top), dark
+    def set_rows(self, rows, top, dark, active=None):
+        self._rows, self._max, self._dark, self._active = list(rows), max(1, top), dark, active
         self.setMinimumHeight(max(self.ROW, len(self._rows) * self.ROW))
         self.update()
 
@@ -879,11 +880,14 @@ class MapBars(QWidget):
         for i, (name, n, info) in enumerate(self._rows):
             y = i * self.ROW
             mid = y + self.ROW / 2
+            on = self._active is not None and name == self._active
             p.setPen(QColor(c["fg"]))
-            p.drawText(0, y, name_w, self.ROW, Qt.AlignLeft | Qt.AlignVCenter, fm.elidedText(shown(name), Qt.ElideRight, name_w))
+            title = shown(name) if self._kind == "map" else name
+            p.drawText(0, y, name_w, self.ROW, Qt.AlignLeft | Qt.AlignVCenter, fm.elidedText(title, Qt.ElideRight, name_w))
             length = max(3.0, bar_w * n / self._max)
             p.setPen(Qt.NoPen)
-            p.setBrush(QColor(c["handle"]))      # map bars: a plain count, neutral – 1.25: >= 3:1 (was 2.4/2.8:1)
+            # map bars: a plain count, neutral – 1.25: >= 3:1 (was 2.4/2.8:1); the one the filter set in the accent
+            p.setBrush(QColor(c["accent"] if on else c["handle"]))
             p.drawRoundedRect(bar_x, round(mid - 5), round(length), 10, 4, 4)
             p.setPen(QColor(c["fg"]))
             p.drawText(round(bar_x + length + 6), y, 40, self.ROW, Qt.AlignLeft | Qt.AlignVCenter, str(n))
@@ -1200,6 +1204,9 @@ class DashboardView(QWidget):
         self.trend_card, self.trend = self._chart_card(lay, "", CountBars(), "Verlauf")
         self.trend_title = self.trend_card.findChild(QLabel)
         self.maps_card, self.maps = self._chart_card(lay, _("Maps – am häufigsten gespielt"), MapBars(click), "Maps")
+        # 1.57.99 (draft H): the killers too – a click on a row filters by that killer like a map row by its map
+        self.killers_card, self.killers = self._chart_card(lay, _("Killer – am häufigsten"),
+                                                           MapBars(click, "killer"), "Killer")
         self.times_card, self.times = self._chart_card(lay, _("Wann du spielst – Runden nach Wochentag und Uhrzeit"),
                                                        Heatmap(None), "Form")
         self.heat_card, self.heat = self._chart_card(lay, _("Killer × Map – Ø Kills laut Stats-Seite"), Heatmap(click),
@@ -1242,7 +1249,7 @@ class DashboardView(QWidget):
         has = d is not None and not d.empty
         self.empty.setVisible(d is not None and bool(d.empty))
         _set(self.empty, d.empty if d is not None else "")
-        for w in (self.tiles_box, self.trend_card, self.maps_card, self.times_card, self.heat_card):
+        for w in (self.tiles_box, self.trend_card, self.maps_card, self.killers_card, self.times_card, self.heat_card):
             w.setVisible(has)
         if not has:
             return
@@ -1256,7 +1263,11 @@ class DashboardView(QWidget):
             card.setVisible(i < len(d.tiles))
             if i < len(d.tiles):
                 box.show_fact(d.tiles[i])
-        self.maps.set_rows(d.maps, d.maps_max, dark)
+        active = getattr(d, "active", None) or {}
+        self.maps.set_rows(d.maps, d.maps_max, dark, active.get("map"))
+        killers = getattr(d, "killers", None) or []
+        self.killers_card.setVisible(bool(killers))
+        self.killers.set_rows(killers, getattr(d, "killers_max", 1), dark, active.get("killer"))
         self.heat.set_data(d, dark)
         self.heat.setVisible(bool(d.rows))
         # 1.25: without the settings path – the line under the dashboard says how to set the match data up (it said

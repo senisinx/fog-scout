@@ -2463,6 +2463,32 @@ T = {
         'Facoltativo',
     '{n} von {total} angesehen':
         '{n} di {total} visti',
+    'Killer – am häufigsten':
+        'Killer – i più frequenti',
+    'Runden dieser Auswahl':
+        'Partite di questa selezione',
+    'Alle Runden der Auswahl':
+        'Tutte le partite della selezione',
+    'Weitere Auswertungen':
+        'Altre analisi',
+    'Region: {name}':
+        'Regione: {name}',
+    'Killer: {name}':
+        'Killer: {name}',
+    'Map: {name}':
+        'Mappa: {name}',
+    'Modus: {name}':
+        'Modalità: {name}',
+    'Ohne Farming':
+        'Senza farming',
+    'Diesen Filter entfernen – die Statistik zeigt dann wieder alle.':
+        'Rimuovi questo filtro – le statistiche mostrano di nuovo tutto.',
+    'Zurück zur Übersicht der Statistik.':
+        'Torna alla panoramica delle statistiche.',
+    'Öffnet „{name}“ mit allen Zahlen dazu.':
+        'Apre «{name}» con tutti i numeri.',
+    'Öffnet die ganze Rundenliste dieser Auswahl – dort lassen sich Runden korrigieren, löschen und exportieren.':
+        "Apre l'elenco completo delle partite di questa selezione – lì si possono correggere, eliminare ed esportare.",
     'Schritt {n} von {total}':
         'Passo {n} di {total}',
     'Sprache':

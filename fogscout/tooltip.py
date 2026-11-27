@@ -12,6 +12,8 @@ from .i18n import _, source
 
 # German label -> German info text (buttons/checkboxes with a fixed label); both translated via i18n
 TIPS = {
+    'Alle Runden der Auswahl':
+        'Öffnet die ganze Rundenliste dieser Auswahl – dort lassen sich Runden korrigieren, löschen und exportieren.',   # 1.57.99
     'Alle zeigen':
         'Setzt alle Filter dieser Zeile zurück – alle Aufnahmen bzw. Clips sind wieder zu sehen. Sortierung und Ansicht bleiben.',                                # 1.57.96
     'Einsetzen':

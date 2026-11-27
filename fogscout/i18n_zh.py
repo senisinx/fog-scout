@@ -2463,6 +2463,32 @@ T = {
         '可选',
     '{n} von {total} angesehen':
         '已查看 {n}/{total}',
+    'Killer – am häufigsten':
+        '杀手 – 最常见',
+    'Runden dieser Auswahl':
+        '此筛选的对局',
+    'Alle Runden der Auswahl':
+        '此筛选的全部对局',
+    'Weitere Auswertungen':
+        '更多分析',
+    'Region: {name}':
+        '区域：{name}',
+    'Killer: {name}':
+        '杀手：{name}',
+    'Map: {name}':
+        '地图：{name}',
+    'Modus: {name}':
+        '模式：{name}',
+    'Ohne Farming':
+        '不含刷分',
+    'Diesen Filter entfernen – die Statistik zeigt dann wieder alle.':
+        '移除此筛选 – 统计将再次显示全部。',
+    'Zurück zur Übersicht der Statistik.':
+        '返回统计概览。',
+    'Öffnet „{name}“ mit allen Zahlen dazu.':
+        '打开“{name}”及其全部数据。',
+    'Öffnet die ganze Rundenliste dieser Auswahl – dort lassen sich Runden korrigieren, löschen und exportieren.':
+        '打开此筛选的完整对局列表 – 可在那里更正、删除和导出对局。',
     'Schritt {n} von {total}':
         '第 {n} 步，共 {total} 步',
     'Sprache':

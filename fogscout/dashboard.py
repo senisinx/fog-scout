@@ -48,6 +48,9 @@ class Dashboard:
     trend: list = field(default_factory=list)         # 1.57.77: [(rounds, label, tip)] per hour / day / week
     trend_title: str = ""
     times: object = None                              # 1.57.77: Grid of the rounds by weekday × time of day
+    killers: list = field(default_factory=list)       # 1.57.99: [(killer, rounds, result text)] most played first
+    killers_max: int = 1
+    active: dict = field(default_factory=dict)        # 1.57.99: {"map": name, "killer": name} – the filters set
 
 
 def _bp(n) -> str:
@@ -242,6 +245,28 @@ def map_rows(rounds, pairs, limit: int = MAPS_SHOWN) -> list:
     return rows
 
 
+def killer_rows(rounds, pairs, label=lambda k: k, limit: int = MAPS_SHOWN) -> list:
+    """1.57.99 (draft H "Klicken filtert alles"): [(killer, rounds, results)] of the most frequent killers of the
+    rounds (own killer as killer, the opposing one as survivor); results: Ø kills as killer · escaped as survivor.
+    The killer is shown by ``label`` – the same names as the filter's choices, so a click on a row can set it."""
+    counts = {}
+    for r in rounds:
+        if r.killer:
+            counts[r.killer] = counts.get(r.killer, 0) + 1
+    res = official.results([(r, m) for r, m in pairs if r.killer], lambda r: (r.killer, r.role))
+    rows = []
+    for k, n in sorted(counts.items(), key=lambda kv: (-kv[1], label(kv[0]).lower()))[:limit]:
+        parts = []
+        kills = official.mean(res.get((k, "killer"), {}).get("kills"))
+        esc = official.mean(res.get((k, "survivor"), {}).get("escaped"))
+        if kills is not None:
+            parts.append(_("Ø {kills} Kills", kills=f"{kills:.1f}"))
+        if esc is not None:
+            parts.append(_("{share} entkommen", share=f"{esc:.0%}"))
+        rows.append((label(k), n, " · ".join(parts)))
+    return rows
+
+
 def short_killer(name: str) -> str:
     """Column heading of the heatmap: "The Nurse" -> "Nurse" (the columns are narrow)."""
     return name[4:] if name.startswith("The ") else name
@@ -331,6 +356,8 @@ def build(rounds, pairs, killer_label=lambda k: k, unit: str = "week") -> Dashbo
     d.trend_title = {"hour": _("Verlauf – Runden pro Stunde"), "day": _("Verlauf – Runden pro Tag")}.get(
         unit, _("Verlauf – Runden pro Woche"))
     d.times = play_grid(rounds)
+    d.killers = killer_rows(rounds, pairs, killer_label)
+    d.killers_max = max((n for _k, n, _r in d.killers), default=1)
     return d
 
 

@@ -774,6 +774,12 @@ class App(ServerTab, StatsTab, ExportDialog, RecordingsTab, DiscordPresence, Spo
         if w is getattr(self, "stats_filter_btn", None):                  # 1.11.14: "Filter (2) ▾"
             return _("Region, Killer, Map, Modus und „Farming ausblenden“ ein- oder ausklappen. Die Zahl sagt, wie "
                      "viele davon gerade filtern.")
+        if w in getattr(self, "stats_chip_btns", {}).values():          # 1.57.99: "Map: Midwich ×"
+            return _("Diesen Filter entfernen – die Statistik zeigt dann wieder alle.")
+        if w is getattr(self, "stats_back_btn", None):
+            return _("Zurück zur Übersicht der Statistik.")
+        if w in getattr(self, "stats_part_btns", ()):
+            return lambda: _("Öffnet „{name}“ mit allen Zahlen dazu.", name=w.cget("text"))
         if w in getattr(self, "_export_col_checks", ()):            # 1.8.91: the export dialog's columns
             return lambda: _("Spalte „{name}“ mit ausgeben.", name=w.cget("text"))
         if w is self.edit_btn:
