@@ -476,7 +476,8 @@ def test_the_clips_are_tiles_and_a_chosen_tile_marks_the_clip_for_the_buttons(ap
         mp4 = next(p for p in gallery.paths() if p.endswith("clip.mp4"))
         app._clip_tile_picked(mp4)
         assert app._clip_selected().file == "clip.mp4" and app.clip_play_btn.cget("state") == "normal"
-        assert app._clip_preview_key is None                      # the compact preview belongs to the table
+        assert app._clip_preview_key == "clip.mp4"                # 1.57.93: a clicked tile plays beside the tiles
+        assert app.clip_host.master is app.clip_tiles_host.master is app.clip_table_frame.master      # one row
         app._clip_tile_picked(None)
         assert app._clip_selected() is None and app.clip_play_btn.cget("state") == "disabled"
         # 1.57.90: several tiles (Ctrl/Shift) mark several rows – "Als Montage öffnen" works from the tiles
@@ -485,6 +486,7 @@ def test_the_clips_are_tiles_and_a_chosen_tile_marks_the_clip_for_the_buttons(ap
         assert gallery.selected_paths() == both
         gallery._picked()
         assert sorted(app.clip_table.selection()) == ["clip.gif", "clip.mp4"]
+        assert app._clip_preview_key is None                      # several marked (a montage): no preview
         app._rec_render(force=True)                                # a refresh keeps both tiles marked
         assert gallery.selected_paths() == both and len(app.clip_table.selection()) == 2
         app._clip_tile_picked(None)

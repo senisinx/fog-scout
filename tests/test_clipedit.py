@@ -1792,3 +1792,24 @@ def test_i_and_o_trim_the_edges_a_backwards_clip_shows():
         assert calls == ["end", "start"] and (s.parts[0].start, s.parts[0].end) == (15.0, 20.0)
     finally:
         qt_editor.sequence.trim = real
+
+
+def test_the_preview_beside_the_clip_tiles_plays_at_once(clip, tmp_path):
+    """1.57.93 (user: "bei den Clips wenn ich auf eins klicke soll es direkt abspielen im fenster"): a compact
+    editor made with ``autoplay`` plays as soon as the file is read; without it, it waits for the button."""
+    pytest.importorskip("PySide6.QtWidgets", exc_type=ImportError)
+    from PySide6.QtWidgets import QApplication
+    from fogscout import qt_clip
+    QApplication.instance() or QApplication([])
+    clips = str(tmp_path / "Clips")
+    plain = qt_clip.ClipWindow(clip, [], clips, sound=False, compact=True)
+    auto = qt_clip.ClipWindow(clip, [], clips, sound=False, compact=True, autoplay=True)
+    try:
+        assert plain.info.ok and not plain.playing
+        assert auto.info.ok and auto.playing
+        auto.stop()
+        assert not auto.playing
+    finally:
+        for w in (plain, auto):
+            w.stop()
+            w.close()

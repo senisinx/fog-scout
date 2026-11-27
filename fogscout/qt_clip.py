@@ -2369,8 +2369,9 @@ class ClipWindow(ClipBase):
     compact = True
 
     def __init__(self, path: str, marks: list, clips_dir: str, mode: str = "copy", sound: bool = True,
-                 compact: bool = True, parent=None, on_expand=None, **kw):
+                 compact: bool = True, parent=None, on_expand=None, autoplay: bool = False, **kw):
         self.on_expand = on_expand
+        self.autoplay = bool(autoplay)        # 1.57.93: beside the clip tiles – plays as soon as the file is read
         super().__init__(path, marks, clips_dir, mode, sound, parent=parent, flags=Qt.Widget, **kw)
 
     def _ready(self, ok: bool):
@@ -2384,6 +2385,8 @@ class ClipWindow(ClipBase):
             self.timeline.set_range(max(0.0, first - MARK_BEFORE_S), min(self.info.duration, first + MARK_AFTER_S))
         self._show_range()
         self.goto(self.timeline.start)
+        if self.autoplay and not self.playing:
+            self.toggle_play()
 
     # ---- building
     def _build(self, mode, sound):

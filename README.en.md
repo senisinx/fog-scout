@@ -175,6 +175,8 @@ Since 1.8.8 choice boxes and tick boxes have their own style like buttons and fi
 
 **Overview without the fold, with charts; the foot of the side bar as a list** (since 1.57.92): “Today”, “This week”, the system and the last rounds are **always open** on the overview again – the fold is gone. Below, next to “Rounds per day”, there are four **charts** of the last 30 days: when you play (weekday × time of day), the most played maps, the roles and the kills of the last killer rounds (with match data); a chart without data is not shown. At the foot of the **side bar** the state, OBS and the server are now **three entries** with a small heading: every dot in one column, the state written out on a line of its own; “Log” and the arrow are below.
 
+**Settings in two columns** (since 1.57.93): in a wide window the cards of the settings stand **in two columns side by side** – the first ones on the left, the rest on the right, about equally high. The page is filled, and every row stays as short as before (a card is at most 760 px wide). A narrow window keeps one column. The order is still one list: a card can be dragged by its handle into the other column too.
+
 **Switches in the settings** (since 1.57.88): the tick boxes of the settings are on/off switches – as on the overview and in the list of overlay elements.
 
 **Overlay page as a "stage"** (since 1.57.87): the **preview** is on top across the page, below it the **row of all elements** with lock and on/off switch, below that the **settings of the element picked** – quick place, size and opacity on the left, its own settings on the right. In a narrow window everything is below each other.
