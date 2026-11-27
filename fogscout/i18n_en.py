@@ -2031,7 +2031,6 @@ EN = {
     'Spielbild': 'Game picture',
     'Map-Name': 'Map name',
     # 1.62: colour themes
-    'Farbthema': 'Colour theme',
     'Gold (Standard)': 'Gold (default)',
     'Blutrot': 'Blood red',
     'Eisblau': 'Ice blue',
@@ -4867,4 +4866,14 @@ EN = {
         'List',
     'Ansicht':
         'View',
+    'Hell':
+        'Light',
+    'Über':
+        'About',
+    'Über Fog Scout':
+        'About Fog Scout',
+    'Farbthema „Kartentisch“':
+        'Colour theme “Map table”',
+    'Ein eigener Look: dunkelgrüne Flächen, papierfarbene Schrift, bernsteinfarbener Akzent. Ein Farbfeld oben wählt wieder den normalen Look mit dieser Farbe.':
+        'A look of its own: dark green surfaces, paper-coloured text, amber accent. A colour square above brings back the normal look with that colour.',
 }

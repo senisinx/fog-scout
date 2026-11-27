@@ -2557,8 +2557,6 @@ T = {
         'Картинка игры',
     'Map-Name':
         'Название карты',
-    'Farbthema':
-        'Цветовая тема',
     'Gold (Standard)':
         'Золото (по умолчанию)',
     'Blutrot':
@@ -6390,4 +6388,14 @@ T = {
         'Список',
     'Ansicht':
         'Вид',
+    'Hell':
+        'Светлое',
+    'Über':
+        'О программе',
+    'Über Fog Scout':
+        'О Fog Scout',
+    'Farbthema „Kartentisch“':
+        'Тема «Картографический стол»',
+    'Ein eigener Look: dunkelgrüne Flächen, papierfarbene Schrift, bernsteinfarbener Akzent. Ein Farbfeld oben wählt wieder den normalen Look mit dieser Farbe.':
+        'Отдельный вид: тёмно-зелёные поверхности, текст цвета бумаги, янтарный акцент. Цветной квадрат выше возвращает обычный вид с этим цветом.',
 }

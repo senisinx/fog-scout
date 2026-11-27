@@ -527,6 +527,8 @@ TIPS = {
     "Leeren": "Log-Anzeige leeren (die Log-Datei bleibt).",
     "Log-Datei öffnen": "Öffnet fogscout.log mit allen Details.",
     # settings tab
+    "Farbthema „Kartentisch“": "Ein eigener Look: dunkelgrüne Flächen, papierfarbene Schrift, bernsteinfarbener "
+                               "Akzent. Ein Farbfeld oben wählt wieder den normalen Look mit dieser Farbe.",
     "Dark Mode": "Dunkle oder helle Darstellung des Steuerfensters.",
     "Standard": "Alle Hotkeys auf die Voreinstellung zurücksetzen.",
     "Beim Minimieren in den Infobereich":

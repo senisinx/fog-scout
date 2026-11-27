@@ -251,20 +251,18 @@ SPECS = {
             ("st.tab.general", N_("Allgemein"), (
                 ("card", "st.look", (
                     ("row", (("label", "st.lang.label"), ("combo", "st.lang"), ("stretch",))), ("hint", "st.lang_note"),
-                    ("check", "st.dark"),
-                    ("row", (("label", "st.theme.label"), ("combo", "st.theme"), ("stretch",))), ("swatches", "st.swatches"),
-                    ("check", "st.oled"),
+                    ("row", (("label", "st.dark.label"), ("combo", "st.dark"), ("stretch",))),   # 1.57.85: one choice
+                    ("swatches", "st.swatches"), ("check", "st.table"),          # 1.57.86: the look „Kartentisch“
                     ("row", (("label", "st.zoom.label"), ("combo", "st.zoom"), ("stretch",))),
                     ("row", (("button", "st.card_reset"), ("hint", "st.card_hint"))))),
                 ("card", "st.start", (("check", "st.tray"), ("check", "st.autostart"), ("hint", "st.autostart_info"),
                                       ("row", (("button", "st.setup_again"), ("stretch",))))),
                 ("card", "st.updates", (
                     ("check", "st.update"), ("hint", "st.update_note"),
-                    ("row", (("button", "st.upd_btn"), ("button", "st.upd_apply"), ("stretch",))), ("hint", "st.upd_status"),
-                    ("hint", "st.version"))),                 # 1.2.19: the version where the updates are
+                    ("row", (("button", "st.upd_btn"), ("button", "st.upd_apply"), ("stretch",))), ("hint", "st.upd_status"))),
                 # 1.29.1 (user: "unübersichtlich, Gemeinsamkeiten zusammentun"): backup and folders in one card
                 ("card", "st.more.backup", (("row", (("button", "st.more.export"), ("button", "st.more.import"),
-                                                     ("button", "st.more.archive"), ("button", "st.more.restore"), ("button", "st.more.selftest"),
+                                                     ("button", "st.more.archive"), ("button", "st.more.restore"),
                                                      ("button", "st.more.dir"), ("button", "st.more.maps_dir"), ("stretch",))),
                                             ("hint", "st.more.backup_hint"),
                                             ("row", (("button", "st.more.clear_hist"), ("button", "st.more.reset_all"),
@@ -387,7 +385,11 @@ SPECS = {
                                             ("row", (("button", "st.more.cl_keys"), ("button", "st.more.cl_billing"),
                                                      ("stretch",))),                                  # 1.26.1
                                             ("hint", "st.more.cl_status"),
-                                            ("fold", N_("Erklärung"), (("hint", "st.more.cl_text"),))))))),
+                                            ("fold", N_("Erklärung"), (("hint", "st.more.cl_text"),)))))),
+            # 1.57.85 (draft B): what the program is, its version and credits, and the check of the installation
+            ("st.tab.about", N_("Über"), (
+                ("card", "st.about", (("hint", "st.version"),
+                                      ("row", (("button", "st.more.selftest"), ("stretch",))))),)),),
          "list",           # 1.57.78 (user picked draft B "Liste links"): the tabs as a list beside the open one
          (("server", N_("Server")),)),     # 1.57.81: under the list – pages reached from here (NAV_PARENT)
     ),

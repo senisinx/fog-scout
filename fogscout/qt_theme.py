@@ -54,6 +54,19 @@ THEMES = {
     "violet": (N_("Lila"), {
         True: {"accent": "#b48cf0", "accent_hover": "#c3a2f4", "on_accent": "#12081f", "select": "#4e2f86"},
         False: {"accent": "#6b3fb3", "accent_hover": "#7c50c4", "on_accent": "#ffffff", "select": "#4e2f86"}}),
+    # 1.57.86 (user: "Gold bleibt, Kartentisch dazu"): a look of its own – dark green-grey surfaces, paper-coloured
+    # text, amber accent (the draft's palette); with OLED black the surfaces stay OLED's, only text and accent change
+    "table": (N_("Kartentisch"), {
+        True: {"bg": "#141b1b", "panel": "#19211f", "card": "#19211f", "nav": "#19211f", "nav_sel": "#141b1b",
+               "field": "#111716", "bar": "#111716", "border": "#2d3a38", "fg": "#ddd6c3", "dim": "#9aa095",
+               "head": "#f4efe0", "hover": "#24302e", "btn": "#24302e", "btn_hover": "#2e3c39", "press": "#33423f",
+               "sel_bg": "#2e3c39", "btn_dis": "#19211f", "accent": "#d99a3c", "accent_hover": "#e6ad55",
+               "on_accent": "#141b1b", "select": "#7a4a12"},
+        False: {"bg": "#ece6d6", "panel": "#f6f1e4", "card": "#f6f1e4", "nav": "#e3dcc9", "nav_sel": "#ece6d6",
+                "field": "#fbf8ef", "bar": "#dfd7c2", "border": "#cdc4ad", "fg": "#24231d", "dim": "#5c5a4e",
+                "head": "#15140f", "hover": "#e3dcc9", "btn": "#f6f1e4", "btn_hover": "#e3dcc9", "press": "#d7cfb9",
+                "sel_bg": "#d7cfb9", "btn_dis": "#ece6d6", "fg_dis": "#a09a88", "accent": "#7a4f0f",
+                "accent_hover": "#68430c", "on_accent": "#ffffff", "select": "#7a4a12", "danger": "#9c1f18"}}),
     "custom": (N_("Eigene Farbe"), None),         # 1.63: settings accent_custom, made readable by derive_accent
 }
 # The palette below the theme list (1.63, user's wish): one click = this colour as own accent (theme "custom").
@@ -70,6 +83,7 @@ SWATCHES = ("#c9a227", "#e08a1e", "#e8692a", "#d93a32", "#b0203a", "#e0508f", "#
             "#4f5fe0", "#2f8fe0", "#1fb5c9", "#17a38a", "#3cae4f", "#8cbf26")
 CUSTOM_DEFAULT = "#2f8fe0"
 MIN_CONTRAST = 4.5
+CARD_EDGE_BELOW = 1.15           # a card's fill this close to the page's colour: it keeps its outline (1.57.86)
 # OLED black (1.62.1, user: "mit OLED mehr Farbkombis"): a switch of its own, true black instead of the dark greys
 # – with every accent; the light mode stays as it is
 OLED = {"bg": "#000000", "panel": "#0d0d0f", "field": "#0a0a0b", "card": "#0d0d0f", "nav": "#0d0d0f",
@@ -127,7 +141,10 @@ def colours(dark: bool) -> dict:
     if _theme == "custom":
         c.update(derive_accent(_custom, bool(dark), c["card"], c["bg"], c["nav"]))
     else:
-        c.update(THEMES[_theme][1][bool(dark)])
+        over = THEMES[_theme][1][bool(dark)]
+        if dark and _oled:                                 # OLED black keeps its surfaces whatever the theme
+            over = {k: v for k, v in over.items() if k not in OLED}
+        c.update(over)
     c["handle"] = _handle(c)
     return c
 
@@ -332,6 +349,9 @@ def stylesheet(dark: bool, zoom: float = 1.0) -> str:
     def px(size):
         return f"{max(8, round(size * zoom))}px"
 
+    # 1.57.86 (user: "weniger Kästen"): a card is a filled area – its outline is drawn only where the fill hardly
+    # differs from the page (OLED black: 1.1:1), so a page is no longer a grid of lines
+    card_edge = c["border"] if contrast(c["card"], c["bg"]) < CARD_EDGE_BELOW else "transparent"
     return f"""
 * {{ font-family: 'Segoe UI Variable Text', 'Segoe UI', 'Inter', sans-serif; font-size: {px(TYPE['body'])}; color: {c['fg']};
     placeholder-text-color: {c['dim']}; }}  /* 1.25: with `color` set, Qt drew placeholders as fg at 50 % (3.3:1) */
@@ -354,7 +374,7 @@ QPushButton#pageback {{ background: transparent; border: 1px solid transparent; 
 QPushButton#pageback:hover {{ color: {c['fg']}; }}
 QPushButton#pageback:focus {{ border-color: {c['accent']}; }}
 QListWidget#tablist::item:hover:!selected {{ background: {c['hover']}; color: {c['fg']}; }}
-QFrame[class="card"] {{ background: {c['card']}; border: 1px solid {c['border']}; border-radius: {RADIUS['xl']}px; }}
+QFrame[class="card"] {{ background: {c['card']}; border: 1px solid {card_edge}; border-radius: {RADIUS['xl']}px; }}
 QFrame[class="card"] QLabel {{ background: transparent; }}
 QFrame[class="card"][dragging="true"], QFrame[class="card"][found="true"] {{ border: 1px solid {c['accent']}; }}
 QFrame[class="card"][link="true"]:hover {{ border: 1px solid {c['accent']}; }}
@@ -391,6 +411,9 @@ QTabWidget::pane {{ border: none; border-top: 1px solid {c['border']}; top: -1px
    the rounded frame was drawn with open corners at 100/125 % and boxed cards a second time */
 QTabWidget#formtabs::pane {{ background: {c['card']}; border: 1px solid {c['border']}; border-radius: {RADIUS['xl']}px; top: -1px;
     border-top-left-radius: 0; }}
+QTabWidget#formtabs[list="true"]::pane {{ background: transparent; border: 1px solid transparent; }}  /* 1.57.86: the
+   settings' areas beside their list – the cards stand on the page, not in a second box */
+QTabWidget#formtabs[list="true"] QWidget#page {{ background: {c['bg']}; }}
 QTabWidget#formtabs[found="true"]::pane {{ border: 1px solid {c['accent']}; }}
 QTabWidget#formtabs QWidget#page {{ background: {c['card']}; }}
 QTabWidget#formtabs > QTabBar::tab {{ font-weight: 600; padding: 8px 16px; }}

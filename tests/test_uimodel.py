@@ -1482,7 +1482,7 @@ def test_the_statistics_tabs_are_short_and_the_last_rounds_come_second(app_root)
         app._stats_render_tab()
         assert len(app.stats_last.get_children()) == 1
         tabs = [c[1] for k, c in app.qt.forms["settings"].controls.items() if c[0] == "tab"]   # 1.8.90
-        assert tabs and tabs[0].count() == 6 and not hasattr(app, "more_btn")
+        assert tabs and tabs[0].count() == 7 and not hasattr(app, "more_btn")   # 1.57.85: + "Über"
     finally:
         app.quit()
 

@@ -1564,6 +1564,7 @@ class FormPage(QWidget, _Arranged):
                     row.setContentsMargins(0, 0, 0, 0)
                     row.setSpacing(12)
                     self.tab_list = TabList(tabs)
+                    tabs.setProperty("list", True)             # 1.57.86: no box around the open area (qt_theme)
                     left = QVBoxLayout()
                     left.setContentsMargins(0, 0, 0, 0)
                     left.setSpacing(2)

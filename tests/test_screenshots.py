@@ -42,7 +42,7 @@ def test_every_page_tab_and_setup_step_gives_a_picture(app_root):
     names = sorted(os.path.basename(f) for f in files)
     assert all(os.path.getsize(f) > 1000 for f in files)
     tabs = qt_window.SPECS["settings"][0][1]                       # ("tabs", ((key, title, items), …))
-    assert len(tabs) == 6
+    assert len(tabs) == 7                                          # 1.57.85: + "Über"
     for _key, title, _items in tabs:
         assert any(n.startswith("settings-" + tool._name(title)[:-4]) for n in names), (title, names)
     assert "log.png" in names and "overlay-Karte.png" in names
