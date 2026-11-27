@@ -386,7 +386,8 @@ SPECS = {
                                             ("row", (("button", "st.more.cl_keys"), ("button", "st.more.cl_billing"),
                                                      ("stretch",))),                                  # 1.26.1
                                             ("hint", "st.more.cl_status"),
-                                            ("fold", N_("Erklärung"), (("hint", "st.more.cl_text"),)))))))),
+                                            ("fold", N_("Erklärung"), (("hint", "st.more.cl_text"),))))))),
+         "list"),          # 1.57.78 (user picked draft B "Liste links"): the tabs as a list beside the open one
     ),
 }
 

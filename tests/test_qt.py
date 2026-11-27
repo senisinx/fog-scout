@@ -912,6 +912,38 @@ def test_the_dashboard_has_no_tile_that_would_only_say_nothing():
     assert "Filter zurücksetzen" in dashboard.build([], []).empty
 
 
+def test_the_settings_areas_are_a_list_beside_the_open_one(qapp, keep):
+    """1.57.78 (draft B "Liste links"): the tabs of the settings as a list – a row per shown tab, a click opens it,
+    dragging a row moves the tab (the hidden tab bar stays the truth, so order and search work as before)."""
+    from PySide6.QtWidgets import QLabel
+    from fogscout import qt_window
+    from fogscout.qt_pages import FitTabs, TabList
+    assert qt_window.SPECS["settings"][0][0] == "tabs" and qt_window.SPECS["settings"][0][2] == "list"
+    tabs = keep(FitTabs())
+    for name in ("Allgemein", "Hotkeys", "Auf && ab"):
+        tabs.addTab(QLabel(name), name)
+    lst = keep(TabList(tabs))
+    assert tabs.tabBar().isHidden()
+    assert [lst.item(i).text() for i in range(lst.count())] == ["Allgemein", "Hotkeys", "Auf & ab"]
+    assert lst.currentRow() == 0
+    lst.setCurrentRow(2)
+    assert tabs.currentIndex() == 2
+    tabs.setCurrentIndex(1)
+    assert lst.currentRow() == 1
+    tabs.setTabVisible(0, False)
+    lst.sync()
+    assert lst.item(0).isHidden() and not lst.item(1).isHidden()
+    tall = lst.height()
+    tabs.setTabVisible(0, True)
+    lst.sync()
+    assert lst.height() > tall                                   # as tall as its rows
+    moved = []
+    tabs.tabBar().tabMoved.connect(lambda a, b: moved.append((a, b)))
+    lst._moved(None, 0, 0, None, 3)                               # the first row dropped below the last
+    assert moved and [lst.item(i).text() for i in range(lst.count())] == ["Hotkeys", "Auf & ab", "Allgemein"]
+    assert tabs.tabText(2) == "Allgemein" and tabs.currentIndex() == 2 == lst.currentRow()
+
+
 def test_the_first_statistics_page_shows_the_trend_and_when_you_play():
     """1.57.77 (draft A "Eine Seite"): how much was played over time and by weekday × time of day – from the rounds
     alone, without match data; every bucket between the first and the last round is there."""
