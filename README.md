@@ -191,6 +191,8 @@ Seit 1.8.8 haben Auswahllisten und Häkchen einen eigenen Stil wie Knöpfe und F
 
 **Vorladen im Hintergrund** (seit 1.57.100): Kurz nach dem Start baut Fog Scout in ruhigen Momenten die **Map-Kacheln** und macht die **Vorschaubilder der neuesten Clips und Aufnahmen** – beim ersten Öffnen von Maps und Aufnahmen sind sie schon da. Während einer Runde wartet das. Der Tab **Server** zeigt die zuletzt gemessenen Pings sofort an und ersetzt sie, sobald die neue Messung fertig ist (gespeichert werden nur die Millisekunden je Region).
 
+**Rechner wieder in der Seitenleiste** (seit 1.57.101): Der Rechner hat wieder seine eigene Zeile in der Navigation (zwischen Aufnahmen und Einstellungen). Der Knopf auf der Statistik-Seite bleibt.
+
 **Schalter in den Einstellungen** (seit 1.57.88): Die Häkchen der Einstellungen sind Ein/Aus-Schalter – wie auf der Übersicht und in der Liste der Overlay-Elemente.
 
 **Overlay-Seite als „Bühne“** (seit 1.57.87): Die **Vorschau** steht oben über die ganze Breite der Seite, darunter die **Zeile aller Elemente** mit Schloss und Ein/Aus-Schalter, darunter die **Einstellungen des gewählten Elements** – links Schnellposition, Grösse und Deckkraft, rechts seine eigenen Einstellungen. In einem schmalen Fenster steht alles untereinander.

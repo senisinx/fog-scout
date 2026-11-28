@@ -279,9 +279,10 @@ def steady_scroll(sa):
 
 
 # 1.57.81 (user picked "sechs Seiten"): pages that are no row of the navigation any more – page key -> (the page
-# they are reached from, its name); the log has none (the button at the navigation's foot opens it)
-NAV_PARENT = {"calc": ("stats", N_("Statistik")), "server": ("settings", N_("Einstellungen"))}
-NAV_HIDDEN = ("calc", "server", "log")
+# they are reached from, its name); the log has none (the button at the navigation's foot opens it). 1.57.101
+# (user: "wo ist calculator hin?" → "wieder in die Seitenleiste"): the calculator has its row again
+NAV_PARENT = {"server": ("settings", N_("Einstellungen"))}
+NAV_HIDDEN = ("server", "log")
 
 
 def page_head(title: str, page_key: str = "") -> QVBoxLayout:

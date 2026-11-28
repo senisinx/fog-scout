@@ -3357,10 +3357,11 @@ def test_the_navigation_shows_six_pages_and_the_others_are_reached_from_their_pl
     win.resize(1280, 800)
     win.show()
     hidden = lambda: [win.nav.item(r).data(0x0100) for r in range(win.nav.count()) if win.nav.isRowHidden(r)]  # noqa: E731
-    assert win.nav_shown() == ["overview", "maps", "overlay", "stats", "recordings", "settings"]
-    assert sorted(hidden()) == ["calc", "log", "server"] and len(win.nav_keys()) == 9
+    # 1.57.101 (user: "wieder in die Seitenleiste"): the calculator has its row again
+    assert win.nav_shown() == ["overview", "maps", "overlay", "stats", "recordings", "calc", "settings"]
+    assert sorted(hidden()) == ["log", "server"] and len(win.nav_keys()) == 9
     win.set_nav_order(["server", "settings", "calc"])
-    assert sorted(hidden()) == ["calc", "log", "server"] and win.nav_shown()[0] == "settings"
+    assert sorted(hidden()) == ["log", "server"] and win.nav_shown()[:2] == ["settings", "calc"]
     win.show_page("settings")
     link = win.forms["settings"].tab_links["server"]
     assert link.text().startswith("Server") and link.isVisible()
@@ -3377,14 +3378,11 @@ def test_the_navigation_shows_six_pages_and_the_others_are_reached_from_their_pl
     assert len(back) == 1 and back[0].text() == "‹ Einstellungen"
     back[0].click()
     assert win.current_key() == "settings"
-    calc = head("Rechner", "calc")
-    assert calc[0].text() == "‹ Statistik"
-    calc[0].click()
-    assert win.current_key() == "stats"
+    assert not head("Rechner", "calc")                      # a row of its own: no way back above its title
     win.nav_foot.log_btn.click()
     assert win.current_key() == "log"
     assert not head("Log", "log") and not head("Maps", "maps")
-    assert qt_window.NAV_HIDDEN == ("calc", "server", "log")
+    assert qt_window.NAV_HIDDEN == ("server", "log")
 
 
 def test_the_name_column_is_never_squeezed_below_its_contents(qapp, keep):
@@ -4275,8 +4273,9 @@ def test_the_foot_entries_lead_to_their_page_and_a_page_without_a_row_marks_its_
     stats = win.nav.item(win._nav_row("stats"))
     settings = win.nav.item(win._nav_row("settings"))
     assert settings.font().bold() and not stats.font().bold()             # the server belongs to the settings
-    win.show_page("calc")
-    assert stats.font().bold() and not settings.font().bold() and win._nav_marked == "stats"
+    win.show_page("calc")                                                 # 1.57.101: its own row again
+    assert not stats.font().bold() and win._nav_marked is None
+    assert win.nav.currentItem() is win.nav.item(win._nav_row("calc"))
     win.show_page("log")
     assert not stats.font().bold() and win.nav_foot.log_btn.property("on") is True
     win.show_page("maps")
