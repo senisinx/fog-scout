@@ -178,6 +178,7 @@ DEFAULTS = {
     "auto_update": True,                # start.bat: pull the newest state from GitHub before starting
     "user_aliases": {},                 # own assignments of unknown banner texts: {map_id: [text, ...]}
     "map_notes": {},                    # 1.8.54: own notes per map, shown with the map: {map_id: text}
+    "map_favorites": [],                # 1.57.103: map ids with the star on the maps page (chip "Favoriten")
     "killer_notes": {},                 # 1.38.30: own notes per killer, shown below the map's once the killer is known
     "welcome_seen": False,              # the setup assistant of the first start was finished or skipped
     "seen_version": "",                 # 1.8.79: the version last run – the overview lists what is new since
@@ -408,7 +409,7 @@ def no_bar_defaults(data: dict) -> dict:
     return data
 
 
-KEPT_CONTENT = ("map_notes", "killer_notes", "edit_templates")   # 1.57.70 (DATA-03): the user's own texts, not settings
+KEPT_CONTENT = ("map_notes", "killer_notes", "edit_templates", "map_favorites")   # 1.57.70 (DATA-03): the user's own texts, not settings
 
 
 def reset_data(current: dict, keep_content: bool = True) -> dict:

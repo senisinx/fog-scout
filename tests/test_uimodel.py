@@ -4031,3 +4031,25 @@ def test_the_maps_tiles_are_built_ahead_but_never_while_a_round_runs(app_root):
         assert not app._qt_warm_extras() and not app._qt_warm_extras()      # once
     finally:
         app.quit()
+
+
+def test_the_star_of_a_map_is_kept_and_reaches_the_maps_page(app_root):
+    """1.57.103: "Favorit" on the maps page toggles the map in the setting ``map_favorites`` (known maps only),
+    and the page gets the set at once."""
+    import json
+    from fogscout.app import App
+    (app_root / "settings.json").write_text(json.dumps({"welcome_seen": True, "map_favorites": ["nope", 3]}),
+                                            encoding="utf-8")
+    app = App(str(app_root), simulate=str(app_root / "sim"))
+    try:
+        assert app._map_favs() == set()                          # unknown names and non-texts are ignored
+        mid = next(iter(app.catalog.maps))
+        app._qt_event("map_action", ("fav", (mid, 1)))
+        assert mid in app.settings.get("map_favorites") and app._map_favs() == {mid}
+        app.qt.show_page("maps")
+        app._qt_refresh(force=True)
+        assert app.qt.maps._favs == {mid}
+        app._qt_event("map_action", ("fav", (mid, 1)))
+        assert app._map_favs() == set()
+    finally:
+        app.quit()

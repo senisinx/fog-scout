@@ -377,7 +377,8 @@ class QtShell:
             items = self._qt_map_items(search=False)      # 1.8.72: all maps, the search only as a filter
             found = {(mid, v) for _r, _l, mid, v in self._qt_map_items()} if self._qt_search_text() else None
             q.show_maps(items, self.current, self._qt_preview(sel), self._qt_thumbs(items), self._qt_recent(),
-                        self._qt_marks(items), self.settings["overlay"].get("map_style", "classic"), found)
+                        self._qt_marks(items), self.settings["overlay"].get("map_style", "classic"), found,
+                        self._map_favs())
 
     def _qt_warm_extras(self) -> bool:
         """1.57.100 (user: "Vorschaubilder im Hintergrund bereits laden, Maps ebenfalls"): after the pages, once
@@ -642,7 +643,9 @@ class QtShell:
             self.qt.show_page("maps")
         elif action == "map_action":                 # 1.2.18: right click on a map tile
             name, (mid, v) = arg
-            if name == "show":
+            if name == "fav":                        # 1.57.103: the star (detail pane, right click)
+                self._map_fav_toggle(mid)
+            elif name == "show":
                 self.show_map(mid, v, "manual")
             elif name == "rotate":
                 self.rotate_map(mid)
@@ -846,6 +849,22 @@ class QtShell:
             if parts or own:
                 out[(mid, v)] = (" · ".join(parts), "\n".join([" · ".join(parts)] + tips), bool(own))
         return out
+
+    def _map_favs(self) -> set:
+        """1.57.103: the map ids marked with the star (setting ``map_favorites``; only names of known maps)."""
+        favs = self.settings.get("map_favorites")
+        return {m for m in favs if isinstance(m, str) and m in self.catalog.maps} if isinstance(favs, list) else set()
+
+    def _map_fav_toggle(self, mid):
+        """The star of a map on or off – the chip "Favoriten" and the detail pane follow at once."""
+        if mid not in self.catalog.maps:
+            return
+        favs = [m for m in (self.settings.get("map_favorites") or []) if isinstance(m, str)]
+        favs = [m for m in favs if m != mid] if mid in favs else favs + [mid]
+        self.settings.set("map_favorites", favs)
+        self._save_soon()
+        self._qt_maps_rev = getattr(self, "_qt_maps_rev", 0) + 1
+        self._qt_refresh(force=True)
 
     def _qt_recent(self, kept=12):
         """Map ids of the rounds played last, newest first, each once (the list entry "Zuletzt gespielt")."""
