@@ -14,7 +14,7 @@ from PySide6.QtWidgets import (QAbstractButton, QBoxLayout, QFrame, QGridLayout,
 
 from . import qt_icons, qt_theme
 from .i18n import N_, _
-from .qt_common import on_zoom
+from .qt_common import on_zoom, set_glyph
 
 # element -> its settings tab (appconst.ELEMENT_TABS; repeated here: the Qt side never imports the App's mixins)
 TABS = {"map": "ov.look", "text": "ov.info_f", "hud": "ov.sys", "today": "ov.today_f", "music": "ov.music_f",
@@ -31,6 +31,7 @@ STAGE_MIN_H = 200            # px: the stage's preview is at least this tall …
 STAGE_SETTINGS_H = 280       # … and leaves the settings below it at least this much of the editor's height
 STAGE_COLS = 5               # elements per line under the stage (9 rows: two lines), from STAGE_COLS_FROM px on
 STAGE_COLS_FROM = 1000
+RAIL_W = 220                 # px at text zoom 1.0: 1.57.106 (draft D) the list of elements beside the stage
 ALIGN_LABEL, ALIGN_COMBO = 104, 196     # px: row labels / choices of the inspector aligned at most this wide
 PRESET_W = 190               # px: the choice of a preset in the tool bar
 CELL = QSize(30, 20)         # one cell of the quick places (a small screen, 3×3)
@@ -479,16 +480,28 @@ class OverlayEditor(QWidget):
         eb.addStretch()
         # 1.57.87 (user picked the draft "Bühne"): place / size / opacity and the element's own settings side by
         # side under the preview (below each other in a narrow window)
-        self.columns = QBoxLayout(QBoxLayout.LeftToRight)
+        # 1.57.106 (user picked draft "D" – "zu viele Regler"): place, size and opacity first, the element's own
+        # settings below them behind "Mehr Einstellungen (n) ›" (shut until opened; "Allgemein" shows them open)
+        self.columns = QBoxLayout(QBoxLayout.TopToBottom)
         self.columns.setContentsMargins(0, 0, 0, 0)
-        self.columns.setSpacing(24)
+        self.columns.setSpacing(10)
         self.columns.addWidget(self.element_box)
+        self.more_btn = QPushButton("")
+        self.more_btn.setObjectName("fold")              # like every fold: the search finds what is behind it
+        self.more_btn.setCursor(Qt.PointingHandCursor)
+        self.more_btn.setSizePolicy(QSizePolicy.Maximum, QSizePolicy.Fixed)
+        self.more_btn.setToolTip(_("Die übrigen Einstellungen dieses Elements ein- oder ausklappen."))
+        self.more_btn.clicked.connect(self._toggle_more)
+        self._more_open = False
+        self.columns.addWidget(self.more_btn, 0, Qt.AlignLeft)
         self.own_box = QWidget()
         ob = QVBoxLayout(self.own_box)
         ob.setContentsMargins(0, 0, 0, 0)
         ob.setSpacing(6)
         page._items(inspector[cut:], ob, page_key)
         ob.addStretch()
+        self.own_box.setProperty("fold_body", True)
+        self.more_btn._dbdms_fold = self.own_box
         self.columns.addWidget(self.own_box, 1)
         cl2.addLayout(self.columns)
         cl2.addStretch()
@@ -511,6 +524,36 @@ class OverlayEditor(QWidget):
     def mode_for(self, width: int) -> str:
         return "stage" if width >= MEDIUM_FROM * qt_theme.current_zoom() else "narrow"
 
+    def _own_count(self) -> int:
+        """How many settings the open tab of the inspector holds (the number on "Mehr Einstellungen")."""
+        cur = self.tabs.currentWidget() if self.tabs is not None else None
+        if cur is None:
+            return 0
+        kinds = ("check", "combo", "slider", "radio", "entry", "button", "switch", "swatches", "hotkey")
+        return sum(1 for _k, (kind, w, _x) in self.page.controls.items()
+                   if kind in kinds and isinstance(w, QWidget) and cur.isAncestorOf(w))
+
+    def _show_more(self):
+        """The fold of the element's own settings: open for "Allgemein" (it has nothing else), else as chosen."""
+        general = self._current_frame() == GENERAL_TAB
+        self.more_btn.setVisible(not general)
+        n = self._own_count()
+        text = (_("Weniger Einstellungen") if self._more_open else
+                _("Mehr Einstellungen ({n})", n=n) if n else _("Mehr Einstellungen"))
+        if self.more_btn.text() != text:
+            self.more_btn.setText(text)
+        set_glyph(self.more_btn, "chevron_down" if self._more_open else "chevron_right")
+        show = general or self._more_open
+        if self.own_box.isHidden() == show:
+            self.own_box.setVisible(show)
+
+    def _toggle_more(self):
+        self._more_open = not self._more_open
+        self._show_more()
+
+    def more_open(self) -> bool:
+        return self._more_open and not self.own_box.isHidden()
+
     def arrange(self, width: int):
         """1.57.87 (user picked the draft "Bühne"): "stage" – the preview on top across the page, below it the row
         of all elements with their switches, below that the settings of the element picked (place and size beside
@@ -528,33 +571,42 @@ class OverlayEditor(QWidget):
         for i in range(3):
             self.body.setColumnStretch(i, 0)
             self.body.setRowStretch(i, 0)
-        if self.rail_view is not None:
-            self.rail_view.set_compact(True, STAGE_COLS if width >= STAGE_COLS_FROM * z else None)
-        self.rail_head.setVisible(False)
-        self.body.addWidget(self.canvas_box, 0, 0)
-        self.body.addWidget(self.rail, 1, 0)
-        self.body.addWidget(self.inspector, 2, 0)
-        self.body.setColumnStretch(0, 1)
         if mode == "stage":
-            self.columns.setDirection(QBoxLayout.LeftToRight)
-            self.element_box.setFixedWidth(round(INSPECTOR_W * z))
+            # 1.57.106 (user picked draft "D" – "Elementliste unklar"): the elements as a list on the left, one
+            # under the other; the preview and the settings of the element picked beside it
+            if self.rail_view is not None:
+                self.rail_view.set_compact(False)
+            self.rail_head.setVisible(True)
+            self.rail.setFixedWidth(round(RAIL_W * z))
+            self.body.addWidget(self.rail, 0, 0, 2, 1)
+            self.body.addWidget(self.canvas_box, 0, 1)
+            self.body.addWidget(self.inspector, 1, 1)
+            self.body.setColumnStretch(1, 1)
+            self.element_box.setMaximumWidth(round(INSPECTOR_W * 1.6 * z))
             self.inspector.setMinimumHeight(STAGE_SETTINGS_H)
-            self.body.setRowStretch(2, 1)
+            self.body.setRowStretch(1, 1)
             self._stage_canvas()
         else:
-            self.columns.setDirection(QBoxLayout.TopToBottom)
+            if self.rail_view is not None:
+                self.rail_view.set_compact(True)
+            self.rail_head.setVisible(False)
+            self.body.addWidget(self.canvas_box, 0, 0)
+            self.body.addWidget(self.rail, 1, 0)
+            self.body.addWidget(self.inspector, 2, 0)
+            self.body.setColumnStretch(0, 1)
             self.element_box.setMinimumWidth(0)
             self.element_box.setMaximumWidth(16777215)
             self.inspector.setMinimumHeight(420)
             self._narrow_canvas()
+        self._show_more()
 
     def _stage_canvas(self):
         """The stage: as tall as a 21:9 picture across the page – less where the settings below would not keep
         STAGE_SETTINGS_H of the editor's height, never under STAGE_MIN_H."""
         gap = self.body.spacing()
-        room = self._view_height() - self.bar.sizeHint().height() - self.rail.sizeHint().height() - 3 * gap \
-            - STAGE_SETTINGS_H
-        h = max(STAGE_MIN_H, min(round(self.width() * 9 / 21) + 40, room))
+        room = self._view_height() - self.bar.sizeHint().height() - 2 * gap - STAGE_SETTINGS_H
+        wide = max(1, self.width() - self.rail.width() - gap)             # 1.57.106: the list stands beside it
+        h = max(STAGE_MIN_H, min(round(wide * 9 / 21) + 40, room))
         if self.canvas_box.minimumHeight() != h or self.canvas_box.maximumHeight() != h:
             self.canvas_box.setFixedHeight(h)
 
@@ -643,6 +695,7 @@ class OverlayEditor(QWidget):
             self.subhead.setText(sub)
         if self.element_box.isHidden() != general:
             self.element_box.setVisible(not general)
+        self._show_more()
 
     def _current_frame(self):
         if self.tabs is None:
