@@ -2489,6 +2489,20 @@ T = {
         '„{name}“을(를) 모든 수치와 함께 엽니다.',
     'Öffnet die ganze Rundenliste dieser Auswahl – dort lassen sich Runden korrigieren, löschen und exportieren.':
         '이 선택의 전체 라운드 목록을 엽니다 – 거기서 라운드를 수정, 삭제, 내보낼 수 있습니다.',
+    'Favoriten':
+        '즐겨찾기',
+    'Favorit':
+        '즐겨찾기',
+    'Favorit an/aus':
+        '즐겨찾기 켜기/끄기',
+    'Realm …':
+        '렐름 …',
+    'Nur die Maps eines Realms zeigen.':
+        '한 렐름의 맵만 표시합니다.',
+    'Merkt die Map als Favorit – „Favoriten“ oben zeigt nur diese.':
+        '맵을 즐겨찾기로 표시합니다 – 위의 „즐겨찾기“는 이것만 보여 줍니다.',
+    'Noch keine Favoriten. Eine Map anklicken und rechts „Favorit“ drücken – oder Rechtsklick auf eine Kachel.':
+        '아직 즐겨찾기가 없습니다. 맵을 클릭하고 오른쪽의 „즐겨찾기“를 누르거나 타일을 오른쪽 클릭하세요.',
     'Schritt {n} von {total}':
         '{n}/{total}단계',
     'Sprache':

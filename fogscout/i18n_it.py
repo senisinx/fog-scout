@@ -2489,6 +2489,20 @@ T = {
         'Apre «{name}» con tutti i numeri.',
     'Öffnet die ganze Rundenliste dieser Auswahl – dort lassen sich Runden korrigieren, löschen und exportieren.':
         "Apre l'elenco completo delle partite di questa selezione – lì si possono correggere, eliminare ed esportare.",
+    'Favoriten':
+        'Preferite',
+    'Favorit':
+        'Preferita',
+    'Favorit an/aus':
+        'Preferita sì/no',
+    'Realm …':
+        'Reame …',
+    'Nur die Maps eines Realms zeigen.':
+        'Mostra solo le mappe di un reame.',
+    'Merkt die Map als Favorit – „Favoriten“ oben zeigt nur diese.':
+        'Segna la mappa come preferita – «Preferite» in alto mostra solo queste.',
+    'Noch keine Favoriten. Eine Map anklicken und rechts „Favorit“ drücken – oder Rechtsklick auf eine Kachel.':
+        'Ancora nessuna preferita. Clicca una mappa e premi «Preferita» a destra – oppure clic destro su una tessera.',
     'Schritt {n} von {total}':
         'Passo {n} di {total}',
     'Sprache':

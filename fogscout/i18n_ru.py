@@ -2489,6 +2489,20 @@ T = {
         'Открывает «{name}» со всеми цифрами.',
     'Öffnet die ganze Rundenliste dieser Auswahl – dort lassen sich Runden korrigieren, löschen und exportieren.':
         'Открывает полный список раундов этой выборки – там их можно исправить, удалить и экспортировать.',
+    'Favoriten':
+        'Избранное',
+    'Favorit':
+        'В избранное',
+    'Favorit an/aus':
+        'Избранное вкл./выкл.',
+    'Realm …':
+        'Мир …',
+    'Nur die Maps eines Realms zeigen.':
+        'Показывать карты только одного мира.',
+    'Merkt die Map als Favorit – „Favoriten“ oben zeigt nur diese.':
+        'Отмечает карту как избранную – «Избранное» вверху показывает только их.',
+    'Noch keine Favoriten. Eine Map anklicken und rechts „Favorit“ drücken – oder Rechtsklick auf eine Kachel.':
+        'Избранного пока нет. Нажмите на карту и справа «В избранное» – или правый щелчок по плитке.',
     'Schritt {n} von {total}':
         'Шаг {n} из {total}',
     'Sprache':

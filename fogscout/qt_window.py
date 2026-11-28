@@ -1367,8 +1367,9 @@ class MainWindow(QMainWindow):
         for key, page in self.forms.items():
             page.apply_order(self._card_orders.get(key, {}))
 
-    def show_maps(self, items, current, preview=None, thumbs=None, recent=None, marks=None, style=None, found=None):
-        self.maps.show_maps(items, current, thumbs, recent, marks, style, found)
+    def show_maps(self, items, current, preview=None, thumbs=None, recent=None, marks=None, style=None, found=None,
+                  favs=None):
+        self.maps.show_maps(items, current, thumbs, recent, marks, style, found, favs)
         self.maps.show_preview(preview)
 
     def warm_page(self, key: str):

@@ -2489,6 +2489,20 @@ T = {
         '打开“{name}”及其全部数据。',
     'Öffnet die ganze Rundenliste dieser Auswahl – dort lassen sich Runden korrigieren, löschen und exportieren.':
         '打开此筛选的完整对局列表 – 可在那里更正、删除和导出对局。',
+    'Favoriten':
+        '收藏',
+    'Favorit':
+        '收藏',
+    'Favorit an/aus':
+        '收藏 开/关',
+    'Realm …':
+        '领域 …',
+    'Nur die Maps eines Realms zeigen.':
+        '只显示一个领域的地图。',
+    'Merkt die Map als Favorit – „Favoriten“ oben zeigt nur diese.':
+        '将地图设为收藏——上方的“收藏”只显示这些地图。',
+    'Noch keine Favoriten. Eine Map anklicken und rechts „Favorit“ drücken – oder Rechtsklick auf eine Kachel.':
+        '还没有收藏。点击一张地图并在右侧按“收藏”——或右键点击图块。',
     'Schritt {n} von {total}':
         '第 {n} 步，共 {total} 步',
     'Sprache':

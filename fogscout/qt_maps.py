@@ -8,27 +8,31 @@ from __future__ import annotations
 
 from PySide6.QtCore import QPoint, QSize, Qt, QTimer
 from PySide6.QtGui import QColor, QFont, QImage, QPalette, QPixmap
-from PySide6.QtWidgets import (QApplication, QButtonGroup, QFrame, QHBoxLayout, QLabel, QLineEdit, QListView, QListWidget, QListWidgetItem, QMenu,
+from PySide6.QtWidgets import (QApplication, QButtonGroup, QComboBox, QFrame, QHBoxLayout, QLabel, QLineEdit, QListView, QListWidget, QListWidgetItem, QMenu,
                                QPlainTextEdit, QPushButton, QStyle, QStyledItemDelegate, QStyleOptionViewItem, QScrollArea,
                                QSizePolicy, QVBoxLayout, QWidget)
 
 from . import i18n, qt_theme, thumbs
-from .qt_layouts import FlowRow
+from .qt_layouts import FlowRow, TileGrid
 from .i18n import N_, _
 from .mapnotes import MAX_CHARS as NOTE_CHARS
-from .qt_common import pixmap_from_pil, steady_scroll, _label, _tip, _card, _set, _scroll_page, set_glyph
+from .qt_common import guard_wheel, pixmap_from_pil, steady_scroll, _label, _tip, _card, _set, _scroll_page, set_glyph
 
 
-TILE_W, TILE_H = 150, 190          # px (logical) of a map tile on the maps page (1.2.18: + info line)
+# px (logical) of a map tile on the maps page (1.2.18: + info line). 1.57.103 (user picked draft B "grosse Kacheln"):
+# larger, and TILE_W is the least width – the tiles of a row share the whole width (TileGrid)
+TILE_W, TILE_H = 180, 214
 
 
-TILE_PIC = 124                     # the picture in it
+TILE_PIC = 144                     # the picture in it
+TILE_COLS = 12                     # at most this many tiles side by side
 
 PUMP_MS = 20                       # 1.8.72: how often the window thread takes finished thumbnails (≤ 8 each)
 PUMP_TAKE = 8
 
 
 ALL_MAPS, RECENT = "\x00all", "\x00recent"     # the two entries above the realms in the list
+FAVS = "\x00favs"                  # 1.57.103: the maps marked with the star
 
 
 class MapTile(QFrame):
@@ -38,7 +42,9 @@ class MapTile(QFrame):
     def __init__(self, page, key, label):
         super().__init__()
         self.setProperty("class", "tile")
-        self.setFixedSize(TILE_W, TILE_H)
+        self.setFixedHeight(TILE_H)                 # 1.57.103: the width comes from the row (TileGrid)
+        self.setMinimumWidth(TILE_W)
+        self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
         self.setCursor(Qt.PointingHandCursor)
         self.setFocusPolicy(Qt.StrongFocus)
         self._page, self.key = page, key
@@ -52,19 +58,28 @@ class MapTile(QFrame):
         lay.addWidget(self.pic)
         self.name = _label(label, "tile")
         self.name.setToolTip(label)
-        fm = self.name.fontMetrics()
-        self.name.setText(fm.elidedText(label, Qt.ElideRight, TILE_W - 16))
+        self._label = label
         lay.addWidget(self.name)
         self.info = _label("", "tileinfo")       # 1.2.18: rounds / Ø kills and the map's own settings
         lay.addWidget(self.info)
         self._mark = None
+        self._elide()
+
+    def _elide(self):
+        room = max(TILE_W, self.width()) - 16
+        self.name.setText(self.name.fontMetrics().elidedText(self._label, Qt.ElideRight, room))
+        if self._mark is not None:
+            self.info.setText(self.info.fontMetrics().elidedText(self._mark[0], Qt.ElideRight, room))
+
+    def resizeEvent(self, e):
+        super().resizeEvent(e)
+        self._elide()
 
     def set_mark(self, text: str, tip: str = ""):
         if (text, tip) == self._mark:
             return
         self._mark = (text, tip)
-        fm = self.info.fontMetrics()
-        self.info.setText(fm.elidedText(text, Qt.ElideRight, TILE_W - 16))
+        self._elide()
         self.info.setToolTip(tip or text)
 
     def contextMenuEvent(self, e):
@@ -168,11 +183,12 @@ class MapsPage(QWidget):
         self._built = None                 # the items the grid was built from
         self._found = None                 # keys the search found, None = no search (everything)
         self._recent = []
+        self._favs = set()                 # 1.57.103: map ids with the star
         self._thumbs = {}                  # (map_id, variant) -> picture path
         self._pix = {}                     # path -> QPixmap (made once)
         self._awaited = set()              # paths the loader still owes (1.8.72)
         self._tiles = {}                   # (map_id, variant) -> MapTile of the realm grid
-        self._groups = []                  # [(realm, heading, FlowRow, [tiles])]
+        self._groups = []                  # [(realm, heading, TileGrid, [tiles])]
         self._recent_tiles = []            # own tiles of "Zuletzt gespielt" (a map can be in both)
         self._recent_head = self._recent_flow = None
         self._marks = {}                   # (map_id, variant) -> (info text, tooltip) (1.2.18)
@@ -189,6 +205,27 @@ class MapsPage(QWidget):
         outer.setContentsMargins(0, 0, 0, 0)
         outer.addWidget(page)
         row = QHBoxLayout()
+        row.setSpacing(8)
+        # 1.57.103 (user picked draft B): "Alle · Zuletzt · Favoriten" as chips and the realms in one choice box –
+        # before, twenty realm chips took three lines above the tiles
+        self.realms = QListWidget()
+        self.realms.setObjectName("realms")
+        self.realms.setFlow(QListView.LeftToRight)
+        self.realms.setWrapping(False)
+        self.realms.setMovement(QListView.Static)
+        self.realms.setSpacing(2)
+        self.realms.setItemDelegate(RealmDelegate(self.realms))
+        self.realms.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.realms.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.realms.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
+        self.realms.currentItemChanged.connect(self._realm_picked)
+        row.addWidget(self.realms)
+        self.realm_pick = guard_wheel(QComboBox())
+        self.realm_pick.setAccessibleName(_("Realm"))
+        self.realm_pick.setToolTip(_("Nur die Maps eines Realms zeigen."))
+        self.realm_pick.setSizeAdjustPolicy(QComboBox.AdjustToContents)
+        self.realm_pick.activated.connect(self._realm_chosen)
+        row.addWidget(self.realm_pick)
         self.search = QLineEdit()
         self.search.setPlaceholderText(_("Suchen: Name, Realm, Abkürzung …"))
         self.search.setClearButtonEnabled(True)
@@ -221,21 +258,6 @@ class MapsPage(QWidget):
         lay.addWidget(style_row)                        # 1.8.16: six styles – a row of their own, wraps when narrow
         body = QHBoxLayout()
         body.setSpacing(16)
-        # 1.57.82 (draft A): the realms as chips in a row that wraps, above the tiles – the list beside them took
-        # 250 px the chosen map now has
-        self.realms = QListWidget()
-        self.realms.setObjectName("realms")
-        self.realms.setFlow(QListView.LeftToRight)
-        self.realms.setWrapping(True)
-        self.realms.setResizeMode(QListView.Adjust)
-        self.realms.setMovement(QListView.Static)
-        self.realms.setSpacing(2)
-        self.realms.setItemDelegate(RealmDelegate(self.realms))
-        self.realms.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
-        self.realms.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
-        self.realms.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
-        self.realms.currentItemChanged.connect(self._realm_picked)
-        lay.addWidget(self.realms)
         # the grid of tiles
         grid_page = QScrollArea()
         grid_page.setWidgetResizable(True)
@@ -285,6 +307,12 @@ class MapsPage(QWidget):
         self.p_back.clicked.connect(self.close_big)
         top.addWidget(self.p_back)
         top.addStretch()
+        self.p_fav = QPushButton(_("Favorit"))          # 1.57.103: the star – the chip "Favoriten" shows these
+        self.p_fav.setCheckable(True)
+        set_glyph(self.p_fav, "star")
+        self.p_fav.setToolTip(_("Merkt die Map als Favorit – „Favoriten“ oben zeigt nur diese."))
+        self.p_fav.clicked.connect(lambda: self._detail_act("fav"))
+        top.addWidget(self.p_fav)
         self.p_show = QPushButton(_("Anzeigen"))
         self.p_show.setObjectName("primary")
         self.p_show.setToolTip(_tip("Anzeigen"))
@@ -362,42 +390,74 @@ class MapsPage(QWidget):
         self.search.clear()
         self.search.setFocus(Qt.OtherFocusReason)
 
+    def realm_keys(self) -> list:
+        """The realms in the choice box, in catalog order."""
+        return [self.realm_pick.itemData(i) for i in range(1, self.realm_pick.count())]
+
     def _fill_realms(self):
+        """The chips "Alle Maps", "Zuletzt gespielt" (with rounds), "Favoriten" (with a star) and the realms in the
+        choice box – each with its number of maps."""
         counts = {}
         for realm, _label_, _mid, _v in self._items:
             counts[realm] = counts.get(realm, 0) + 1
         want = [(ALL_MAPS, _("Alle Maps"), sum(counts.values()))]
         if self._recent:
             want.append((RECENT, _("Zuletzt gespielt"), len(self._recent)))
-        want += [(r, r, n) for r, n in counts.items()]
+        favs = sum(1 for _r, _l, mid, _v in self._items if mid in self._favs)
+        want.append((FAVS, _("Favoriten"), favs))
         have = [(self.realms.item(i).data(Qt.UserRole), self.realms.item(i).text())
                 for i in range(self.realms.count())]
         texts = [(k, f"{t}\t{n}") for k, t, n in want]
-        if have == texts:
-            return
-        self.realms.blockSignals(True)
-        self.realms.clear()
-        for k, text in texts:
-            it = QListWidgetItem(text)
-            it.setData(Qt.UserRole, k)
-            self.realms.addItem(it)
-        self.realms.blockSignals(False)
-        self._fit_realms()
+        if have != texts:
+            self.realms.blockSignals(True)
+            self.realms.clear()
+            for k, text in texts:
+                it = QListWidgetItem(text)
+                it.setData(Qt.UserRole, k)
+                self.realms.addItem(it)
+            self.realms.blockSignals(False)
+            self._fit_realms()
+        realms = [(r, f"{r} ({n})") for r, n in counts.items()]
+        if [(self.realm_pick.itemData(i), self.realm_pick.itemText(i)) for i in range(1, self.realm_pick.count())] \
+                != realms:
+            self.realm_pick.blockSignals(True)
+            self.realm_pick.clear()
+            self.realm_pick.addItem(_("Realm …"), None)
+            for r, text in realms:
+                self.realm_pick.addItem(text, r)
+            self.realm_pick.blockSignals(False)
+        self._select_realm(self._realm)
 
     def _select_realm(self, key):
-        for i in range(self.realms.count()):
-            if self.realms.item(i).data(Qt.UserRole) == key:
-                self.realms.blockSignals(True)
-                self.realms.setCurrentRow(i)
-                self.realms.blockSignals(False)
-                return
+        """Show ``key`` as chosen: a chip, or a realm in the choice box (the chips then without a choice)."""
+        self.realms.blockSignals(True)
+        self.realm_pick.blockSignals(True)
+        try:
+            row = next((i for i in range(self.realms.count()) if self.realms.item(i).data(Qt.UserRole) == key), -1)
+            self.realms.setCurrentRow(row)
+            if row < 0:
+                self.realms.clearSelection()
+            i = self.realm_pick.findData(key) if row < 0 and key is not None else -1
+            self.realm_pick.setCurrentIndex(max(0, i))
+        finally:
+            self.realms.blockSignals(False)
+            self.realm_pick.blockSignals(False)
+
+    def pick(self, key):
+        """Choose a chip (ALL_MAPS, RECENT, FAVS) or a realm by name – what a click there does."""
+        self._realm = key
+        self._select_realm(key)
+        self.close_big()
+        self._apply_filter()
 
     def _realm_picked(self, item, _prev=None):
         if item is None:
             return
-        self._realm = item.data(Qt.UserRole)
-        self.close_big()
-        self._apply_filter()
+        self.pick(item.data(Qt.UserRole))
+
+    def _realm_chosen(self, index):
+        key = self.realm_pick.itemData(index)
+        self.pick(key if key is not None else ALL_MAPS)
 
     # ------------------------------------------------------------------ the tiles
     def _clear_grid(self):
@@ -418,10 +478,11 @@ class MapsPage(QWidget):
         self._recent_head = self._recent_flow = None
 
     def _add_group(self, heading, maps) -> tuple:
-        """A heading and a FlowRow of tiles for ``maps`` [(label, key)] at the end of the grid."""
+        """A heading and a TileGrid of tiles for ``maps`` [(label, key)] at the end of the grid (1.57.103: the tiles
+        of a row share the whole width – before, fixed tiles left a third of the row empty)."""
         head = _label(heading.upper(), "h2")
         self.grid_lay.insertWidget(self.grid_lay.count() - 1, head)
-        flow = FlowRow(spacing=12)
+        flow = TileGrid(min_width=TILE_W, columns=TILE_COLS, spacing=12, stretch=False)
         tiles = []
         for label, key in maps:
             t = MapTile(self, key, label)
@@ -502,10 +563,13 @@ class MapsPage(QWidget):
         "Zuletzt gespielt" its own group – nothing is built here."""
         found = self._found
         recent_mode = self._realm == RECENT and found is None and self._recent_flow is not None
+        favs_mode = self._realm == FAVS and found is None
 
         def wanted(realm, t):
+            if favs_mode:
+                return t.key[0] in self._favs
             return (not recent_mode and (found is None or t.key in found)
-                    and (found is not None or self._realm in (None, ALL_MAPS, RECENT) or realm == self._realm))
+                    and (found is not None or self._realm in (None, ALL_MAPS, RECENT, FAVS) or realm == self._realm))
 
         def apply():
             for realm, head, _flow, tiles in self._groups:
@@ -524,11 +588,16 @@ class MapsPage(QWidget):
         if changes:                                   # a refresh that changes nothing costs nothing
             self._grid_batch(apply)
         empty = found is not None and bool(self._tiles) and not (found & self._tiles.keys())
+        no_favs = favs_mode and bool(self._tiles) and not any(k[0] in self._favs for k in self._tiles)
         if empty:
             _set(self.no_hits_text, _("Keine Map passt zu „{text}“. Gesucht wird in Map- und Realm-Namen aller "
                                       "Spielsprachen und in Abkürzungen.", text=self.search.text().strip()))
-        if self.no_hits.isHidden() == empty:
-            self.no_hits.setVisible(empty)
+        elif no_favs:
+            _set(self.no_hits_text, _("Noch keine Favoriten. Eine Map anklicken und rechts „Favorit“ drücken – oder "
+                                      "Rechtsklick auf eine Kachel."))
+        self.no_hits_clear.setVisible(empty)
+        if self.no_hits.isHidden() == (empty or no_favs):
+            self.no_hits.setVisible(empty or no_favs)
         self._mark_current()
         self._request_pictures()
 
@@ -619,7 +688,7 @@ class MapsPage(QWidget):
             target.setFocus(Qt.OtherFocusReason)
 
     # ------------------------------------------------------------------ right click (1.2.18)
-    MENU = (("show", N_("Anzeigen")), ("rotate", N_("Drehen")),
+    MENU = (("show", N_("Anzeigen")), ("fav", N_("Favorit an/aus")), ("rotate", N_("Drehen")),
             ("size_reset", N_("Eigene Grösse und Drehung zurücksetzen")), ("picture", N_("Kartenbild ersetzen …")),
             ("styles", N_("Map-Stile")),             # 1.38.10 (user): a submenu, see style_entries
             ("note", N_("Notiz bearbeiten …")))
@@ -702,11 +771,13 @@ class MapsPage(QWidget):
         n = self.realms.count()
         if not n:
             return
-        self.realms.doItemsLayout()
-        bottom = max(self.realms.visualItemRect(self.realms.item(i)).bottom() for i in range(n))
-        h = bottom + 2 * self.realms.frameWidth() + 8
-        if self.realms.height() != h:
-            self.realms.setFixedHeight(h)
+        sizes = [self.realms.sizeHintForIndex(self.realms.model().index(i, 0)) for i in range(n)]
+        gap = 2 * self.realms.spacing()
+        frame = 2 * self.realms.frameWidth()
+        w = sum(sz.width() + gap for sz in sizes) + frame + 2
+        h = max(sz.height() for sz in sizes) + gap + frame
+        if (self.realms.width(), self.realms.height()) != (w, h):
+            self.realms.setFixedSize(w, h)
 
     def edit_note(self, key):
         self.open_big(key)
@@ -779,8 +850,15 @@ class MapsPage(QWidget):
         _set(self.p_name, p[2] if p else _("Keine Map gewählt"))
         _set(self.p_realm, p[3] if p else "")
         self._show_info()
+        self._show_fav()
         self.p_show.setEnabled(p is not None)
         self._scale_preview()
+
+    def _show_fav(self):
+        on = bool(self._preview_key) and self._preview_key[0] in self._favs
+        self.p_fav.setEnabled(bool(self._preview_key))
+        if self.p_fav.isChecked() != on:
+            self.p_fav.setChecked(on)
 
     def _show_info(self):
         mark = self._marks.get(self._preview_key) if self._preview_key else None
@@ -810,7 +888,7 @@ class MapsPage(QWidget):
                 return
 
     # ------------------------------------------------------------------ from the app
-    def show_maps(self, items, current, thumbs=None, recent=None, marks=None, style=None, found=None):
+    def show_maps(self, items, current, thumbs=None, recent=None, marks=None, style=None, found=None, favs=None):
         """items [(realm, label, map_id, variant)] of all maps, the map on display, picture paths, the map ids
         played last (newest first), ``marks`` {key: (info text, tooltip, has own values)} (1.2.18), ``style`` = the
         map style for the buttons (1.3.3), ``found`` = the keys the search matched (1.8.72; None: no search)."""
@@ -827,12 +905,15 @@ class MapsPage(QWidget):
         items = list(items)
         changed = items != self._items
         recent_changed = recent != self._recent
-        self._items, self._recent = items, recent
-        if changed or recent_changed:
+        favs = set(favs) if favs is not None else self._favs
+        favs_changed = favs != self._favs
+        self._items, self._recent, self._favs = items, recent, favs
+        if changed or recent_changed or favs_changed:
             self._fill_realms()
+            self._show_fav()
         if changed:
-            if self._realm is None or not any(self.realms.item(i).data(Qt.UserRole) == self._realm
-                                              for i in range(self.realms.count())):
+            if self._realm is None or (self._realm not in (ALL_MAPS, RECENT, FAVS)
+                                       and self._realm not in self.realm_keys()):
                 realm = next((r for r, _l, m, v in self._items if current and (m, v) == tuple(current)), None)
                 self._realm = realm or ALL_MAPS            # first look: the realm of the map on display
             self._select_realm(self._realm)

@@ -2489,6 +2489,20 @@ T = {
         '「{name}」をすべての数値とともに開きます。',
     'Öffnet die ganze Rundenliste dieser Auswahl – dort lassen sich Runden korrigieren, löschen und exportieren.':
         'この絞り込みのラウンド一覧をすべて開きます – そこで修正・削除・エクスポートできます。',
+    'Favoriten':
+        'お気に入り',
+    'Favorit':
+        'お気に入り',
+    'Favorit an/aus':
+        'お気に入り オン/オフ',
+    'Realm …':
+        'レルム …',
+    'Nur die Maps eines Realms zeigen.':
+        '1つのレルムのマップだけを表示します。',
+    'Merkt die Map als Favorit – „Favoriten“ oben zeigt nur diese.':
+        'マップをお気に入りにします――上の「お気に入り」はそれだけを表示します。',
+    'Noch keine Favoriten. Eine Map anklicken und rechts „Favorit“ drücken – oder Rechtsklick auf eine Kachel.':
+        'お気に入りはまだありません。マップをクリックして右の「お気に入り」を押すか、タイルを右クリックしてください。',
     'Schritt {n} von {total}':
         'ステップ {n} / {total}',
     'Sprache':

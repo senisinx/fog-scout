@@ -245,9 +245,9 @@ def test_form_page_shows_states_and_posts_clicks(qapp, keep):
 
 
 def test_the_maps_page_has_realm_chips_and_the_chosen_map_beside_the_tiles(qapp, keep):
-    """1.57.82 (draft A "Raster mit Detail"): the realms are chips in a row that wraps (as tall as its lines, never
-    scrolling); the chosen map stands beside the tiles – on a narrow page instead of them – with what its tile
-    says; Esc or "Schliessen" closes it."""
+    """1.57.82 (draft A "Raster mit Detail"): the chosen map stands beside the tiles – on a narrow page instead of
+    them – with what its tile says; Esc or "Schliessen" closes it. 1.57.103 (draft B): "Alle · Zuletzt · Favoriten"
+    as chips in one line (as big as they are), the realms in a choice box beside them."""
     from PySide6.QtCore import Qt
     from PySide6.QtTest import QTest
     from PySide6.QtWidgets import QListView
@@ -260,10 +260,12 @@ def test_the_maps_page_has_realm_chips_and_the_chosen_map_beside_the_tiles(qapp,
     page.show_maps(items, None, {}, [], marks={("m0", 1): ("7 Runden · Ø 2,9 Kills", "")})
     qapp.processEvents()
     r = page.realms
-    assert r.flow() == QListView.LeftToRight and r.isWrapping() and r.count() == 13
+    assert r.flow() == QListView.LeftToRight and not r.isWrapping() and r.count() == 2      # Alle, Favoriten
     rects = [r.visualItemRect(r.item(i)) for i in range(r.count())]
-    assert len({q.top() for q in rects}) > 1                                  # more than one line of chips
+    assert len({q.top() for q in rects}) == 1                                 # one line of chips
     assert max(q.bottom() for q in rects) <= r.height() and max(q.right() for q in rects) <= r.width()
+    assert page.realm_keys() == [f"Realm mit langem Namen {i}" for i in range(12)]
+    assert page.realm_pick.itemText(1) == "Realm mit langem Namen 0 (1)"
     assert not page.detail_open() and page.detail.isHidden() and page.grid_scroll.isVisible()
     page.open_big(("m0", 1))
     page.show_preview(("m0", 1, "Map 0", "Realm 0", None, ""))
@@ -293,8 +295,10 @@ def test_maps_page_lists_by_realm_and_posts_the_pick(qapp, keep, tmp_path):
     Image.new("RGBA", (300, 600), "red").save(pic)
     page.show_maps(items, ("pit", 1), {("coal", 1): str(pic)}, ["azarov"])
     rows = [page.realms.item(i).text() for i in range(page.realms.count())]
-    assert rows == ["Alle Maps\t3", "Zuletzt gespielt\t1", "MacMillan\t2", "Autohaven\t1"]
-    assert page.realms.currentItem().data(Qt.UserRole) == "MacMillan"           # the realm of the shown map
+    assert rows == ["Alle Maps\t3", "Zuletzt gespielt\t1", "Favoriten\t0"]
+    assert page.realm_keys() == ["MacMillan", "Autohaven"]
+    assert page.realm_pick.currentData() == "MacMillan" and page.realms.currentRow() < 0   # the shown map's realm
+    assert Qt.UserRole
     shown = lambda: {t.key for t in page.visible_tiles()}                               # noqa: E731
     assert shown() == {("coal", 1), ("pit", 1)} and page._tiles[("pit", 1)].property("current")
     assert set(page._tiles) == {("coal", 1), ("pit", 1), ("azarov", 1)}       # 1.8.72: every map has its tile
@@ -2009,14 +2013,16 @@ def test_map_tiles_show_marks_and_a_context_menu(qapp, keep):
     coal, pit = page._tiles[("coal", 1)], page._tiles[("pit", 1)]
     assert coal.info.text().startswith("6 Runden") and coal.info.toolTip().endswith("Eigene …") and pit.info.text() == ""
     entries = page.menu_entries(("coal", 1))
-    assert [a for a, _l, _e in entries] == ["show", "rotate", "size_reset", "picture", "styles",
+    assert [a for a, _l, _e in entries] == ["show", "fav", "rotate", "size_reset", "picture", "styles",
                                             "note"]                        # 1.38.10: the map styles as a submenu
     assert all(e for _a, _l, e in entries)
-    assert [e for _a, _l, e in page.menu_entries(("pit", 1))] == [True, True, False, True, True, True]
+    assert [e for _a, _l, e in page.menu_entries(("pit", 1))] == [True, True, True, False, True, True, True]
     page.open_menu(("coal", 1), coal.mapToGlobal(coal.rect().center()))
     acts = page._menu.actions()
-    assert [a.text() for a in acts][:2] == ["Anzeigen", "Drehen"]
+    assert [a.text() for a in acts][:3] == ["Anzeigen", "Favorit an/aus", "Drehen"]       # 1.57.103: the star
     acts[1].trigger()
+    assert posted.get_nowait() == ("map_action", ("fav", ("coal", 1)))
+    acts[2].trigger()
     assert posted.get_nowait() == ("map_action", ("rotate", ("coal", 1)))
     styles = next(a.menu() for a in acts if a.menu() is not None)
     assert next(a.text() for a in acts if a.menu() is not None) == "Map-Stile"
@@ -2665,7 +2671,8 @@ def test_the_grid_is_laid_out_right_while_its_pictures_still_load(qapp, keep, tm
     page.load_all()
     assert all(not t.pic.pixmap().isNull() for t in page.visible_tiles())
     pm = page._tiles[("m0_0", 1)].pic.pixmap()
-    assert pm.width() / pm.devicePixelRatio() <= 126 and pm.height() / pm.devicePixelRatio() <= 116
+    from fogscout.qt_maps import TILE_PIC, TILE_W
+    assert pm.width() / pm.devicePixelRatio() <= TILE_W - 24 and pm.height() / pm.devicePixelRatio() <= TILE_PIC - 8
 
 
 def test_the_search_and_the_realm_list_show_and_hide_the_tiles_instead_of_building_them_anew(qapp, keep):
@@ -2678,13 +2685,14 @@ def test_the_search_and_the_realm_list_show_and_hide_the_tiles_instead_of_buildi
     items = _grid_items(3, 2)
     page.show_maps(items, ("m1_0", 1), {}, ["m2_1", "m0_0"], {}, "classic")
     tiles = dict(page._tiles)
-    assert len(tiles) == 6 and page.realms.currentItem().data(Qt.UserRole) == "Realm 1"
+    assert len(tiles) == 6 and page.realm_pick.currentData() == "Realm 1" and Qt.UserRole
     assert [t.key for t in page.visible_tiles()] == [("m1_0", 1), ("m1_1", 1)]
     page.show_maps(items, ("m1_0", 1), {}, ["m2_1", "m0_0"], {}, "classic", found={("m0_1", 1), ("m2_0", 1)})
     assert [t.key for t in page.visible_tiles()] == [("m0_1", 1), ("m2_0", 1)]     # every realm, the hits only
     assert page._tiles == tiles                                                      # the same widgets
     assert [page.realms.item(i).text() for i in range(page.realms.count())] == \
-        ["Alle Maps\t6", "Zuletzt gespielt\t2", "Realm 0\t2", "Realm 1\t2", "Realm 2\t2"]
+        ["Alle Maps\t6", "Zuletzt gespielt\t2", "Favoriten\t0"]
+    assert page.realm_keys() == ["Realm 0", "Realm 1", "Realm 2"]
     page._pick_first()                                                               # Enter: the first hit
     assert posted[-1] == ("show_map", ("m0_1", 1))
     page.show_maps(items, ("m1_0", 1), {}, ["m2_1", "m0_0"], {}, "classic", found=None)
@@ -2754,7 +2762,7 @@ def test_the_tiles_are_walked_with_the_keyboard(qapp, keep):
     page.close_big()
     key(page._tiles[("m0_3", 1)], Qt.Key_Return, Qt.ControlModifier)
     assert posted[-1] == ("show_map", ("m0_3", 1))
-    page.realms.setCurrentRow(2)                                         # a realm without the focused tile
+    page.pick("Realm 1")                                                 # a realm without the focused tile
     key(first, Qt.Key_Right)                                             # hidden: no move, no error
     assert page._tiles[("m1_0", 1)] in page.visible_tiles()
 
@@ -4335,3 +4343,38 @@ def test_the_setup_assistant_lists_its_steps_and_ticks_the_seen_ones(qapp, keep)
     win.show_setup(True)                                       # a new run: only the first step seen
     assert page.steps.currentIndex() == 0 and page.bar.value() == 1
     assert [r.done for r in page.rows] == [True] + [False] * 7
+
+
+
+def test_maps_can_be_marked_as_favourites_and_tiles_share_the_width(qapp, keep):
+    """1.57.103 (user picked draft B): the star in the detail pane or the right click marks a map; the chip
+    "Favoriten" shows only those (none yet: a line says how); a realm from the choice box; the tiles of a full row
+    share the width instead of leaving it empty on the right."""
+    from fogscout import qt_maps, qt_window
+    posted = []
+    page = keep(qt_window.MapsPage(lambda a, arg=None: posted.append((a, arg))))
+    items = _grid_items(3, 7)
+    page.resize(1300, 760)
+    page.show()
+    page.show_maps(items, None, {}, [], {}, "classic", favs=set())
+    page.pick(qt_maps.FAVS)
+    assert page.visible_tiles() == [] and page.no_hits.isVisible() and "Favoriten" in page.no_hits_text.text()
+    assert page.no_hits_clear.isHidden()
+    page.show_maps(items, None, {}, [], {}, "classic", favs={"m2_3", "m0_1"})
+    assert [t.key for t in page.visible_tiles()] == [("m0_1", 1), ("m2_3", 1)] and page.no_hits.isHidden()
+    assert page.realms.item(1).text() == "Favoriten\t2"
+    page.open_big(("m0_1", 1))
+    page.show_preview(("m0_1", 1, "Map", "Realm 0", None, ""))
+    assert page.p_fav.isChecked()
+    page.p_fav.click()
+    assert posted[-1] == ("map_action", ("fav", ("m0_1", 1)))
+    page.close_big()
+    page.realm_pick.setCurrentIndex(page.realm_pick.findData("Realm 2"))
+    page.realm_pick.activated.emit(page.realm_pick.currentIndex())
+    assert {t.key[0] for t in page.visible_tiles()} == {f"m2_{i}" for i in range(7)}
+    assert page.realms.currentRow() < 0
+    qapp.processEvents()
+    row = [t for t in page.visible_tiles() if t.geometry().y() == page.visible_tiles()[0].geometry().y()]
+    span = row[-1].geometry().right() - row[0].geometry().left()
+    assert len(row) >= 5 and span >= page.grid_scroll.viewport().width() - 40     # the row is filled
+    assert all(t.width() >= qt_maps.TILE_W for t in row)
