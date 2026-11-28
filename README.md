@@ -193,6 +193,8 @@ Seit 1.8.8 haben Auswahllisten und Häkchen einen eigenen Stil wie Knöpfe und F
 
 **Rechner wieder in der Seitenleiste** (seit 1.57.101): Der Rechner hat wieder seine eigene Zeile in der Navigation (zwischen Aufnahmen und Einstellungen). Der Knopf auf der Statistik-Seite bleibt.
 
+**The Terrifier in der Lobby** (seit 1.57.102): Der neue Killer **The Terrifier** (Art the Clown) wird unter dem Lobby-Knopf erkannt und zählt in Statistik, Rundenverlauf und Notizen wie jeder andere Killer; sein Name und der von **The Judgment** erscheinen in allen sieben Sprachen der Oberfläche. Rechner und Loadouts kannten The Terrifier und **Sienna Shaw** (Perks, Add-ons, Bilder) schon; die Werte des Rechners sind mit dem Wiki vom 28.11.2026 abgeglichen.
+
 **Schalter in den Einstellungen** (seit 1.57.88): Die Häkchen der Einstellungen sind Ein/Aus-Schalter – wie auf der Übersicht und in der Liste der Overlay-Elemente.
 
 **Overlay-Seite als „Bühne“** (seit 1.57.87): Die **Vorschau** steht oben über die ganze Breite der Seite, darunter die **Zeile aller Elemente** mit Schloss und Ein/Aus-Schalter, darunter die **Einstellungen des gewählten Elements** – links Schnellposition, Grösse und Deckkraft, rechts seine eigenen Einstellungen. In einem schmalen Fenster steht alles untereinander.

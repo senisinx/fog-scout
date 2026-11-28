@@ -47,18 +47,20 @@ KILLERS = ("The Trapper", "The Wraith", "The Hillbilly", "The Nurse", "The Shape
            "The Blight", "The Twins", "The Trickster", "The Nemesis", "The Cenobite", "The Artist", "The Onryō",
            "The Dredge", "The Mastermind", "The Knight", "The Skull Merchant", "The Singularity", "The Xenomorph",
            "The Good Guy", "The Unknown", "The Lich", "The Dark Lord", "The Houndmaster", "The Ghoul",
-           "The Animatronic", "The Krasue", "The First", "The Slasher", "The Judgment")
+           "The Animatronic", "The Krasue", "The First", "The Slasher", "The Judgment", "The Terrifier")
 # Legendary outfits show their own name below the button instead of the killer's. Only outfits whose
 # killer is confirmed (official news / wiki); anything else the user assigns once in the statistics.
 SKINS = {"Murderous Grizzly": "The Oni", "The Minotaur": "The Oni", "Ferryman of the Underworld": "The Blight",
          "Naughty Bear": "The Trapper", "Frank Stone": "The Trapper", "Were-Elk": "The Huntress",
          "Hunk": "The Legion", "William Afton": "The Animatronic",
-         "Lilith": "The Artist", "Belial": "The Dredge", "Mephisto": "The Nurse"}   # 1.8.58: Diablo collection
+         "Lilith": "The Artist", "Belial": "The Dredge", "Mephisto": "The Nurse",   # 1.8.58: Diablo collection
+         "Art the Clown": "The Terrifier"}   # 1.57.102: the Terrifier's own name, should the game show it
 # 1.50 (user: "mach die Killernamen auch"): the killers' names in the languages of the user interface, as the
 # game writes them – from DBD's own Steam achievements "Adept <killer>" in each Steam language (title, checked
 # against the description; where they differ, the description's form, Russian titles in another case put back
-# into the nominative). Not there: The Shape, The Demogorgon, The Cenobite (no such achievement) and The Judgment
-# (not translated yet) – they stay English. Short form without the article, like killer_label.
+# into the nominative). Not there: The Shape, The Demogorgon, The Cenobite (no such achievement) – they stay
+# English. Short form without the article, like killer_label. 1.57.102: The Judgment (translated by now) and The
+# Terrifier from "Adept Judgment"/"Adept Terrifier" (Steam, 28.11.2026).
 KILLER_NAMES = {
     'The Trapper': {"de": "Fallensteller", "it": "Cacciatore", "ru": "Охотник", "zh": "设陷者", "ja": "トラッパー", "ko": "트래퍼"},
     'The Wraith': {"de": "Geist", "it": "Spettro", "ru": "Призрак", "zh": "幽灵", "ja": "レイス", "ko": "레이스"},
@@ -100,6 +102,8 @@ KILLER_NAMES = {
     'The Krasue': {"de": "Krasue", "it": "Krasue", "ru": "Красу", "zh": "克拉苏", "ja": "ガスー", "ko": "끄라스"},
     'The First': {"de": "Erste", "it": "Primo", "ru": "Первый", "zh": "一号", "ja": "ファースト", "ko": "퍼스트"},
     'The Slasher': {"de": "Schlitzer", "it": "Squartatore", "ru": "Слэшер", "zh": "杀人魔", "ja": "スラッシャー", "ko": "슬래셔"},
+    'The Judgment': {"de": "Urteil", "it": "Giudizio", "ru": "Правосудие", "zh": "审判者", "ja": "ジャッジメント", "ko": "심판"},
+    'The Terrifier': {"de": "Terrifier", "it": "Terrifier", "ru": "Ужасающий", "zh": "断魂小丑", "ja": "テリファー", "ko": "테리파이어"},
 }
 KILLER_OK = -3.0          # listed killers fit about +1, a killer missing from the list -22 and worse
 FUZZY_OK, FUZZY_GAP = 0.88, 0.12   # text as read vs a listed name (without "The"): this alike, and clearly the best

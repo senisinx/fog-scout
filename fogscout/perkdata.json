@@ -1,6 +1,6 @@
 {
  "about": "Numbers for the calculator (fogscout/gencalc.py): generator repair (mechanics, toolboxes, survivor, killer) and every other action or movement speed (areas, medkits, perks). Facts only, taken from the Dead by Daylight Wiki (deadbydaylight.wiki.gg, text licence CC BY-NC-SA 4.0 – no text was copied) – see THIRD_PARTY.md. Check after every game patch.",
- "retrieved": "2026-11-15",
+ "retrieved": "2026-11-28",
  "source_state": "Module:Datatable/Loadout as of 2026-11-05, Generators 2026-08-31, Dead by Daylight Maths 2026-04-12, Toolboxes 2025-06-16, Skill Checks 2026-06-17; areas: Health States, Med-Kits, Movement Speeds, Vaulting, Pallets, Totems, Chests, Exit Gates, Hooks, Breakable Walls, Lockers and Patch Notes 9.6.X as read on 2026-11-15, Module:Datatable/Loadout/Descriptions as of 2026-11-06; Module:Datatable (killers), Status HUD/Mangled, Toolboxes and item/add-on descriptions as read on 2026-11-15; Calm Spirit, Dark Arrogance, Slippery Meat (patch 10.3.0) and the Skill Check perks (Deadline, Technician, One-Two-Three-Four!, Bardic Inspiration, Unnerving Presence) from Module:Datatable/Loadout and /Descriptions as fetched on 2026-11-15",
  "mechanics": {
   "charges": 90,
