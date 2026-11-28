@@ -3056,25 +3056,32 @@ def test_the_statistics_filters_fold_away_count_and_reset(app_root):
 
 
 def test_the_server_regions_show_the_ping_beside_the_name_fastest_first(app_root):
-    """1.11.14 (user picked "Ping neben dem Namen, sortierbar"): the hosts column takes the rest of the width, so the
-    ping stands next to its region; after a measurement each group lists its fastest region first (unanswered last),
-    before one in the table's own order."""
+    """1.11.14 (user picked "Ping neben dem Namen, sortierbar"): after a measurement each group lists its fastest
+    region first (unanswered last), before one in the table's own order. 1.57.105 (draft "Server A"): one card per
+    continent with a tick for the group and a ping bar per region; "schnellste" at the fastest of all; a tick on a
+    region or a continent toggles like before."""
     from fogscout import regions
     from fogscout.app import App
     app = App(str(app_root), simulate=str(app_root / "sim"))
     try:
-        t = app.srv_tree
-        assert not t.column("#0", "stretch") and t.column("state", "stretch")
+        app._srv_refresh = lambda *a, **k: app._srv_render()                  # never the real hosts file
+        app.srv_ping = {}
+        app._srv_render()
         group = regions.GROUPS[0]
         codes = [c for c, _n, g in regions.REGIONS if g == group]
-        assert [i[2:] for i in t.get_children(f"g:{group}")] == codes
+        card = lambda: next(g for g in app.srv_cards.data if g["id"] == f"g:{group}")   # noqa: E731
+        assert [g["id"] for g in app.srv_cards.data] == [f"g:{g}" for g in regions.GROUPS]
+        assert [r["id"][2:] for r in card()["rows"]] == codes and card()["check"] == "on"
         fake = {c: {"ms": 200.0 - 10 * i} for i, c in enumerate(codes)}
         fake[codes[-1]] = {"ms": None}                                        # no answer: last
-        app._srv_refresh = lambda *a, **k: app._srv_render()                  # never the real hosts file
         app._srv_ping_done(fake)
-        got = [i[2:] for i in t.get_children(f"g:{group}")]
-        assert got == list(reversed(codes[:-1])) + [codes[-1]]
-        assert t.item(f"r:{got[0]}", "values")[0] == f"{200 - 10 * (len(codes) - 2):.0f} ms"
+        rows = card()["rows"]
+        assert [r["id"][2:] for r in rows] == list(reversed(codes[:-1])) + [codes[-1]]
+        assert rows[0]["ms"] == 200 - 10 * (len(codes) - 2) and rows[0]["best"] and not rows[1]["best"]
+        app.srv_cards.command(rows[0]["id"])                                  # a region's tick
+        assert card()["check"] == "part" and not next(r for r in card()["rows"] if r["id"] == rows[0]["id"])["check"]
+        app.srv_cards.command(f"g:{group}")                                   # the continent's tick: all again
+        assert card()["check"] == "on"
     finally:
         app.quit()
 
@@ -4001,10 +4008,11 @@ def test_the_last_pings_show_at_once_and_stay_while_a_new_measurement_runs(app_r
         app._srv_refresh = lambda *a, **k: app._srv_render()                  # never the real hosts file
         assert app.srv_ping == {code: {"ms": 42.0}}
         app._srv_render()
-        assert app.srv_tree.item(f"r:{code}", "values")[0] == "42 ms"
+        row = lambda: next(r for g in app.srv_cards.data for r in g["rows"] if r["id"] == f"r:{code}")   # noqa: E731
+        assert row()["ms"] == 42.0
         monkeypatch.setattr(regions, "measure_all", lambda *a, **k: (time.sleep(0.3), {})[1])
         app.srv_measure()
-        assert app._srv_busy and app.srv_tree.item(f"r:{code}", "values")[0] == "42 ms"   # no "…" over a value
+        assert app._srv_busy and row()["ms"] == 42.0 and row()["busy"]          # the value stays, no "…" over it
         app._srv_ping_done({code: {"ms": 31.4, "ip": "192.0.2.1", "how": "icmp"}})
         seen = app.settings.get("srv_ping_seen")
         assert seen["ms"] == {code: 31.4} and "192.0.2.1" not in json.dumps(seen)
@@ -4051,5 +4059,41 @@ def test_the_star_of_a_map_is_kept_and_reaches_the_maps_page(app_root):
         assert app.qt.maps._favs == {mid}
         app._qt_event("map_action", ("fav", (mid, 1)))
         assert app._map_favs() == set()
+    finally:
+        app.quit()
+
+
+def test_the_log_filters_are_chips_with_counts_and_errors_stand_out(app_root):
+    """1.57.104 (user picked draft "Log A"): each kind of line is a chip with its number; with all shown a click on a
+    chip shows only that kind, "Alle" brings everything back, "Nur Fehler" one click; the choice is kept; an error
+    line has a background of its own in the window."""
+    import json
+    from fogscout.app import App
+    from fogscout.qt_views import LogView
+    from fogscout.theme import LOG_COLORS
+    (app_root / "settings.json").write_text(json.dumps({"welcome_seen": True}), encoding="utf-8")
+    app = App(str(app_root), simulate=str(app_root / "sim"))
+    try:
+        app._log_entries.clear()
+        for i in range(3):
+            app._log(f"erkannt {i}", "Erkennung")
+        app._log("OBS antwortet nicht", "Fehler")
+        lines, _dark = app._log_lines()
+        assert len(lines) == 4
+        assert app.log_chips["Erkennung"].cget("text") == "Erkennung 3" and app.log_chips["Overlay"].cget("text") == "Overlay"
+        assert app.log_chip_all.cget("text") == "Alle 4" and app.log_chip_all._dbdms_pressed()
+        app.log_chips["Erkennung"].invoke()                          # all shown: only this kind
+        assert [e[1] for e in app._log_lines()[0]] == ["Erkennung"] * 3
+        assert app.log_chips["Erkennung"]._dbdms_pressed() and not app.log_chip_all._dbdms_pressed()
+        app.log_chips["Fehler"].invoke()                             # adds one
+        assert len(app._log_lines()[0]) == 4 and app.settings.get("log_categories") == ["Erkennung", "Fehler"]
+        app.log_only_err.invoke()
+        assert [e[2] for e in app._log_lines()[0]] == ["OBS antwortet nicht"]
+        app.log_chips["Fehler"].invoke()                             # nothing left would be empty: all again
+        assert app.log_chip_all._dbdms_pressed() and len(app._log_lines()[0]) == 4
+        assert app.log_chips["Erkennung"]._dbdms_tip() and app.log_chip_all._dbdms_tip()
+        row = LogView()._row(("12:00:00", "Fehler", "x"), LOG_COLORS[True])
+        assert LOG_COLORS[True]["error_bg"] in row and LOG_COLORS[True]["error_bg"] not in \
+            LogView()._row(("12:00:00", "System", "x"), LOG_COLORS[True])
     finally:
         app.quit()

@@ -8,7 +8,7 @@ import sys
 
 from PySide6.QtCore import QEvent, QSize, Qt
 from PySide6.QtGui import QColor, QContextMenuEvent
-from PySide6.QtWidgets import (QAbstractItemView, QAbstractScrollArea, QHBoxLayout, QLabel, QPlainTextEdit, QProgressBar, QPushButton, QSizePolicy, QTreeWidget, QTreeWidgetItem,
+from PySide6.QtWidgets import (QAbstractItemView, QAbstractScrollArea, QCheckBox, QFrame, QHBoxLayout, QLabel, QPlainTextEdit, QProgressBar, QPushButton, QSizePolicy, QTreeWidget, QTreeWidgetItem,
                                QVBoxLayout, QWidget, QStyle, QStyledItemDelegate, QStyleOptionViewItem, QToolTip)
 
 from . import qt_theme
@@ -612,9 +612,12 @@ class LogView(QPlainTextEdit):
     def _row(self, entry, col):
         ts, cat, text = entry
         msg = col["Fehler"] if cat == "Fehler" else col["text"]
-        return (f'<span style="color:{col["ts"]}">{html.escape(ts)}</span>&nbsp;&nbsp;'
-                f'<span style="color:{col.get(cat, col["text"])}">{html.escape(_(cat))}</span>&nbsp;&nbsp;'
-                f'<span style="color:{msg}">{html.escape(text)}</span>')
+        row = (f'<span style="color:{col["ts"]}">{html.escape(ts)}</span>&nbsp;&nbsp;'
+               f'<span style="color:{col.get(cat, col["text"])}">{html.escape(_(cat))}</span>&nbsp;&nbsp;'
+               f'<span style="color:{msg}">{html.escape(text)}</span>')
+        if cat == "Fehler":            # 1.57.104 (draft "Log A"): an error line stands out, not only its colour
+            row = f'<span style="background-color:{col["error_bg"]}">{row}</span>'
+        return row
 
     def show_state(self, st):
         from .theme import LOG_COLORS
@@ -1169,6 +1172,125 @@ class TilesView(QWidget):
             card.setVisible(i < len(data))
             if i < len(data):
                 box.show_fact(data[i])
+        self.setVisible(bool(data))
+
+
+PING_GOOD, PING_MID, PING_TOP = 80, 130, 300     # ms: green below, yellow below, the bar full at
+REGION_CARD_W = 440                              # px (logical): two continent cards side by side from 2 × this
+
+
+class PingBar(QWidget):
+    """1.57.105: a ping as a bar – green below PING_GOOD, yellow below PING_MID, red above; empty without one."""
+
+    def __init__(self):
+        super().__init__()
+        self.ms, self.dark = None, True
+        self.setFixedHeight(10)
+        self.setMinimumWidth(60)
+
+    def set_ms(self, ms, dark):
+        if (ms, dark) != (self.ms, self.dark):
+            self.ms, self.dark = ms, dark
+            self.update()
+
+    def paintEvent(self, _e):
+        from PySide6.QtGui import QPainter
+        c = qt_theme.colours(self.dark)
+        p = QPainter(self)
+        p.setRenderHint(QPainter.Antialiasing)
+        p.setPen(Qt.NoPen)
+        p.setBrush(QColor(c["field"]))
+        p.drawRoundedRect(self.rect(), 4, 4)
+        if self.ms is not None:
+            kind = "ok" if self.ms < PING_GOOD else "warn" if self.ms < PING_MID else "err"
+            p.setBrush(QColor(c[kind]))
+            w = max(6, round(self.width() * min(1.0, self.ms / PING_TOP)))
+            p.drawRoundedRect(0, 0, w, self.height(), 4, 4)
+        p.end()
+
+
+class RegionCards(QWidget):
+    """1.57.105 (user picked draft "Server A"): the server regions (uimodel.Regions) as one card per continent –
+    a tick on the title for the whole group, each region a row: tick · name · ping bar · ms · hosts state, "schnellste"
+    at the fastest. Two cards side by side in a wide window. A tick posts ("act", (key, id))."""
+
+    def __init__(self, key="", post=None):
+        super().__init__()
+        self._key, self._post = key, post
+        self._grid = TileGrid(self, min_width=REGION_CARD_W, columns=2, stretch=False)
+        self._cards = {}                         # group id -> (card, title QCheckBox, rows layout, {region id: row})
+        self._shown = None
+
+    def _click(self, rid):
+        if self._post:
+            self._post("act", (self._key, rid))
+
+    def _row(self, r):
+        w = QWidget()
+        lay = QHBoxLayout(w)
+        lay.setContentsMargins(0, 0, 0, 0)
+        lay.setSpacing(8)
+        box = QCheckBox(r["name"])
+        box.clicked.connect(lambda _c=False, rid=r["id"]: self._click(rid))
+        box.setMinimumWidth(box.sizeHint().width())     # the name is never cut
+        bar = PingBar()
+        ms = _label("", "dim")
+        ms.setMinimumWidth(52)
+        ms.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
+        best = _label(_("schnellste"), "best")
+        state = _label("", "dim")
+        state.setMinimumWidth(60)
+        lay.addWidget(box, 3)
+        lay.addWidget(best)
+        lay.addWidget(bar, 2)
+        lay.addWidget(ms)
+        lay.addWidget(state, 1)
+        return w, box, bar, ms, best, state
+
+    def show_state(self, st):
+        data, dark = st.get("data") or [], bool(st.get("dark", True))
+        if (data, dark) == self._shown:
+            return
+        self._shown = (data, dark)
+        for g in data:
+            gid = g["id"]
+            if gid not in self._cards:
+                card = QFrame()
+                card.setObjectName("regioncard")         # a frame inside the card "Serverregionen"
+                cl = QVBoxLayout(card)
+                cl.setContentsMargins(*qt_theme.PAD_CARD)
+                cl.setSpacing(6)
+                title = QCheckBox(g["title"])
+                title.setProperty("class", "h2")
+                title.clicked.connect(lambda _c=False, rid=gid: self._click(rid))
+                cl.addWidget(title)
+                rows_lay = QVBoxLayout()
+                rows_lay.setSpacing(4)
+                cl.addLayout(rows_lay)
+                cl.addStretch(1)                         # beside a longer card: the rows stay together on top
+                self._grid.addWidget(card)
+                self._cards[gid] = (card, title, rows_lay, {})
+            card, title, rows_lay, rows = self._cards[gid]
+            title.setText(g["title"])
+            title.setTristate(g["check"] == "part")
+            title.setCheckState({"on": Qt.Checked, "off": Qt.Unchecked}.get(g["check"], Qt.PartiallyChecked))
+            order = [r["id"] for r in g["rows"]]
+            for r in g["rows"]:
+                if r["id"] not in rows:
+                    rows[r["id"]] = self._row(r)
+            if [rows_lay.itemAt(i).widget() for i in range(rows_lay.count())] != [rows[i][0] for i in order]:
+                while rows_lay.count():
+                    rows_lay.takeAt(0)
+                for rid in order:
+                    rows_lay.addWidget(rows[rid][0])
+            for r in g["rows"]:
+                w, box, bar, ms, best, state = rows[r["id"]]
+                box.setText(r["name"])
+                box.setChecked(bool(r["check"]))
+                bar.set_ms(r["ms"], dark)
+                _set(ms, "…" if r["ms"] is None and r.get("busy") else "–" if r["ms"] is None else f"{r['ms']:.0f} ms")
+                best.setVisible(bool(r.get("best")))
+                _set(state, r.get("state") or "–")
         self.setVisible(bool(data))
 
 

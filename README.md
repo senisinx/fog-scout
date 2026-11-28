@@ -197,6 +197,10 @@ Seit 1.8.8 haben Auswahllisten und Häkchen einen eigenen Stil wie Knöpfe und F
 
 **Maps: grosse Kacheln, Favoriten** (seit 1.57.103): Oben stehen nur noch **„Alle Maps · Zuletzt gespielt · Favoriten“** und eine Auswahl **„Realm …“** neben der Suche – vorher nahmen zwanzig Realm-Knöpfe drei Zeilen ein. Die Kacheln sind grösser und teilen sich die ganze Breite. Mit **„Favorit“** (Stern bei der gewählten Map oder Rechtsklick auf eine Kachel) merkst du dir Maps; „Favoriten“ zeigt nur diese.
 
+**Log: Filter mit Anzahl, Fehler hervorgehoben** (seit 1.57.104): Über dem Log stehen die Arten als Knöpfe mit ihrer Anzahl („Erkennung 61 · Fehler 2“). Ein Klick zeigt nur diese Art, „Alle“ wieder alles, **„Nur Fehler“** mit einem Klick. Fehlerzeilen sind farbig hinterlegt, **„Diagnose kopieren“** steht jetzt oben rechts.
+
+**Server: Regionen als Karten mit Ping-Balken** (seit 1.57.105): Die Serverregionen stehen jetzt als **eine Karte je Kontinent** (Europa, Amerika, Asien, Ozeanien) mit Haken für den ganzen Kontinent. Jede Region hat einen **Ping-Balken** in Grün, Gelb oder Rot, die schnellste ist mit **„schnellste“** markiert. Breit stehen zwei Karten nebeneinander, schmal untereinander.
+
 **Schalter in den Einstellungen** (seit 1.57.88): Die Häkchen der Einstellungen sind Ein/Aus-Schalter – wie auf der Übersicht und in der Liste der Overlay-Elemente.
 
 **Overlay-Seite als „Bühne“** (seit 1.57.87): Die **Vorschau** steht oben über die ganze Breite der Seite, darunter die **Zeile aller Elemente** mit Schloss und Ein/Aus-Schalter, darunter die **Einstellungen des gewählten Elements** – links Schnellposition, Grösse und Deckkraft, rechts seine eigenen Einstellungen. In einem schmalen Fenster steht alles untereinander.

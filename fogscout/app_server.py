@@ -49,27 +49,12 @@ class ServerTab:
         ui.Label(f, textvariable=self.srv_pending, style="Note.TLabel", wraplength=430).pack(anchor="w", pady=(2, 0))
         self.srv_best = ui.StringVar(value="")          # 1.38.31 (F7): the fastest region at this time – a hint only
         ui.Label(f, textvariable=self.srv_best, style="Dim.TLabel", wraplength=430).pack(anchor="w", pady=(2, 0))
-        tf = ui.Frame(f)
-        tf.pack(fill="x", pady=(6, 0))
-        t = ui.Treeview(tf, columns=("ping", "state"), show="tree headings", height=11, selectmode="browse")
-        t.heading("#0", text=_("Region"), anchor="w")
-        t.heading("ping", text="Ping", anchor="e")
-        t.heading("state", text=_("hosts-Datei"), anchor="w")
-        # 1.11.14 (user picked "Ping neben dem Namen"): the hosts column takes the rest – the ping stood a whole
-        # window width away from its region
-        t.column("#0", width=290, stretch=False)
-        t.column("ping", width=78, anchor="e", stretch=False)
-        t.column("state", width=120, anchor="w", stretch=True)
-        t.pack(side="left", fill="x")             # as tall as its rows, no empty box below (1.58.1)
-        self.srv_tree = t
-        t._dbdms_click = self._srv_toggle         # a click toggles the region (also from the Qt window)
+        # 1.57.105 (user picked draft "Server A"): one card per continent, each region with a ping bar – the
+        # table's ping and hosts columns stood at its left edge with the rest of the width empty
+        self.srv_cards = ui.Regions(f, command=self._srv_toggle)
+        self.srv_cards.pack(fill="x", pady=(6, 0))
         saved = self.settings.get("regions_selected")
         self.srv_sel = set(saved) if saved else {c for c, _, _ in regions.REGIONS}
-        for g in regions.GROUPS:
-            t.insert("", "end", iid=f"g:{g}", text=_(g), open=True, tags=("group",))
-            for code, name, grp in regions.REGIONS:
-                if grp == g:
-                    t.insert(f"g:{g}", "end", iid=f"r:{code}", text=_(name), values=("", ""))
         ui.Label(f_outer, text=_("Mit VPN unzuverlässig. Region-Tools sind von BHVR weder erlaubt noch verboten – "
                                   "auf eigene Verantwortung."), style="Dim.TLabel", wraplength=440).pack(
             anchor="w", pady=(6, 0))
@@ -203,30 +188,30 @@ class ServerTab:
                                  "neu starten.", n=n))
 
     def _srv_render(self):
-        t = self.srv_tree
+        """The cards of the regions: per continent its tick (all / none / some), per region tick, ping, hosts state;
+        after a measurement the fastest of each continent first (unanswered ones last), "schnellste" at the
+        fastest of all."""
         if hasattr(self, "srv_pending"):
             self.srv_pending.set(self._srv_pending_text())
         states = self.srv_state.get("regions", {})
+        ms_all = {c: (self.srv_ping.get(c) or {}).get("ms") for c, _n, _g in regions.REGIONS}
+        known = {c: ms for c, ms in ms_all.items() if ms is not None}
+        best = min(known, key=known.get) if known else None
+        data = []
         for g in regions.GROUPS:
             codes = [c for c, _, grp in regions.REGIONS if grp == g]
             n = sum(c in self.srv_sel for c in codes)
-            box = ui.CHECK_ON if n == len(codes) else ui.CHECK_OFF if n == 0 else ui.CHECK_PART
-            t.item(f"g:{g}", text=_(g), tags=("group", box))
-            # 1.11.14: after a measurement the fastest region of each group first (unanswered ones last)
-            measured = bool(self.srv_ping)
-            ms_of = {c: (self.srv_ping.get(c) or {}).get("ms") for c in codes}
-            order = sorted(codes, key=lambda c: (ms_of[c] is None, ms_of[c] or 0)) if measured else codes
-            for i, c in enumerate(order):
-                if t.get_children(f"g:{g}").index(f"r:{c}") != i:
-                    t.move(f"r:{c}", f"g:{g}", i)
-            for c in codes:
-                p = self.srv_ping.get(c)
-                ms = p.get("ms") if p else None
-                ping = "…" if self._srv_busy and p is None else ("–" if ms is None else f"{ms:.0f} ms")
-                tag = ("p_na" if ms is None else "p_good" if ms < 80 else "p_mid" if ms < 130 else "p_bad")
+            check = "on" if n == len(codes) else "off" if n == 0 else "part"
+            order = sorted(codes, key=lambda c: (ms_all[c] is None, ms_all[c] or 0)) if self.srv_ping else codes
+            rows = []
+            for c in order:
                 state = states.get(c)
-                t.item(f"r:{c}", text=_(regions.NAMES[c]), values=(ping, _(state) if state else "–"),   # 1.8.75: no "?"
-                       tags=(tag, ui.CHECK_ON if c in self.srv_sel else ui.CHECK_OFF))
+                rows.append({"id": f"r:{c}", "name": _(regions.NAMES[c]), "check": c in self.srv_sel,
+                             "ms": ms_all[c], "busy": bool(self._srv_busy), "best": c == best,
+                             "state": _(state) if state else "–"})                   # 1.8.75: no "?"
+            data.append({"id": f"g:{g}", "title": _(g), "check": check, "rows": rows})
+        self.srv_cards.data = data
+        self.srv_cards.dark = bool(self.settings.get("dark_mode", True))
 
     def _srv_refresh(self, log_summary=False):
         """Read the hosts file (no administrator rights needed)."""

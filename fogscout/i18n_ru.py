@@ -577,8 +577,6 @@ T = {
         'DBD ищет матчи только в отмеченных регионах (через файл hosts Windows, игра не изменяется). После «Применить выбор» перезапустите DBD.',
     'Region':
         'Регион',
-    'hosts-Datei':
-        'файл hosts',
     'Ping messen':
         'Измерить пинг',
     'Auswahl anwenden':
@@ -923,8 +921,6 @@ T = {
         'История раундов удалена.',
     'Löscht alle gespeicherten Runden (Datei rounds.jsonl) – nach einer Rückfrage, vorher kommt eine Kopie in den Ordner backup.':
         'Удаляет все сохранённые раунды (файл rounds.jsonl) — после вопроса; сначала копия сохраняется в папку резервных копий.',
-    'Anzeigen:':
-        'Показать:',
     'Leeren':
         'Очистить',
     'Log-Datei öffnen':
@@ -2503,6 +2499,16 @@ T = {
         'Отмечает карту как избранную – «Избранное» вверху показывает только их.',
     'Noch keine Favoriten. Eine Map anklicken und rechts „Favorit“ drücken – oder Rechtsklick auf eine Kachel.':
         'Избранного пока нет. Нажмите на карту и справа «В избранное» – или правый щелчок по плитке.',
+    'Nur Fehler':
+        'Только ошибки',
+    'Alle Zeilen zeigen. Die Zahl sagt, wie viele das Log hält.':
+        'Показать все строки. Число – сколько их в журнале.',
+    'Nur diese Art zeigen – noch ein Klick nimmt sie dazu oder weg. Die Zahl sagt, wie viele Zeilen dieser Art das Log hält.':
+        'Показать только этот вид – ещё один щелчок добавляет или убирает его. Число – сколько строк этого вида в журнале.',
+    'Zeigt nur die Fehler – zum schnellen Nachsehen, was schiefging.':
+        'Показывает только ошибки – чтобы быстро увидеть, что пошло не так.',
+    'schnellste':
+        'быстрее всех',
     'Schritt {n} von {total}':
         'Шаг {n} из {total}',
     'Sprache':

@@ -521,17 +521,26 @@ class App(ServerTab, StatsTab, ExportDialog, RecordingsTab, DiscordPresence, Spo
         outer, f = self._fixed_tab()
         top = ui.Frame(f)
         top.pack(fill="x", pady=(0, 6))
-        ui.Label(top, text=_("Anzeigen:")).pack(side="left")
+        # 1.57.104 (user picked draft "Log A"): the categories as chips with their number of lines, "Alle" and
+        # "Nur Fehler" one click each, "Diagnose kopieren" up here (was at the foot)
         enabled = set(self.settings.get("log_categories", CATS))
-        self.cat_vars = {}
+        self.cat_vars = {c: ui.BooleanVar(value=c in enabled) for c in CATS}
+        self.log_chip_all = ui.pressed(ui.Button(top, text=_("Alle"), command=self._log_show_all),
+                                       lambda: all(v.get() for v in self.cat_vars.values()))
+        self.log_chip_all.pack(side="left")
+        self.log_chips = {}
         for c in CATS:
-            v = ui.BooleanVar(value=c in enabled)
-            self.cat_vars[c] = v
-            ui.Checkbutton(top, text=_(c), variable=v, command=self._log_filter_changed).pack(side="left", padx=(6, 0))
+            b = ui.pressed(ui.Button(top, text=_(c), command=lambda c=c: self._log_chip(c)),
+                           lambda c=c: self.cat_vars[c].get() and not all(v.get() for v in self.cat_vars.values()))
+            b.pack(side="left", padx=(6, 0))
+            self.log_chips[c] = b
+        self.log_only_err = ui.Button(top, text=_("Nur Fehler"), command=self._log_only_errors)
+        self.log_only_err.pack(side="left", padx=(12, 0))
+        ui.Button(top, text=_("Diagnose kopieren"), command=self.show_diagnose).pack(side="right")
         self.log_search_var = ui.StringVar(value="")       # 1.2.19: a text filter over the lines
         self._log_search_last = ""
         search = ui.Entry(top, textvariable=self.log_search_var, width=22)
-        search.pack(side="right")
+        search.pack(side="right", padx=(0, 8))
         search._dbdms_placeholder = _("Suchen …")
         # the Qt window shows the entries itself (coloured by category): (entries, dark mode)
         self.log_text = ui.Log(f, lines=self._log_lines)
@@ -540,7 +549,6 @@ class App(ServerTab, StatsTab, ExportDialog, RecordingsTab, DiscordPresence, Spo
         bottom.pack(fill="x", pady=(6, 0))
         ui.Button(bottom, text=_("Leeren"), command=self._clear_log).pack(side="left")
         ui.Button(bottom, text=_("Log-Datei öffnen"), command=self._open_logfile).pack(side="left", padx=6)
-        ui.Button(bottom, text=_("Diagnose kopieren"), command=self.show_diagnose).pack(side="left")
         self._advanced_card(f)                       # 1.8.78: the technical options, folded (was: page Erkennung)
         return outer
 
@@ -782,6 +790,11 @@ class App(ServerTab, StatsTab, ExportDialog, RecordingsTab, DiscordPresence, Spo
                      "viele davon gerade filtern.")
         if w in getattr(self, "stats_chip_btns", {}).values():          # 1.57.99: "Map: Midwich ×"
             return _("Diesen Filter entfernen – die Statistik zeigt dann wieder alle.")
+        if w is getattr(self, "log_chip_all", None):                    # 1.57.104: "Alle 128"
+            return _("Alle Zeilen zeigen. Die Zahl sagt, wie viele das Log hält.")
+        if w in getattr(self, "log_chips", {}).values():                # "Erkennung 61"
+            return _("Nur diese Art zeigen – noch ein Klick nimmt sie dazu oder weg. Die Zahl sagt, wie viele Zeilen "
+                     "dieser Art das Log hält.")
         if w is getattr(self, "stats_back_btn", None):
             return _("Zurück zur Übersicht der Statistik.")
         if w in getattr(self, "stats_part_btns", ()):
@@ -1971,17 +1984,11 @@ class App(ServerTab, StatsTab, ExportDialog, RecordingsTab, DiscordPresence, Spo
         self._log(_("Spielsprachen: {langs}", langs=", ".join(langs)), "System")
 
     def _apply_theme(self):
-        """Dark/light: the Qt window's colours, the server table's ping colours and the charts."""
-        from .qt_theme import STATE
-        from .theme import LOG_COLORS
+        """Dark/light: the Qt window's colours, the server regions' ping bars and the charts."""
         dark = bool(self.dark_var.get()) if hasattr(self, "dark_var") else bool(self.settings.get("dark_mode", True))
-        colors = LOG_COLORS[dark]
         if hasattr(self, "swatches"):
             self.swatches.dark = dark
-        for tag, key in (("p_good", "Erkennung"), ("p_bad", "Fehler"), ("p_na", "ts")):
-            self.srv_tree.tag_configure(tag, foreground=colors[key])
-        self.srv_tree.tag_configure("p_mid", foreground=STATE[dark]["warn"])          # 1.22.3: the theme's
-        self.srv_tree.tag_configure("group", foreground=colors["text"])
+        self.srv_cards.dark = dark                    # 1.57.105: the cards draw their bars in the theme's colours
         # CR-018 (code review): every chart and heatmap of the statistics, not only two of them
         for name in ("trend", "sys_trend", "bp_trend", "wait_trend", "prestige_trend", "stats_dash", "stats_heat_k",
                      "stats_heat_s"):
@@ -2023,7 +2030,42 @@ class App(ServerTab, StatsTab, ExportDialog, RecordingsTab, DiscordPresence, Spo
             self.log_text._dbdms_rev = getattr(self.log_text, "_dbdms_rev", 0) + 1
         lines = [e for e in self._log_entries if self.cat_vars[e[1]].get()
                  and (not needle or needle in fold_any(e[2]))]
+        self._log_chip_counts()
         return lines[-400:], bool(self.settings.get("dark_mode", True))
+
+    def _log_chip_counts(self):
+        """1.57.104: each chip says how many lines of its kind the log holds ("Fehler 2"; no number at 0)."""
+        counts = collections.Counter(e[1] for e in self._log_entries)
+        for c, b in getattr(self, "log_chips", {}).items():
+            text = f"{_(c)} {counts[c]}" if counts[c] else _(c)
+            if b.cget("text") != text:
+                b.configure(text=text)
+        total = sum(counts.values())
+        text = f"{_('Alle')} {total}" if total else _("Alle")
+        if self.log_chip_all.cget("text") != text:
+            self.log_chip_all.configure(text=text)
+
+    def _log_chip(self, cat):
+        """A chip: with every kind shown, a click shows only this one; else it switches this one on or off."""
+        if all(v.get() for v in self.cat_vars.values()):
+            for c, v in self.cat_vars.items():
+                v.set(c == cat)
+        else:
+            self.cat_vars[cat].set(not self.cat_vars[cat].get())
+            if not any(v.get() for v in self.cat_vars.values()):
+                self._log_show_all()
+                return
+        self._log_filter_changed()
+
+    def _log_show_all(self):
+        for v in self.cat_vars.values():
+            v.set(True)
+        self._log_filter_changed()
+
+    def _log_only_errors(self):
+        for c, v in self.cat_vars.items():
+            v.set(c == "Fehler")
+        self._log_filter_changed()
 
     def _log_filter_changed(self):
         self.settings.set("log_categories", [c for c in CATS if self.cat_vars[c].get()])

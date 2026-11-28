@@ -577,8 +577,6 @@ T = {
         'DBD 只在勾选的区域中匹配对局（通过 Windows hosts 文件，不修改游戏）。“应用选择”后请重新启动 DBD。',
     'Region':
         '区域',
-    'hosts-Datei':
-        'hosts 文件',
     'Ping messen':
         '测量延迟',
     'Auswahl anwenden':
@@ -923,8 +921,6 @@ T = {
         '对局记录已删除。',
     'Löscht alle gespeicherten Runden (Datei rounds.jsonl) – nach einer Rückfrage, vorher kommt eine Kopie in den Ordner backup.':
         '删除所有已保存的对局（文件 rounds.jsonl），会先询问；之前会先复制一份到备份文件夹。',
-    'Anzeigen:':
-        '显示：',
     'Leeren':
         '清空',
     'Log-Datei öffnen':
@@ -2503,6 +2499,16 @@ T = {
         '将地图设为收藏——上方的“收藏”只显示这些地图。',
     'Noch keine Favoriten. Eine Map anklicken und rechts „Favorit“ drücken – oder Rechtsklick auf eine Kachel.':
         '还没有收藏。点击一张地图并在右侧按“收藏”——或右键点击图块。',
+    'Nur Fehler':
+        '仅错误',
+    'Alle Zeilen zeigen. Die Zahl sagt, wie viele das Log hält.':
+        '显示所有行。数字表示日志中的行数。',
+    'Nur diese Art zeigen – noch ein Klick nimmt sie dazu oder weg. Die Zahl sagt, wie viele Zeilen dieser Art das Log hält.':
+        '只显示此类——再点一次可加入或移除。数字表示日志中此类的行数。',
+    'Zeigt nur die Fehler – zum schnellen Nachsehen, was schiefging.':
+        '只显示错误——快速查看哪里出了问题。',
+    'schnellste':
+        '最快',
     'Schritt {n} von {total}':
         '第 {n} 步，共 {total} 步',
     'Sprache':

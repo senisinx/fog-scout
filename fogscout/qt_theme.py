@@ -375,6 +375,8 @@ QPushButton#pageback:hover {{ color: {c['fg']}; }}
 QPushButton#pageback:focus {{ border-color: {c['accent']}; }}
 QListWidget#tablist::item:hover:!selected {{ background: {c['hover']}; color: {c['fg']}; }}
 QFrame[class="card"] {{ background: {c['card']}; border: 1px solid {card_edge}; border-radius: {RADIUS['xl']}px; }}
+QFrame#regioncard {{ background: transparent; border: 1px solid {c['border']}; border-radius: {RADIUS['l']}px; }}  /* 1.57.105 */
+QFrame#regioncard QLabel {{ background: transparent; }}
 QFrame[class="card"] QLabel {{ background: transparent; }}
 QFrame[class="card"][dragging="true"], QFrame[class="card"][found="true"] {{ border: 1px solid {c['accent']}; }}
 QFrame[class="card"][link="true"]:hover {{ border: 1px solid {c['accent']}; }}

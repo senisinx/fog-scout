@@ -1063,6 +1063,9 @@ def make_control(kind, key, post, switch=False, slot=None):
         w = HeatmapView()
     elif kind == "tiles":
         w = TilesView(post)                       # 1.38.54: clickable tiles (Tile.open)
+    elif kind == "regions":                       # 1.57.105: the server regions as cards with ping bars
+        from .qt_views import RegionCards
+        w = RegionCards(key, post)
     elif kind == "preview":
         w = PreviewView(key, post)
     elif kind in ("elements", "anchors"):                  # 1.46: the overlay editor's list and quick places
@@ -1242,7 +1245,8 @@ def show_control(kind, w, extra, st):
             s.setValue(round(st.get("value", 0)))
             s.blockSignals(False)
         s.set_cap(st.get("cap"))
-    elif kind in ("table", "chart", "log", "dashboard", "heatmap", "tiles", "preview", "swatches", "host", "elements", "anchors"):
+    elif kind in ("table", "chart", "log", "dashboard", "heatmap", "tiles", "regions", "preview", "swatches", "host",
+                  "elements", "anchors"):
         w.show_state(st)
     elif kind == "hotkey":
         w.show_text(st.get("text", ""))

@@ -641,6 +641,18 @@ class Tiles(Widget):
         self.data = []
 
 
+class Regions(Widget):
+    """1.57.105: the server regions as one card per continent (``data`` = [{"id", "title", "check", "rows": [{"id",
+    "name", "check", "ms", "busy", "state", "best"}]}]), drawn by qt_views.RegionCards; a click on a tick goes to
+    ``command(id)`` ("g:<group>" / "r:<code>")."""
+
+    def __init__(self, master=None, command=None, **kw):
+        super().__init__(master, **kw)
+        self.data = []
+        self.dark = True
+        self.command = command
+
+
 class Swatches(Widget):
     """A row of colour squares (``values`` = [(\"#rrggbb\", tip)], ``current`` = the chosen one or None) and a
     button for any other colour; a click goes to ``command(\"#rrggbb\")``. The colour palette (since 1.63)."""
