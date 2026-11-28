@@ -201,7 +201,9 @@ Seit 1.8.8 haben Auswahllisten und Häkchen einen eigenen Stil wie Knöpfe und F
 
 **Server: Regionen als Karten mit Ping-Balken** (seit 1.57.105): Die Serverregionen stehen jetzt als **eine Karte je Kontinent** (Europa, Amerika, Asien, Ozeanien) mit Haken für den ganzen Kontinent. Jede Region hat einen **Ping-Balken** in Grün, Gelb oder Rot, die schnellste ist mit **„schnellste“** markiert. Breit stehen zwei Karten nebeneinander, schmal untereinander.
 
-**Diagnose: genauer und ohne fremden Text** (seit 1.57.106): Unter „Letzte Banner“ steht Text, der zu keiner Map passt, nur noch mit seiner Länge – so gerät kein Spielername in eine weitergegebene Diagnose. Die Zeile „Erkennungs-Takt“ nennt jetzt auch die Score-OCR, und ein langsamer Aufbau der Seite Aufnahmen nennt unter „Fenster-Hänger“ seinen langsamen Teil.
+**Overlay: Liste links, weniger Regler** (seit 1.57.106): Im breiten Fenster stehen die Elemente (Karte, Infos, Systemwerte …) als **Liste links**, jedes mit Ein/Aus und Zustand; Vorschau und Einstellungen rechts daneben, die Vorschau ist dadurch grösser. Sichtbar sind nur **Platz, Grösse und Deckkraft**; alles Weitere eines Elements liegt hinter **„Mehr Einstellungen (n)“**. Die Suche findet diese Einstellungen weiterhin und klappt sie auf.
+
+**Diagnose: genauer und ohne fremden Text** (seit 1.57.107): Unter „Letzte Banner“ steht Text, der zu keiner Map passt, nur noch mit seiner Länge – so gerät kein Spielername in eine weitergegebene Diagnose. Die Zeile „Erkennungs-Takt“ nennt jetzt auch die Score-OCR, und ein langsamer Aufbau der Seite Aufnahmen nennt unter „Fenster-Hänger“ seinen langsamen Teil.
 
 **Schalter in den Einstellungen** (seit 1.57.88): Die Häkchen der Einstellungen sind Ein/Aus-Schalter – wie auf der Übersicht und in der Liste der Overlay-Elemente.
 

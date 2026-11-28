@@ -978,7 +978,7 @@ class RecordingsTab:
 
     def _rec_render(self, force=False):
         self._rec_dirty, self._rec_rendered = False, time.time()
-        # 1.57.106 (user diagnosis: "Ereignis ui page recordings 5212 ms", nothing said which part): the parts of
+        # 1.57.107 (user diagnosis: "Ereignis ui page recordings 5212 ms", nothing said which part): the parts of
         # this render go to the window's slow list like "Verbindung: …" – the folder and the files are on a drive
         # that may sleep, the join with the official matches may be computed here
         clock = [time.perf_counter()]

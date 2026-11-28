@@ -330,7 +330,7 @@ class DetectionWorker(threading.Thread):
                    else "ignoriert" if strict and frames else "unbekannt" if frames else "kein Text")
         fit = "–" if best[2] is None else f"{best[2]:.1f}"
         like = f" · am ehesten {lead[0]} p={lead[1]:.2f}" if lead else ""
-        # 1.57.106 (user diagnosis showed a player's name): text that fits no map name is whatever stood on the
+        # 1.57.107 (user diagnosis showed a player's name): text that fits no map name is whatever stood on the
         # screen – the diagnosis is made to be passed on, so it names only its length (the picture is in debug/)
         read = (f"„{best[0]}“ / „{best[1]}“" if acc.good_frames
                 else f"Text mit {len(best[0])} / {len(best[1])} Zeichen")

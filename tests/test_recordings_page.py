@@ -1364,7 +1364,7 @@ def test_the_tile_pictures_are_made_ahead_into_the_cache_only_once_and_never_bes
 
 
 def test_a_slow_render_of_the_page_names_its_slow_part(app_root, tmp_path, monkeypatch):
-    """1.57.106 (user diagnosis: "Ereignis ui page recordings 5212 ms" – no word on which part): the render tells
+    """1.57.107 (user diagnosis: "Ereignis ui page recordings 5212 ms" – no word on which part): the render tells
     the window's slow list its parts, as "Verbindung: …" does. A fast part leaves no line."""
     from fogscout.app import App
     _settings(app_root, shots_folder=str(tmp_path / "shots"))

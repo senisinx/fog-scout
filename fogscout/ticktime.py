@@ -75,7 +75,7 @@ class TickTimes:
 
 # 1.38.22 (project review, PERF-2): the detection worker timed the same way – before, nothing said what a tick of
 # the detection cost (the full-screen grab, the OCR of the banner and the lobby corner, the round-end look).
-# 1.57.106 (user diagnosis: 44 ms of "Arbeit je Takt" in no step): "score" was measured by the worker but not listed
+# 1.57.107 (user diagnosis: 44 ms of "Arbeit je Takt" in no step): "score" was measured by the worker but not listed
 LOOK_STEPS = (("grab", "Aufnahme"), ("mask", "Schwärzen"), ("banner", "Banner-OCR"), ("lobby", "Lobby-OCR"),
               ("end", "Rundenende"), ("loadouts", "Loadouts"), ("score", "Score-OCR"), ("vbars", "Balken"),
               ("window", "Fenstersuche"))

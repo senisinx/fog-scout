@@ -61,7 +61,7 @@ def test_the_workers_looks_are_timed_per_step_with_counts_and_without_the_sleep(
 
 
 def test_every_step_the_worker_measures_is_in_the_line():
-    """1.57.106 (user diagnosis: "Arbeit je Takt 249.7" but the steps listed summed to 206): the worker measured
+    """1.57.107 (user diagnosis: "Arbeit je Takt 249.7" but the steps listed summed to 206): the worker measured
     "score" and the line left it out. Every name the worker times has a label in LOOK_STEPS."""
     import re
     from fogscout import ticktime
@@ -71,7 +71,7 @@ def test_every_step_the_worker_measures_is_in_the_line():
 
 
 def test_the_banner_history_names_no_text_that_fits_no_map(tmp_path):
-    """1.57.106 (user diagnosis: a player's name under "Letzte Banner"): what no frame could read as a
+    """1.57.107 (user diagnosis: a player's name under "Letzte Banner"): what no frame could read as a
     map is named by its length only – the diagnosis is passed on. A read banner keeps its text."""
     import queue
     from types import SimpleNamespace

@@ -567,12 +567,20 @@ def _reachable(w, page) -> bool:
     fold (opened on the way)."""
     folds = _folds_of(w)
     if folds:
-        return (w is folds[0] or w.isVisibleTo(folds[0])) and _reachable(folds[-1].parentWidget(), page)
-    tabs = _tab_of(w)
+        return _visible_within(w, folds[0]) and _reachable(folds[-1].parentWidget(), page)
+    return _visible_within(w, page)
+
+
+def _visible_within(w, top) -> bool:
+    """Shown inside ``top``, or on a tab inside it that is not open now. 1.57.106: also for a fold that holds tabs
+    (the overlay page's "Mehr Einstellungen": the settings of every element, one tab each)."""
+    if w is top:
+        return True
+    tabs = [(tw, body) for tw, body in _tab_of(w) if tw is not top and top.isAncestorOf(tw)]
     if not tabs:
-        return w.isVisibleTo(page)
+        return w.isVisibleTo(top)
     return (w.isVisibleTo(tabs[0][1]) and all(tw.isTabVisible(tw.indexOf(body)) for tw, body in tabs)
-            and tabs[-1][0].isVisibleTo(page))
+            and tabs[-1][0].isVisibleTo(top))
 
 
 def _open_tabs(w):

@@ -2509,6 +2509,14 @@ T = {
         'エラーだけを表示します――何がうまくいかなかったかをすぐ確認できます。',
     'schnellste':
         '最速',
+    'Mehr Einstellungen ({n})':
+        'その他の設定（{n}）',
+    'Mehr Einstellungen':
+        'その他の設定',
+    'Weniger Einstellungen':
+        '設定を減らす',
+    'Die übrigen Einstellungen dieses Elements ein- oder ausklappen.':
+        'この要素のその他の設定を表示/非表示にします。',
     'Schritt {n} von {total}':
         'ステップ {n} / {total}',
     'Sprache':

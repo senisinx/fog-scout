@@ -2509,6 +2509,14 @@ T = {
         'Mostra solo gli errori – per vedere subito cosa è andato storto.',
     'schnellste':
         'più veloce',
+    'Mehr Einstellungen ({n})':
+        'Altre impostazioni ({n})',
+    'Mehr Einstellungen':
+        'Altre impostazioni',
+    'Weniger Einstellungen':
+        'Meno impostazioni',
+    'Die übrigen Einstellungen dieses Elements ein- oder ausklappen.':
+        'Mostra o nasconde le altre impostazioni di questo elemento.',
     'Schritt {n} von {total}':
         'Passo {n} di {total}',
     'Sprache':
