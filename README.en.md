@@ -197,6 +197,8 @@ Since 1.8.8 choice boxes and tick boxes have their own style like buttons and fi
 
 **Maps: big tiles, favourites** (since 1.57.103): at the top there are only **“All maps · Recently played · Favourites”** and a **“Realm …”** choice next to the search – before, twenty realm buttons took three lines. The tiles are bigger and share the whole width. **“Favourite”** (star on the chosen map or right-click on a tile) marks maps; “Favourites” shows only those.
 
+**Log: filters with counts, errors stand out** (since 1.57.104): above the log the kinds are buttons with their number (“Detection 61 · Errors 2”). A click shows only that kind, “All” everything again, **“Errors only”** in one click. Error lines have a coloured background, **“Copy diagnosis”** is now at the top right.
+
 **Switches in the settings** (since 1.57.88): the tick boxes of the settings are on/off switches – as on the overview and in the list of overlay elements.
 
 **Overlay page as a "stage"** (since 1.57.87): the **preview** is on top across the page, below it the **row of all elements** with lock and on/off switch, below that the **settings of the element picked** – quick place, size and opacity on the left, its own settings on the right. In a narrow window everything is below each other.

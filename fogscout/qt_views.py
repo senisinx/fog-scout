@@ -612,9 +612,12 @@ class LogView(QPlainTextEdit):
     def _row(self, entry, col):
         ts, cat, text = entry
         msg = col["Fehler"] if cat == "Fehler" else col["text"]
-        return (f'<span style="color:{col["ts"]}">{html.escape(ts)}</span>&nbsp;&nbsp;'
-                f'<span style="color:{col.get(cat, col["text"])}">{html.escape(_(cat))}</span>&nbsp;&nbsp;'
-                f'<span style="color:{msg}">{html.escape(text)}</span>')
+        row = (f'<span style="color:{col["ts"]}">{html.escape(ts)}</span>&nbsp;&nbsp;'
+               f'<span style="color:{col.get(cat, col["text"])}">{html.escape(_(cat))}</span>&nbsp;&nbsp;'
+               f'<span style="color:{msg}">{html.escape(text)}</span>')
+        if cat == "Fehler":            # 1.57.104 (draft "Log A"): an error line stands out, not only its colour
+            row = f'<span style="background-color:{col["error_bg"]}">{row}</span>'
+        return row
 
     def show_state(self, st):
         from .theme import LOG_COLORS

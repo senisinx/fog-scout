@@ -923,8 +923,6 @@ T = {
         'Cronologia dei round eliminata.',
     'Löscht alle gespeicherten Runden (Datei rounds.jsonl) – nach einer Rückfrage, vorher kommt eine Kopie in den Ordner backup.':
         'Elimina tutti i round salvati (file rounds.jsonl) – dopo una conferma; prima viene salvata una copia nella cartella di backup.',
-    'Anzeigen:':
-        'Mostra:',
     'Leeren':
         'Svuota',
     'Log-Datei öffnen':
@@ -2503,6 +2501,14 @@ T = {
         'Segna la mappa come preferita – «Preferite» in alto mostra solo queste.',
     'Noch keine Favoriten. Eine Map anklicken und rechts „Favorit“ drücken – oder Rechtsklick auf eine Kachel.':
         'Ancora nessuna preferita. Clicca una mappa e premi «Preferita» a destra – oppure clic destro su una tessera.',
+    'Nur Fehler':
+        'Solo errori',
+    'Alle Zeilen zeigen. Die Zahl sagt, wie viele das Log hält.':
+        'Mostra tutte le righe. Il numero dice quante ne contiene il log.',
+    'Nur diese Art zeigen – noch ein Klick nimmt sie dazu oder weg. Die Zahl sagt, wie viele Zeilen dieser Art das Log hält.':
+        'Mostra solo questo tipo – un altro clic lo aggiunge o lo toglie. Il numero dice quante righe di questo tipo contiene il log.',
+    'Zeigt nur die Fehler – zum schnellen Nachsehen, was schiefging.':
+        'Mostra solo gli errori – per vedere subito cosa è andato storto.',
     'Schritt {n} von {total}':
         'Passo {n} di {total}',
     'Sprache':

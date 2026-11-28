@@ -923,8 +923,6 @@ T = {
         '라운드 기록이 삭제되었습니다.',
     'Löscht alle gespeicherten Runden (Datei rounds.jsonl) – nach einer Rückfrage, vorher kommt eine Kopie in den Ordner backup.':
         '저장된 모든 라운드(rounds.jsonl 파일)를 삭제합니다 – 확인 후, 먼저 사본이 백업 폴더에 저장됩니다.',
-    'Anzeigen:':
-        '표시:',
     'Leeren':
         '지우기',
     'Log-Datei öffnen':
@@ -2503,6 +2501,14 @@ T = {
         '맵을 즐겨찾기로 표시합니다 – 위의 „즐겨찾기“는 이것만 보여 줍니다.',
     'Noch keine Favoriten. Eine Map anklicken und rechts „Favorit“ drücken – oder Rechtsklick auf eine Kachel.':
         '아직 즐겨찾기가 없습니다. 맵을 클릭하고 오른쪽의 „즐겨찾기“를 누르거나 타일을 오른쪽 클릭하세요.',
+    'Nur Fehler':
+        '오류만',
+    'Alle Zeilen zeigen. Die Zahl sagt, wie viele das Log hält.':
+        '모든 줄을 표시합니다. 숫자는 로그에 있는 줄 수입니다.',
+    'Nur diese Art zeigen – noch ein Klick nimmt sie dazu oder weg. Die Zahl sagt, wie viele Zeilen dieser Art das Log hält.':
+        '이 종류만 표시합니다 – 한 번 더 클릭하면 추가하거나 뺍니다. 숫자는 이 종류의 줄 수입니다.',
+    'Zeigt nur die Fehler – zum schnellen Nachsehen, was schiefging.':
+        '오류만 표시합니다 – 무엇이 잘못됐는지 빠르게 확인합니다.',
     'Schritt {n} von {total}':
         '{n}/{total}단계',
     'Sprache':

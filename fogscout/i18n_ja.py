@@ -923,8 +923,6 @@ T = {
         'ラウンド履歴を削除しました。',
     'Löscht alle gespeicherten Runden (Datei rounds.jsonl) – nach einer Rückfrage, vorher kommt eine Kopie in den Ordner backup.':
         '保存されたすべてのラウンド（ファイル rounds.jsonl）を削除します – 確認後、先にコピーがバックアップフォルダーに保存されます。',
-    'Anzeigen:':
-        '表示：',
     'Leeren':
         'クリア',
     'Log-Datei öffnen':
@@ -2503,6 +2501,14 @@ T = {
         'マップをお気に入りにします――上の「お気に入り」はそれだけを表示します。',
     'Noch keine Favoriten. Eine Map anklicken und rechts „Favorit“ drücken – oder Rechtsklick auf eine Kachel.':
         'お気に入りはまだありません。マップをクリックして右の「お気に入り」を押すか、タイルを右クリックしてください。',
+    'Nur Fehler':
+        'エラーのみ',
+    'Alle Zeilen zeigen. Die Zahl sagt, wie viele das Log hält.':
+        'すべての行を表示します。数字はログの行数です。',
+    'Nur diese Art zeigen – noch ein Klick nimmt sie dazu oder weg. Die Zahl sagt, wie viele Zeilen dieser Art das Log hält.':
+        'この種類だけを表示します――もう一度クリックで追加・除外。数字はこの種類の行数です。',
+    'Zeigt nur die Fehler – zum schnellen Nachsehen, was schiefging.':
+        'エラーだけを表示します――何がうまくいかなかったかをすぐ確認できます。',
     'Schritt {n} von {total}':
         'ステップ {n} / {total}',
     'Sprache':

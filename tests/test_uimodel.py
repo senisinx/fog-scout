@@ -4053,3 +4053,39 @@ def test_the_star_of_a_map_is_kept_and_reaches_the_maps_page(app_root):
         assert app._map_favs() == set()
     finally:
         app.quit()
+
+
+def test_the_log_filters_are_chips_with_counts_and_errors_stand_out(app_root):
+    """1.57.104 (user picked draft "Log A"): each kind of line is a chip with its number; with all shown a click on a
+    chip shows only that kind, "Alle" brings everything back, "Nur Fehler" one click; the choice is kept; an error
+    line has a background of its own in the window."""
+    import json
+    from fogscout.app import App
+    from fogscout.qt_views import LogView
+    from fogscout.theme import LOG_COLORS
+    (app_root / "settings.json").write_text(json.dumps({"welcome_seen": True}), encoding="utf-8")
+    app = App(str(app_root), simulate=str(app_root / "sim"))
+    try:
+        app._log_entries.clear()
+        for i in range(3):
+            app._log(f"erkannt {i}", "Erkennung")
+        app._log("OBS antwortet nicht", "Fehler")
+        lines, _dark = app._log_lines()
+        assert len(lines) == 4
+        assert app.log_chips["Erkennung"].cget("text") == "Erkennung 3" and app.log_chips["Overlay"].cget("text") == "Overlay"
+        assert app.log_chip_all.cget("text") == "Alle 4" and app.log_chip_all._dbdms_pressed()
+        app.log_chips["Erkennung"].invoke()                          # all shown: only this kind
+        assert [e[1] for e in app._log_lines()[0]] == ["Erkennung"] * 3
+        assert app.log_chips["Erkennung"]._dbdms_pressed() and not app.log_chip_all._dbdms_pressed()
+        app.log_chips["Fehler"].invoke()                             # adds one
+        assert len(app._log_lines()[0]) == 4 and app.settings.get("log_categories") == ["Erkennung", "Fehler"]
+        app.log_only_err.invoke()
+        assert [e[2] for e in app._log_lines()[0]] == ["OBS antwortet nicht"]
+        app.log_chips["Fehler"].invoke()                             # nothing left would be empty: all again
+        assert app.log_chip_all._dbdms_pressed() and len(app._log_lines()[0]) == 4
+        assert app.log_chips["Erkennung"]._dbdms_tip() and app.log_chip_all._dbdms_tip()
+        row = LogView()._row(("12:00:00", "Fehler", "x"), LOG_COLORS[True])
+        assert LOG_COLORS[True]["error_bg"] in row and LOG_COLORS[True]["error_bg"] not in \
+            LogView()._row(("12:00:00", "System", "x"), LOG_COLORS[True])
+    finally:
+        app.quit()

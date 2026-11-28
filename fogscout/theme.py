@@ -4,9 +4,9 @@ from __future__ import annotations
 
 LOG_COLORS = {
     True: {"ts": "#9ba1a9", "Erkennung": "#7cc47f", "Overlay": "#6fa8dc", "System": "#b3b8bf", "Fehler": "#e06c6c",
-           "text": "#dfe2e6"},
+           "text": "#dfe2e6", "error_bg": "#3b2326"},
     False: {"ts": "#5f636a", "Erkennung": "#1e7b34", "Overlay": "#1f5fa8", "System": "#555b63", "Fehler": "#b3261e",
-            "text": "#1b1b1b"},
+            "text": "#1b1b1b", "error_bg": "#fbe4e2"},
 }
 DOT = {"ok": "#3fb950", "warn": "#d29922", "err": "#e5534b", "info": "#58a6ff", "idle": "#8b8f98"}
 
