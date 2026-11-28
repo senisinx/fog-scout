@@ -978,8 +978,19 @@ class RecordingsTab:
 
     def _rec_render(self, force=False):
         self._rec_dirty, self._rec_rendered = False, time.time()
+        # 1.57.106 (user diagnosis: "Ereignis ui page recordings 5212 ms", nothing said which part): the parts of
+        # this render go to the window's slow list like "Verbindung: …" – the folder and the files are on a drive
+        # that may sleep, the join with the official matches may be computed here
+        clock = [time.perf_counter()]
+
+        def part(name):
+            now = time.perf_counter()
+            self.root.note("Aufnahmen: " + name, (now - clock[0]) * 1000)
+            clock[0] = now
         folder = self.recorder.folder() if self.settings.get("rec_on", False) or self.settings.get("rec_folder") else None
+        part("Ordner")
         recs = self._rec_index(folder)[0]
+        part("Index")
         sp = self.recorder.space
         if not self.settings.get("rec_on", False) and not recs:
             self.rec_summary_var.set(_("Aufnahmen sind aus."))         # 1.24.3: one wording (the card is hidden)
@@ -1024,7 +1035,9 @@ class RecordingsTab:
             shown = [r for r in shown if r.role == "killer" and r.killer and self._killer_of(r.killer) == killer]
         shown = obsrec.sort_items(shown, self._sort_key(self.rec_sort_var), name=lambda r: map_shown(r.label) or "",
                                   length=lambda r: max(0.0, r.end - r.t))
+        part("Filter")
         j = self._joined()
+        part("Match-Daten")
         by_t = {r.t: r for r in j.rounds}
         t = self.rec_table
         t._dbdms_empty = _("Keine Aufnahme passt zu den Filtern oben.") if recs and not shown else ""  # 1.24.3
@@ -1056,10 +1069,14 @@ class RecordingsTab:
         keep = [i for i in keep if t.exists(i)]                 # 1.57.90: every marked row, not only the first
         if keep:
             t.selection_set(keep)
+        part("Tabelle")                                         # with one os.path.exists per recording
         self._rec_tiles_sync()
         self._rec_buttons()
+        part("Kacheln")
         self._clips_render(folder, recs)
+        part("Clips")
         self._shots_render()                                    # 1.12
+        part("Screenshots")
         self._rec_empty_shown(folder, recs)
 
     @staticmethod

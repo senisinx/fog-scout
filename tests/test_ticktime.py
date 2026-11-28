@@ -58,3 +58,33 @@ def test_the_workers_looks_are_timed_per_step_with_counts_and_without_the_sleep(
         cpu.note(wall, used)
     assert cpu.percent(60) == 100.0 * 1.0 / 3.0 and cpu.percent(1.5) == 50.0       # the last window only
     assert "letzte Minute 33.3 %" in cpu.line("Erkennung")
+
+
+def test_every_step_the_worker_measures_is_in_the_line():
+    """1.57.106 (user diagnosis: "Arbeit je Takt 249.7" but the steps listed summed to 206): the worker measured
+    "score" and the line left it out. Every name the worker times has a label in LOOK_STEPS."""
+    import re
+    from fogscout import ticktime
+    with open(os.path.join(os.path.dirname(ticktime.__file__), "worker.py"), encoding="utf-8") as f:
+        used = set(re.findall(r'times\.(?:measure|timed|add)\("([a-z_]+)"', f.read()))
+    assert "score" in used and used <= {key for key, _label in ticktime.LOOK_STEPS}
+
+
+def test_the_banner_history_names_no_text_that_fits_no_map(tmp_path):
+    """1.57.106 (user diagnosis: a player's name under "Letzte Banner"): what no frame could read as a
+    map is named by its length only – the diagnosis is passed on. A read banner keeps its text."""
+    import queue
+    from types import SimpleNamespace
+    from fogscout import config, worker
+    from fogscout.catalog import Catalog
+    root = os.path.join(os.path.dirname(__file__), "..")
+    wk = worker.DetectionWorker(root, config.Settings(str(tmp_path / "settings.json")), Catalog(root, ["en"]),
+                                queue.Queue(), data_dir=str(tmp_path))
+    none = SimpleNamespace(best=lambda: None, decided=None, decided_unsure=False, good_frames=0)
+    wk._banner_seen(0.0, False, [("SOMEONE", "", -39.5)], none)
+    assert "SOMEONE" not in wk.banner_history[-1] and "Text mit 7 / 0 Zeichen" in wk.banner_history[-1]
+    assert "→ unbekannt" in wk.banner_history[-1]
+    read = SimpleNamespace(best=lambda: ("pale-rose", 1.0), decided=("pale-rose", 0), decided_unsure=False,
+                           good_frames=3)
+    wk._banner_seen(0.0, False, [("THE PALE ROSE", "BACKWATERSWAMP", 0.0)], read)
+    assert "„THE PALE ROSE“ / „BACKWATERSWAMP“" in wk.banner_history[-1]

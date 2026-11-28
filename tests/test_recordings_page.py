@@ -1361,3 +1361,23 @@ def test_the_tile_pictures_are_made_ahead_into_the_cache_only_once_and_never_bes
     warm.stop()
     tile = qt_library.ThumbLoader(str(cache), "ffmpeg", 1.0, size=(528, 297))    # the gallery reads the same file
     assert tile._file(qt_library._cache_key(videos[0].path)) in {str(p) for p in cache.glob("*.jpg")}
+
+
+def test_a_slow_render_of_the_page_names_its_slow_part(app_root, tmp_path, monkeypatch):
+    """1.57.106 (user diagnosis: "Ereignis ui page recordings 5212 ms" – no word on which part): the render tells
+    the window's slow list its parts, as "Verbindung: …" does. A fast part leaves no line."""
+    from fogscout.app import App
+    _settings(app_root, shots_folder=str(tmp_path / "shots"))
+    app = App(str(app_root), simulate=str(app_root / "sim"))
+    try:
+        app.qt.show_page("recordings")
+        real, ticks = app._joined, iter(range(0, 10_000_000))
+        monkeypatch.setattr(time, "perf_counter", lambda: next(ticks) * 0.001)      # 1 ms per look at the clock
+        monkeypatch.setattr(app, "_joined", lambda: [next(ticks) for _ in range(200)] and real())   # "200 ms"
+        app.root.slow.clear()
+        app._rec_render(force=True)
+        monkeypatch.undo()
+        names = [what for _t, what, _took, _late in app.root.slow if what.startswith("Aufnahmen: ")]
+        assert "Aufnahmen: Match-Daten" in names and "Aufnahmen: Ordner" not in names
+    finally:
+        app.quit()

@@ -201,6 +201,8 @@ Since 1.8.8 choice boxes and tick boxes have their own style like buttons and fi
 
 **Server: regions as cards with ping bars** (since 1.57.105): the server regions are now **one card per continent** (Europe, America, Asia, Oceania) with a tick for the whole continent. Each region has a **ping bar** in green, yellow or red, the fastest is marked **“fastest”**. Wide, two cards stand side by side, narrow, below each other.
 
+**Diagnosis: more exact and without foreign text** (since 1.57.106): under “Letzte Banner”, text that fits no map is named by its length only – no player name ends up in a diagnosis that is passed on. The line “Erkennungs-Takt” now lists the score OCR too, and a slow build of the Recordings page names its slow part under “Fenster-Hänger”.
+
 **Switches in the settings** (since 1.57.88): the tick boxes of the settings are on/off switches – as on the overview and in the list of overlay elements.
 
 **Overlay page as a "stage"** (since 1.57.87): the **preview** is on top across the page, below it the **row of all elements** with lock and on/off switch, below that the **settings of the element picked** – quick place, size and opacity on the left, its own settings on the right. In a narrow window everything is below each other.
