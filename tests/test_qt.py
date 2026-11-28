@@ -2325,19 +2325,19 @@ def test_the_overlay_editor_has_a_tool_bar_list_canvas_and_inspector_in_three_wi
     assert ed.inspector.isAncestorOf(page.controls["ov.sel_size"][1]) and ed.inspector.isAncestorOf(ed.tabs)
     assert ed.tabs.tabBar().isHidden() and ed.tabs.count() == 9         # the list picks the tab, not a tab row
     assert not ed.canvas.hasHeightForWidth()                           # fills its place – no 380-px cap
-    # 1.57.87 (user picked the draft "Bühne"): the preview on top across the page, the elements below it, the
-    # settings below them – place and size beside the element's own settings; narrow: the same in one column
+    # 1.57.87 (user picked the draft "Bühne"): narrow – the preview on top, the elements below it, the settings below
+    # them. 1.57.106 (draft "D"): wide – the elements as a list on the left, the preview and the settings beside it;
+    # the element's own settings behind "Mehr Einstellungen (n)"
     for width, mode in ((1600, "stage"), (900, "stage"), (600, "narrow")):
         ed.arrange(width)
         assert ed.mode() == mode
 
     def placed(mode):                     # the parts where the mode puts them
         r, c, i = (w.geometry() for w in (ed.rail, ed.canvas_box, ed.inspector))
-        e, o = ed.element_box.geometry(), ed.own_box.geometry()
-        below = c.bottom() < r.top() and r.bottom() < i.top() and c.width() == r.width() == i.width()
         if mode == "stage":
-            return below and e.right() < o.left() and c.height() >= qt_overlay.STAGE_MIN_H
-        return below and e.bottom() < o.top()
+            return r.right() < c.left() and c.bottom() < i.top() and c.height() >= qt_overlay.STAGE_MIN_H
+        e, o = ed.element_box.geometry(), ed.own_box.geometry()
+        return c.bottom() < r.top() and r.bottom() < i.top() and (o.isEmpty() or e.bottom() < o.top())
     page.show()
     for width in (1500, 700):
         page.resize(width, 860)
@@ -2346,8 +2346,13 @@ def test_the_overlay_editor_has_a_tool_bar_list_canvas_and_inspector_in_three_wi
         assert ed.mode() == ed.mode_for(ed.width()) and placed(ed.mode()), (width, ed.width(), ed.mode())
     assert ed.mode() == "narrow"                                       # 700 px fit every screen
     assert ed.rail_view._cols == 4
-    ed.arrange(1500)                                                   # a wide stage: the nine rows in two lines
-    assert ed.rail_view._cols == qt_overlay.STAGE_COLS and not ed.rail_head.isVisible()
+    ed.arrange(1500)                                                   # wide: one row per element, a heading
+    assert not ed.rail_view._compact and ed.rail_head.isVisible()
+    assert ed.own_box.isHidden() and ed.more_btn.text().startswith("Mehr Einstellungen")
+    ed.more_btn.click()
+    assert ed.more_open() and ed.more_btn.text() == "Weniger Einstellungen"
+    ed.more_btn.click()
+    assert not ed.more_open()
     keys = qt_window.page_keys("overlay")
     assert {"ov.preview", "ov.undo", "ov.elements", "ov.anchors", "ov.focus_mode", "ov.master"} <= keys
     assert "ov.sel" not in keys                                          # the list replaced the choice
@@ -4401,3 +4406,23 @@ def test_the_region_cards_draw_a_coloured_ping_bar_and_mark_the_fastest(qapp):
     b[1].click()
     assert posted[-1] == ("act", ("k", "r:b"))
 
+
+
+def test_a_search_hit_behind_more_settings_opens_the_fold(qapp, keep):
+    """1.57.106 (draft "D"): the element's own settings sit behind "Mehr Einstellungen" – the search still finds them
+    (also in the tab of another element) and going there opens the fold."""
+    from fogscout import qt_window
+    win = keep(qt_window.MainWindow(lambda a, arg=None: None))
+    win.resize(1500, 900)
+    win.show()
+    qapp.processEvents()
+    win.show_states("overlay", {"ov.map_size_reset": {"text": "Eigene Grösse zurücksetzen", "visible": True,
+                                                       "enabled": True}})
+    win.show_page("overlay")
+    win.update_search_index()
+    ed = win.forms["overlay"].editor
+    assert not ed.more_open()
+    hit = next(e for e in win._found if e.startswith("Eigene Grösse"))
+    win.go_to_found(hit)
+    qapp.processEvents()
+    assert ed.more_open()

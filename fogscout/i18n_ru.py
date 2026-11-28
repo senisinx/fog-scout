@@ -2509,6 +2509,14 @@ T = {
         'Показывает только ошибки – чтобы быстро увидеть, что пошло не так.',
     'schnellste':
         'быстрее всех',
+    'Mehr Einstellungen ({n})':
+        'Другие настройки ({n})',
+    'Mehr Einstellungen':
+        'Другие настройки',
+    'Weniger Einstellungen':
+        'Меньше настроек',
+    'Die übrigen Einstellungen dieses Elements ein- oder ausklappen.':
+        'Показать или скрыть остальные настройки этого элемента.',
     'Schritt {n} von {total}':
         'Шаг {n} из {total}',
     'Sprache':

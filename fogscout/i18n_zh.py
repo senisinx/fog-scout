@@ -2509,6 +2509,14 @@ T = {
         '只显示错误——快速查看哪里出了问题。',
     'schnellste':
         '最快',
+    'Mehr Einstellungen ({n})':
+        '更多设置（{n}）',
+    'Mehr Einstellungen':
+        '更多设置',
+    'Weniger Einstellungen':
+        '更少设置',
+    'Die übrigen Einstellungen dieses Elements ein- oder ausklappen.':
+        '展开或收起此元素的其他设置。',
     'Schritt {n} von {total}':
         '第 {n} 步，共 {total} 步',
     'Sprache':

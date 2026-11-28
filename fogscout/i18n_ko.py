@@ -2509,6 +2509,14 @@ T = {
         '오류만 표시합니다 – 무엇이 잘못됐는지 빠르게 확인합니다.',
     'schnellste':
         '가장 빠름',
+    'Mehr Einstellungen ({n})':
+        '설정 더 보기 ({n})',
+    'Mehr Einstellungen':
+        '설정 더 보기',
+    'Weniger Einstellungen':
+        '설정 줄이기',
+    'Die übrigen Einstellungen dieses Elements ein- oder ausklappen.':
+        '이 요소의 나머지 설정을 펼치거나 접습니다.',
     'Schritt {n} von {total}':
         '{n}/{total}단계',
     'Sprache':
