@@ -203,6 +203,8 @@ Since 1.8.8 choice boxes and tick boxes have their own style like buttons and fi
 
 **Overlay: list on the left, fewer controls** (since 1.57.106): in a wide window the elements (map, infos, system values …) stand as a **list on the left**, each with on/off and its state; preview and settings beside it, so the preview is bigger. Only **place, size and opacity** are shown; everything else of an element is behind **“More settings (n)”**. The search still finds those settings and opens them.
 
+**Diagnosis: more exact and without foreign text** (since 1.57.107): under “Letzte Banner”, text that fits no map is named by its length only – no player name ends up in a diagnosis that is passed on. The line “Erkennungs-Takt” now lists the score OCR too, and a slow build of the Recordings page names its slow part under “Fenster-Hänger”.
+
 **Switches in the settings** (since 1.57.88): the tick boxes of the settings are on/off switches – as on the overview and in the list of overlay elements.
 
 **Overlay page as a "stage"** (since 1.57.87): the **preview** is on top across the page, below it the **row of all elements** with lock and on/off switch, below that the **settings of the element picked** – quick place, size and opacity on the left, its own settings on the right. In a narrow window everything is below each other.
