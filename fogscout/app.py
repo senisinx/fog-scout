@@ -1984,17 +1984,11 @@ class App(ServerTab, StatsTab, ExportDialog, RecordingsTab, DiscordPresence, Spo
         self._log(_("Spielsprachen: {langs}", langs=", ".join(langs)), "System")
 
     def _apply_theme(self):
-        """Dark/light: the Qt window's colours, the server table's ping colours and the charts."""
-        from .qt_theme import STATE
-        from .theme import LOG_COLORS
+        """Dark/light: the Qt window's colours, the server regions' ping bars and the charts."""
         dark = bool(self.dark_var.get()) if hasattr(self, "dark_var") else bool(self.settings.get("dark_mode", True))
-        colors = LOG_COLORS[dark]
         if hasattr(self, "swatches"):
             self.swatches.dark = dark
-        for tag, key in (("p_good", "Erkennung"), ("p_bad", "Fehler"), ("p_na", "ts")):
-            self.srv_tree.tag_configure(tag, foreground=colors[key])
-        self.srv_tree.tag_configure("p_mid", foreground=STATE[dark]["warn"])          # 1.22.3: the theme's
-        self.srv_tree.tag_configure("group", foreground=colors["text"])
+        self.srv_cards.dark = dark                    # 1.57.105: the cards draw their bars in the theme's colours
         # CR-018 (code review): every chart and heatmap of the statistics, not only two of them
         for name in ("trend", "sys_trend", "bp_trend", "wait_trend", "prestige_trend", "stats_dash", "stats_heat_k",
                      "stats_heat_s"):

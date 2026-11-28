@@ -53,7 +53,7 @@ def _side(w) -> str:
 
 KINDS = ((ui.Treeview, "table"), (ui.Checkbutton, "check"), (ui.Button, "button"), (ui.Combobox, "combo"),
          (ui.Scale, "slider"), (ui.Entry, "entry"), (ui.Radiobutton, "radio"), (ui.Log, "log"),
-         (ui.Chart, "chart"), (ui.Dashboard, "dashboard"), (ui.Tiles, "tiles"),
+         (ui.Chart, "chart"), (ui.Dashboard, "dashboard"), (ui.Tiles, "tiles"), (ui.Regions, "regions"),
          (ui.Heatmap, "heatmap"),
          (ui.Elements, "elements"), (ui.Anchors, "anchors"),          # 1.46: before Preview (subclasses)
          (ui.Preview, "preview"), (ui.Swatches, "swatches"), (ui.Host, "host"))
@@ -152,7 +152,7 @@ def ui_state(w) -> dict:
     if isinstance(w, ui.Tiles):
         st.update(data=w.data)
         return st
-    if isinstance(w, (ui.Dashboard, ui.Heatmap)):
+    if isinstance(w, (ui.Dashboard, ui.Heatmap, ui.Regions)):
         st.update(data=w.data, dark=w.dark)
         return st
     chart = getattr(w, "_dbdms_chart", None)
@@ -264,7 +264,7 @@ def ui_act(w, value=None):
         if not w.instate(["disabled"]) and w.get() != str(value):
             w.delete(0, "end")
             w.insert(0, str(value))
-    elif isinstance(w, (ui.Preview, ui.Swatches, ui.Dashboard)):
+    elif isinstance(w, (ui.Preview, ui.Swatches, ui.Dashboard, ui.Regions)):
         if w.command is not None:
             w.command(value)
     elif isinstance(w, ui.Scale):

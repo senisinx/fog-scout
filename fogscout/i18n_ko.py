@@ -577,8 +577,6 @@ T = {
         'DBD는 체크한 지역에서만 매치를 찾습니다(Windows hosts 파일을 통해, 게임은 변경되지 않음). ‘선택 적용’ 후 DBD를 다시 시작하세요.',
     'Region':
         '지역',
-    'hosts-Datei':
-        'hosts 파일',
     'Ping messen':
         '핑 측정',
     'Auswahl anwenden':
@@ -2509,6 +2507,8 @@ T = {
         '이 종류만 표시합니다 – 한 번 더 클릭하면 추가하거나 뺍니다. 숫자는 이 종류의 줄 수입니다.',
     'Zeigt nur die Fehler – zum schnellen Nachsehen, was schiefging.':
         '오류만 표시합니다 – 무엇이 잘못됐는지 빠르게 확인합니다.',
+    'schnellste':
+        '가장 빠름',
     'Schritt {n} von {total}':
         '{n}/{total}단계',
     'Sprache':

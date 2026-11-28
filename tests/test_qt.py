@@ -4378,3 +4378,26 @@ def test_maps_can_be_marked_as_favourites_and_tiles_share_the_width(qapp, keep):
     span = row[-1].geometry().right() - row[0].geometry().left()
     assert len(row) >= 5 and span >= page.grid_scroll.viewport().width() - 40     # the row is filled
     assert all(t.width() >= qt_maps.TILE_W for t in row)
+
+
+def test_the_region_cards_draw_a_coloured_ping_bar_and_mark_the_fastest(qapp):
+    """1.57.105: the Qt cards – a bar green / yellow / red by the ping, "…" while a measurement runs without a value,
+    "schnellste" only at the best region; a tick posts the region's id."""
+    from fogscout.qt_views import PING_GOOD, PING_MID, RegionCards
+    posted = []
+    w = RegionCards("k", lambda a, arg=None: posted.append((a, arg)))
+    data = [{"id": "g:Europa", "title": "Europa", "check": "part", "rows": [
+        {"id": "r:a", "name": "A", "check": True, "ms": PING_GOOD - 1, "busy": False, "best": True, "state": "frei"},
+        {"id": "r:b", "name": "B", "check": False, "ms": PING_MID + 5, "busy": False, "best": False, "state": "–"},
+        {"id": "r:c", "name": "C", "check": False, "ms": None, "busy": True, "best": False, "state": "–"}]}]
+    w.resize(900, 300)
+    w.show()
+    w.show_state({"data": data, "dark": True})
+    card, title, rows_lay, rows = w._cards["g:Europa"]
+    assert title.checkState().name == "PartiallyChecked"
+    a, b, c = rows["r:a"], rows["r:b"], rows["r:c"]
+    assert a[1].isChecked() and not b[1].isChecked() and a[3].text() == f"{PING_GOOD - 1} ms" and c[3].text() == "…"
+    assert not a[4].isHidden() and b[4].isHidden() and a[2].ms == PING_GOOD - 1 and c[2].ms is None
+    b[1].click()
+    assert posted[-1] == ("act", ("k", "r:b"))
+

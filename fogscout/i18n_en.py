@@ -436,7 +436,6 @@ EN = {
         "DBD only searches for matches in the ticked regions (through the Windows hosts file, the game is not "
         "changed). Restart DBD after “Apply selection”.",
     "Region": "Region",
-    "hosts-Datei": "hosts file",
     "Ping messen": "Measure ping",
     "Auswahl anwenden": "Apply selection",
     "Alles freigeben": "Allow all",
@@ -1988,6 +1987,7 @@ EN = {
     'Alle Zeilen zeigen. Die Zahl sagt, wie viele das Log hält.': 'Show all lines. The number says how many the log holds.',
     'Nur diese Art zeigen – noch ein Klick nimmt sie dazu oder weg. Die Zahl sagt, wie viele Zeilen dieser Art das Log hält.': 'Show only this kind – another click adds or removes it. The number says how many lines of this kind the log holds.',
     'Zeigt nur die Fehler – zum schnellen Nachsehen, was schiefging.': 'Shows only the errors – to see quickly what went wrong.',
+    'schnellste': 'fastest',
     'Schritt {n} von {total}': 'Step {n} of {total}',
     'Sprache': 'Language',
     'Sprache dieses Programms:': 'Language of this program:',

@@ -577,8 +577,6 @@ T = {
         'DBD cerca partite solo nelle regioni spuntate (tramite il file hosts di Windows, il gioco non viene modificato). Riavvia DBD dopo «Applica selezione».',
     'Region':
         'Regione',
-    'hosts-Datei':
-        'File hosts',
     'Ping messen':
         'Misura ping',
     'Auswahl anwenden':
@@ -2509,6 +2507,8 @@ T = {
         'Mostra solo questo tipo – un altro clic lo aggiunge o lo toglie. Il numero dice quante righe di questo tipo contiene il log.',
     'Zeigt nur die Fehler – zum schnellen Nachsehen, was schiefging.':
         'Mostra solo gli errori – per vedere subito cosa è andato storto.',
+    'schnellste':
+        'più veloce',
     'Schritt {n} von {total}':
         'Passo {n} di {total}',
     'Sprache':

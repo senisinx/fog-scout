@@ -3056,25 +3056,32 @@ def test_the_statistics_filters_fold_away_count_and_reset(app_root):
 
 
 def test_the_server_regions_show_the_ping_beside_the_name_fastest_first(app_root):
-    """1.11.14 (user picked "Ping neben dem Namen, sortierbar"): the hosts column takes the rest of the width, so the
-    ping stands next to its region; after a measurement each group lists its fastest region first (unanswered last),
-    before one in the table's own order."""
+    """1.11.14 (user picked "Ping neben dem Namen, sortierbar"): after a measurement each group lists its fastest
+    region first (unanswered last), before one in the table's own order. 1.57.105 (draft "Server A"): one card per
+    continent with a tick for the group and a ping bar per region; "schnellste" at the fastest of all; a tick on a
+    region or a continent toggles like before."""
     from fogscout import regions
     from fogscout.app import App
     app = App(str(app_root), simulate=str(app_root / "sim"))
     try:
-        t = app.srv_tree
-        assert not t.column("#0", "stretch") and t.column("state", "stretch")
+        app._srv_refresh = lambda *a, **k: app._srv_render()                  # never the real hosts file
+        app.srv_ping = {}
+        app._srv_render()
         group = regions.GROUPS[0]
         codes = [c for c, _n, g in regions.REGIONS if g == group]
-        assert [i[2:] for i in t.get_children(f"g:{group}")] == codes
+        card = lambda: next(g for g in app.srv_cards.data if g["id"] == f"g:{group}")   # noqa: E731
+        assert [g["id"] for g in app.srv_cards.data] == [f"g:{g}" for g in regions.GROUPS]
+        assert [r["id"][2:] for r in card()["rows"]] == codes and card()["check"] == "on"
         fake = {c: {"ms": 200.0 - 10 * i} for i, c in enumerate(codes)}
         fake[codes[-1]] = {"ms": None}                                        # no answer: last
-        app._srv_refresh = lambda *a, **k: app._srv_render()                  # never the real hosts file
         app._srv_ping_done(fake)
-        got = [i[2:] for i in t.get_children(f"g:{group}")]
-        assert got == list(reversed(codes[:-1])) + [codes[-1]]
-        assert t.item(f"r:{got[0]}", "values")[0] == f"{200 - 10 * (len(codes) - 2):.0f} ms"
+        rows = card()["rows"]
+        assert [r["id"][2:] for r in rows] == list(reversed(codes[:-1])) + [codes[-1]]
+        assert rows[0]["ms"] == 200 - 10 * (len(codes) - 2) and rows[0]["best"] and not rows[1]["best"]
+        app.srv_cards.command(rows[0]["id"])                                  # a region's tick
+        assert card()["check"] == "part" and not next(r for r in card()["rows"] if r["id"] == rows[0]["id"])["check"]
+        app.srv_cards.command(f"g:{group}")                                   # the continent's tick: all again
+        assert card()["check"] == "on"
     finally:
         app.quit()
 
@@ -4001,10 +4008,11 @@ def test_the_last_pings_show_at_once_and_stay_while_a_new_measurement_runs(app_r
         app._srv_refresh = lambda *a, **k: app._srv_render()                  # never the real hosts file
         assert app.srv_ping == {code: {"ms": 42.0}}
         app._srv_render()
-        assert app.srv_tree.item(f"r:{code}", "values")[0] == "42 ms"
+        row = lambda: next(r for g in app.srv_cards.data for r in g["rows"] if r["id"] == f"r:{code}")   # noqa: E731
+        assert row()["ms"] == 42.0
         monkeypatch.setattr(regions, "measure_all", lambda *a, **k: (time.sleep(0.3), {})[1])
         app.srv_measure()
-        assert app._srv_busy and app.srv_tree.item(f"r:{code}", "values")[0] == "42 ms"   # no "…" over a value
+        assert app._srv_busy and row()["ms"] == 42.0 and row()["busy"]          # the value stays, no "…" over it
         app._srv_ping_done({code: {"ms": 31.4, "ip": "192.0.2.1", "how": "icmp"}})
         seen = app.settings.get("srv_ping_seen")
         assert seen["ms"] == {code: 31.4} and "192.0.2.1" not in json.dumps(seen)

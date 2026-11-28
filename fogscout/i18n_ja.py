@@ -577,8 +577,6 @@ T = {
         'DBD はチェックを入れたリージョンでのみマッチを検索します（Windows の hosts ファイルを使用、ゲームは変更されません）。「選択を適用」の後に DBD を再起動してください。',
     'Region':
         'リージョン',
-    'hosts-Datei':
-        'hosts ファイル',
     'Ping messen':
         'Ping を測定',
     'Auswahl anwenden':
@@ -2509,6 +2507,8 @@ T = {
         'この種類だけを表示します――もう一度クリックで追加・除外。数字はこの種類の行数です。',
     'Zeigt nur die Fehler – zum schnellen Nachsehen, was schiefging.':
         'エラーだけを表示します――何がうまくいかなかったかをすぐ確認できます。',
+    'schnellste':
+        '最速',
     'Schritt {n} von {total}':
         'ステップ {n} / {total}',
     'Sprache':

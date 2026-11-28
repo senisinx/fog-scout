@@ -577,8 +577,6 @@ T = {
         'DBD 只在勾选的区域中匹配对局（通过 Windows hosts 文件，不修改游戏）。“应用选择”后请重新启动 DBD。',
     'Region':
         '区域',
-    'hosts-Datei':
-        'hosts 文件',
     'Ping messen':
         '测量延迟',
     'Auswahl anwenden':
@@ -2509,6 +2507,8 @@ T = {
         '只显示此类——再点一次可加入或移除。数字表示日志中此类的行数。',
     'Zeigt nur die Fehler – zum schnellen Nachsehen, was schiefging.':
         '只显示错误——快速查看哪里出了问题。',
+    'schnellste':
+        '最快',
     'Schritt {n} von {total}':
         '第 {n} 步，共 {total} 步',
     'Sprache':
