@@ -62,9 +62,10 @@ def test_the_maps_page_finds_a_map_by_its_name_in_another_script(lang):
 
 def test_killer_names_follow_the_language_of_the_interface_and_discord_stays_english(lang):
     """1.50 (user: "mach die Killernamen auch"): every listed killer has its name in every language of the interface
-    (from DBD's own Steam achievements) – except the four Steam has no "Adept" achievement for, which stay English."""
+    (from DBD's own Steam achievements) – except the three Steam has no "Adept" achievement for, which stay English.
+    1.57.102: The Judgment translated by now, The Terrifier new."""
     from fogscout import lobby
-    no_source = {"The Shape", "The Demogorgon", "The Cenobite", "The Judgment"}
+    no_source = {"The Shape", "The Demogorgon", "The Cenobite"}
     assert set(lobby.KILLER_NAMES) == set(lobby.KILLERS) - no_source
     langs = set(i18n.CODES) - {"en"}
     assert all(set(v) == langs and all(v.values()) for v in lobby.KILLER_NAMES.values())
@@ -74,8 +75,20 @@ def test_killer_names_follow_the_language_of_the_interface_and_discord_stays_eng
     assert lobby.killer_label_en("The Hillbilly") == "Hillbilly"
     lang("ja")
     assert lobby.killer_label("The Nurse") == "ナース"
+    assert lobby.killer_label("The Terrifier") == "テリファー"
+    lang("de")
+    assert lobby.killer_label("The Judgment") == "Urteil" and lobby.killer_label("The Terrifier") == "Terrifier"
     lang("en")
     assert lobby.killer_label("The Nurse") == "Nurse"
+
+
+def test_the_terrifier_is_known_below_the_lobby_button():
+    """1.57.102 (Saru: "Es gibt neue Killer Art the Clown (the Terrifier)"): read with a slip it still counts, and
+    his own name as an outfit would be shown counts for him too."""
+    from fogscout import lobby
+    assert "The Terrifier" in lobby.KILLERS
+    assert lobby.fuzzy_killer("THE TERRIFIFR") == "The Terrifier" and lobby.fuzzy_killer("TERRIFIER") == "The Terrifier"
+    assert lobby.resolve_killer("Art the Clown", {}) == "The Terrifier"
 
 
 def test_hartshorne_mall_is_known_with_its_realm():

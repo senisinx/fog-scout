@@ -1169,7 +1169,7 @@
 "h":"25889c8dd6aea5fc"
 },
 "addon:Art Crispies":{
-"h":"03cd337d62d3f8ac"
+"h":"4df3ae2309300183"
 },
 "addon:Ash's Innards":{
 "h":"d1647474a3268d01"
@@ -1330,7 +1330,7 @@
 "h":"8c789ca2b826c9b9"
 },
 "addon:Bloodstained Bullet":{
-"h":"3844db52f53e8fdb"
+"h":"caab730d300b0fef"
 },
 "addon:Bloody Black Hood":{
 "h":"6693dedd8cb7091f"
@@ -1378,7 +1378,7 @@
 "h":"fef662f79da898b1"
 },
 "addon:Bottle of Bleach":{
-"h":"5ae1576926f08535"
+"h":"dc8739d9c192ae79"
 },
 "addon:Bottle of Chloroform":{
 "h":"b48e1fb2096378ab"
@@ -1435,7 +1435,7 @@
 "h":"033762bf5db198bd"
 },
 "addon:Brooke's Pustule":{
-"h":"a736c7d6eeed3346"
+"h":"41aec4fe446e2056"
 },
 "addon:Brown Noise Generator":{
 "h":"b6540bf313885029"
@@ -1476,7 +1476,7 @@
 "h":"b381d08fb8dd5e7e"
 },
 "addon:Caged Heart Shoes":{
-"h":"7d983cd796f4cfb7"
+"h":"bd5d8f8216c169f3"
 },
 "addon:Call to Arms":{
 "h":"29e62f8764531ae5"
@@ -1883,7 +1883,7 @@
 ]
 },
 "addon:Duct Tape":{
-"h":"7c1729208e125123"
+"h":"e673daa1f85ef25d"
 },
 "addon:Dull Bracelet":{
 "h":"be8a2d818dd72590"
@@ -1953,7 +1953,7 @@
 "h":"1781f9a42df92a45"
 },
 "addon:Explosive Gift":{
-"h":"d17c02653396d419"
+"h":"24faa417b411ad80"
 },
 "addon:Eye Goop":{
 "h":"f9321cb9d47c03b8"
@@ -1989,7 +1989,7 @@
 "h":"fb94e7017d9e0ed4"
 },
 "addon:Fingerless Parade Gloves":{
-"h":"d805fb44b7d82907"
+"h":"20dde422070bf3bb"
 },
 "addon:First Libretto":{
 "h":"e066612035512144"
@@ -2348,7 +2348,7 @@
 "h":"7ad00864ac3b745b"
 },
 "addon:Inferno Wires":{
-"h":"0848024a7fcb5168"
+"h":"3bb616e445abe630"
 },
 "addon:Infrared Upgrade":{
 "h":"9fe82300d9a82587"
@@ -2524,7 +2524,7 @@
 "h":"06754aa7039fda1a"
 },
 "addon:Jonathan's Skull":{
-"h":"38e907736c46ecb3"
+"h":"7d30c78cbeda85cc"
 },
 "addon:Judith's Journal":{
 "h":"4cd48f26bf9c8ea5"
@@ -2852,7 +2852,7 @@
 "h":"3bf02883e7f54660"
 },
 "addon:Mike's Phone":{
-"h":"8454d4125670a460"
+"h":"a8ca54f579d2bba9"
 },
 "addon:Mikhail's Eye":{
 "h":"e5bbc17a5a08d256"
@@ -3522,7 +3522,7 @@
 "h":"9daa6c95d4278a40"
 },
 "addon:Shiny Tricycle":{
-"h":"e9a54f8ade9f7511"
+"h":"85b58a924dcd11b7"
 },
 "addon:Ship Figurehead":{
 "h":"38f3a8ec7286b392"
@@ -3836,7 +3836,7 @@
 "h":"56112294055d5cfe"
 },
 "addon:The Ninth Circle":{
-"h":"3f97aaafce7470a1"
+"h":"320cf2c8f94cc367"
 },
 "addon:The Thompsons' Mix":{
 "h":"a1e918cc12f983ee"
@@ -3854,7 +3854,7 @@
 "h":"d268db511746645f"
 },
 "addon:Thornton Salt":{
-"h":"1057a82a1babad32"
+"h":"3a2309372b91007e"
 },
 "addon:Thorny Nest":{
 "h":"716f2fcddcf2bbbf",
@@ -4043,7 +4043,7 @@
 "h":"5df3847e19f03a5c"
 },
 "addon:Victoria's Eye":{
-"h":"97810ff2617018b4"
+"h":"a11a2229d6ad97bb"
 },
 "addon:Video Conference Device":{
 "h":"0ac9004e6b620a89"
@@ -5347,7 +5347,7 @@
 ]
 },
 "perk:Dark Arrogance":{
-"h":"b30325227f11d1eb",
+"h":"ad0cf0c30bcdd077",
 "n":[
 1.0,
 3.0,
@@ -6298,7 +6298,7 @@
 "h":"43788b11f4260c44"
 },
 "perk:Scourge Hook: Monstrous Shrine":{
-"h":"97a39f9a7305f752"
+"h":"5676fe126e33f1cf"
 },
 "perk:Scourge Hook: Pain Resonance":{
 "h":"6def502e24ad76d2",
@@ -8589,7 +8589,8 @@
 "KillerBlind"
 ],
 "Shared Trauma":[
-"Exhausted"
+"Exhausted",
+"ProtectionHits"
 ],
 "Shattered Hope":[
 "Auras",
